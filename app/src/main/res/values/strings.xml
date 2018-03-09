@@ -1,3 +1,5 @@
 <resources>
-    <string name="app_name">AndroidEmulator</string>
+    <string name="app_name">ArduinoSimulator</string>
+
+    <string name="hex_file_read_fail">Fail to read program.</string>
 </resources>
