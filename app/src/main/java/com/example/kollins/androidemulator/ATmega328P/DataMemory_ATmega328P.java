@@ -29,6 +29,9 @@ public class DataMemory_ATmega328P implements DataMemory {
     private void initDefaultContent() {
         //Status Register
         sdramMemory[0x5F] = 0x00;
+
+        //PORTB
+        sdramMemory[0x25] = 0x00;
     }
 
 
@@ -61,10 +64,8 @@ public class DataMemory_ATmega328P implements DataMemory {
             Log.e(UCModule.MY_LOG_TAG, "Bit position out of range");
             return;
         }
-        Log.d(UCModule.MY_LOG_TAG, String.format("Byte after\nData: 0x%02X", sdramMemory[byteAddress]));
         sdramMemory[byteAddress] = (byte) (sdramMemory[byteAddress] & (0xFF7F >> (8 - bitPosition)));   //Clear
         sdramMemory[byteAddress] = (byte) (sdramMemory[byteAddress] | ((Boolean.compare(bitState, true) + 1) << bitPosition));     //Set
-        Log.d(UCModule.MY_LOG_TAG, String.format("Byte before\nData: 0x%02X", sdramMemory[byteAddress]));
     }
 
     @Override
