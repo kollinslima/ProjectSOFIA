@@ -2,10 +2,10 @@ package com.example.kollins.androidemulator.ATmega328P;
 
 import android.util.Log;
 
+import com.example.kollins.androidemulator.UCModule;
 import com.example.kollins.androidemulator.uCInterfaces.CPUModule;
 import com.example.kollins.androidemulator.uCInterfaces.DataMemory;
 import com.example.kollins.androidemulator.uCInterfaces.ProgramMemory;
-import com.example.kollins.androidemulator.UCModule_ATmega328P;
 
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -22,17 +22,27 @@ public class CPUModule_ATmega328P implements CPUModule, Runnable {
 
     private Lock clockLock;
     private Condition clockCondition;
+    private byte clockCycles;
 
     private ProgramMemory programMemory;
     private DataMemory dataMemory;
-    private UCModule_ATmega328P uCModule;
+    private UCModule uCModule;
 
-    public CPUModule_ATmega328P(ProgramMemory programMemory, DataMemory dataMemory, UCModule_ATmega328P uCModule) {
+    private int statusRegister;
+
+    //Auxiliar for processing
+    private int offset;
+    private byte inDataL;
+    private byte inDataH;
+
+    public CPUModule_ATmega328P(ProgramMemory programMemory, DataMemory dataMemory, UCModule uCModule) {
         this.programMemory = programMemory;
         this.dataMemory = dataMemory;
         this.uCModule = uCModule;
 
         pcPointer = 0;
+        statusRegister = dataMemory.readByte(0x5F);
+
 
         clockLock = new ReentrantLock();
         clockCondition = clockLock.newCondition();
@@ -40,63 +50,143 @@ public class CPUModule_ATmega328P implements CPUModule, Runnable {
 
     @Override
     public void run() {
-        while (!uCModule.getResetFlag()) {
 
-            //Load instruction and add PC;
+        while (!uCModule.getResetFlag()) {
             try {
-                //Fetch
+                /******************************Fetch*****************************/
+
+                //Load instruction and add PC;
                 instruction = programMemory.loadInstruction(pcPointer++);
 
-                //Decode and execute
+                /*************************Decode and execute*******************/
                 switch ((0xF000 & instruction)) {
-                    case 0x2000:
-                        if ((0x0C00 & instruction) == 0x0400){
-//                            Log.d(UCModule_ATmega328P.MY_LOG_TAG, "instruction CLR");
+                    case 0x2000: {
+                        if ((0x0C00 & instruction) == 0x0400) {
+//                            Log.d(UCModule.MY_LOG_TAG, "instruction CLR");
 
                             //Implemented as XOR, but I'll write zero manually
-                           dataMemory.writeByte(
-                                   (char)((0x01F0 & instruction)>>4),
-                                   (byte) 0x00
-                           );
+                            dataMemory.writeByte(
+                                    ((0x01F0 & instruction) >> 4),
+                                    0x00
+                            );
+
+                            //Update Status Register
+                            statusRegister = (statusRegister & 0x3E);
+                            statusRegister = (statusRegister | 0x02);
+                            dataMemory.writeByte(
+                                    0x5F,
+                                    statusRegister
+                            );
+
+                            clockCycles = 1;
+
                         }
                         break;
+                    }
 
-                    case 0x9000:
+                    case 0x9000: {
                         if (((0x0E00 & instruction) == 0x0400)) {
                             if (((0x000E & instruction) == 0x000C)) {
-//                            Log.d(UCModule_ATmega328P.MY_LOG_TAG, "instruction JUMP");
+//                            Log.d(UCModule.MY_LOG_TAG, "instruction JUMP");
                                 pcPointer = programMemory.loadInstruction(pcPointer);
+                                clockCycles = 3;
+                            }
+                        } else if ((0x0F00 & instruction) == 0x0600) {
+//                            Log.d(UCModule.MY_LOG_TAG, "instruction ADDIW");
+
+                            offset = ((0x0030 & instruction) * 2);
+                            inDataL = dataMemory.readByte(0x18 + offset);
+                            inDataH = dataMemory.readByte(0x19 + offset);
+
+                            int outData = (((0x00FF & inDataH) << 8) | (0x00FF & inDataL)) +
+                                    (((0x00C0 & instruction) >> 2) | (0x000F & instruction));
+
+                            dataMemory.writeByte(0x18 + offset, (0x00FF & outData));
+                            dataMemory.writeByte(0x19 + offset, (0xFF00 & outData) >> 8);
+
+                            //Update status register
+                            //flag C -> R15 ¯ • Rdh7
+                            statusRegister = statusRegister & 0xFE;
+                            statusRegister = statusRegister | (((inDataH & 0x80) & ((~(outData & 0x8000)) >> 8)) >> 7);
+
+                            //flag Z
+                            if ((outData & 0x0000FFFF) == 0) {
+                                statusRegister = statusRegister | 0x02;
+                            } else {
+                                statusRegister = statusRegister & 0xFD;
+                            }
+
+                            //flag N -> check MSB of result
+                            statusRegister = statusRegister & 0xFB;
+                            statusRegister = statusRegister | ((outData & 0x00008000) >> 13);
+
+                            //flag V -> Rdh7 ¯ •R15
+                            statusRegister = statusRegister & 0xF7;
+                            statusRegister = statusRegister | (((~(inDataH & 0x80)) & ((outData & 0x8000) >> 8)) >> 4);
+
+                            //flag S -> XOR(V,N)
+                            statusRegister = statusRegister & 0xEF;
+                            statusRegister = statusRegister | (((statusRegister & 0x08) ^ ((statusRegister & 0x04) << 1)) << 1);
+
+                            dataMemory.writeByte(
+                                    0x5F,
+                                    statusRegister
+                            );
+
+                            clockCycles = 2;
+
+                        }
+                        break;
+                    }
+
+                    case 0xB000: {
+                        if ((0x0800 & instruction) == 0x0800) {
+//                        Log.d(UCModule.MY_LOG_TAG, "instruction OUT");
+                            dataMemory.writeByte(
+                                    ((((0x0600 & instruction) >> 5) | ((0x000F & instruction))) + 0x20), //Address
+                                    dataMemory.readByte(((0x00F0 & instruction) >> 4))                   //Data
+                            );
+                            clockCycles = 1;
+                        }
+                        break;
+                    }
+
+                    case 0xE000: {
+//                        Log.d(UCModule.MY_LOG_TAG, "instruction LDI");
+                        dataMemory.writeByte(
+                                (0x10 | (0x00F0 & instruction) >> 4),                        //Address
+                                (((0x0F00 & instruction) >> 4) | (0x000F & instruction))     //Data
+                        );
+                        clockCycles = 1;
+                        break;
+                    }
+
+                    case 0xF000:{
+                        if ((0x0C00 &instruction) == 0x0400){
+                            if ((0x0007 &instruction) == 0x0001){
+//                                Log.d(UCModule.MY_LOG_TAG, "Instruction BRNE");
+                                if ((0x02 & statusRegister) == 0){
+                                    pcPointer += (((0x03F8 & instruction)>>3)|0xFFFFFF80);  //Make sign extension to get correct two complement
+//                                    Log.d(UCModule.MY_LOG_TAG, "PC: " + (int)pcPointer);
+                                }
                             }
                         }
                         break;
+                    }
 
-                    case 0xB000:
-                        if ((0x0800 & instruction) == 0x0800) {
-//                        Log.d(UCModule_ATmega328P.MY_LOG_TAG, "instruction OUT");
-                            dataMemory.writeByte(
-                                    (char) ((((0x0600 & instruction) >> 5) | ((0x000F & instruction))) + 0x20), //Address
-                                    dataMemory.readByte((char) ((0x00F0 & instruction) >> 4))                   //Data
-                            );
-                        }
-                        break;
-
-                    case 0xE000:
-//                        Log.d(UCModule_ATmega328P.MY_LOG_TAG, "instruction LDI");
-                        dataMemory.writeByte(
-                                (char) (0x10 | (0x00F0 & instruction) >> 4),                        //Address
-                                (byte) (((0x0F00 & instruction) >> 4) | (0x000F & instruction))     //Data
-                        );
-                        break;
-
-                    default:
+                    default: {
                         //Casos extras
-                        Log.d(UCModule_ATmega328P.MY_LOG_TAG, "Unknown instruction: " + Integer.toHexString((int) instruction));
+                        Log.d(UCModule.MY_LOG_TAG, "Unknown instruction: " + Integer.toHexString((int) instruction));
+                    }
                 }
 
             } catch (ArrayIndexOutOfBoundsException e) {
                 break;
             }
-            waitClock();
+
+            while ((clockCycles--) > 0) {
+                waitClock();
+            }
         }
     }
 

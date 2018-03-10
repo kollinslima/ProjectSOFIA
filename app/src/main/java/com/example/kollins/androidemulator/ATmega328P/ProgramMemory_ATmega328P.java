@@ -8,7 +8,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
-import com.example.kollins.androidemulator.UCModule_ATmega328P;
+import com.example.kollins.androidemulator.UCModule;
 import com.example.kollins.androidemulator.uCInterfaces.ProgramMemory;
 
 import java.io.BufferedReader;
@@ -76,10 +76,10 @@ public class ProgramMemory_ATmega328P implements ProgramMemory {
                 codeObserver = new FileObserver(hexFile.getPath().toString(), FileObserver.DELETE_SELF) {
                     @Override
                     public void onEvent(int event, @Nullable String path) {
-                        Log.d(UCModule_ATmega328P.MY_LOG_TAG, "File event: " + event);
+                        Log.d(UCModule.MY_LOG_TAG, "File event: " + event);
 
                         //Send Broadcast
-                        Intent it = new Intent(UCModule_ATmega328P.RESET_ACTION);
+                        Intent it = new Intent(UCModule.RESET_ACTION);
                         LocalBroadcastManager.getInstance(ucContext).sendBroadcast(it);
                     }
                 };
@@ -90,14 +90,14 @@ public class ProgramMemory_ATmega328P implements ProgramMemory {
                         FileInputStream fis = new FileInputStream(hexFile);
                         loadHexFile(fis);
                     } catch (FileNotFoundException e) {
-                        Log.e(UCModule_ATmega328P.MY_LOG_TAG, "ERROR: Load .hex file", e);
+                        Log.e(UCModule.MY_LOG_TAG, "ERROR: Load .hex file", e);
                         return false;
                     }
                 }
             }
 
         } else {
-            Log.e(UCModule_ATmega328P.MY_LOG_TAG, "ERROR: Can't read SD card");
+            Log.e(UCModule.MY_LOG_TAG, "ERROR: Can't read SD card");
             return false;
         }
 
@@ -134,19 +134,19 @@ public class ProgramMemory_ATmega328P implements ProgramMemory {
             while ((line = reader.readLine()) != null) {
                 //Remove colon
                 line = line.substring(1);
-                Log.v(UCModule_ATmega328P.MY_LOG_TAG, line);
+                Log.v(UCModule.MY_LOG_TAG, line);
 
                 readBytes = hexStringToByteArray(line);
 
                 //Checksum()
 
                 dataSize = readBytes[INTEL_DATA_SIZE];
-                Log.d(UCModule_ATmega328P.MY_LOG_TAG, "Data size: " + dataSize);
+                Log.d(UCModule.MY_LOG_TAG, "Data size: " + dataSize);
 
                 switch (readBytes[INTEL_REORD_TYPE]) {
                     //Data
                     case 00:
-                        Log.v(UCModule_ATmega328P.MY_LOG_TAG, "Loading Data from hex");
+                        Log.v(UCModule.MY_LOG_TAG, "Loading Data from hex");
 
                         //Avoid sign extention
                         memoryPosition = (((int) (0x000000FF & readBytes[INTEL_ADDRESS])) << 8)
@@ -158,44 +158,44 @@ public class ProgramMemory_ATmega328P implements ProgramMemory {
                             memoryPosition = (extendedAddress << 16) | memoryPosition;
                         }
 
-                        Log.v(UCModule_ATmega328P.MY_LOG_TAG, "Memory position: " + memoryPosition);
+                        Log.v(UCModule.MY_LOG_TAG, "Memory position: " + memoryPosition);
 
                         for (int i = 0; i < dataSize; i++) {
                             flashMemory[memoryPosition + i] = readBytes[INTEL_DATA + i];
-                            Log.v(UCModule_ATmega328P.MY_LOG_TAG, String.format("Added 0x%02X to flash", readBytes[INTEL_DATA + i]));
+                            Log.v(UCModule.MY_LOG_TAG, String.format("Added 0x%02X to flash", readBytes[INTEL_DATA + i]));
                         }
 
                         break;
 
                     //End of File
                     case 01:
-                        Log.v(UCModule_ATmega328P.MY_LOG_TAG, "End of File from hex");
+                        Log.v(UCModule.MY_LOG_TAG, "End of File from hex");
                         break;
 
                     //Extended Segment Address
                     case 02:
-                        Log.v(UCModule_ATmega328P.MY_LOG_TAG, "Extended Segment Address from hex");
+                        Log.v(UCModule.MY_LOG_TAG, "Extended Segment Address from hex");
                         extendedSegmentAddress = true;
                         extendedLinearAddress = false;
 
                         extendedAddress = (((int) (0x000000FF & readBytes[INTEL_ADDRESS])) << 8)
                                 | (int) (0x000000FF & readBytes[INTEL_ADDRESS + 1]);
 
-                        Log.v(UCModule_ATmega328P.MY_LOG_TAG, "Extended by: " + extendedAddress);
+                        Log.v(UCModule.MY_LOG_TAG, "Extended by: " + extendedAddress);
                         break;
 
                     //Extended Linear Address
                     case 04:
-                        Log.v(UCModule_ATmega328P.MY_LOG_TAG, "Extended Linear Address from hex");
+                        Log.v(UCModule.MY_LOG_TAG, "Extended Linear Address from hex");
                         extendedSegmentAddress = false;
                         extendedLinearAddress = true;
 
                         extendedAddress = (readBytes[INTEL_DATA] << 8) | readBytes[INTEL_DATA];
-                        Log.v(UCModule_ATmega328P.MY_LOG_TAG, "Extended by: " + extendedAddress);
+                        Log.v(UCModule.MY_LOG_TAG, "Extended by: " + extendedAddress);
                         break;
 
                     default:
-                        Log.e(UCModule_ATmega328P.MY_LOG_TAG, "Record Type unknown: " +
+                        Log.e(UCModule.MY_LOG_TAG, "Record Type unknown: " +
                                 String.format("0x%02X", readBytes[INTEL_REORD_TYPE]));
                 }
 
@@ -204,9 +204,9 @@ public class ProgramMemory_ATmega328P implements ProgramMemory {
             reader.close();
             fis.close();
         } catch (IOException e) {
-            Log.e(UCModule_ATmega328P.MY_LOG_TAG, "ERROR: Load .hex file", e);
+            Log.e(UCModule.MY_LOG_TAG, "ERROR: Load .hex file", e);
         } catch (ArrayIndexOutOfBoundsException e){
-            Log.e(UCModule_ATmega328P.MY_LOG_TAG, "ERROR: .hex file bigger than 32kB", e);
+            Log.e(UCModule.MY_LOG_TAG, "ERROR: .hex file bigger than 32kB", e);
         }
     }
 

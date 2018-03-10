@@ -2,4 +2,7 @@
     <string name="app_name">ArduinoSimulator</string>
 
     <string name="hex_file_read_fail">Fail to read program.</string>
+
+    <!--Arduino model to uC-->
+    <string name="UNO">ATmega328P</string>
 </resources>

@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -26,14 +27,15 @@ import java.util.concurrent.locks.ReentrantLock;
  * Created by kollins on 3/7/18.
  */
 
-public class UCModule_ATmega328P extends AppCompatActivity {
+public class UCModule extends AppCompatActivity {
 
     public static String PACKAGE_NAME;
 
     //Default device
-    private String device = "ATmega328P";
+    private String device;
 
     private int oscilator = 16 * ((int) Math.pow(10, 6));
+    private long clockPeriod = (long) ((1 / (double) oscilator) * Math.pow(10, 10));
 
     //Default location
     private String hexFolderLocation = "ArduinoSimulator/";
@@ -57,8 +59,6 @@ public class UCModule_ATmega328P extends AppCompatActivity {
 
     private boolean resetFlag;
 
-    /***********************IO Atributes******************************/
-
     private TextView simulatedTimeDisplay;
     private long simulatedTime;
 
@@ -70,6 +70,12 @@ public class UCModule_ATmega328P extends AppCompatActivity {
         PACKAGE_NAME = getApplicationContext().getPackageName();
         ucBroadcastReceiver = new uCBroadcastReceiver();
         clockVectorLock = new ReentrantLock();
+
+        //Load device
+        SharedPreferences prefDevice = getSharedPreferences("deviceConfig", MODE_PRIVATE);
+        String model = prefDevice.getString("arduinoModel", "UNO");
+        device = getDevice(model);
+        setTitle("Arduino " + model);
 
         setUpUc();
 
@@ -93,6 +99,7 @@ public class UCModule_ATmega328P extends AppCompatActivity {
         super.onPause();
         LocalBroadcastManager.getInstance(this).unregisterReceiver(ucBroadcastReceiver);
     }
+
 
     private void setUpUc() {
         setResetFlag(false);
@@ -122,7 +129,7 @@ public class UCModule_ATmega328P extends AppCompatActivity {
 
                 Class cpuDevice = Class.forName(PACKAGE_NAME + "." + device + ".CPUModule_" + device);
                 cpuModule = (CPUModule) cpuDevice
-                        .getDeclaredConstructor(ProgramMemory.class, DataMemory.class, UCModule_ATmega328P.class)
+                        .getDeclaredConstructor(ProgramMemory.class, DataMemory.class, UCModule.class)
                         .newInstance(programMemory, dataMemory, this);
 
                 threadCPU = new Thread((Runnable) cpuModule);
@@ -145,8 +152,14 @@ public class UCModule_ATmega328P extends AppCompatActivity {
     private int getDeviceModules() {
         Resources res = getResources();
         int id = res.getIdentifier(device, "integer", getPackageName());
-        Log.d(MY_LOG_TAG, "getDeviceModules: " + res.getInteger(id));
+//        Log.d(MY_LOG_TAG, "getDeviceModules: " + res.getInteger(id));
         return res.getInteger(id);
+    }
+
+    private String getDevice(String model) {
+        Resources res = getResources();
+        int id = res.getIdentifier(model, "string", getPackageName());
+        return res.getString(id);
     }
 
     public synchronized boolean getResetFlag() {
@@ -218,9 +231,6 @@ public class UCModule_ATmega328P extends AppCompatActivity {
     }
 
 
-    /*****************************IOModule************************************/
-
-
     class uCBroadcastReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -228,8 +238,8 @@ public class UCModule_ATmega328P extends AppCompatActivity {
 
             switch (action) {
                 case CLOCK_ACTION:
-                    simulatedTime += (long) ((1 / (double) oscilator) * Math.pow(10, 9));
-                    simulatedTimeDisplay.setText(String.valueOf(simulatedTime));
+                    simulatedTime += clockPeriod;
+                    simulatedTimeDisplay.setText(String.valueOf(simulatedTime / 10));
                     break;
 
                 case RESET_ACTION:

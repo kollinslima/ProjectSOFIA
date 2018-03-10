@@ -8,9 +8,10 @@ public interface DataMemory {
 
     int getMemorySize();
 
-    void writeByte(char byteAddress, byte byteData);
-    byte readByte(char byteAddress);
+    void writeByte(int byteAddress, int byteData);
+    byte readByte(int byteAddress);
 
-    void writeBit(char byteAddress, byte bitPosition, boolean bitState);
-    boolean readBit(char byteAddress, byte bitPosition);
+    void writeBit(int byteAddress, byte bitPosition, boolean bitState);
+    boolean readBit(int byteAddress, byte bitPosition);
+
 }
