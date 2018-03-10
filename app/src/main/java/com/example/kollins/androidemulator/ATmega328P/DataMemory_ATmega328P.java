@@ -39,18 +39,18 @@ public class DataMemory_ATmega328P implements DataMemory{
 
     @Override
     public synchronized void writeByte(int byteAddress, int byteData) {
-        Log.d(UCModule.MY_LOG_TAG,
-                String.format("Write byte SDRAM\nAddress: 0x%s, Data: 0x%02X",
-                        Integer.toHexString((int)byteAddress), byteData));
+//        Log.d(UCModule.MY_LOG_TAG,
+//                String.format("Write byte SDRAM\nAddress: 0x%s, Data: 0x%02X",
+//                        Integer.toHexString((int)byteAddress), byteData));
 
         sdramMemory[byteAddress] = (byte) byteData;
     }
 
     @Override
     public synchronized byte readByte(int byteAddress) {
-        Log.d(UCModule.MY_LOG_TAG,
-                String.format("Read byte SDRAM\nAddress: 0x%s, Data read: 0x%02X",
-                        Integer.toHexString((int)byteAddress), sdramMemory[byteAddress]));
+//        Log.d(UCModule.MY_LOG_TAG,
+//                String.format("Read byte SDRAM\nAddress: 0x%s, Data read: 0x%02X",
+//                        Integer.toHexString((int)byteAddress), sdramMemory[byteAddress]));
         return sdramMemory[byteAddress];
     }
 

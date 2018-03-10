@@ -87,11 +87,40 @@ public class CPUModule_ATmega328P implements CPUModule, Runnable {
                     case 0x9000: {
                         if (((0x0E00 & instruction) == 0x0400)) {
                             if (((0x000E & instruction) == 0x000C)) {
-//                            Log.d(UCModule.MY_LOG_TAG, "instruction JUMP");
+//                            Log.d(UCModule.MY_LOG_TAG, "instruction JMP");
                                 pcPointer = programMemory.loadInstruction(pcPointer);
                                 clockCycles = 3;
                             }
-                        } else if ((0x0F00 & instruction) == 0x0600) {
+                        } else if (((0x0F00 & instruction) == 0x0B00)) {
+//                            Log.d(UCModule.MY_LOG_TAG, "instruction SBIS");
+
+                            inDataL = dataMemory.readByte( ((0x00F8 & instruction)>>3)+ 0x20);
+                            offset = (0x0007 & instruction);
+
+                            if ((0x0001 & (inDataL>>offset)) == 1){
+                                instruction = programMemory.loadInstruction(pcPointer++);
+                                clockCycles = 2;
+
+                                //Test 2 word instructions
+                                //JMP
+                                int testJMP_CALL = (0xFE0E & instruction);
+                                int testLDS_STS = (0xFE0F & instruction);
+
+                                if (testJMP_CALL == 0x940C ||       //JMP
+                                        testJMP_CALL == 0x940E ||   //CALL
+                                        testLDS_STS == 0x9000 ||    //LDS
+                                        testLDS_STS == 0x9200)      //STS
+                                {
+                                    clockCycles = 3;
+                                    ++pcPointer;
+                                }
+                            }
+                            else {
+                                clockCycles = 1;
+                            }
+
+
+                        }else if ((0x0F00 & instruction) == 0x0600) {
 //                            Log.d(UCModule.MY_LOG_TAG, "instruction ADDIW");
 
                             offset = ((0x0030 & instruction) * 2);
@@ -139,6 +168,11 @@ public class CPUModule_ATmega328P implements CPUModule, Runnable {
                         break;
                     }
 
+                    case 0xC000:{
+//                        Log.d(UCModule.MY_LOG_TAG, "instruction RJMP");
+                        pcPointer += ((0x03F8 & instruction)<<20)>>20;          //Make sign extension to get correct two complement
+                    }
+
                     case 0xB000: {
                         if ((0x0800 & instruction) == 0x0800) {
 //                        Log.d(UCModule.MY_LOG_TAG, "instruction OUT");
@@ -166,8 +200,7 @@ public class CPUModule_ATmega328P implements CPUModule, Runnable {
                             if ((0x0007 &instruction) == 0x0001){
 //                                Log.d(UCModule.MY_LOG_TAG, "Instruction BRNE");
                                 if ((0x02 & statusRegister) == 0){
-                                    pcPointer += (((0x03F8 & instruction)>>3)|0xFFFFFF80);  //Make sign extension to get correct two complement
-//                                    Log.d(UCModule.MY_LOG_TAG, "PC: " + (int)pcPointer);
+                                    pcPointer += ((0x03F8 & instruction)<<22)>>25;          //Make sign extension to get correct two complement
                                 }
                             }
                         }
@@ -176,7 +209,7 @@ public class CPUModule_ATmega328P implements CPUModule, Runnable {
 
                     default: {
                         //Casos extras
-                        Log.d(UCModule.MY_LOG_TAG, "Unknown instruction: " + Integer.toHexString((int) instruction));
+                        Log.v(UCModule.MY_LOG_TAG, "Unknown instruction: " + Integer.toHexString((int) instruction));
                     }
                 }
 
