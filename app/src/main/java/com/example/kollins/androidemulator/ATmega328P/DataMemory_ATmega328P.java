@@ -11,15 +11,15 @@ import com.example.kollins.androidemulator.uCInterfaces.DataMemory;
  * Created by kollins on 3/9/18.
  */
 
-public class DataMemory_ATmega328P implements DataMemory{
+public class DataMemory_ATmega328P implements DataMemory {
 
     //2kBytes
-    private final int SDRAM_SIZE = 2 * ((int)Math.pow(2,10));
+    private final int SDRAM_SIZE = 2 * ((int) Math.pow(2, 10));
     private byte[] sdramMemory;
 
     private Context ucContext;
 
-    public DataMemory_ATmega328P(Context ucContext){
+    public DataMemory_ATmega328P(Context ucContext) {
         this.ucContext = ucContext;
         sdramMemory = new byte[SDRAM_SIZE];
 
@@ -56,13 +56,21 @@ public class DataMemory_ATmega328P implements DataMemory{
 
 
     @Override
-    public synchronized void writeBit(int byteAddress, byte bitPosition, boolean bitState) {
-
+    public synchronized void writeBit(int byteAddress, int bitPosition, boolean bitState) {
+        if (bitPosition >= 8){
+            Log.e(UCModule.MY_LOG_TAG, "Bit position out of range");
+            return;
+        }
+        Log.d(UCModule.MY_LOG_TAG, String.format("Byte after\nData: 0x%02X", sdramMemory[byteAddress]));
+        sdramMemory[byteAddress] = (byte) (sdramMemory[byteAddress] & (0xFF7F >> (8 - bitPosition)));   //Clear
+        sdramMemory[byteAddress] = (byte) (sdramMemory[byteAddress] | ((Boolean.compare(bitState, true) + 1) << bitPosition));     //Set
+        Log.d(UCModule.MY_LOG_TAG, String.format("Byte before\nData: 0x%02X", sdramMemory[byteAddress]));
     }
 
     @Override
-    public synchronized boolean readBit(int byteAddress, byte bitPosition) {
-        return false;
+    public synchronized boolean readBit(int byteAddress, int bitPosition) {
+        return (0x01 & (sdramMemory[byteAddress] >> bitPosition)) != 0;
+
     }
 
 }

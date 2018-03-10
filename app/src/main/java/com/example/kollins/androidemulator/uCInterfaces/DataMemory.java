@@ -11,7 +11,7 @@ public interface DataMemory {
     void writeByte(int byteAddress, int byteData);
     byte readByte(int byteAddress);
 
-    void writeBit(int byteAddress, byte bitPosition, boolean bitState);
-    boolean readBit(int byteAddress, byte bitPosition);
+    void writeBit(int byteAddress, int bitPosition, boolean bitState);
+    boolean readBit(int byteAddress, int bitPosition);
 
 }

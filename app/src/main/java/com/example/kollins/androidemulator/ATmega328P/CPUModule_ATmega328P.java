@@ -62,6 +62,7 @@ public class CPUModule_ATmega328P implements CPUModule, Runnable {
                 switch ((0xF000 & instruction)) {
                     case 0x2000: {
                         if ((0x0C00 & instruction) == 0x0400) {
+                            /*************************CLR***********************/
 //                            Log.d(UCModule.MY_LOG_TAG, "instruction CLR");
 
                             //Implemented as XOR, but I'll write zero manually
@@ -87,17 +88,22 @@ public class CPUModule_ATmega328P implements CPUModule, Runnable {
                     case 0x9000: {
                         if (((0x0E00 & instruction) == 0x0400)) {
                             if (((0x000E & instruction) == 0x000C)) {
+                                /*************************JMP***********************/
 //                            Log.d(UCModule.MY_LOG_TAG, "instruction JMP");
                                 pcPointer = programMemory.loadInstruction(pcPointer);
                                 clockCycles = 3;
                             }
+                        } else if (((0x0F00 & instruction) == 0x0A00)) {
+                            /*************************SBI***********************/
+                            dataMemory.writeBit(((0x00F8 & instruction) >> 3) + 0x20, (0x0007 & instruction), true);
+                            clockCycles = 2;
+                            
                         } else if (((0x0F00 & instruction) == 0x0B00)) {
+                            /*************************SBIS***********************/
 //                            Log.d(UCModule.MY_LOG_TAG, "instruction SBIS");
 
-                            inDataL = dataMemory.readByte( ((0x00F8 & instruction)>>3)+ 0x20);
-                            offset = (0x0007 & instruction);
+                            if (dataMemory.readBit(((0x00F8 & instruction) >> 3) + 0x20, (0x0007 & instruction))) {
 
-                            if ((0x0001 & (inDataL>>offset)) == 1){
                                 instruction = programMemory.loadInstruction(pcPointer++);
                                 clockCycles = 2;
 
@@ -114,13 +120,13 @@ public class CPUModule_ATmega328P implements CPUModule, Runnable {
                                     clockCycles = 3;
                                     ++pcPointer;
                                 }
-                            }
-                            else {
+                            } else {
                                 clockCycles = 1;
                             }
 
 
-                        }else if ((0x0F00 & instruction) == 0x0600) {
+                        } else if ((0x0F00 & instruction) == 0x0600) {
+                            /*************************ADDIW***********************/
 //                            Log.d(UCModule.MY_LOG_TAG, "instruction ADDIW");
 
                             offset = ((0x0030 & instruction) * 2);
@@ -168,13 +174,16 @@ public class CPUModule_ATmega328P implements CPUModule, Runnable {
                         break;
                     }
 
-                    case 0xC000:{
+                    case 0xC000: {
+                        /*************************RJMP***********************/
 //                        Log.d(UCModule.MY_LOG_TAG, "instruction RJMP");
-                        pcPointer += ((0x03F8 & instruction)<<20)>>20;          //Make sign extension to get correct two complement
+                        pcPointer += ((0x03F8 & instruction) << 20) >> 20;          //Make sign extension to get correct two complement
+                        clockCycles = 2;
                     }
 
                     case 0xB000: {
                         if ((0x0800 & instruction) == 0x0800) {
+                            /*************************OUT***********************/
 //                        Log.d(UCModule.MY_LOG_TAG, "instruction OUT");
                             dataMemory.writeByte(
                                     ((((0x0600 & instruction) >> 5) | ((0x000F & instruction))) + 0x20), //Address
@@ -186,6 +195,7 @@ public class CPUModule_ATmega328P implements CPUModule, Runnable {
                     }
 
                     case 0xE000: {
+                        /*************************LDI***********************/
 //                        Log.d(UCModule.MY_LOG_TAG, "instruction LDI");
                         dataMemory.writeByte(
                                 (0x10 | (0x00F0 & instruction) >> 4),                        //Address
@@ -195,12 +205,16 @@ public class CPUModule_ATmega328P implements CPUModule, Runnable {
                         break;
                     }
 
-                    case 0xF000:{
-                        if ((0x0C00 &instruction) == 0x0400){
-                            if ((0x0007 &instruction) == 0x0001){
+                    case 0xF000: {
+                        if ((0x0C00 & instruction) == 0x0400) {
+                            if ((0x0007 & instruction) == 0x0001) {
+                                /*************************BRNE***********************/
 //                                Log.d(UCModule.MY_LOG_TAG, "Instruction BRNE");
-                                if ((0x02 & statusRegister) == 0){
-                                    pcPointer += ((0x03F8 & instruction)<<22)>>25;          //Make sign extension to get correct two complement
+                                clockCycles = 1;
+
+                                if ((0x02 & statusRegister) == 0) {
+                                    pcPointer += ((0x03F8 & instruction) << 22) >> 25;          //Make sign extension to get correct two complement
+                                    clockCycles = 2;
                                 }
                             }
                         }
