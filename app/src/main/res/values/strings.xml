@@ -1,8 +1,22 @@
 <resources>
     <string name="app_name">ArduinoSimulator</string>
-
     <string name="hex_file_read_fail">Fail to read program.</string>
+
+    <string name="outputSection_fragment">Output</string>
+
+    <plurals name="ledText">
+        <item quantity="zero">Off</item>
+        <item quantity="other">On</item>
+    </plurals>
 
     <!--Arduino model to uC-->
     <string name="UNO">ATmega328P</string>
+
+
+    <string name="action_reset">Reset</string>
+    <string name="action_add">Add</string>
+
+    <string name="action_output">Output</string>
+    <string name="action_anal_input">Analog Input</string>
+    <string name="action_input">Digital Input</string>
 </resources>

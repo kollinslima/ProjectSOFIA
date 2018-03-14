@@ -24,6 +24,8 @@ import java.io.InputStreamReader;
 
 public class ProgramMemory_ATmega328P implements ProgramMemory {
 
+    private char pcPointer;
+
     //32kBytes, each instruction is 16bits wide
     private final int FLASH_SIZE = 32 * ((int)Math.pow(2,10));
     private final int WORD_SIZE = 16;
@@ -40,6 +42,8 @@ public class ProgramMemory_ATmega328P implements ProgramMemory {
     public ProgramMemory_ATmega328P(Context ucContext){
         this.ucContext = ucContext;
         flashMemory = new byte[FLASH_SIZE];
+
+        pcPointer = 0;
     }
 
     //Thanks Dave L.
@@ -105,15 +109,31 @@ public class ProgramMemory_ATmega328P implements ProgramMemory {
     }
 
     @Override
-    public char loadInstruction(char pc) throws ArrayIndexOutOfBoundsException{
+    public int loadInstruction(){
+
+        Log.d(UCModule.MY_LOG_TAG, "Loading instruction -> PC: " + (int)pcPointer);
 
         byte instPart1, instPart2;
 
         //little-endian read
-        instPart1 = flashMemory[pc*2];
-        instPart2 = flashMemory[(pc*2)+1];
+        instPart1 = flashMemory[pcPointer*2];
+        instPart2 = flashMemory[(pcPointer*2)+1];
 
-        return (char) (((0x00FF & instPart2)<<8)|(0x00FF & instPart1));
+        pcPointer += 1;
+
+        return (((0x00FF & instPart2)<<8)|(0x00FF & instPart1));
+    }
+
+    @Override
+    public void setPC(int pc) {
+        pcPointer = (char) pc;
+        Log.d(UCModule.MY_LOG_TAG, "Setting PC to " + (int)pcPointer);
+    }
+
+    @Override
+    public void addToPC(int offset) {
+        pcPointer += offset;
+        Log.d(UCModule.MY_LOG_TAG, "Adding " + offset + " to PC. New value: " + (int)pcPointer);
     }
 
     private void loadHexFile(FileInputStream fis) {

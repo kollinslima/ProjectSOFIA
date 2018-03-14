@@ -13,6 +13,8 @@ import com.example.kollins.androidemulator.uCInterfaces.DataMemory;
 
 public class DataMemory_ATmega328P implements DataMemory {
 
+    public static final int SREG_ADDR = 0x5F;
+
     //2kBytes
     private final int SDRAM_SIZE = 2 * ((int) Math.pow(2, 10));
     private byte[] sdramMemory;
@@ -24,11 +26,15 @@ public class DataMemory_ATmega328P implements DataMemory {
         sdramMemory = new byte[SDRAM_SIZE];
 
         initDefaultContent();
+
     }
 
     private void initDefaultContent() {
         //Status Register
         sdramMemory[0x5F] = 0x00;
+
+        //DDRB
+        sdramMemory[0x24] = 0x00;
 
         //PORTB
         sdramMemory[0x25] = 0x00;
@@ -41,35 +47,39 @@ public class DataMemory_ATmega328P implements DataMemory {
     }
 
     @Override
-    public synchronized void writeByte(int byteAddress, int byteData) {
-//        Log.d(UCModule.MY_LOG_TAG,
-//                String.format("Write byte SDRAM\nAddress: 0x%s, Data: 0x%02X",
-//                        Integer.toHexString((int)byteAddress), byteData));
+    public synchronized void writeByte(int byteAddress, byte byteData) {
+        Log.d(UCModule.MY_LOG_TAG,
+                String.format("Write byte SDRAM\nAddress: 0x%s, Data: 0x%02X",
+                        Integer.toHexString((int)byteAddress), byteData));
 
-        sdramMemory[byteAddress] = (byte) byteData;
+        sdramMemory[byteAddress] = byteData;
     }
 
     @Override
     public synchronized byte readByte(int byteAddress) {
-//        Log.d(UCModule.MY_LOG_TAG,
-//                String.format("Read byte SDRAM\nAddress: 0x%s, Data read: 0x%02X",
-//                        Integer.toHexString((int)byteAddress), sdramMemory[byteAddress]));
+        Log.d(UCModule.MY_LOG_TAG,
+                String.format("Read byte SDRAM\nAddress: 0x%s, Data read: 0x%02X",
+                        Integer.toHexString((int)byteAddress), sdramMemory[byteAddress]));
         return sdramMemory[byteAddress];
     }
 
 
     @Override
     public synchronized void writeBit(int byteAddress, int bitPosition, boolean bitState) {
-        if (bitPosition >= 8){
-            Log.e(UCModule.MY_LOG_TAG, "Bit position out of range");
-            return;
+        Log.d(UCModule.MY_LOG_TAG,
+                String.format("Write bit SDRAM\nAddress: 0x%s",Integer.toHexString((int)byteAddress))
+        + " position: " + bitPosition + " state: " + bitState);
+        sdramMemory[byteAddress] = (byte) (sdramMemory[byteAddress] & (0xFF7F >> (7 - bitPosition)));   //Clear
+        if(bitState){
+            sdramMemory[byteAddress] = (byte) (sdramMemory[byteAddress] | (0x01 << bitPosition));     //Set
         }
-        sdramMemory[byteAddress] = (byte) (sdramMemory[byteAddress] & (0xFF7F >> (8 - bitPosition)));   //Clear
-        sdramMemory[byteAddress] = (byte) (sdramMemory[byteAddress] | ((Boolean.compare(bitState, true) + 1) << bitPosition));     //Set
     }
 
     @Override
     public synchronized boolean readBit(int byteAddress, int bitPosition) {
+        Log.d(UCModule.MY_LOG_TAG,
+                String.format("Read bit SDRAM\nAddress: 0x%s",Integer.toHexString((int)byteAddress))
+                        + " position: " + bitPosition + " state: " + ((0x01 & (sdramMemory[byteAddress] >> bitPosition)) != 0));
         return (0x01 & (sdramMemory[byteAddress] >> bitPosition)) != 0;
 
     }

@@ -7,5 +7,8 @@ package com.example.kollins.androidemulator.uCInterfaces;
 public interface ProgramMemory {
     int getMemorySize();
     boolean loadProgramMemory(String hexFileLocation);
-    char loadInstruction(char pc);
+    int loadInstruction();
+
+    void setPC(int pc);
+    void addToPC(int offset);
 }

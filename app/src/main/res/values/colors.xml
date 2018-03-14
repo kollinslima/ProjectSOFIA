@@ -5,4 +5,7 @@
     <color name="colorAccent">#d35400</color>
 
     <color name="simulatedTime">#FFFFFF</color>
+    <color name="toolBarText">#FFFFFF</color>
+
+    <color name="line">#000000</color>
 </resources>
