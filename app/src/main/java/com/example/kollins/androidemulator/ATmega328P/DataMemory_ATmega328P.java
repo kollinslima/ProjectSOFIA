@@ -1,8 +1,9 @@
 package com.example.kollins.androidemulator.ATmega328P;
 
-import android.content.Context;
+import android.os.Handler;
 import android.util.Log;
 
+import com.example.kollins.androidemulator.ATmega328P.IOModule_ATmega328P.OutputFragment;
 import com.example.kollins.androidemulator.UCModule;
 import com.example.kollins.androidemulator.uCInterfaces.DataMemory;
 
@@ -14,30 +15,30 @@ import com.example.kollins.androidemulator.uCInterfaces.DataMemory;
 public class DataMemory_ATmega328P implements DataMemory {
 
     public static final int SREG_ADDR = 0x5F;
+    public static final int DDRB_ADDR = 0x24;
+    public static final int PORTB_ADDR = 0x25;
 
     //2kBytes
     private final int SDRAM_SIZE = 2 * ((int) Math.pow(2, 10));
     private byte[] sdramMemory;
 
-    private Context ucContext;
+    private Handler outputHandler;
 
-    public DataMemory_ATmega328P(Context ucContext) {
-        this.ucContext = ucContext;
+    public DataMemory_ATmega328P() {
         sdramMemory = new byte[SDRAM_SIZE];
-
+        outputHandler = null;
         initDefaultContent();
-
     }
 
     private void initDefaultContent() {
         //Status Register
-        sdramMemory[0x5F] = 0x00;
+        sdramMemory[SREG_ADDR] = 0x00;
 
         //DDRB
-        sdramMemory[0x24] = 0x00;
+        sdramMemory[DDRB_ADDR] = 0x00;
 
         //PORTB
-        sdramMemory[0x25] = 0x00;
+        sdramMemory[PORTB_ADDR] = 0x00;
     }
 
 
@@ -52,7 +53,21 @@ public class DataMemory_ATmega328P implements DataMemory {
                 String.format("Write byte SDRAM\nAddress: 0x%s, Data: 0x%02X",
                         Integer.toHexString((int)byteAddress), byteData));
 
+        checkOutputAddress(byteAddress);
         sdramMemory[byteAddress] = byteData;
+    }
+
+    private void checkOutputAddress(int byteAddress) {
+        Log.v(UCModule.MY_LOG_TAG, String.format("Checking Address: 0x%s",
+                        Integer.toHexString((int)byteAddress)));
+        if (outputHandler == null){
+            return;
+        }
+        else {
+            if (byteAddress == PORTB_ADDR){
+                outputHandler.sendEmptyMessage(OutputFragment.OUTPUT_EVENT_PORTB);
+            }
+        }
     }
 
     @Override
@@ -69,6 +84,9 @@ public class DataMemory_ATmega328P implements DataMemory {
         Log.d(UCModule.MY_LOG_TAG,
                 String.format("Write bit SDRAM\nAddress: 0x%s",Integer.toHexString((int)byteAddress))
         + " position: " + bitPosition + " state: " + bitState);
+
+        checkOutputAddress(byteAddress);
+
         sdramMemory[byteAddress] = (byte) (sdramMemory[byteAddress] & (0xFF7F >> (7 - bitPosition)));   //Clear
         if(bitState){
             sdramMemory[byteAddress] = (byte) (sdramMemory[byteAddress] | (0x01 << bitPosition));     //Set
@@ -82,6 +100,11 @@ public class DataMemory_ATmega328P implements DataMemory {
                         + " position: " + bitPosition + " state: " + ((0x01 & (sdramMemory[byteAddress] >> bitPosition)) != 0));
         return (0x01 & (sdramMemory[byteAddress] >> bitPosition)) != 0;
 
+    }
+
+    @Override
+    public void setOuputHandler(Handler outputHandler) {
+        this.outputHandler = outputHandler;
     }
 
 }

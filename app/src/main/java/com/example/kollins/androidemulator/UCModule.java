@@ -7,7 +7,11 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.annotation.Nullable;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.PopupMenu;
@@ -18,12 +22,15 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.kollins.androidemulator.ATmega328P.IOModule_ATmega328P.OutputFragment;
 import com.example.kollins.androidemulator.uCInterfaces.DataMemory;
 import com.example.kollins.androidemulator.uCInterfaces.ProgramMemory;
 
+import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -42,16 +49,14 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
 
     //Default device
     public static String device;
-
-    private int oscilator = 16 * ((int) Math.pow(10, 6));
-    private long clockPeriod = (long) ((1 / (double) oscilator) * Math.pow(10, 10));
+    public static String model;
 
     //Default location
     private String hexFolderLocation = "ArduinoSimulator/";
     private String hexFileLocation = hexFolderLocation + "code.hex";
 
-    public static final String RESET_ACTION = "RESET_ACTION";
-    public static final String CLOCK_ACTION = "CLOCK_ACTION";
+    public static final int RESET_ACTION = 0;
+    public static final int CLOCK_ACTION = 1;
 
     public static final String MY_LOG_TAG = "LOG_SIMULATOR";
 
@@ -64,12 +69,14 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
     private CPUModule cpuModule;
     private Thread threadCPU;
 
-    private uCBroadcastReceiver ucBroadcastReceiver;
+    private uCHandler uCHandler;
 
     private boolean resetFlag;
 
-    private TextView simulatedTimeDisplay;
-    private long simulatedTime;
+    private FragmentManager mFragmentManager;
+    private FragmentTransaction mFragmentTransaction;
+
+    private OutputFragment outputFragment;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -77,23 +84,21 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
         setContentView(R.layout.io_interface);
         setSupportActionBar((Toolbar) findViewById(R.id.mainToolbar));
 
+        mFragmentManager = getSupportFragmentManager();
+        mFragmentTransaction = mFragmentManager.beginTransaction();
+
         PACKAGE_NAME = getApplicationContext().getPackageName();
-        ucBroadcastReceiver = new uCBroadcastReceiver();
+        uCHandler = new uCHandler();
         clockLock = new ReentrantLock();
 
         //Load device
         SharedPreferences prefDevice = getSharedPreferences("deviceConfig", MODE_PRIVATE);
-        String model = prefDevice.getString("arduinoModel", "UNO");
+        model = prefDevice.getString("arduinoModel", "UNO");
         device = getDevice(model);
         setTitle("Arduino " + model);
 
         clockVector = new boolean[getDeviceModules()];
         resetClockVector();
-
-        setUpUc();
-
-        simulatedTime = 0;
-        simulatedTimeDisplay = (TextView) findViewById(R.id.simulatedTime);
 
         ((Button) findViewById(R.id.manualClock)).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -109,8 +114,7 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
                     UCModule.resetClockVector();
 
                     //Send Broadcast
-                    Intent itClock = new Intent(CLOCK_ACTION);
-                    LocalBroadcastManager.getInstance(getBaseContext()).sendBroadcast(itClock);
+                    uCHandler.sendEmptyMessage(CLOCK_ACTION);
                 } finally {
                     clockLock.unlock();
                 }
@@ -122,17 +126,13 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
     @Override
     protected void onResume() {
         super.onResume();
-        IntentFilter filterReset = new IntentFilter(RESET_ACTION);
-        LocalBroadcastManager.getInstance(this).registerReceiver(ucBroadcastReceiver, filterReset);
-
-        IntentFilter filterClock = new IntentFilter(CLOCK_ACTION);
-        LocalBroadcastManager.getInstance(this).registerReceiver(ucBroadcastReceiver, filterClock);
+        setUpUc();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(ucBroadcastReceiver);
+        reset();
     }
 
     @Override
@@ -163,6 +163,16 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
     public boolean onMenuItemClick(MenuItem item) {
         switch (item.getItemId()){
             case R.id.action_output:
+                if (mFragmentManager.findFragmentByTag(OutputFragment.TAG_OUTPUT_FRAGMENT) == null) {
+
+                    ((FrameLayout) findViewById(R.id.outputPins)).setVisibility(View.VISIBLE);
+
+                    mFragmentTransaction.add(R.id.outputPins, outputFragment, OutputFragment.TAG_OUTPUT_FRAGMENT);
+                    mFragmentTransaction.commit();
+                }
+                else{
+                    outputFragment.addOuput();
+                }
                 break;
             case R.id.action_anal_input:
                 toast(item.getTitle().toString());
@@ -180,24 +190,29 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
         try {
             //Init RAM
             Class dataMemoryDevice = Class.forName(PACKAGE_NAME + "." + device + ".DataMemory_" + device);
-            dataMemory = (DataMemory) dataMemoryDevice
-                    .getDeclaredConstructor(Context.class)
-                    .newInstance(this);
+            dataMemory = (DataMemory) dataMemoryDevice.newInstance();
+//            dataMemory = (DataMemory) dataMemoryDevice
+//                    .getDeclaredConstructor(Handler.class)
+//                    .newInstance(uCHandler);
 
             Log.d(MY_LOG_TAG, "SDRAM size: " + dataMemory.getMemorySize());
 
             //Init FLASH
             Class programMemoryDevice = Class.forName(PACKAGE_NAME + "." + device + ".ProgramMemory_" + device);
             programMemory = (ProgramMemory) programMemoryDevice
-                    .getDeclaredConstructor(Context.class)
-                    .newInstance(this);
+                    .getDeclaredConstructor(Handler.class)
+                    .newInstance(uCHandler);
 
             Log.d(MY_LOG_TAG, "Flash size: " + programMemory.getMemorySize());
 
             if (programMemory.loadProgramMemory(hexFileLocation)) {
                 //hexFile read Successfully
 
-                cpuModule = new CPUModule(programMemory, dataMemory, this, clockLock);
+                outputFragment = new OutputFragment();
+                outputFragment.setDataMemory(dataMemory);
+//                outputFragment = OutputFragment.newOutputFragment(dataMemory);
+
+                cpuModule = new CPUModule(programMemory, dataMemory, this, uCHandler, clockLock);
                 threadCPU = new Thread((Runnable) cpuModule);
                 threadCPU.start();
 
@@ -251,8 +266,6 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
             e.printStackTrace();
         }
 
-        simulatedTime = 0;
-        simulatedTimeDisplay.setText(String.valueOf(simulatedTime));
         setUpUc();
     }
 
@@ -266,19 +279,14 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 
-
-    class uCBroadcastReceiver extends BroadcastReceiver {
+    class uCHandler extends Handler {
         @Override
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
+        public void handleMessage(Message msg) {
+            int action = msg.what;
 
             switch (action) {
                 case CLOCK_ACTION:
-
                     cpuModule.clockCPU();
-                    simulatedTime += clockPeriod;
-                    simulatedTimeDisplay.setText(String.valueOf(simulatedTime / 10));
-
                     break;
 
                 case RESET_ACTION:

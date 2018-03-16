@@ -2,15 +2,44 @@
     <string name="app_name">ArduinoSimulator</string>
     <string name="hex_file_read_fail">Fail to read program.</string>
 
+    <string name="running">Running.</string>
+    <string name="reset">Reset.</string>
+
     <string name="outputSection_fragment">Output</string>
 
-    <plurals name="ledText">
-        <item quantity="zero">Off</item>
-        <item quantity="other">On</item>
-    </plurals>
+    <string-array name="ledText">
+        <item>Off</item>
+        <item>On</item>
+        <item>X</item>
+    </string-array>
 
     <!--Arduino model to uC-->
     <string name="UNO">ATmega328P</string>
+
+    <!--Pins of model-->
+    <string-array
+        name="UNO_pins">
+        <item>Pin 0</item>
+        <item>Pin 1</item>
+        <item>Pin 2</item>
+        <item>Pin 3</item>
+        <item>Pin 4</item>
+        <item>Pin 5</item>
+        <item>Pin 6</item>
+        <item>Pin 7</item>
+        <item>Pin 8</item>
+        <item>Pin 9</item>
+        <item>Pin 10</item>
+        <item>Pin 11</item>
+        <item>Pin 12</item>
+        <item>Pin 13</item>
+        <item>A0</item>
+        <item>A1</item>
+        <item>A2</item>
+        <item>A3</item>
+        <item>A4</item>
+        <item>A5</item>
+    </string-array>
 
 
     <string name="action_reset">Reset</string>

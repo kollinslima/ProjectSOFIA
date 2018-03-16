@@ -5,6 +5,6 @@
 
     <stroke
         android:width="10dp"
-        android:color="@color/off_led" />
-    <solid android:color="@color/off_led" />
+        android:color="@color/on_led" />
+    <solid android:color="@color/on_led" />
 </shape>

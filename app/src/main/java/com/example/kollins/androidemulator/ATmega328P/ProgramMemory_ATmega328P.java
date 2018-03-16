@@ -1,11 +1,9 @@
 package com.example.kollins.androidemulator.ATmega328P;
 
-import android.content.Context;
-import android.content.Intent;
 import android.os.Environment;
 import android.os.FileObserver;
+import android.os.Handler;
 import android.support.annotation.Nullable;
-import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import com.example.kollins.androidemulator.UCModule;
@@ -17,6 +15,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.Serializable;
 
 /**
  * Created by kollins on 3/8/18.
@@ -37,10 +36,10 @@ public class ProgramMemory_ATmega328P implements ProgramMemory {
     private final int INTEL_DATA = 4;
 
     private FileObserver codeObserver;
-    private Context ucContext;
+    private Handler ucHandler;
 
-    public ProgramMemory_ATmega328P(Context ucContext){
-        this.ucContext = ucContext;
+    public ProgramMemory_ATmega328P(Handler ucHandler){
+        this.ucHandler = ucHandler;
         flashMemory = new byte[FLASH_SIZE];
 
         pcPointer = 0;
@@ -83,8 +82,7 @@ public class ProgramMemory_ATmega328P implements ProgramMemory {
                         Log.d(UCModule.MY_LOG_TAG, "File event: " + event);
 
                         //Send Broadcast
-                        Intent it = new Intent(UCModule.RESET_ACTION);
-                        LocalBroadcastManager.getInstance(ucContext).sendBroadcast(it);
+                        ucHandler.sendEmptyMessage(UCModule.RESET_ACTION);
                     }
                 };
                 codeObserver.startWatching();

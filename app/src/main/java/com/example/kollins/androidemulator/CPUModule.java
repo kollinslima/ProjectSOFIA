@@ -1,13 +1,16 @@
 package com.example.kollins.androidemulator;
 
 import android.content.Intent;
+import android.os.Handler;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+import android.widget.TextView;
 
 import com.example.kollins.androidemulator.ATmega328P.DataMemory_ATmega328P;
 import com.example.kollins.androidemulator.uCInterfaces.DataMemory;
 import com.example.kollins.androidemulator.uCInterfaces.ProgramMemory;
 
+import java.io.Serializable;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 
@@ -15,30 +18,28 @@ import java.util.concurrent.locks.Lock;
  * Created by kollins on 3/9/18.
  */
 
-public class CPUModule implements Runnable {
+public class CPUModule implements Runnable{
 
     private int instruction;
 
     private Lock clockLock;
     private Condition cpuClockCondition;
 
-
     private ProgramMemory programMemory;
     private DataMemory dataMemory;
+    private Handler uCHandler;
     private UCModule uCModule;
 
-    private Intent itClock;
 
-
-    public CPUModule(ProgramMemory programMemory, DataMemory dataMemory, UCModule uCModule, Lock clockLock) {
+    public CPUModule(ProgramMemory programMemory, DataMemory dataMemory, UCModule uCModule,
+                     Handler uCHandler, Lock clockLock) {
         this.programMemory = programMemory;
         this.dataMemory = dataMemory;
+        this.uCHandler = uCHandler;
         this.uCModule = uCModule;
 
         this.clockLock = clockLock;
         cpuClockCondition = clockLock.newCondition();
-
-        itClock = new Intent(UCModule.CLOCK_ACTION);
     }
 
     @Override
@@ -330,7 +331,7 @@ public class CPUModule implements Runnable {
             UCModule.resetClockVector();
 
             //Send Broadcast
-            LocalBroadcastManager.getInstance(uCModule).sendBroadcast(itClock);
+            uCHandler.sendEmptyMessage(UCModule.CLOCK_ACTION);
 
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -346,7 +347,6 @@ public class CPUModule implements Runnable {
         } finally {
             clockLock.unlock();
         }
-
     }
 
 }
