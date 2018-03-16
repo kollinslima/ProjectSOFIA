@@ -37,11 +37,12 @@ public class OutputFragment extends Fragment {
     private OutputAdapter outputAdapter;
     private List<OutputPin> outputPins;
 
-
     private OutputHandler outputHandler;
     private DataMemory dataMemory;
 
     private Resources res;
+
+    public boolean haveOutput;
 
 //    public static OutputFragment newOutputFragment (DataMemory dataMemory){
 //        Bundle param = new Bundle();
@@ -64,6 +65,8 @@ public class OutputFragment extends Fragment {
         outputPins.add(new OutputPin(null, 0, getDefaultPinPosition()));
 
         outputAdapter = new OutputAdapter(this, outputPins);
+
+        haveOutput = false;
     }
 
     @Nullable
@@ -77,6 +80,7 @@ public class OutputFragment extends Fragment {
         outputPinsList.setAdapter(outputAdapter);
 
         dataMemory.setOuputHandler(outputHandler);
+        haveOutput = true;
 
         return layout;
     }
@@ -99,6 +103,9 @@ public class OutputFragment extends Fragment {
 
     public void setDataMemory(DataMemory dataMemory) {
         this.dataMemory = dataMemory;
+        if (haveOutput) {
+            dataMemory.setOuputHandler(outputHandler);
+        }
     }
 
     class OutputHandler extends Handler{
@@ -137,6 +144,10 @@ public class OutputFragment extends Fragment {
         private void updateView(int index){
             View view = outputPinsList.getChildAt(index -
                     outputPinsList.getFirstVisiblePosition());
+
+            if (view == null){
+                return;
+            }
 
             TextView led = (TextView) view.findViewById(R.id.ledState);
             led.setText(getResources().getStringArray(R.array.ledText)[outputPins.get(index).getPinState()]);

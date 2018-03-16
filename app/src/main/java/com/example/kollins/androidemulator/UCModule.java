@@ -86,6 +86,7 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
 
         mFragmentManager = getSupportFragmentManager();
         mFragmentTransaction = mFragmentManager.beginTransaction();
+        outputFragment = new OutputFragment();
 
         PACKAGE_NAME = getApplicationContext().getPackageName();
         uCHandler = new uCHandler();
@@ -163,7 +164,8 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
     public boolean onMenuItemClick(MenuItem item) {
         switch (item.getItemId()){
             case R.id.action_output:
-                if (mFragmentManager.findFragmentByTag(OutputFragment.TAG_OUTPUT_FRAGMENT) == null) {
+                if (!outputFragment.haveOutput){
+//                if (mFragmentManager.findFragmentByTag(OutputFragment.TAG_OUTPUT_FRAGMENT) == null) {
 
                     ((FrameLayout) findViewById(R.id.outputPins)).setVisibility(View.VISIBLE);
 
@@ -208,7 +210,7 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
             if (programMemory.loadProgramMemory(hexFileLocation)) {
                 //hexFile read Successfully
 
-                outputFragment = new OutputFragment();
+//                outputFragment = new OutputFragment();
                 outputFragment.setDataMemory(dataMemory);
 //                outputFragment = OutputFragment.newOutputFragment(dataMemory);
 
