@@ -54,7 +54,7 @@ public class OutputAdapter extends BaseAdapter {
                 parent, false);
 
         Spinner pinSpinner = (Spinner) view.findViewById(R.id.pinSelector);
-        TextView led = (TextView) view.findViewById(R.id.ledState);
+        final TextView led = (TextView) view.findViewById(R.id.ledState);
 
         final OutputPin pin = outputPins.get(position);
 
@@ -73,6 +73,10 @@ public class OutputAdapter extends BaseAdapter {
             public void onItemSelected(AdapterView<?> parent, View view, int positionSpinner, long id) {
                 pin.setPin(pinArray[positionSpinner]);
                 pin.setPinPositionSpinner(positionSpinner);
+
+                //update view
+                led.setText(outputFragment.getResources().getStringArray(R.array.ledText)[pin.getPinState(pin.getPinPositionSpinner())]);
+                led.setBackgroundResource(OutputFragment.BACKGROUND_PIN[pin.getPinState(pin.getPinPositionSpinner())]);
             }
 
             @Override

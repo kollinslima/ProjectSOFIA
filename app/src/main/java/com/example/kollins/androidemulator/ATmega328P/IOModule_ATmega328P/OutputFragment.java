@@ -94,6 +94,13 @@ public class OutputFragment extends Fragment {
         }
     }
 
+    public void resetOuputs() {
+        for (OutputPin pin : outputPins){
+            pin.resetPinState();
+        }
+        outputAdapter.notifyDataSetChanged();
+    }
+
     class OutputHandler extends Handler {
 
         byte portRead;

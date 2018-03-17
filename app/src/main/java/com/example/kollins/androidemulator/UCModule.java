@@ -281,6 +281,8 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
 
         setResetFlag(true);
 
+        outputFragment.resetOuputs();
+
         try {
             if (threadCPU != null) {
                 Log.i(MY_LOG_TAG, "Waiting threads");

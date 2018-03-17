@@ -76,7 +76,7 @@ public class ProgramMemory_ATmega328P implements ProgramMemory {
                 File hexFile = new File(dcimDir, hexFileLocation);
 
                 //Watch for changes in hexFile
-                codeObserver = new FileObserver(hexFile.getPath().toString(), FileObserver.DELETE_SELF) {
+                codeObserver = new FileObserver(hexFile.getPath().toString(), FileObserver.DELETE_SELF|FileObserver.MODIFY) {
                     @Override
                     public void onEvent(int event, @Nullable String path) {
                         Log.d(UCModule.MY_LOG_TAG, "File event: " + event);

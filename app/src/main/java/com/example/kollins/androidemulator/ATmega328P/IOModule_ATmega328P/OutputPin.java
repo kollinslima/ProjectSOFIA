@@ -22,10 +22,7 @@ public class OutputPin {
         this.pin = pin;
         this.pinPositionSpinner = pinPositionSpinner;
 
-        for (int i = 0; i < pinState.length; i++){
-            pinState[i] = TRI_STATE;
-        }
-
+        resetPinState();
     }
 
     public OutputPin(String pin, int pinState, int pinPositionSpinner){
@@ -56,5 +53,11 @@ public class OutputPin {
 
     public int getPinPositionSpinner(){
         return pinPositionSpinner;
+    }
+
+    public void resetPinState(){
+        for (int i = 0; i < pinState.length; i++){
+            pinState[i] = TRI_STATE;
+        }
     }
 }
