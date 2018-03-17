@@ -47,9 +47,14 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
 
     public static String PACKAGE_NAME;
 
+    private int oscilator = 16 * ((int) Math.pow(10, 6));
+    private long clockPeriod = (long) ((1 / (double) oscilator) * Math.pow(10, 10));
+
     //Default device
     public static String device;
     public static String model;
+
+    public static Resources resources;
 
     //Default location
     private String hexFolderLocation = "ArduinoSimulator/";
@@ -78,6 +83,9 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
 
     private OutputFragment outputFragment;
 
+    private TextView simulatedTimeDisplay;
+    private long simulatedTime;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -89,6 +97,8 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
         outputFragment = new OutputFragment();
 
         PACKAGE_NAME = getApplicationContext().getPackageName();
+        resources = getResources();
+
         uCHandler = new uCHandler();
         clockLock = new ReentrantLock();
 
@@ -100,6 +110,8 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
 
         clockVector = new boolean[getDeviceModules()];
         resetClockVector();
+
+        simulatedTimeDisplay = (TextView) findViewById(R.id.simulatedTime);
 
         ((Button) findViewById(R.id.manualClock)).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -189,6 +201,8 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
     private void setUpUc() {
         setResetFlag(false);
 
+        simulatedTime = 0;
+
         try {
             //Init RAM
             Class dataMemoryDevice = Class.forName(PACKAGE_NAME + "." + device + ".DataMemory_" + device);
@@ -232,17 +246,25 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
 
     }
 
-    private int getDeviceModules() {
-        Resources res = getResources();
-        int id = res.getIdentifier(device, "integer", getPackageName());
+    public static int getDeviceModules() {
+        int id = resources.getIdentifier(device, "integer", PACKAGE_NAME);
 //        Log.d(MY_LOG_TAG, "getDeviceModules: " + res.getInteger(id));
-        return res.getInteger(id);
+        return resources.getInteger(id);
     }
 
-    private String getDevice(String model) {
-        Resources res = getResources();
-        int id = res.getIdentifier(model, "string", getPackageName());
-        return res.getString(id);
+    public static String getDevice(String model) {
+        int id = resources.getIdentifier(model, "string", PACKAGE_NAME);
+        return resources.getString(id);
+    }
+
+    public static int getDefaultPinPosition() {
+        int id = resources.getIdentifier(UCModule.model + "_defaultPinPosition", "integer", PACKAGE_NAME);
+        return resources.getInteger(id);
+    }
+
+    public static String[] getPinArray() {
+        int id = resources.getIdentifier(UCModule.model + "_pins", "array", PACKAGE_NAME);
+        return resources.getStringArray(id);
     }
 
     public synchronized boolean getResetFlag() {
@@ -289,6 +311,8 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
             switch (action) {
                 case CLOCK_ACTION:
                     cpuModule.clockCPU();
+                    simulatedTime += clockPeriod;
+                    simulatedTimeDisplay.setText(String.valueOf(simulatedTime/10));
                     break;
 
                 case RESET_ACTION:

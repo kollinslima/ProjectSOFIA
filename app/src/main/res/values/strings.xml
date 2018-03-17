@@ -10,7 +10,7 @@
     <string-array name="ledText">
         <item>Off</item>
         <item>On</item>
-        <item>X</item>
+        <item>Hi-Z</item>
     </string-array>
 
     <!--Arduino model to uC-->

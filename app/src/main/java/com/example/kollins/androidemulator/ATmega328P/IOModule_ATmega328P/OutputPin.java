@@ -1,5 +1,7 @@
 package com.example.kollins.androidemulator.ATmega328P.IOModule_ATmega328P;
 
+import com.example.kollins.androidemulator.UCModule;
+
 import java.io.Serializable;
 
 /**
@@ -7,13 +9,28 @@ import java.io.Serializable;
  */
 
 public class OutputPin {
+
+    public static final int LOW_LEVEL = 0;
+    public static final int HIGH_LEVEL = 1;
+    public static final int TRI_STATE = 2;
+
     private String pin;
-    private int pinState;
+    private int[] pinState = new int[UCModule.getPinArray().length];
     private int pinPositionSpinner;
+
+    public OutputPin(String pin, int pinPositionSpinner){
+        this.pin = pin;
+        this.pinPositionSpinner = pinPositionSpinner;
+
+        for (int i = 0; i < pinState.length; i++){
+            pinState[i] = TRI_STATE;
+        }
+
+    }
 
     public OutputPin(String pin, int pinState, int pinPositionSpinner){
         this.pin = pin;
-        this.pinState = pinState;
+        this.pinState[pinPositionSpinner] = pinState;
         this.pinPositionSpinner = pinPositionSpinner;
     }
 
@@ -25,12 +42,12 @@ public class OutputPin {
         this.pin = pin;
     }
 
-    public int getPinState() {
-        return pinState;
+    public int getPinState(int index) {
+        return pinState[index];
     }
 
-    public void setPinState(int pinState) {
-        this.pinState = pinState;
+    public void setPinState(int pinState, int index) {
+        this.pinState[index] = pinState;
     }
 
     public void setPinPositionSpinner(int position){

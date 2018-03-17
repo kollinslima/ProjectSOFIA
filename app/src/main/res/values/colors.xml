@@ -9,6 +9,7 @@
 
     <color name="line">#000000</color>
 
+    <color name="hi_z_led">#808080</color>
     <color name="off_led">#17A1A5</color>
     <color name="on_led">#FFCC00</color>
 </resources>

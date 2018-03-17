@@ -28,7 +28,7 @@ import java.util.Objects;
 
 public class OutputFragment extends Fragment {
 
-    public static final int[] BACKGROUND_PIN = {R.drawable.off_led, R.drawable.on_led};
+    public static final int[] BACKGROUND_PIN = {R.drawable.off_led, R.drawable.on_led, R.drawable.hi_z_led};
 
     public static final String TAG_OUTPUT_FRAGMENT = "outputFragmentTAG";
     public static final int OUTPUT_EVENT_PORTB = 10;
@@ -39,8 +39,6 @@ public class OutputFragment extends Fragment {
 
     private OutputHandler outputHandler;
     private DataMemory dataMemory;
-
-    private Resources res;
 
     public boolean haveOutput;
 
@@ -58,11 +56,10 @@ public class OutputFragment extends Fragment {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
 
-        res = getResources();
         outputHandler = new OutputHandler();
 
         outputPins = new ArrayList<OutputPin>();
-        outputPins.add(new OutputPin(null, 0, getDefaultPinPosition()));
+        outputPins.add(new OutputPin(null, UCModule.getDefaultPinPosition()));
 
         outputAdapter = new OutputAdapter(this, outputPins);
 
@@ -85,19 +82,8 @@ public class OutputFragment extends Fragment {
         return layout;
     }
 
-
-    public int getDefaultPinPosition() {
-        int id = res.getIdentifier(UCModule.model + "_defaultPinPosition", "integer", UCModule.PACKAGE_NAME);
-        return res.getInteger(id);
-    }
-
-    public String[] getPinArray() {
-        int id = res.getIdentifier(UCModule.model + "_pins", "array", UCModule.PACKAGE_NAME);
-        return res.getStringArray(id);
-    }
-
-    public void addOuput(){
-        outputPins.add(new OutputPin(null, 0, getDefaultPinPosition()));
+    public void addOuput() {
+        outputPins.add(new OutputPin(null, UCModule.getDefaultPinPosition()));
         outputAdapter.notifyDataSetChanged();
     }
 
@@ -108,51 +94,60 @@ public class OutputFragment extends Fragment {
         }
     }
 
-    class OutputHandler extends Handler{
+    class OutputHandler extends Handler {
 
         byte portRead;
+        byte configRead;
         int index;
+
+        TextView led;
 
         @Override
         public void handleMessage(Message msg) {
-            switch (msg.what){
+            switch (msg.what) {
                 case OUTPUT_EVENT_PORTB:
                     portRead = dataMemory.readByte(DataMemory_ATmega328P.PORTB_ADDR);
+                    configRead = dataMemory.readByte(DataMemory_ATmega328P.DDRB_ADDR);
 
                     Log.v(UCModule.MY_LOG_TAG, String.format("PORTB notified: 0x%s",
-                            Integer.toHexString((int)portRead)));
+                            Integer.toHexString((int) portRead)));
 
                     index = 0;
-                    for (OutputPin p : outputPins){
+                    for (OutputPin p : outputPins) {
                         for (int i = 8; i <= 13; i++) {
-                            Log.d(UCModule.MY_LOG_TAG, "Looking for: Pin " + i);
-                            Log.d(UCModule.MY_LOG_TAG, "Found: " + p.getPin());
-                            if (Objects.equals(p.getPin(),"Pin " + i)) {
+                            //Is input?
+                            if ((0x01 & (configRead >> (i - 8))) == 0) {
+                                //Set pull-up
+                            }
+                            //Is output!
+                            else {
                                 Log.d(UCModule.MY_LOG_TAG, "Setting pin state: " + (0x01 & (portRead >> (8 - i))));
-                                p.setPinState(0x01 & (portRead >> (i - 8)));
-                                updateView(index);
-//                                outputAdapter.notifyDataSetChanged();
+                                p.setPinState(0x01 & (portRead >> (i - 8)), i);
                             }
                         }
+                        updateView(index);
                         index += 1;
                     }
+
+
 
                     break;
             }
         }
 
-        private void updateView(int index){
+        private void updateView(int index) {
             View view = outputPinsList.getChildAt(index -
                     outputPinsList.getFirstVisiblePosition());
 
-            if (view == null){
+            if (view == null) {
                 return;
             }
 
-            TextView led = (TextView) view.findViewById(R.id.ledState);
-            led.setText(getResources().getStringArray(R.array.ledText)[outputPins.get(index).getPinState()]);
-            led.setBackgroundResource(BACKGROUND_PIN[outputPins.get(index).getPinState()]);
+            led = (TextView) view.findViewById(R.id.ledState);
 
+            OutputPin pin = outputPins.get(index);
+            led.setText(UCModule.resources.getStringArray(R.array.ledText)[pin.getPinState(pin.getPinPositionSpinner())]);
+            led.setBackgroundResource(BACKGROUND_PIN[pin.getPinState(pin.getPinPositionSpinner())]);
         }
     }
 

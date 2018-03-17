@@ -10,6 +10,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.example.kollins.androidemulator.R;
+import com.example.kollins.androidemulator.UCModule;
 
 import java.util.List;
 
@@ -28,7 +29,7 @@ public class OutputAdapter extends BaseAdapter {
         this.outputFragment = outputFragment;
         this.outputPins = outputPins;
 
-        pinArray = outputFragment.getPinArray();
+        pinArray = UCModule.getPinArray();
     }
 
     @Override
@@ -55,21 +56,23 @@ public class OutputAdapter extends BaseAdapter {
         Spinner pinSpinner = (Spinner) view.findViewById(R.id.pinSelector);
         TextView led = (TextView) view.findViewById(R.id.ledState);
 
-        led.setText(outputFragment.getResources().getStringArray(R.array.ledText)[outputPins.get(position).getPinState()]);
-        led.setBackgroundResource(OutputFragment.BACKGROUND_PIN[outputPins.get(position).getPinState()]);
+        final OutputPin pin = outputPins.get(position);
+
+        led.setText(outputFragment.getResources().getStringArray(R.array.ledText)[pin.getPinState(pin.getPinPositionSpinner())]);
+        led.setBackgroundResource(OutputFragment.BACKGROUND_PIN[pin.getPinState(pin.getPinPositionSpinner())]);
 
         ArrayAdapter<String> pinSpinnerAdapter =
                 new ArrayAdapter<String>(outputFragment.getContext(), android.R.layout.simple_spinner_item, pinArray);
 
         pinSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         pinSpinner.setAdapter(pinSpinnerAdapter);
-        pinSpinner.setSelection(outputPins.get(position).getPinPositionSpinner());
+        pinSpinner.setSelection(pin.getPinPositionSpinner());
 
         pinSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int positionSpinner, long id) {
-                outputPins.get(position).setPin(pinArray[positionSpinner]);
-                outputPins.get(position).setPinPositionSpinner(positionSpinner);
+                pin.setPin(pinArray[positionSpinner]);
+                pin.setPinPositionSpinner(positionSpinner);
             }
 
             @Override
