@@ -1,18 +1,14 @@
 package com.example.kollins.androidemulator;
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.Toolbar;
@@ -26,11 +22,11 @@ import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.kollins.androidemulator.ATmega328P.IOModule_ATmega328P.OutputFragment;
+import com.example.kollins.androidemulator.ATmega328P.IOModule_ATmega328P.Output.OutputFragment_ATmega328P;
 import com.example.kollins.androidemulator.uCInterfaces.DataMemory;
+import com.example.kollins.androidemulator.uCInterfaces.OutputFragment;
 import com.example.kollins.androidemulator.uCInterfaces.ProgramMemory;
 
-import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -86,6 +82,8 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
     private TextView simulatedTimeDisplay;
     private long simulatedTime;
 
+    private boolean setUpSuccessful;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -94,7 +92,6 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
 
         mFragmentManager = getSupportFragmentManager();
         mFragmentTransaction = mFragmentManager.beginTransaction();
-        outputFragment = new OutputFragment();
 
         PACKAGE_NAME = getApplicationContext().getPackageName();
         resources = getResources();
@@ -113,14 +110,24 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
 
         simulatedTimeDisplay = (TextView) findViewById(R.id.simulatedTime);
 
+        try {
+            Class outputFragmentDevice = Class.forName(PACKAGE_NAME + "." + device + ".IOModule_" +
+                    device + ".Output.OutputFragment_" + device);
+            outputFragment = (OutputFragment) outputFragmentDevice.newInstance();
+        } catch (ClassNotFoundException|IllegalAccessException|InstantiationException e) {
+            e.printStackTrace();
+        }
+
+        setUpSuccessful = false;
+
         ((Button) findViewById(R.id.manualClock)).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 clockLock.lock();
                 try {
                     clockVector[MANUAL_CLOCK] = true;
-                    for (boolean b : clockVector){
-                        if (!b){
+                    for (boolean b : clockVector) {
+                        if (!b) {
                             return;
                         }
                     }
@@ -150,18 +157,23 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_layout,menu);
+        getMenuInflater().inflate(R.menu.menu_layout, menu);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()){
+        switch (item.getItemId()) {
             case R.id.action_reset:
                 reset();
                 break;
 
             case R.id.action_add:
+
+                if (!setUpSuccessful){
+                    break;
+                }
+
                 PopupMenu popup = new PopupMenu(this, findViewById(R.id.action_add));
                 popup.setOnMenuItemClickListener(this);
                 MenuInflater inflater = popup.getMenuInflater();
@@ -174,17 +186,15 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
 
     @Override
     public boolean onMenuItemClick(MenuItem item) {
-        switch (item.getItemId()){
+        switch (item.getItemId()) {
             case R.id.action_output:
-                if (!outputFragment.haveOutput){
-//                if (mFragmentManager.findFragmentByTag(OutputFragment.TAG_OUTPUT_FRAGMENT) == null) {
-
+                if (!outputFragment.haveOutput()) {
                     ((FrameLayout) findViewById(R.id.outputPins)).setVisibility(View.VISIBLE);
 
-                    mFragmentTransaction.add(R.id.outputPins, outputFragment, OutputFragment.TAG_OUTPUT_FRAGMENT);
+                    mFragmentTransaction.add(R.id.outputPins, (Fragment) outputFragment, OutputFragment_ATmega328P.TAG_OUTPUT_FRAGMENT);
                     mFragmentTransaction.commit();
-                }
-                else{
+                    Log.i(MY_LOG_TAG, "Fragment commited");
+                } else {
                     outputFragment.addOuput();
                 }
                 break;
@@ -204,15 +214,6 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
         simulatedTime = 0;
 
         try {
-            //Init RAM
-            Class dataMemoryDevice = Class.forName(PACKAGE_NAME + "." + device + ".DataMemory_" + device);
-            dataMemory = (DataMemory) dataMemoryDevice.newInstance();
-//            dataMemory = (DataMemory) dataMemoryDevice
-//                    .getDeclaredConstructor(Handler.class)
-//                    .newInstance(uCHandler);
-
-            Log.d(MY_LOG_TAG, "SDRAM size: " + dataMemory.getMemorySize());
-
             //Init FLASH
             Class programMemoryDevice = Class.forName(PACKAGE_NAME + "." + device + ".ProgramMemory_" + device);
             programMemory = (ProgramMemory) programMemoryDevice
@@ -223,16 +224,25 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
 
             if (programMemory.loadProgramMemory(hexFileLocation)) {
                 //hexFile read Successfully
+                ((TextView)findViewById(R.id.hexFileErrorInstructions)).setVisibility(View.GONE);
 
-//                outputFragment = new OutputFragment();
+                //Init RAM
+                Class dataMemoryDevice = Class.forName(PACKAGE_NAME + "." + device + ".DataMemory_" + device);
+                dataMemory = (DataMemory) dataMemoryDevice.newInstance();
+
+                Log.d(MY_LOG_TAG, "SDRAM size: " + dataMemory.getMemorySize());
+
                 outputFragment.setDataMemory(dataMemory);
-//                outputFragment = OutputFragment.newOutputFragment(dataMemory);
 
                 cpuModule = new CPUModule(programMemory, dataMemory, this, uCHandler, clockLock);
                 threadCPU = new Thread((Runnable) cpuModule);
                 threadCPU.start();
 
+                setUpSuccessful = true;
+
             } else {
+                setUpSuccessful = false;
+                ((TextView)findViewById(R.id.hexFileErrorInstructions)).setVisibility(View.VISIBLE);
                 toast(getResources().getString(R.string.hex_file_read_fail));
             }
 
@@ -241,6 +251,7 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
                 InstantiationException |
                 NoSuchMethodException |
                 InvocationTargetException e) {
+            setUpSuccessful = false;
             e.printStackTrace();
         }
 
@@ -314,7 +325,7 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
                 case CLOCK_ACTION:
                     cpuModule.clockCPU();
                     simulatedTime += clockPeriod;
-                    simulatedTimeDisplay.setText(String.valueOf(simulatedTime/10));
+                    simulatedTimeDisplay.setText(String.valueOf(simulatedTime / 10));
                     break;
 
                 case RESET_ACTION:

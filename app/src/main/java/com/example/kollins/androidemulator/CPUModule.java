@@ -317,6 +317,7 @@ public class CPUModule implements Runnable{
     }
 
     private void waitClock() {
+
         clockLock.lock();
         try {
             UCModule.clockVector[UCModule.CPU_ID] = true;

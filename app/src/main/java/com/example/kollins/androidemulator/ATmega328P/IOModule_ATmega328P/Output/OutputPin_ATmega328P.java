@@ -1,4 +1,4 @@
-package com.example.kollins.androidemulator.ATmega328P.IOModule_ATmega328P;
+package com.example.kollins.androidemulator.ATmega328P.IOModule_ATmega328P.Output;
 
 import com.example.kollins.androidemulator.UCModule;
 
@@ -8,7 +8,7 @@ import java.io.Serializable;
  * Created by kollins on 3/14/18.
  */
 
-public class OutputPin {
+public class OutputPin_ATmega328P {
 
     public static final int LOW_LEVEL = 0;
     public static final int HIGH_LEVEL = 1;
@@ -18,14 +18,14 @@ public class OutputPin {
     private int[] pinState = new int[UCModule.getPinArray().length];
     private int pinPositionSpinner;
 
-    public OutputPin(String pin, int pinPositionSpinner){
+    public OutputPin_ATmega328P(String pin, int pinPositionSpinner){
         this.pin = pin;
         this.pinPositionSpinner = pinPositionSpinner;
 
         resetPinState();
     }
 
-    public OutputPin(String pin, int pinState, int pinPositionSpinner){
+    public OutputPin_ATmega328P(String pin, int pinState, int pinPositionSpinner){
         this.pin = pin;
         this.pinState[pinPositionSpinner] = pinState;
         this.pinPositionSpinner = pinPositionSpinner;

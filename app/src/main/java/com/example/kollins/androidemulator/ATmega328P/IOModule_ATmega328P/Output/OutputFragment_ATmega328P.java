@@ -1,6 +1,5 @@
-package com.example.kollins.androidemulator.ATmega328P.IOModule_ATmega328P;
+package com.example.kollins.androidemulator.ATmega328P.IOModule_ATmega328P.Output;
 
-import android.content.res.Resources;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -17,16 +16,16 @@ import com.example.kollins.androidemulator.ATmega328P.DataMemory_ATmega328P;
 import com.example.kollins.androidemulator.R;
 import com.example.kollins.androidemulator.UCModule;
 import com.example.kollins.androidemulator.uCInterfaces.DataMemory;
+import com.example.kollins.androidemulator.uCInterfaces.OutputFragment;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * Created by kollins on 3/14/18.
  */
 
-public class OutputFragment extends Fragment {
+public class OutputFragment_ATmega328P extends Fragment implements OutputFragment{
 
     public static final int[] BACKGROUND_PIN = {R.drawable.off_led, R.drawable.on_led, R.drawable.hi_z_led};
 
@@ -34,19 +33,21 @@ public class OutputFragment extends Fragment {
     public static final int OUTPUT_EVENT_PORTB = 10;
 
     private ListView outputPinsList;
-    private OutputAdapter outputAdapter;
-    private List<OutputPin> outputPins;
+    private OutputAdapter_ATmega328P outputAdapter;
+    private List<OutputPin_ATmega328P> outputPins;
 
     private OutputHandler outputHandler;
-    private DataMemory dataMemory;
+    private DataMemory_ATmega328P dataMemory;
 
-    public boolean haveOutput;
+    private boolean haveOutput;
+    private boolean pullUpEnabled;
 
-//    public static OutputFragment newOutputFragment (DataMemory dataMemory){
+
+//    public static OutputFragment_ATmega328P newOutputFragment (DataMemory dataMemory){
 //        Bundle param = new Bundle();
 //        param.putSerializable(EXTRA_DATA_MEMORY, dataMemory);
 //
-//        OutputFragment outputFragment = new OutputFragment();
+//        OutputFragment_ATmega328P outputFragment = new OutputFragment_ATmega328P();
 //        outputFragment.setArguments(param);
 //        return outputFragment;
 //    }
@@ -58,10 +59,10 @@ public class OutputFragment extends Fragment {
 
         outputHandler = new OutputHandler();
 
-        outputPins = new ArrayList<OutputPin>();
-        outputPins.add(new OutputPin(null, UCModule.getDefaultPinPosition()));
+        outputPins = new ArrayList<OutputPin_ATmega328P>();
+        outputPins.add(new OutputPin_ATmega328P(null, UCModule.getDefaultPinPosition()));
 
-        outputAdapter = new OutputAdapter(this, outputPins);
+        outputAdapter = new OutputAdapter_ATmega328P(this, outputPins);
 
         haveOutput = false;
     }
@@ -79,26 +80,38 @@ public class OutputFragment extends Fragment {
         dataMemory.setOuputHandler(outputHandler);
         haveOutput = true;
 
+        pullUpEnabled = !dataMemory.readBit(DataMemory_ATmega328P.MCUCR_ADDR, 4);
+
         return layout;
     }
 
+    public boolean haveOutput(){
+        return haveOutput;
+    }
+
     public void addOuput() {
-        outputPins.add(new OutputPin(null, UCModule.getDefaultPinPosition()));
+        outputPins.add(new OutputPin_ATmega328P(null, UCModule.getDefaultPinPosition()));
         outputAdapter.notifyDataSetChanged();
     }
 
     public void setDataMemory(DataMemory dataMemory) {
-        this.dataMemory = dataMemory;
+        this.dataMemory = (DataMemory_ATmega328P) dataMemory;
         if (haveOutput) {
-            dataMemory.setOuputHandler(outputHandler);
+            this.dataMemory.setOuputHandler(outputHandler);
         }
     }
 
     public void resetOuputs() {
-        for (OutputPin pin : outputPins){
+
+        if (outputPins == null) {
+            return;
+        }
+
+        for (OutputPin_ATmega328P pin : outputPins) {
             pin.resetPinState();
         }
         outputAdapter.notifyDataSetChanged();
+
     }
 
     class OutputHandler extends Handler {
@@ -120,11 +133,15 @@ public class OutputFragment extends Fragment {
                             Integer.toHexString((int) portRead)));
 
                     index = 0;
-                    for (OutputPin p : outputPins) {
+                    for (OutputPin_ATmega328P p : outputPins) {
                         for (int i = 8; i <= 13; i++) {
                             //Is input?
                             if ((0x01 & (configRead >> (i - 8))) == 0) {
-                                //Set pull-up
+                                if ((0x01 & (portRead >> (i - 8))) == 1 && pullUpEnabled){
+                                    p.setPinState(OutputPin_ATmega328P.HIGH_LEVEL, i);
+                                } else {
+                                    p.setPinState(OutputPin_ATmega328P.TRI_STATE, i);
+                                }
                             }
                             //Is output!
                             else {
@@ -135,7 +152,6 @@ public class OutputFragment extends Fragment {
                         updateView(index);
                         index += 1;
                     }
-
 
 
                     break;
@@ -152,7 +168,7 @@ public class OutputFragment extends Fragment {
 
             led = (TextView) view.findViewById(R.id.ledState);
 
-            OutputPin pin = outputPins.get(index);
+            OutputPin_ATmega328P pin = outputPins.get(index);
             led.setText(UCModule.resources.getStringArray(R.array.ledText)[pin.getPinState(pin.getPinPositionSpinner())]);
             led.setBackgroundResource(BACKGROUND_PIN[pin.getPinState(pin.getPinPositionSpinner())]);
         }

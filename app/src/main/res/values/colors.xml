@@ -6,6 +6,7 @@
 
     <color name="simulatedTime">#FFFFFF</color>
     <color name="toolBarText">#FFFFFF</color>
+    <!--<color name="hexErrorBackground">#FFFFFF</color>-->
 
     <color name="line">#000000</color>
 

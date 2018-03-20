@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">ArduinoSimulator</string>
     <string name="hex_file_read_fail">Fail to read program.</string>
+    <string name="hex_file_read_fail_instructions">Load a .hex file and reset system</string>
 
     <string name="running">Running.</string>
     <string name="reset">Reset.</string>

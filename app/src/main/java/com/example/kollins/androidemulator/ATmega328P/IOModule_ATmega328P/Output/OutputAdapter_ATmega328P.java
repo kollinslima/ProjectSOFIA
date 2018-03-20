@@ -1,4 +1,4 @@
-package com.example.kollins.androidemulator.ATmega328P.IOModule_ATmega328P;
+package com.example.kollins.androidemulator.ATmega328P.IOModule_ATmega328P.Output;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,14 +18,14 @@ import java.util.List;
  * Created by kollins on 3/14/18.
  */
 
-public class OutputAdapter extends BaseAdapter {
+public class OutputAdapter_ATmega328P extends BaseAdapter {
 
     private String[] pinArray;
 
-    private OutputFragment outputFragment;
-    private List<OutputPin> outputPins;
+    private OutputFragment_ATmega328P outputFragment;
+    private List<OutputPin_ATmega328P> outputPins;
 
-    public OutputAdapter(OutputFragment outputFragment, List<OutputPin> outputPins) {
+    public OutputAdapter_ATmega328P(OutputFragment_ATmega328P outputFragment, List<OutputPin_ATmega328P> outputPins) {
         this.outputFragment = outputFragment;
         this.outputPins = outputPins;
 
@@ -56,10 +56,10 @@ public class OutputAdapter extends BaseAdapter {
         Spinner pinSpinner = (Spinner) view.findViewById(R.id.pinSelector);
         final TextView led = (TextView) view.findViewById(R.id.ledState);
 
-        final OutputPin pin = outputPins.get(position);
+        final OutputPin_ATmega328P pin = outputPins.get(position);
 
         led.setText(outputFragment.getResources().getStringArray(R.array.ledText)[pin.getPinState(pin.getPinPositionSpinner())]);
-        led.setBackgroundResource(OutputFragment.BACKGROUND_PIN[pin.getPinState(pin.getPinPositionSpinner())]);
+        led.setBackgroundResource(OutputFragment_ATmega328P.BACKGROUND_PIN[pin.getPinState(pin.getPinPositionSpinner())]);
 
         ArrayAdapter<String> pinSpinnerAdapter =
                 new ArrayAdapter<String>(outputFragment.getContext(), android.R.layout.simple_spinner_item, pinArray);
@@ -76,7 +76,7 @@ public class OutputAdapter extends BaseAdapter {
 
                 //update view
                 led.setText(outputFragment.getResources().getStringArray(R.array.ledText)[pin.getPinState(pin.getPinPositionSpinner())]);
-                led.setBackgroundResource(OutputFragment.BACKGROUND_PIN[pin.getPinState(pin.getPinPositionSpinner())]);
+                led.setBackgroundResource(OutputFragment_ATmega328P.BACKGROUND_PIN[pin.getPinState(pin.getPinPositionSpinner())]);
             }
 
             @Override

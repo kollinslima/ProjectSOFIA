@@ -95,6 +95,8 @@ public class ProgramMemory_ATmega328P implements ProgramMemory {
                         Log.e(UCModule.MY_LOG_TAG, "ERROR: Load .hex file", e);
                         return false;
                     }
+                } else{
+                    return false;
                 }
             }
 
