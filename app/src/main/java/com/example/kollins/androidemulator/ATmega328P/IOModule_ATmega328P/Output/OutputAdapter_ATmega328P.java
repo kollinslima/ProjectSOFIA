@@ -54,6 +54,8 @@ public class OutputAdapter_ATmega328P extends BaseAdapter {
         final ViewHolderOutput_ATmega328P holder;
         final OutputPin_ATmega328P pin = outputPins.get(position);
         ListView listView = (ListView) parent;
+        ArrayAdapter<String> pinSpinnerAdapter =
+                new ArrayAdapter<String>(outputFragment.getContext(), android.R.layout.simple_spinner_item, pinArray);
 
         if (convertView == null) {
             view = LayoutInflater.from(outputFragment.getContext()).inflate(R.layout.output_pin,
@@ -68,9 +70,6 @@ public class OutputAdapter_ATmega328P extends BaseAdapter {
 
         holder.led.setText(outputFragment.getResources().getStringArray(R.array.ledText)[pin.getPinState(pin.getPinPositionSpinner())]);
         holder.led.setBackgroundResource(OutputFragment_ATmega328P.BACKGROUND_PIN[pin.getPinState(pin.getPinPositionSpinner())]);
-
-        ArrayAdapter<String> pinSpinnerAdapter =
-                new ArrayAdapter<String>(outputFragment.getContext(), android.R.layout.simple_spinner_item, pinArray);
 
         pinSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         holder.pinSpinner.setAdapter(pinSpinnerAdapter);

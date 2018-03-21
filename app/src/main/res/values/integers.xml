@@ -7,5 +7,91 @@
     <!--Position in array of pins-->
     <integer name="UNO_defaultPinPosition">13</integer>
 
+    <integer-array name="UNO_digitalInputMemoryAddress">
+        <!--PIN 0-->
+        <item>0x29</item>
+        <!--PIN 1-->
+        <item>0x29</item>
+        <!--PIN 2-->
+        <item>0x29</item>
+        <!--PIN 3-->
+        <item>0x29</item>
+        <!--PIN 4-->
+        <item>0x29</item>
+        <!--PIN 5-->
+        <item>0x29</item>
+        <!--PIN 6-->
+        <item>0x29</item>
+        <!--PIN 7-->
+        <item>0x29</item>
+        <!--PIN 8-->
+        <item>0x23</item>
+        <!--PIN 9-->
+        <item>0x23</item>
+        <!--PIN 10-->
+        <item>0x23</item>
+        <!--PIN 11-->
+        <item>0x23</item>
+        <!--PIN 12-->
+        <item>0x23</item>
+        <!--PIN 13-->
+        <item>0x23</item>
+        <!--A0-->
+        <item>0x26</item>
+        <!--A1-->
+        <item>0x26</item>
+        <!--A2-->
+        <item>0x26</item>
+        <!--A3-->
+        <item>0x26</item>
+        <!--A4-->
+        <item>0x26</item>
+        <!--A5-->
+        <item>0x26</item>
+    </integer-array>
+
+    <integer-array name="UNO_digitalInputMemoryBitPosition">
+        <!--PIN 0-->
+        <item>0</item>
+        <!--PIN 1-->
+        <item>1</item>
+        <!--PIN 2-->
+        <item>2</item>
+        <!--PIN 3-->
+        <item>3</item>
+        <!--PIN 4-->
+        <item>4</item>
+        <!--PIN 5-->
+        <item>5</item>
+        <!--PIN 6-->
+        <item>6</item>
+        <!--PIN 7-->
+        <item>7</item>
+        <!--PIN 8-->
+        <item>0</item>
+        <!--PIN 9-->
+        <item>1</item>
+        <!--PIN 10-->
+        <item>2</item>
+        <!--PIN 11-->
+        <item>3</item>
+        <!--PIN 12-->
+        <item>4</item>
+        <!--PIN 15-->
+        <item>5</item>
+        <!--A0-->
+        <item>0</item>
+        <!--A1-->
+        <item>1</item>
+        <!--A2-->
+        <item>2</item>
+        <!--A3-->
+        <item>3</item>
+        <!--A4-->
+        <item>4</item>
+        <!--A5-->
+        <item>5</item>
+    </integer-array>
+
 
 </resources>

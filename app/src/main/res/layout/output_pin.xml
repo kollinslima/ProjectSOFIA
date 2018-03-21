@@ -4,10 +4,11 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:padding="16dp"
+    android:gravity="center"
     android:descendantFocusability="blocksDescendants">
 
     <Spinner
-        android:id="@+id/pinSelector"
+        android:id="@+id/pinSelectorOutput"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"/>
@@ -22,8 +23,8 @@
         android:layout_width="50dp"
         android:layout_height="50dp"
         android:gravity="center"
-        android:padding="10dp"
-        android:background="@drawable/off_led"/>
+        android:background="@drawable/off_led"
+        android:padding="10dp"/>
 
 
 </LinearLayout>

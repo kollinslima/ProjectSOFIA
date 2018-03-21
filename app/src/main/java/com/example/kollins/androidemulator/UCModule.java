@@ -25,10 +25,12 @@ import android.widget.Toast;
 
 import com.example.kollins.androidemulator.ATmega328P.IOModule_ATmega328P.Output.OutputFragment_ATmega328P;
 import com.example.kollins.androidemulator.uCInterfaces.DataMemory;
+import com.example.kollins.androidemulator.uCInterfaces.DigitalInputFragment;
 import com.example.kollins.androidemulator.uCInterfaces.OutputFragment;
 import com.example.kollins.androidemulator.uCInterfaces.ProgramMemory;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -79,11 +81,13 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
     private FragmentTransaction mFragmentTransaction;
 
     private OutputFragment outputFragment;
+    private DigitalInputFragment digitalInputFragment;
 
     private TextView simulatedTimeDisplay;
     private long simulatedTime;
 
     private FrameLayout outputFrame;
+    private FrameLayout digitalInputFrame;
 
     private boolean setUpSuccessful;
 
@@ -92,6 +96,8 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
         super.onCreate(savedInstanceState);
         setContentView(R.layout.io_interface);
         setSupportActionBar((Toolbar) findViewById(R.id.mainToolbar));
+
+//        Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
 
 //        mFragmentManager = getSupportFragmentManager();
 //        mFragmentTransaction = mFragmentManager.beginTransaction();
@@ -114,12 +120,17 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
         simulatedTimeDisplay = (TextView) findViewById(R.id.simulatedTime);
 
         outputFrame = (FrameLayout) findViewById(R.id.outputPins);
+        digitalInputFrame = (FrameLayout) findViewById(R.id.digitalInputPins);
 
         try {
             Class outputFragmentDevice = Class.forName(PACKAGE_NAME + "." + device + ".IOModule_" +
                     device + ".Output.OutputFragment_" + device);
             outputFragment = (OutputFragment) outputFragmentDevice.newInstance();
-        } catch (ClassNotFoundException|IllegalAccessException|InstantiationException e) {
+
+            Class digitalInputFragmentDevice = Class.forName(PACKAGE_NAME + "." + device + ".IOModule_" +
+                    device + ".Digital_Input.DigitalInputFragment_" + device);
+            digitalInputFragment = (DigitalInputFragment) digitalInputFragmentDevice.newInstance();
+        } catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
             e.printStackTrace();
         }
 
@@ -174,7 +185,7 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
                 break;
 
             case R.id.action_add:
-                if (!setUpSuccessful){
+                if (!setUpSuccessful) {
                     break;
                 }
 
@@ -188,6 +199,8 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
             case R.id.action_clear_io:
                 outputFrame.setVisibility(View.GONE);
                 outputFragment.clearAll();
+                digitalInputFrame.setVisibility(View.GONE);
+                digitalInputFragment.clearAll();
                 break;
         }
         return super.onOptionsItemSelected(item);
@@ -203,17 +216,28 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
                     mFragmentManager = getSupportFragmentManager();
                     mFragmentTransaction = mFragmentManager.beginTransaction();
 
-                    mFragmentTransaction.add(R.id.outputPins, (Fragment) outputFragment, OutputFragment_ATmega328P.TAG_OUTPUT_FRAGMENT);
+                    mFragmentTransaction.add(R.id.outputPins, (Fragment) outputFragment, OutputFragment.TAG_OUTPUT_FRAGMENT);
                     mFragmentTransaction.commit();
                 } else {
                     outputFragment.addOuput();
                 }
                 break;
-            case R.id.action_anal_input:
-                toast(item.getTitle().toString());
+
+            case R.id.action_digital_input:
+                digitalInputFrame.setVisibility(View.VISIBLE);
+                if (!digitalInputFragment.haveDigitalInput()) {
+
+                    mFragmentManager = getSupportFragmentManager();
+                    mFragmentTransaction = mFragmentManager.beginTransaction();
+
+                    mFragmentTransaction.add(R.id.digitalInputPins, (Fragment) digitalInputFragment, DigitalInputFragment.TAG_DIGITAL_INPUT_FRAGMENT);
+                    mFragmentTransaction.commit();
+                } else {
+                    digitalInputFragment.addDigitalInput();
+                }
                 break;
 
-            case R.id.action_input:
+            case R.id.action_analog_input:
                 toast(item.getTitle().toString());
                 break;
         }
@@ -236,7 +260,7 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
 
             if (programMemory.loadProgramMemory(hexFileLocation)) {
                 //hexFile read Successfully
-                ((TextView)findViewById(R.id.hexFileErrorInstructions)).setVisibility(View.GONE);
+                ((TextView) findViewById(R.id.hexFileErrorInstructions)).setVisibility(View.GONE);
 
                 //Init RAM
                 Class dataMemoryDevice = Class.forName(PACKAGE_NAME + "." + device + ".DataMemory_" + device);
@@ -245,6 +269,7 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
                 Log.d(MY_LOG_TAG, "SDRAM size: " + dataMemory.getMemorySize());
 
                 outputFragment.setDataMemory(dataMemory);
+                digitalInputFragment.setDataMemory(dataMemory);
 
                 cpuModule = new CPUModule(programMemory, dataMemory, this, uCHandler, clockLock);
                 threadCPU = new Thread((Runnable) cpuModule);
@@ -254,7 +279,7 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
 
             } else {
                 setUpSuccessful = false;
-                ((TextView)findViewById(R.id.hexFileErrorInstructions)).setVisibility(View.VISIBLE);
+                ((TextView) findViewById(R.id.hexFileErrorInstructions)).setVisibility(View.VISIBLE);
                 toast(getResources().getString(R.string.hex_file_read_fail));
             }
 
@@ -290,15 +315,54 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
         return resources.getStringArray(id);
     }
 
-    public static String getNumberSelected(int number){
+    public static String[] getPinModeArray() {
+        return resources.getStringArray(R.array.inputModes);
+    }
+
+    public static String[] getPinArrayWithHint() {
+        int id = resources.getIdentifier(UCModule.model + "_pins", "array", PACKAGE_NAME);
+        String[] pinArrayWithHint = resources.getStringArray(id);
+        pinArrayWithHint = Arrays.copyOf(pinArrayWithHint, pinArrayWithHint.length + 1);
+
+        pinArrayWithHint[pinArrayWithHint.length - 1] = resources.getString(R.string.inputHint);
+        return pinArrayWithHint;
+    }
+
+    public static String getNumberSelected(int number) {
         return resources.getQuantityString(
                 R.plurals.number_selected,
                 number, number
         );
     }
 
-    public static int getSelectedColor(){
+    public static int[] getDigitalInputMemoryAddress() {
+        int id = resources.getIdentifier(UCModule.model + "_digitalInputMemoryAddress", "array", PACKAGE_NAME);
+        return resources.getIntArray(id);
+    }
+
+    public static int[] getDigitalInputMemoryBitPosition() {
+        int id = resources.getIdentifier(UCModule.model + "_digitalInputMemoryBitPosition", "array", PACKAGE_NAME);
+        return resources.getIntArray(id);
+    }
+
+    public static int getSelectedColor() {
         return resources.getColor(R.color.selectedItem);
+    }
+
+    public static int getButonOnCollor() {
+        return resources.getColor(R.color.on_button);
+    }
+
+    public static int getButonOffCollor() {
+        return resources.getColor(R.color.off_button);
+    }
+
+    public static String getButtonTextOn() {
+        return resources.getString(R.string.buttonOn);
+    }
+
+    public static String getButtonTextOff() {
+        return resources.getString(R.string.buttonOff);
     }
 
     public synchronized boolean getResetFlag() {
@@ -340,6 +404,7 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
     }
 
     class uCHandler extends Handler {
+
         @Override
         public void handleMessage(Message msg) {
             int action = msg.what;
@@ -347,8 +412,9 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
             switch (action) {
                 case CLOCK_ACTION:
                     cpuModule.clockCPU();
-                    simulatedTime += clockPeriod;
-                    simulatedTimeDisplay.setText(String.valueOf(simulatedTime / 10));
+                    //simulatedTime += clockPeriod;
+                    //simulatedTimeDisplay.setText(String.valueOf(simulatedTime / 10));
+
                     break;
 
                 case RESET_ACTION:

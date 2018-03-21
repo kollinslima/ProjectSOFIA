@@ -122,6 +122,18 @@ public class DataMemory_ATmega328P implements DataMemory {
 
     }
 
+    public synchronized void writeIOBit(int byteAddress, int bitPosition, boolean bitState){
+        sdramMemory[byteAddress] = (byte) (sdramMemory[byteAddress] & (0xFF7F >> (7 - bitPosition)));   //Clear
+        if (bitState) {
+            sdramMemory[byteAddress] = (byte) (sdramMemory[byteAddress] | (0x01 << bitPosition));     //Set
+        }
+
+        Log.i(UCModule.MY_LOG_TAG,
+                String.format("Write IO byte\nAddress: 0x%s, Data: 0x%02X",
+                        Integer.toHexString((int) byteAddress), sdramMemory[byteAddress]));
+
+    }
+
     @Override
     public synchronized boolean readBit(int byteAddress, int bitPosition) {
         Log.d(UCModule.MY_LOG_TAG,

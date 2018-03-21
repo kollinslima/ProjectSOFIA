@@ -15,7 +15,7 @@ public class ViewHolderOutput_ATmega328P {
     final TextView led;
 
     public ViewHolderOutput_ATmega328P(View view){
-        pinSpinner = (Spinner) view.findViewById(R.id.pinSelector);
+        pinSpinner = (Spinner) view.findViewById(R.id.pinSelectorOutput);
         led = (TextView) view.findViewById(R.id.ledState);
     }
 }

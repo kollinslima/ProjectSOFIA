@@ -8,6 +8,7 @@
     <string name="reset">Reset.</string>
 
     <string name="outputSection_fragment">Output</string>
+    <string name="digitalInputSection_fragment">Digital Input</string>
     
     <plurals name="number_selected">
         <item quantity="one">%d Selected</item>
@@ -22,6 +23,16 @@
 
     <string name="buttonOn">On</string>
     <string name="buttonOff">Off</string>
+
+    <string name="inputHint">Pin X</string>
+
+    <string-array name="inputModes">
+        <item>Push-GND</item>
+        <item>Push-VDD</item>
+        <item>Pull-up</item>
+        <item>Pull-down</item>
+        <item>Toggle</item>
+    </string-array>
 
     <!--Arduino model to uC-->
     <string name="UNO">ATmega328P</string>
@@ -60,6 +71,5 @@
     <string name="action_anal_input">Analog Input</string>
     <string name="action_input">Digital Input</string>
     <string name="action_clear_io">Clear I/O</string>
-    <string name="digitalInputSegment_fragment">Digital Input</string>
 
 </resources>

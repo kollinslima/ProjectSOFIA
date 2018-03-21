@@ -4,9 +4,9 @@
     <item android:id="@+id/action_output"
         android:title="@string/action_output"/>
 
-    <item android:id="@+id/action_anal_input"
+    <item android:id="@+id/action_analog_input"
         android:title="@string/action_anal_input"/>
 
-    <item android:id="@+id/action_input"
+    <item android:id="@+id/action_digital_input"
         android:title="@string/action_input"/>
 </menu>
