@@ -1,16 +1,24 @@
 package com.example.kollins.androidemulator.ATmega328P.IOModule_ATmega328P.Output;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.view.ActionMode;
 import android.util.Log;
+import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.kollins.androidemulator.ATmega328P.DataMemory_ATmega328P;
 import com.example.kollins.androidemulator.R;
@@ -25,7 +33,7 @@ import java.util.List;
  * Created by kollins on 3/14/18.
  */
 
-public class OutputFragment_ATmega328P extends Fragment implements OutputFragment{
+public class OutputFragment_ATmega328P extends Fragment implements OutputFragment, AdapterView.OnItemLongClickListener, ActionMode.Callback, AdapterView.OnItemClickListener {
 
     public static final int[] BACKGROUND_PIN = {R.drawable.off_led, R.drawable.on_led, R.drawable.hi_z_led};
 
@@ -41,6 +49,8 @@ public class OutputFragment_ATmega328P extends Fragment implements OutputFragmen
 
     private boolean haveOutput;
     private boolean pullUpEnabled;
+
+    private ActionMode mActionMode;
 
 
 //    public static OutputFragment_ATmega328P newOutputFragment (DataMemory dataMemory){
@@ -74,8 +84,9 @@ public class OutputFragment_ATmega328P extends Fragment implements OutputFragmen
         View layout = inflater.inflate(R.layout.frament_output, container, false);
 
         outputPinsList = (ListView) layout.findViewById(R.id.outputList);
-
         outputPinsList.setAdapter(outputAdapter);
+        outputPinsList.setOnItemClickListener(this);
+        outputPinsList.setOnItemLongClickListener(this);
 
         dataMemory.setOuputHandler(outputHandler);
         haveOutput = true;
@@ -113,6 +124,95 @@ public class OutputFragment_ATmega328P extends Fragment implements OutputFragmen
         outputAdapter.notifyDataSetChanged();
 
     }
+
+    public void clearAll(){
+        outputPins.clear();
+        outputAdapter.notifyDataSetChanged();
+    }
+
+    @Override
+    public boolean onCreateActionMode(ActionMode actionMode, Menu menu) {
+        getActivity().getMenuInflater().inflate(R.menu.menu_delete_item, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onPrepareActionMode(ActionMode actionMode, Menu menu) {
+        return false;
+    }
+
+    @Override
+    public boolean onActionItemClicked(ActionMode actionMode, MenuItem menuItem) {
+        if (menuItem.getItemId() == R.id.action_delete){
+            SparseBooleanArray checked = outputPinsList.getCheckedItemPositions();
+
+            for (int i = checked.size()-1; i>=0; i--){
+                if (checked.valueAt(i)){
+                    outputPins.remove(checked.keyAt(i));
+                }
+            }
+
+            actionMode.finish();
+            return true;
+        }
+
+        return false;
+    }
+
+    @Override
+    public void onDestroyActionMode(ActionMode actionMode) {
+        mActionMode = null;
+        outputPinsList.clearChoices();
+        outputAdapter.notifyDataSetChanged();
+        outputPinsList.setChoiceMode(ListView.CHOICE_MODE_NONE);
+    }
+
+    @Override
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        if (mActionMode == null) {
+            //Add measure
+        }
+        else{
+            int checkedCount = updateCheckedItens(outputPinsList, position);
+            if (checkedCount == 0){
+                mActionMode.finish();
+            }
+        }
+    }
+
+    @Override
+    public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+        boolean consumed = (mActionMode == null);
+
+        if (consumed){
+            AppCompatActivity activity = (AppCompatActivity) getActivity();
+
+            mActionMode = activity.startSupportActionMode(this);
+            outputPinsList.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
+            outputPinsList.setItemChecked(position, true);
+            updateCheckedItens(outputPinsList, position);
+        }
+
+        return consumed;
+    }
+
+    private int updateCheckedItens(ListView outputPinsList, int position) {
+        SparseBooleanArray checked = outputPinsList.getCheckedItemPositions();
+
+        outputPinsList.setItemChecked(position, outputPinsList.isItemChecked(position));
+
+        int checkedCount = 0;
+
+        for (int i = 0; i < checked.size(); i++){
+            if (checked.valueAt(i)) {
+                checkedCount++;
+            }
+        }
+
+        mActionMode.setTitle(UCModule.getNumberSelected(checkedCount));
+        return checkedCount;
+    }
+
 
     class OutputHandler extends Handler {
 

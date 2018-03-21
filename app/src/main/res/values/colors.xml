@@ -13,4 +13,12 @@
     <color name="hi_z_led">#808080</color>
     <color name="off_led">#17A1A5</color>
     <color name="on_led">#FFCC00</color>
+
+    <color name="off_button">#17A1A5</color>
+    <color name="on_button">#FFCC00</color>
+
+    <color name="off_digital_input">#17A1A5</color>
+    <color name="on_digital_input">#FFCC00</color>
+
+    <color name="selectedItem">#929292</color>
 </resources>

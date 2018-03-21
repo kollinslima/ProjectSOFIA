@@ -2,6 +2,7 @@ package com.example.kollins.androidemulator;
 
 import android.content.SharedPreferences;
 import android.content.res.Resources;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -82,6 +83,8 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
     private TextView simulatedTimeDisplay;
     private long simulatedTime;
 
+    private FrameLayout outputFrame;
+
     private boolean setUpSuccessful;
 
     @Override
@@ -90,8 +93,8 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
         setContentView(R.layout.io_interface);
         setSupportActionBar((Toolbar) findViewById(R.id.mainToolbar));
 
-        mFragmentManager = getSupportFragmentManager();
-        mFragmentTransaction = mFragmentManager.beginTransaction();
+//        mFragmentManager = getSupportFragmentManager();
+//        mFragmentTransaction = mFragmentManager.beginTransaction();
 
         PACKAGE_NAME = getApplicationContext().getPackageName();
         resources = getResources();
@@ -110,6 +113,8 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
 
         simulatedTimeDisplay = (TextView) findViewById(R.id.simulatedTime);
 
+        outputFrame = (FrameLayout) findViewById(R.id.outputPins);
+
         try {
             Class outputFragmentDevice = Class.forName(PACKAGE_NAME + "." + device + ".IOModule_" +
                     device + ".Output.OutputFragment_" + device);
@@ -120,26 +125,26 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
 
         setUpSuccessful = false;
 
-        ((Button) findViewById(R.id.manualClock)).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                clockLock.lock();
-                try {
-                    clockVector[MANUAL_CLOCK] = true;
-                    for (boolean b : clockVector) {
-                        if (!b) {
-                            return;
-                        }
-                    }
-                    UCModule.resetClockVector();
-
-                    //Send Broadcast
-                    uCHandler.sendEmptyMessage(CLOCK_ACTION);
-                } finally {
-                    clockLock.unlock();
-                }
-            }
-        });
+//        ((Button) findViewById(R.id.manualClock)).setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                clockLock.lock();
+//                try {
+//                    clockVector[MANUAL_CLOCK] = true;
+//                    for (boolean b : clockVector) {
+//                        if (!b) {
+//                            return;
+//                        }
+//                    }
+//                    UCModule.resetClockVector();
+//
+//                    //Send Broadcast
+//                    uCHandler.sendEmptyMessage(CLOCK_ACTION);
+//                } finally {
+//                    clockLock.unlock();
+//                }
+//            }
+//        });
 
     }
 
@@ -169,7 +174,6 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
                 break;
 
             case R.id.action_add:
-
                 if (!setUpSuccessful){
                     break;
                 }
@@ -180,6 +184,11 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
                 inflater.inflate(R.menu.pop_up_menu, popup.getMenu());
                 popup.show();
                 break;
+
+            case R.id.action_clear_io:
+                outputFrame.setVisibility(View.GONE);
+                outputFragment.clearAll();
+                break;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -188,12 +197,14 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
     public boolean onMenuItemClick(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_output:
+                outputFrame.setVisibility(View.VISIBLE);
                 if (!outputFragment.haveOutput()) {
-                    ((FrameLayout) findViewById(R.id.outputPins)).setVisibility(View.VISIBLE);
+
+                    mFragmentManager = getSupportFragmentManager();
+                    mFragmentTransaction = mFragmentManager.beginTransaction();
 
                     mFragmentTransaction.add(R.id.outputPins, (Fragment) outputFragment, OutputFragment_ATmega328P.TAG_OUTPUT_FRAGMENT);
                     mFragmentTransaction.commit();
-                    Log.i(MY_LOG_TAG, "Fragment commited");
                 } else {
                     outputFragment.addOuput();
                 }
@@ -201,6 +212,7 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
             case R.id.action_anal_input:
                 toast(item.getTitle().toString());
                 break;
+
             case R.id.action_input:
                 toast(item.getTitle().toString());
                 break;
@@ -276,6 +288,17 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
     public static String[] getPinArray() {
         int id = resources.getIdentifier(UCModule.model + "_pins", "array", PACKAGE_NAME);
         return resources.getStringArray(id);
+    }
+
+    public static String getNumberSelected(int number){
+        return resources.getQuantityString(
+                R.plurals.number_selected,
+                number, number
+        );
+    }
+
+    public static int getSelectedColor(){
+        return resources.getColor(R.color.selectedItem);
     }
 
     public synchronized boolean getResetFlag() {

@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">ArduinoSimulator</string>
+
     <string name="hex_file_read_fail">Fail to read program.</string>
     <string name="hex_file_read_fail_instructions">Load a .hex file and reset system</string>
 
@@ -7,12 +8,20 @@
     <string name="reset">Reset.</string>
 
     <string name="outputSection_fragment">Output</string>
+    
+    <plurals name="number_selected">
+        <item quantity="one">%d Selected</item>
+        <item quantity="other">%d Selected</item>
+    </plurals>
 
     <string-array name="ledText">
         <item>Off</item>
         <item>On</item>
         <item>Hi-Z</item>
     </string-array>
+
+    <string name="buttonOn">On</string>
+    <string name="buttonOff">Off</string>
 
     <!--Arduino model to uC-->
     <string name="UNO">ATmega328P</string>
@@ -45,8 +54,12 @@
 
     <string name="action_reset">Reset</string>
     <string name="action_add">Add</string>
+    <string name="action_delete">Delete</string>
 
     <string name="action_output">Output</string>
     <string name="action_anal_input">Analog Input</string>
     <string name="action_input">Digital Input</string>
+    <string name="action_clear_io">Clear I/O</string>
+    <string name="digitalInputSegment_fragment">Digital Input</string>
+
 </resources>

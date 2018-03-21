@@ -15,6 +15,8 @@ import com.example.kollins.androidemulator.uCInterfaces.DataMemory;
 public class DataMemory_ATmega328P implements DataMemory {
 
     public static final int SREG_ADDR = 0x5F;
+
+    public static final int PINB_ADDR = 0x23;
     public static final int DDRB_ADDR = 0x24;
     public static final int PORTB_ADDR = 0x25;
 
@@ -25,8 +27,6 @@ public class DataMemory_ATmega328P implements DataMemory {
     private byte[] sdramMemory;
 
     private Handler outputHandler;
-
-    private int checkedAddress;
 
     public DataMemory_ATmega328P() {
         sdramMemory = new byte[SDRAM_SIZE];
@@ -60,28 +60,36 @@ public class DataMemory_ATmega328P implements DataMemory {
                 String.format("Write byte SDRAM\nAddress: 0x%s, Data: 0x%02X",
                         Integer.toHexString((int) byteAddress), byteData));
 
-        checkedAddress = checkOutputAddress(byteAddress);
-        sdramMemory[byteAddress] = byteData;
+        if (byteAddress == PINB_ADDR){
+            //Toggle bits in PORTx
+            checkOutputAddress(byteAddress+2);
+
+            for (int i = 0; i < 8; i++) {
+                if ((0x01 & (byteData >> i)) == 1) {
+                    writeBit(byteAddress+2, i, !readBit(byteAddress+2, i));
+                }
+            }
+        } else {
+            checkOutputAddress(byteAddress);
+            sdramMemory[byteAddress] = byteData;
+        }
     }
 
-    private int checkOutputAddress(int byteAddress) {
+    private void checkOutputAddress(int byteAddress) {
         Log.v(UCModule.MY_LOG_TAG, String.format("Checking Address: 0x%s",
                 Integer.toHexString((int) byteAddress)));
 
-        //Check PINx
 
         if (outputHandler == null) {
-            return byteAddress;
+            return;
         }
 
-        switch (byteAddress){
+        switch (byteAddress) {
             case DDRB_ADDR:
             case PORTB_ADDR:
                 outputHandler.sendEmptyMessage(OutputFragment_ATmega328P.OUTPUT_EVENT_PORTB);
                 break;
         }
-
-        return byteAddress;
     }
 
     @Override
@@ -99,12 +107,19 @@ public class DataMemory_ATmega328P implements DataMemory {
                 String.format("Write bit SDRAM\nAddress: 0x%s", Integer.toHexString((int) byteAddress))
                         + " position: " + bitPosition + " state: " + bitState);
 
-        checkedAddress = checkOutputAddress(byteAddress);
+        if (byteAddress == PINB_ADDR){
+            //Toggle bits in PORTx
+            checkOutputAddress(byteAddress+2);
+            writeBit(byteAddress+2, bitPosition,!readBit(byteAddress+2, bitPosition));
+        } else {
+            checkOutputAddress(byteAddress);
 
-        sdramMemory[byteAddress] = (byte) (sdramMemory[byteAddress] & (0xFF7F >> (7 - bitPosition)));   //Clear
-        if (bitState) {
-            sdramMemory[byteAddress] = (byte) (sdramMemory[byteAddress] | (0x01 << bitPosition));     //Set
+            sdramMemory[byteAddress] = (byte) (sdramMemory[byteAddress] & (0xFF7F >> (7 - bitPosition)));   //Clear
+            if (bitState) {
+                sdramMemory[byteAddress] = (byte) (sdramMemory[byteAddress] | (0x01 << bitPosition));     //Set
+            }
         }
+
     }
 
     @Override
