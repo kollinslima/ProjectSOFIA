@@ -3,6 +3,7 @@ package com.example.kollins.androidemulator.ATmega328P.IOModule_ATmega328P.Digit
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -76,9 +77,17 @@ public class DigitalInputFragment_ATmega328P extends Fragment implements Digital
         return haveDigitalInput;
     }
 
+    public boolean isPullUpEnabled() {
+        return pullUpEnabled;
+    }
+
+    public boolean isPinPullUPEnabled(int memory, int bitPosition) {
+        return dataMemory.readBit(memory + 2, bitPosition);
+    }
+
     @Override
     public void clearAll() {
-        if (digitalInputPins == null){
+        if (digitalInputPins == null) {
             return;
         }
         digitalInputPins.clear();
@@ -90,8 +99,44 @@ public class DigitalInputFragment_ATmega328P extends Fragment implements Digital
         this.dataMemory = (DataMemory_ATmega328P) dataMemory;
     }
 
-    public void inputEvent(int signalState, int memotyPosition, int bitPosition){
+    public void inputEvent(int signalState, int memotyPosition, int bitPosition) {
         dataMemory.writeIOBit(memotyPosition, bitPosition, signalState == IOModule.HIGH_LEVEL);
+    }
+
+    public int inputRequest(int signalState, int memotyPosition, int bitPosition, String request) {
+        boolean containPin = false;
+        int pinIndex = 0;
+        try {
+            if (digitalInputPins.size() == 0) {
+                dataMemory.writeIOBit(memotyPosition, bitPosition, signalState == IOModule.HIGH_LEVEL);
+                return 1;
+            }
+
+            for (DigitalInputPin_ATmega328P p : digitalInputPins){
+                if (p.getPin().equals(request)){
+                    containPin = true;
+                    break;
+                }
+                pinIndex += 1;
+            }
+            if (containPin) {
+                if (digitalInputPins.get(pinIndex).getPinState() == IOModule.TRI_STATE) {
+                    dataMemory.writeIOBit(memotyPosition, bitPosition, signalState == IOModule.HIGH_LEVEL);
+                    return 1;
+                } else if (digitalInputPins.get(pinIndex).getPinState() != signalState) {
+                    return 0;
+                }
+            }
+            return 1;
+        } catch (NullPointerException e) {
+            dataMemory.writeIOBit(memotyPosition, bitPosition, signalState == IOModule.HIGH_LEVEL);
+            return 1;
+        }
+
+    }
+
+    public boolean getPINState(int memoryAddress, int bitPosition) {
+        return dataMemory.readBit(memoryAddress, bitPosition);
     }
 
     @Override

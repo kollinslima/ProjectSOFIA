@@ -93,6 +93,7 @@ public class DigitalInputAdapter_ATmega328P extends BaseAdapter {
                 }
                 pin.setPin(pinArray[positionSpinner]);
                 pin.setPinSpinnerPosition(positionSpinner);
+                holder.pushButton.performClick();
             }
 
             @Override
@@ -105,10 +106,52 @@ public class DigitalInputAdapter_ATmega328P extends BaseAdapter {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int positionSpinner, long id) {
                 pin.setPinMode(IOModule.PIN_MODES[positionSpinner]);
+
+                switch (pin.getPinMode()){
+                    case IOModule.PUSH_GND:
+                    case IOModule.PUSH_VDD:
+                        pin.setPinState(IOModule.TRI_STATE);
+                        break;
+
+                    case IOModule.PULL_UP:
+                        pin.setPinState(IOModule.HIGH_LEVEL);
+                        break;
+
+                    case IOModule.PULL_DOWN:
+                    case IOModule.TOGGLE:
+                        pin.setPinState(IOModule.LOW_LEVEL);
+                        break;
+                }
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
+        holder.pushButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                switch (pin.getPinMode()) {
+                    case IOModule.PUSH_GND:
+                    case IOModule.PUSH_VDD:
+                        holder.inputPinState.setBackgroundResource(R.drawable.digital_input_undefined);
+                        pin.setPinState(IOModule.TRI_STATE);
+                        if (digitalInputFragment.isPullUpEnabled() && digitalInputFragment.isPinPullUPEnabled(pin.getMemory(), pin.getBitPosition())) {
+                            digitalInputFragment.inputEvent(IOModule.HIGH_LEVEL, pin.getMemory(), pin.getBitPosition());
+                        } else {
+                            digitalInputFragment.inputEvent(randomGenerator.nextInt(2), pin.getMemory(), pin.getBitPosition());
+                        }
+                        break;
+
+                    case IOModule.PULL_UP:
+                        break;
+                    case IOModule.PULL_DOWN:
+                        break;
+                    case IOModule.TOGGLE:
+                        break;
+                }
 
             }
         });
@@ -128,10 +171,12 @@ public class DigitalInputAdapter_ATmega328P extends BaseAdapter {
                     switch (pin.getPinMode()) {
                         case IOModule.PUSH_GND:
                             holder.inputPinState.setBackgroundResource(R.drawable.digital_input_off);
+                            pin.setPinState(IOModule.LOW_LEVEL);
                             digitalInputFragment.inputEvent(IOModule.LOW_LEVEL, pin.getMemory(), pin.getBitPosition());
                             break;
                         case IOModule.PUSH_VDD:
                             holder.inputPinState.setBackgroundResource(R.drawable.digital_input_on);
+                            pin.setPinState(IOModule.HIGH_LEVEL);
                             digitalInputFragment.inputEvent(IOModule.HIGH_LEVEL, pin.getMemory(), pin.getBitPosition());
                             break;
                         case IOModule.PULL_UP:
@@ -150,7 +195,12 @@ public class DigitalInputAdapter_ATmega328P extends BaseAdapter {
                         case IOModule.PUSH_GND:
                         case IOModule.PUSH_VDD:
                             holder.inputPinState.setBackgroundResource(R.drawable.digital_input_undefined);
-                            digitalInputFragment.inputEvent(randomGenerator.nextInt(2), pin.getMemory(), pin.getBitPosition());
+                            pin.setPinState(IOModule.TRI_STATE);
+                            if (digitalInputFragment.isPullUpEnabled() && digitalInputFragment.isPinPullUPEnabled(pin.getMemory(), pin.getBitPosition())) {
+                                digitalInputFragment.inputEvent(IOModule.HIGH_LEVEL, pin.getMemory(), pin.getBitPosition());
+                            } else {
+                                digitalInputFragment.inputEvent(randomGenerator.nextInt(2), pin.getMemory(), pin.getBitPosition());
+                            }
                             break;
                         case IOModule.PULL_UP:
                             break;

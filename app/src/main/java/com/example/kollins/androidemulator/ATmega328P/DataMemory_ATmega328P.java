@@ -1,11 +1,14 @@
 package com.example.kollins.androidemulator.ATmega328P;
 
+import android.os.Bundle;
 import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 
 import com.example.kollins.androidemulator.ATmega328P.IOModule_ATmega328P.Output.OutputFragment_ATmega328P;
 import com.example.kollins.androidemulator.UCModule;
 import com.example.kollins.androidemulator.uCInterfaces.DataMemory;
+import com.example.kollins.androidemulator.uCInterfaces.IOModule;
 
 
 /**
@@ -26,11 +29,16 @@ public class DataMemory_ATmega328P implements DataMemory {
     private final int SDRAM_SIZE = 2 * ((int) Math.pow(2, 10));
     private byte[] sdramMemory;
 
-    private Handler outputHandler;
+    private Handler pinHandler;
 
-    public DataMemory_ATmega328P() {
+    private Bundle ioBundle;
+
+    public DataMemory_ATmega328P(Handler pinHandler) {
         sdramMemory = new byte[SDRAM_SIZE];
-        outputHandler = null;
+        this.pinHandler = pinHandler;
+
+        ioBundle = new Bundle();
+
         initDefaultContent();
     }
 
@@ -79,15 +87,19 @@ public class DataMemory_ATmega328P implements DataMemory {
         Log.v(UCModule.MY_LOG_TAG, String.format("Checking Address: 0x%s",
                 Integer.toHexString((int) byteAddress)));
 
-
-        if (outputHandler == null) {
-            return;
-        }
-
         switch (byteAddress) {
             case DDRB_ADDR:
             case PORTB_ADDR:
-                outputHandler.sendEmptyMessage(OutputFragment_ATmega328P.OUTPUT_EVENT_PORTB);
+
+                Message ioMessage = new Message();
+
+                ioBundle.putByte(IOModule.PORT_IOMESSAGE, readByte(DataMemory_ATmega328P.PORTB_ADDR));
+                ioBundle.putByte(IOModule.CONFIG_IOMESSAGE, readByte(DataMemory_ATmega328P.DDRB_ADDR));
+
+                ioMessage.what = IOModule.PORTB_EVENT;
+                ioMessage.setData(ioBundle);
+
+                pinHandler.sendMessage(ioMessage);
                 break;
         }
     }
@@ -128,9 +140,9 @@ public class DataMemory_ATmega328P implements DataMemory {
             sdramMemory[byteAddress] = (byte) (sdramMemory[byteAddress] | (0x01 << bitPosition));     //Set
         }
 
-        Log.i(UCModule.MY_LOG_TAG,
-                String.format("Write IO byte\nAddress: 0x%s, Data: 0x%02X",
-                        Integer.toHexString((int) byteAddress), sdramMemory[byteAddress]));
+//        Log.i(UCModule.MY_LOG_TAG,
+//                String.format("Write IO byte\nAddress: 0x%s, Data: 0x%02X",
+//                        Integer.toHexString((int) byteAddress), sdramMemory[byteAddress]));
 
     }
 
@@ -144,8 +156,8 @@ public class DataMemory_ATmega328P implements DataMemory {
     }
 
 
-    public void setOuputHandler(Handler outputHandler) {
-        this.outputHandler = outputHandler;
+    public void setPinHandler(Handler pinHandler) {
+        this.pinHandler = pinHandler;
     }
 
 }

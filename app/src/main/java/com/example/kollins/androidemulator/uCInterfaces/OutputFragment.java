@@ -11,6 +11,7 @@ public interface OutputFragment extends IOModule{
     void addOuput();
     void resetOuputs();
     void clearAll();
+
     void setDataMemory(DataMemory dataMemory);
 
     boolean haveOutput();

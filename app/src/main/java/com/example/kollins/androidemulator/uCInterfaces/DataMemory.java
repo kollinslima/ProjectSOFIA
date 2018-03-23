@@ -17,4 +17,6 @@ public interface DataMemory {
 
     void writeBit(int byteAddress, int bitPosition, boolean bitState);
     boolean readBit(int byteAddress, int bitPosition);
+
+    void setPinHandler(Handler pinHandler);
 }

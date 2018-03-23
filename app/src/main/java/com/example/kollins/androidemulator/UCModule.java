@@ -2,7 +2,6 @@ package com.example.kollins.androidemulator;
 
 import android.content.SharedPreferences;
 import android.content.res.Resources;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -18,14 +17,14 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.kollins.androidemulator.ATmega328P.IOModule_ATmega328P.Output.OutputFragment_ATmega328P;
+import com.example.kollins.androidemulator.ATmega328P.IOModule_ATmega328P.IOModule_ATmega328P;
 import com.example.kollins.androidemulator.uCInterfaces.DataMemory;
 import com.example.kollins.androidemulator.uCInterfaces.DigitalInputFragment;
+import com.example.kollins.androidemulator.uCInterfaces.IOModule;
 import com.example.kollins.androidemulator.uCInterfaces.OutputFragment;
 import com.example.kollins.androidemulator.uCInterfaces.ProgramMemory;
 
@@ -61,6 +60,7 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
 
     public static final int RESET_ACTION = 0;
     public static final int CLOCK_ACTION = 1;
+    public static final int SHORT_CIRCUIT_ACTION = 2;
 
     public static final String MY_LOG_TAG = "LOG_SIMULATOR";
 
@@ -82,6 +82,7 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
 
     private OutputFragment outputFragment;
     private DigitalInputFragment digitalInputFragment;
+    private IOModule ioModule;
 
     private TextView simulatedTimeDisplay;
     private long simulatedTime;
@@ -130,12 +131,19 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
             Class digitalInputFragmentDevice = Class.forName(PACKAGE_NAME + "." + device + ".IOModule_" +
                     device + ".Digital_Input.DigitalInputFragment_" + device);
             digitalInputFragment = (DigitalInputFragment) digitalInputFragmentDevice.newInstance();
-        } catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
+
+            Class ioModuleDevice = Class.forName(PACKAGE_NAME + "." + device + ".IOModule_" +
+                    device + ".IOModule_" + device);
+            ioModule = (IOModule) ioModuleDevice
+                    .getDeclaredConstructor(UCModule.uCHandler.class, OutputFragment.class, DigitalInputFragment.class)
+                    .newInstance(uCHandler, outputFragment, digitalInputFragment);
+
+        } catch (ClassNotFoundException | IllegalAccessException | InstantiationException
+                |NoSuchMethodException|InvocationTargetException e) {
             e.printStackTrace();
         }
 
         setUpSuccessful = false;
-
 //        ((Button) findViewById(R.id.manualClock)).setOnClickListener(new View.OnClickListener() {
 //            @Override
 //            public void onClick(View v) {
@@ -264,7 +272,7 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
 
                 //Init RAM
                 Class dataMemoryDevice = Class.forName(PACKAGE_NAME + "." + device + ".DataMemory_" + device);
-                dataMemory = (DataMemory) dataMemoryDevice.newInstance();
+                dataMemory = (DataMemory) dataMemoryDevice.getDeclaredConstructor(Handler.class).newInstance((Handler) ioModule);
 
                 Log.d(MY_LOG_TAG, "SDRAM size: " + dataMemory.getMemorySize());
 
@@ -403,7 +411,7 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 
-    class uCHandler extends Handler {
+    public class uCHandler extends Handler {
 
         @Override
         public void handleMessage(Message msg) {
@@ -418,6 +426,11 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
                     break;
 
                 case RESET_ACTION:
+                    reset();
+                    break;
+
+                case SHORT_CIRCUIT_ACTION:
+                    Toast.makeText(UCModule.this, "SHORT CIRCUIT!!!", Toast.LENGTH_SHORT).show();
                     reset();
                     break;
             }
