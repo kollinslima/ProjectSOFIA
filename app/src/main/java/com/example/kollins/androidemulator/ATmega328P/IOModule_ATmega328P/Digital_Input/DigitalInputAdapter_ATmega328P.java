@@ -1,5 +1,6 @@
 package com.example.kollins.androidemulator.ATmega328P.IOModule_ATmega328P.Digital_Input;
 
+import android.os.SystemClock;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -83,7 +84,12 @@ public class DigitalInputAdapter_ATmega328P extends BaseAdapter {
         holder.pinModeSpinner.setAdapter(pinSpinnerModeAdapter);
         holder.pinSpinner.setAdapter(pinSpinnerAdapter);
 
-        holder.pinSpinner.setSelection(pinSpinnerAdapter.getCount());
+        if (pin.getPinSpinnerPosition() < 0) {
+            holder.pinSpinner.setSelection(pinSpinnerAdapter.getCount());
+        }
+        else {
+            holder.pinSpinner.setSelection(pin.getPinSpinnerPosition());
+        }
 
         holder.pinSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -93,7 +99,24 @@ public class DigitalInputAdapter_ATmega328P extends BaseAdapter {
                 }
                 pin.setPin(pinArray[positionSpinner]);
                 pin.setPinSpinnerPosition(positionSpinner);
-                holder.pushButton.performClick();
+
+
+                //Simulate button release
+                int[] coordinates = new int[2];
+                holder.pushButton.getLocationOnScreen(coordinates);
+
+                // MotionEvent parameters
+                long downTime = SystemClock.uptimeMillis();
+                long eventTime = SystemClock.uptimeMillis();
+                int action = MotionEvent.ACTION_UP;
+                int x = coordinates[0];
+                int y = coordinates[1];
+                int metaState = 0;
+
+                // dispatch the event
+                MotionEvent event = MotionEvent.obtain(downTime, eventTime, action, x, y, metaState);
+                holder.pushButton.dispatchTouchEvent(event);
+
             }
 
             @Override
@@ -126,32 +149,6 @@ public class DigitalInputAdapter_ATmega328P extends BaseAdapter {
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
-
-            }
-        });
-
-        holder.pushButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                switch (pin.getPinMode()) {
-                    case IOModule.PUSH_GND:
-                    case IOModule.PUSH_VDD:
-                        holder.inputPinState.setBackgroundResource(R.drawable.digital_input_undefined);
-                        pin.setPinState(IOModule.TRI_STATE);
-                        if (digitalInputFragment.isPullUpEnabled() && digitalInputFragment.isPinPullUPEnabled(pin.getMemory(), pin.getBitPosition())) {
-                            digitalInputFragment.inputRequest_inputChanel(IOModule.HIGH_LEVEL, pin.getMemory(), pin.getBitPosition(), pin);
-                        } else {
-                            digitalInputFragment.inputRequest_inputChanel(randomGenerator.nextInt(2), pin.getMemory(), pin.getBitPosition(), pin);
-                        }
-                        break;
-
-                    case IOModule.PULL_UP:
-                        break;
-                    case IOModule.PULL_DOWN:
-                        break;
-                    case IOModule.TOGGLE:
-                        break;
-                }
 
             }
         });

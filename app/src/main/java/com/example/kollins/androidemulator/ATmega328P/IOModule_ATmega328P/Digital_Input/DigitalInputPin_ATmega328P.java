@@ -26,11 +26,11 @@ public class DigitalInputPin_ATmega328P {
         memoryBitPosition = UCModule.getDigitalInputMemoryBitPosition();
     }
 
-    public int getPinMode(){
+    public int getPinMode() {
         return pinMode;
     }
 
-    public void setPinMode(int pinMode){
+    public void setPinMode(int pinMode) {
         this.pinMode = pinMode;
     }
 
@@ -50,19 +50,19 @@ public class DigitalInputPin_ATmega328P {
         this.pin = pin;
     }
 
-    public void setPinState(int pinState){
+    public void setPinState(int pinState) {
         this.pinState = pinState;
     }
 
-    public int getPinState(){
+    public int getPinState() {
         return pinState;
     }
 
-    public int getMemory(){
+    public int getMemory() {
         return memoryAddress[pinSpinnerPosition];
     }
 
-    public int getBitPosition(){
+    public int getBitPosition() {
         return memoryBitPosition[pinSpinnerPosition];
     }
 }

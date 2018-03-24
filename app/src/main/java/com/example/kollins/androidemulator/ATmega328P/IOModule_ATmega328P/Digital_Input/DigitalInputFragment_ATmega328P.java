@@ -183,6 +183,7 @@ public class DigitalInputFragment_ATmega328P extends Fragment implements Digital
                             return true;
                         }
                     }
+                    dataMemory.writeIOBit(memoryParams[1], memoryParams[2], memoryParams[0] == IOModule.HIGH_LEVEL);
 
                 }
 
@@ -223,13 +224,13 @@ public class DigitalInputFragment_ATmega328P extends Fragment implements Digital
                 //Is there another input in the same pin?
                 ArrayList<DigitalInputPin_ATmega328P> duplicatedInputs = new ArrayList<DigitalInputPin_ATmega328P>();
                 for (DigitalInputPin_ATmega328P p : digitalInputPins) {
-                    if (p.equals(request)) {
+                    if (p.getPin().equals(request)) {
                         duplicatedInputs.add(p);
                     }
                 }
 
-                //No duplicated itens
-                if (duplicatedInputs.size() == 1) {
+                //No inputs
+                if (duplicatedInputs.size() == 0) {
                     dataMemory.writeIOBit(memoryParams[1], memoryParams[2], memoryParams[0] == IOModule.HIGH_LEVEL);
                     return false;
                 }
@@ -243,6 +244,7 @@ public class DigitalInputFragment_ATmega328P extends Fragment implements Digital
                         return true;
                     }
                 }
+                dataMemory.writeIOBit(memoryParams[1], memoryParams[2], memoryParams[0] == IOModule.HIGH_LEVEL);
 
             } catch (NullPointerException e) {
                 dataMemory.writeIOBit(memoryParams[1], memoryParams[2], memoryParams[0] == IOModule.HIGH_LEVEL);

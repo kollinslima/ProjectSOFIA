@@ -88,7 +88,6 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
                     else {
                         p.setPinState(0x01 & (portRead >> (i - 8)), i);
                     }
-
                 }
                 publishProgress(index);
                 index += 1;

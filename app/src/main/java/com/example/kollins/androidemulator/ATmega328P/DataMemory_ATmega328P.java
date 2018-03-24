@@ -68,15 +68,31 @@ public class DataMemory_ATmega328P implements DataMemory {
                 String.format("Write byte SDRAM\nAddress: 0x%s, Data: 0x%02X",
                         Integer.toHexString((int) byteAddress), byteData));
 
-        checkAddress(byteAddress);
         if (byteAddress == PINB_ADDR){
             //Toggle bits in PORTx
-            for (int i = 0; i < 8; i++) {
-                if ((0x01 & (byteData >> i)) == 1) {
-                    writeBit(byteAddress+2, i, !readBit(byteAddress+2, i));
+            boolean toggleBit;
+            byte toggleByte = 0x00;
+
+            for (int i = 0; i < 8; i++){
+                toggleBit = readBit(byteAddress+2, i);
+
+                if ((0x01 & byteData) == 1) {
+                    toggleByte = (byte) (toggleByte | ((toggleBit?0:1)<<i)); //NOT
+                } else {
+                    toggleByte = (byte) (toggleByte | ((toggleBit?1:0)<<i));
                 }
+
+                byteData = (byte) (byteData>>1);
             }
+
+            writeByte(byteAddress+2, toggleByte);
+//            for (int i = 0; i < 8; i++) {
+//                if ((0x01 & (byteData >> i)) == 1) {
+//                    writeBit(byteAddress+2, i, !readBit(byteAddress+2, i));
+//                }
+//            }
         } else {
+            checkAddress(byteAddress);
             sdramMemory[byteAddress] = byteData;
         }
     }
@@ -89,6 +105,10 @@ public class DataMemory_ATmega328P implements DataMemory {
             case DDRB_ADDR:
             case PORTB_ADDR:
             case PINB_ADDR:
+
+//                Log.i("Pull", "Send message to portB");
+//                Log.i("Pull", "PORT: " + readByte(DataMemory_ATmega328P.PORTB_ADDR));
+//                Log.i("Pull", "DDR: " + readByte(DataMemory_ATmega328P.DDRB_ADDR));
 
                 Message ioMessage = new Message();
 
@@ -118,12 +138,11 @@ public class DataMemory_ATmega328P implements DataMemory {
                 String.format("Write bit SDRAM\nAddress: 0x%s", Integer.toHexString((int) byteAddress))
                         + " position: " + bitPosition + " state: " + bitState);
 
-
-        checkAddress(byteAddress);
         if (byteAddress == PINB_ADDR){
             //Toggle bits in PORTx
             writeBit(byteAddress+2, bitPosition,!readBit(byteAddress+2, bitPosition));
         } else {
+            checkAddress(byteAddress);
             sdramMemory[byteAddress] = (byte) (sdramMemory[byteAddress] & (0xFF7F >> (7 - bitPosition)));   //Clear
             if (bitState) {
                 sdramMemory[byteAddress] = (byte) (sdramMemory[byteAddress] | (0x01 << bitPosition));     //Set
