@@ -102,9 +102,6 @@ public class OutputFragment_ATmega328P extends Fragment implements OutputFragmen
 
     public void setDataMemory(DataMemory dataMemory) {
         this.dataMemory = (DataMemory_ATmega328P) dataMemory;
-//        if (haveOutput) {
-//            this.dataMemory.setOuputHandler(pinHandler);
-//        }
     }
 
     public void resetOuputs() {
@@ -224,9 +221,13 @@ public class OutputFragment_ATmega328P extends Fragment implements OutputFragmen
 
         TextView led = (TextView) view.findViewById(R.id.ledState);
 
-        OutputPin_ATmega328P pin = outputPins.get(index);
-        led.setText(UCModule.resources.getStringArray(R.array.ledText)[pin.getPinState(pin.getPinPositionSpinner())]);
-        led.setBackgroundResource(BACKGROUND_PIN[pin.getPinState(pin.getPinPositionSpinner())]);
+        try {
+            OutputPin_ATmega328P pin = outputPins.get(index);
+            led.setText(UCModule.resources.getStringArray(R.array.ledText)[pin.getPinState(pin.getPinPositionSpinner())]);
+            led.setBackgroundResource(BACKGROUND_PIN[pin.getPinState(pin.getPinPositionSpinner())]);
+        } catch (IndexOutOfBoundsException e){
+            //AsyncTask may be still running and cause this error.
+        }
     }
 
 

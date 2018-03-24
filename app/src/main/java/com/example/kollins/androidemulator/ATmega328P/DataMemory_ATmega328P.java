@@ -68,28 +68,27 @@ public class DataMemory_ATmega328P implements DataMemory {
                 String.format("Write byte SDRAM\nAddress: 0x%s, Data: 0x%02X",
                         Integer.toHexString((int) byteAddress), byteData));
 
+        checkAddress(byteAddress);
         if (byteAddress == PINB_ADDR){
             //Toggle bits in PORTx
-            checkOutputAddress(byteAddress+2);
-
             for (int i = 0; i < 8; i++) {
                 if ((0x01 & (byteData >> i)) == 1) {
                     writeBit(byteAddress+2, i, !readBit(byteAddress+2, i));
                 }
             }
         } else {
-            checkOutputAddress(byteAddress);
             sdramMemory[byteAddress] = byteData;
         }
     }
 
-    private void checkOutputAddress(int byteAddress) {
+    private void checkAddress(int byteAddress) {
         Log.v(UCModule.MY_LOG_TAG, String.format("Checking Address: 0x%s",
                 Integer.toHexString((int) byteAddress)));
 
         switch (byteAddress) {
             case DDRB_ADDR:
             case PORTB_ADDR:
+            case PINB_ADDR:
 
                 Message ioMessage = new Message();
 
@@ -119,13 +118,12 @@ public class DataMemory_ATmega328P implements DataMemory {
                 String.format("Write bit SDRAM\nAddress: 0x%s", Integer.toHexString((int) byteAddress))
                         + " position: " + bitPosition + " state: " + bitState);
 
+
+        checkAddress(byteAddress);
         if (byteAddress == PINB_ADDR){
             //Toggle bits in PORTx
-            checkOutputAddress(byteAddress+2);
             writeBit(byteAddress+2, bitPosition,!readBit(byteAddress+2, bitPosition));
         } else {
-            checkOutputAddress(byteAddress);
-
             sdramMemory[byteAddress] = (byte) (sdramMemory[byteAddress] & (0xFF7F >> (7 - bitPosition)));   //Clear
             if (bitState) {
                 sdramMemory[byteAddress] = (byte) (sdramMemory[byteAddress] | (0x01 << bitPosition));     //Set
@@ -135,6 +133,7 @@ public class DataMemory_ATmega328P implements DataMemory {
     }
 
     public synchronized void writeIOBit(int byteAddress, int bitPosition, boolean bitState){
+        checkAddress(byteAddress);
         sdramMemory[byteAddress] = (byte) (sdramMemory[byteAddress] & (0xFF7F >> (7 - bitPosition)));   //Clear
         if (bitState) {
             sdramMemory[byteAddress] = (byte) (sdramMemory[byteAddress] | (0x01 << bitPosition));     //Set

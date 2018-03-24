@@ -71,5 +71,6 @@
     <string name="action_anal_input">Analog Input</string>
     <string name="action_input">Digital Input</string>
     <string name="action_clear_io">Clear I/O</string>
+    <string name="start_instructions">Tap \'+\' to start</string>
 
 </resources>

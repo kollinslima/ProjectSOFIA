@@ -5,7 +5,7 @@
     android:descendantFocusability="blocksDescendants"
     android:gravity="center"
     android:orientation="horizontal"
-    android:padding="16dp">
+    android:padding="5dp">
 
 
     <Button

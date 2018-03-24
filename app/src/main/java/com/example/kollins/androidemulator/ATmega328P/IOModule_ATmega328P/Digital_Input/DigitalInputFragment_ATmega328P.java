@@ -1,5 +1,6 @@
 package com.example.kollins.androidemulator.ATmega328P.IOModule_ATmega328P.Digital_Input;
 
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -12,6 +13,7 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 
 import com.example.kollins.androidemulator.ATmega328P.DataMemory_ATmega328P;
+import com.example.kollins.androidemulator.ATmega328P.IOModule_ATmega328P.IOModule_ATmega328P;
 import com.example.kollins.androidemulator.R;
 import com.example.kollins.androidemulator.UCModule;
 import com.example.kollins.androidemulator.uCInterfaces.DataMemory;
@@ -99,40 +101,19 @@ public class DigitalInputFragment_ATmega328P extends Fragment implements Digital
         this.dataMemory = (DataMemory_ATmega328P) dataMemory;
     }
 
-    public void inputEvent(int signalState, int memotyPosition, int bitPosition) {
-        dataMemory.writeIOBit(memotyPosition, bitPosition, signalState == IOModule.HIGH_LEVEL);
+//    public void inputEvent(int signalState, int memoryPosition, int bitPosition) {
+//        dataMemory.writeIOBit(memoryPosition, bitPosition, signalState == IOModule.HIGH_LEVEL);
+//    }
+
+    public void inputRequest_inputChanel(int signalState, int memoryPosition, int bitPosition, DigitalInputPin_ATmega328P request) {
+
+        new InputRequest_InputChanel(request).execute(signalState,memoryPosition,bitPosition);
+
     }
 
-    public int inputRequest(int signalState, int memotyPosition, int bitPosition, String request) {
-        boolean containPin = false;
-        int pinIndex = 0;
-        try {
-            if (digitalInputPins.size() == 0) {
-                dataMemory.writeIOBit(memotyPosition, bitPosition, signalState == IOModule.HIGH_LEVEL);
-                return 1;
-            }
+    public void inputRequest_outputChanel(int signalState, int memoryPosition, int bitPosition, String request) {
 
-            for (DigitalInputPin_ATmega328P p : digitalInputPins){
-                if (p.getPin().equals(request)){
-                    containPin = true;
-                    break;
-                }
-                pinIndex += 1;
-            }
-            if (containPin) {
-                if (digitalInputPins.get(pinIndex).getPinState() == IOModule.TRI_STATE) {
-                    dataMemory.writeIOBit(memotyPosition, bitPosition, signalState == IOModule.HIGH_LEVEL);
-                    return 1;
-                } else if (digitalInputPins.get(pinIndex).getPinState() != signalState) {
-                    return 0;
-                }
-            }
-            return 1;
-        } catch (NullPointerException e) {
-            dataMemory.writeIOBit(memotyPosition, bitPosition, signalState == IOModule.HIGH_LEVEL);
-            return 1;
-        }
-
+        new InputRequest_OutputChanel(request).execute(signalState,memoryPosition,bitPosition);
     }
 
     public boolean getPINState(int memoryAddress, int bitPosition) {
@@ -149,4 +130,124 @@ public class DigitalInputFragment_ATmega328P extends Fragment implements Digital
         return false;
     }
 
+    private class InputRequest_InputChanel extends AsyncTask<Integer, Void, Boolean>{
+
+        private DigitalInputPin_ATmega328P request;
+
+        public InputRequest_InputChanel(DigitalInputPin_ATmega328P request) {
+            this.request = request;
+        }
+
+        //signalState - memoryPosition - bitPosition
+        @Override
+        protected Boolean doInBackground(Integer... memoryParams) {
+            try {
+                if (digitalInputPins.size() == 0) {
+                    //No restrictions, write requested data.
+                    dataMemory.writeIOBit(memoryParams[1], memoryParams[2], memoryParams[0] == IOModule.HIGH_LEVEL);
+                    return false;
+                }
+
+                //If input requested in a output pin
+                if (dataMemory.readBit(memoryParams[1] + 1, memoryParams[2])) {
+
+                    boolean boolSignalState = (memoryParams[0] == 1);
+
+                    if (dataMemory.readBit(memoryParams[1] + 2, memoryParams[2]) ^ boolSignalState) {
+                        //Output and requested input are different
+                        return true;
+                    }
+                }
+                //If requested in a input pin
+                else {
+                    //Is there another input in the same pin?
+                    ArrayList<DigitalInputPin_ATmega328P> duplicatedInputs = new ArrayList<DigitalInputPin_ATmega328P>();
+                    for (DigitalInputPin_ATmega328P p : digitalInputPins) {
+                        if (p.equals(request)) {
+                            duplicatedInputs.add(p);
+                        }
+                    }
+
+                    //No duplicated itens
+                    if (duplicatedInputs.size() == 1) {
+                        dataMemory.writeIOBit(memoryParams[1], memoryParams[2], memoryParams[0] == IOModule.HIGH_LEVEL);
+                        return false;
+                    }
+
+                    for (DigitalInputPin_ATmega328P p : duplicatedInputs) {
+                        if (p.getPinState() == IOModule.TRI_STATE) {
+                            continue;
+                        }
+                        if (p.getPinState() != memoryParams[0]) {
+                            //Short Circuit!
+                            return true;
+                        }
+                    }
+
+                }
+
+            } catch (NullPointerException e) {
+                dataMemory.writeIOBit(memoryParams[1], memoryParams[2], memoryParams[0] == IOModule.HIGH_LEVEL);
+            }
+            return false;
+        }
+
+        @Override
+        protected void onPostExecute(Boolean hasShortCircuit) {
+            if (hasShortCircuit){
+                IOModule_ATmega328P.sendShortCircuit();
+            }
+        }
+    }
+
+    private class InputRequest_OutputChanel extends AsyncTask<Integer, Void, Boolean>{
+
+        private String request;
+
+        public InputRequest_OutputChanel(String request) {
+            this.request = request;
+        }
+
+        //signalState - memoryPosition - bitPosition
+        @Override
+        protected Boolean doInBackground(Integer... memoryParams) {
+            try {
+                if (digitalInputPins.size() == 0) {
+                    //No restrictions, write requested data.
+                    dataMemory.writeIOBit(memoryParams[1], memoryParams[2], memoryParams[0] == IOModule.HIGH_LEVEL);
+                    return false;
+                }
+
+                //It's always an input in when this function is called from IOModule.
+
+                //Is there another input in the same pin?
+                ArrayList<DigitalInputPin_ATmega328P> duplicatedInputs = new ArrayList<DigitalInputPin_ATmega328P>();
+                for (DigitalInputPin_ATmega328P p : digitalInputPins) {
+                    if (p.equals(request)) {
+                        duplicatedInputs.add(p);
+                    }
+                }
+
+                //No duplicated itens
+                if (duplicatedInputs.size() == 1) {
+                    dataMemory.writeIOBit(memoryParams[1], memoryParams[2], memoryParams[0] == IOModule.HIGH_LEVEL);
+                    return false;
+                }
+
+                for (DigitalInputPin_ATmega328P p : duplicatedInputs) {
+                    if (p.getPinState() == IOModule.TRI_STATE) {
+                        continue;
+                    }
+                    if (p.getPinState() != memoryParams[0]) {
+                        //Short Circuit!
+                        return true;
+                    }
+                }
+
+            } catch (NullPointerException e) {
+                dataMemory.writeIOBit(memoryParams[1], memoryParams[2], memoryParams[0] == IOModule.HIGH_LEVEL);
+            }
+            return false;
+        }
+    }
 }

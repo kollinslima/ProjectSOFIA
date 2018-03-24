@@ -322,8 +322,8 @@ public class CPUModule implements Runnable{
         try {
             UCModule.clockVector[UCModule.CPU_ID] = true;
 
-            for (boolean b : UCModule.clockVector){
-                if (!b){
+            for (int i = 0; i < UCModule.clockVector.length; i++){
+                if (!UCModule.clockVector[i]){
                     cpuClockCondition.await();
                     return;
                 }

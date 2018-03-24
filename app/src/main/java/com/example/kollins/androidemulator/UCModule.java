@@ -7,6 +7,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
@@ -38,15 +39,13 @@ import java.util.concurrent.locks.ReentrantLock;
  * Created by kollins on 3/7/18.
  */
 
-public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemClickListener {
+public class UCModule extends AppCompatActivity {
 
     public static final int CPU_ID = 0;
-    public static final int MANUAL_CLOCK = 1;
+    public static final int SIMULATED_TIMER_ID = 1;
+    public static final int MANUAL_CLOCK = 2;
 
     public static String PACKAGE_NAME;
-
-    private int oscilator = 16 * ((int) Math.pow(10, 6));
-    private long clockPeriod = (long) ((1 / (double) oscilator) * Math.pow(10, 10));
 
     //Default device
     public static String device;
@@ -76,32 +75,20 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
     private uCHandler uCHandler;
 
     private boolean resetFlag;
+    private static int resetManager;
 
-    private FragmentManager mFragmentManager;
-    private FragmentTransaction mFragmentTransaction;
+    public static boolean setUpSuccessful;
 
-    private OutputFragment outputFragment;
-    private DigitalInputFragment digitalInputFragment;
-    private IOModule ioModule;
-
-    private TextView simulatedTimeDisplay;
-    private long simulatedTime;
-
-    private FrameLayout outputFrame;
-    private FrameLayout digitalInputFrame;
-
-    private boolean setUpSuccessful;
+    private FrameLayout frameIO;
+    private UCModule_View ucView;
+    private Thread threadUCView;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.io_interface);
-        setSupportActionBar((Toolbar) findViewById(R.id.mainToolbar));
+        setContentView(R.layout.main_view);
 
 //        Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
-
-//        mFragmentManager = getSupportFragmentManager();
-//        mFragmentTransaction = mFragmentManager.beginTransaction();
 
         PACKAGE_NAME = getApplicationContext().getPackageName();
         resources = getResources();
@@ -115,35 +102,20 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
         device = getDevice(model);
         setTitle("Arduino " + model);
 
-        clockVector = new boolean[getDeviceModules()];
+        clockVector = new boolean[getDeviceModules()+1];    //+1 for SIMULATED_TIMER;
         resetClockVector();
 
-        simulatedTimeDisplay = (TextView) findViewById(R.id.simulatedTime);
-
-        outputFrame = (FrameLayout) findViewById(R.id.outputPins);
-        digitalInputFrame = (FrameLayout) findViewById(R.id.digitalInputPins);
-
-        try {
-            Class outputFragmentDevice = Class.forName(PACKAGE_NAME + "." + device + ".IOModule_" +
-                    device + ".Output.OutputFragment_" + device);
-            outputFragment = (OutputFragment) outputFragmentDevice.newInstance();
-
-            Class digitalInputFragmentDevice = Class.forName(PACKAGE_NAME + "." + device + ".IOModule_" +
-                    device + ".Digital_Input.DigitalInputFragment_" + device);
-            digitalInputFragment = (DigitalInputFragment) digitalInputFragmentDevice.newInstance();
-
-            Class ioModuleDevice = Class.forName(PACKAGE_NAME + "." + device + ".IOModule_" +
-                    device + ".IOModule_" + device);
-            ioModule = (IOModule) ioModuleDevice
-                    .getDeclaredConstructor(UCModule.uCHandler.class, OutputFragment.class, DigitalInputFragment.class)
-                    .newInstance(uCHandler, outputFragment, digitalInputFragment);
-
-        } catch (ClassNotFoundException | IllegalAccessException | InstantiationException
-                |NoSuchMethodException|InvocationTargetException e) {
-            e.printStackTrace();
-        }
-
         setUpSuccessful = false;
+
+        ucView = new UCModule_View();
+
+        frameIO = (FrameLayout) findViewById(R.id.fragmentIO);
+
+        FragmentManager fm = getSupportFragmentManager();
+        FragmentTransaction ft = fm.beginTransaction();
+
+        ft.add(R.id.fragmentIO, ucView, OutputFragment.TAG_OUTPUT_FRAGMENT);
+        ft.commit();
 //        ((Button) findViewById(R.id.manualClock)).setOnClickListener(new View.OnClickListener() {
 //            @Override
 //            public void onClick(View v) {
@@ -179,83 +151,8 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
         reset();
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_layout, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.action_reset:
-                reset();
-                break;
-
-            case R.id.action_add:
-                if (!setUpSuccessful) {
-                    break;
-                }
-
-                PopupMenu popup = new PopupMenu(this, findViewById(R.id.action_add));
-                popup.setOnMenuItemClickListener(this);
-                MenuInflater inflater = popup.getMenuInflater();
-                inflater.inflate(R.menu.pop_up_menu, popup.getMenu());
-                popup.show();
-                break;
-
-            case R.id.action_clear_io:
-                outputFrame.setVisibility(View.GONE);
-                outputFragment.clearAll();
-                digitalInputFrame.setVisibility(View.GONE);
-                digitalInputFragment.clearAll();
-                break;
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public boolean onMenuItemClick(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.action_output:
-                outputFrame.setVisibility(View.VISIBLE);
-                if (!outputFragment.haveOutput()) {
-
-                    mFragmentManager = getSupportFragmentManager();
-                    mFragmentTransaction = mFragmentManager.beginTransaction();
-
-                    mFragmentTransaction.add(R.id.outputPins, (Fragment) outputFragment, OutputFragment.TAG_OUTPUT_FRAGMENT);
-                    mFragmentTransaction.commit();
-                } else {
-                    outputFragment.addOuput();
-                }
-                break;
-
-            case R.id.action_digital_input:
-                digitalInputFrame.setVisibility(View.VISIBLE);
-                if (!digitalInputFragment.haveDigitalInput()) {
-
-                    mFragmentManager = getSupportFragmentManager();
-                    mFragmentTransaction = mFragmentManager.beginTransaction();
-
-                    mFragmentTransaction.add(R.id.digitalInputPins, (Fragment) digitalInputFragment, DigitalInputFragment.TAG_DIGITAL_INPUT_FRAGMENT);
-                    mFragmentTransaction.commit();
-                } else {
-                    digitalInputFragment.addDigitalInput();
-                }
-                break;
-
-            case R.id.action_analog_input:
-                toast(item.getTitle().toString());
-                break;
-        }
-        return true;
-    }
-
     private void setUpUc() {
         setResetFlag(false);
-
-        simulatedTime = 0;
 
         try {
             //Init FLASH
@@ -268,21 +165,29 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
 
             if (programMemory.loadProgramMemory(hexFileLocation)) {
                 //hexFile read Successfully
+
+                programMemory.setPC(0);
                 ((TextView) findViewById(R.id.hexFileErrorInstructions)).setVisibility(View.GONE);
 
                 //Init RAM
                 Class dataMemoryDevice = Class.forName(PACKAGE_NAME + "." + device + ".DataMemory_" + device);
-                dataMemory = (DataMemory) dataMemoryDevice.getDeclaredConstructor(Handler.class).newInstance((Handler) ioModule);
+                dataMemory = (DataMemory) dataMemoryDevice.getDeclaredConstructor(Handler.class).newInstance((Handler) ucView.getIOModule());
 
                 Log.d(MY_LOG_TAG, "SDRAM size: " + dataMemory.getMemorySize());
 
-                outputFragment.setDataMemory(dataMemory);
-                digitalInputFragment.setDataMemory(dataMemory);
+                ucView.setMemoryIO(dataMemory);
+                ucView.setClockLock(clockLock);
+                ucView.setUCHandler(uCHandler);
+                ucView.setUCDevice(this);
+
+                threadUCView = new Thread(ucView);
+                threadUCView.start();
 
                 cpuModule = new CPUModule(programMemory, dataMemory, this, uCHandler, clockLock);
-                threadCPU = new Thread((Runnable) cpuModule);
+                threadCPU = new Thread(cpuModule);
                 threadCPU.start();
 
+                resetManager = 0;
                 setUpSuccessful = true;
 
             } else {
@@ -387,22 +292,42 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
 
         setResetFlag(true);
 
-        outputFragment.resetOuputs();
-
         try {
             if (threadCPU != null) {
-                Log.i(MY_LOG_TAG, "Waiting threads");
+                Log.i(MY_LOG_TAG, "Waiting CPU thread");
+                while (threadCPU.isAlive()){
+                    cpuModule.clockCPU();
+                }
                 threadCPU.join();
+
+                clockLock.lock();
+                clockVector[CPU_ID] = true;
+                clockLock.unlock();
+
+                resetManager = 1;
+            }
+            if (threadUCView != null) {
+                Log.i(MY_LOG_TAG, "Waiting UCView Thread");
+                while (threadUCView.isAlive()){
+                    ucView.clockUCView();
+                }
+                threadUCView.join();
+
+                clockLock.lock();
+                clockVector[SIMULATED_TIMER_ID] = true;
+                clockLock.unlock();
+
+                resetManager = 2;
             }
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
+        ucView.resetIO();
         setUpUc();
     }
 
     public static void resetClockVector() {
-        for (int i = 0; i < clockVector.length; i++) {
+        for (int i = resetManager; i < clockVector.length; i++) {
             clockVector[i] = false;
         }
     }
@@ -419,10 +344,8 @@ public class UCModule extends AppCompatActivity implements PopupMenu.OnMenuItemC
 
             switch (action) {
                 case CLOCK_ACTION:
+                    ucView.clockUCView();
                     cpuModule.clockCPU();
-                    //simulatedTime += clockPeriod;
-                    //simulatedTimeDisplay.setText(String.valueOf(simulatedTime / 10));
-
                     break;
 
                 case RESET_ACTION:

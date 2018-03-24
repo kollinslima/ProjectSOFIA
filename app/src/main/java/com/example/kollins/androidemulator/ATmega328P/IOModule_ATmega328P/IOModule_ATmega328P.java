@@ -1,5 +1,6 @@
 package com.example.kollins.androidemulator.ATmega328P.IOModule_ATmega328P;
 
+import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
@@ -19,13 +20,12 @@ import java.util.List;
  * Created by kollins on 3/23/18.
  */
 
-public class IOModule_ATmega328P extends Handler implements IOModule{
+public class IOModule_ATmega328P extends Handler implements IOModule {
 
     private byte portRead;
     private byte configRead;
-    private int index;
 
-    private UCModule.uCHandler uCHandler;
+    private static UCModule.uCHandler uCHandler;
     private OutputFragment_ATmega328P outputFragment;
     private DigitalInputFragment_ATmega328P digitalInputFragment;
 
@@ -46,41 +46,59 @@ public class IOModule_ATmega328P extends Handler implements IOModule{
                 portRead = msg.getData().getByte(IOModule.PORT_IOMESSAGE);
                 configRead = msg.getData().getByte(IOModule.CONFIG_IOMESSAGE);
 
-//                Log.i(UCModule.MY_LOG_TAG, String.format("PORTB notified: 0x%s",
-//                        Integer.toHexString((int) portRead)));
-
-                index = 0;
                 List<OutputPin_ATmega328P> outputPins = outputFragment.getOutputPins();
 
-                if (outputPins == null){
+                if (outputPins == null) {
                     break;
                 }
 
-                for (OutputPin_ATmega328P p : outputFragment.getOutputPins()) {
-                    for (int i = 8; i <= 13; i++) {
-                        //Is input?
-                        if ((0x01 & (configRead >> (i - 8))) == 0) {
-                            if ((0x01 & (portRead >> (i - 8))) == 1 && outputFragment.isPullUpEnabled()) {
-                                if (digitalInputFragment.inputRequest(IOModule.HIGH_LEVEL, DataMemory_ATmega328P.PINB_ADDR, (i - 8), p.getPin()) == 0) {
-                                    uCHandler.sendEmptyMessage(UCModule.SHORT_CIRCUIT_ACTION);
-                                } else {
-                                    p.setPinState(digitalInputFragment.getPINState(DataMemory_ATmega328P.PINB_ADDR, (i - 8)) ? 1 : 0, i);
-                                }
-                            } else {
-                                p.setPinState(IOModule.TRI_STATE, i);
-                            }
-                        }
-                        //Is output!
-                        else {
-                            Log.d(UCModule.MY_LOG_TAG, "Setting pin state: " + (0x01 & (portRead >> (8 - i))));
-                            p.setPinState(0x01 & (portRead >> (i - 8)), i);
-                        }
-                    }
-                    outputFragment.updateView(index);
-                    index += 1;
-                }
+                new PortBUpdateView().execute(outputPins);
 
                 break;
+        }
+    }
+
+    public static void sendShortCircuit() {
+        uCHandler.sendEmptyMessage(UCModule.SHORT_CIRCUIT_ACTION);
+    }
+
+    private class PortBUpdateView extends AsyncTask<List<OutputPin_ATmega328P>, Integer, Void> {
+
+        int index;
+
+        @Override
+        protected void onPreExecute() {
+            index = 0;
+        }
+
+        @Override
+        protected Void doInBackground(List<OutputPin_ATmega328P>... pins) {
+            for (OutputPin_ATmega328P p : pins[0]) {
+                for (int i = 8; i <= 13; i++) {
+                    //Is input?
+                    if ((0x01 & (configRead >> (i - 8))) == 0) {
+                        if ((0x01 & (portRead >> (i - 8))) == 1 && outputFragment.isPullUpEnabled()) {
+                            digitalInputFragment.inputRequest_outputChanel(IOModule.HIGH_LEVEL, DataMemory_ATmega328P.PINB_ADDR, (i - 8), "Pin " + i);
+                            p.setPinState(digitalInputFragment.getPINState(DataMemory_ATmega328P.PINB_ADDR, (i - 8)) ? 1 : 0, i);
+                        } else {
+                            p.setPinState(IOModule.TRI_STATE, i);
+                        }
+                    }
+                    //Is output!
+                    else {
+                        p.setPinState(0x01 & (portRead >> (i - 8)), i);
+                    }
+
+                }
+                publishProgress(index);
+                index += 1;
+            }
+            return null;
+        }
+
+        @Override
+        protected void onProgressUpdate(Integer... values) {
+            outputFragment.updateView(values[0]);
         }
     }
 }

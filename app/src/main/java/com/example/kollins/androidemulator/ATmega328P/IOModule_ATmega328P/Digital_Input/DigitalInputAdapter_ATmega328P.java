@@ -139,9 +139,9 @@ public class DigitalInputAdapter_ATmega328P extends BaseAdapter {
                         holder.inputPinState.setBackgroundResource(R.drawable.digital_input_undefined);
                         pin.setPinState(IOModule.TRI_STATE);
                         if (digitalInputFragment.isPullUpEnabled() && digitalInputFragment.isPinPullUPEnabled(pin.getMemory(), pin.getBitPosition())) {
-                            digitalInputFragment.inputEvent(IOModule.HIGH_LEVEL, pin.getMemory(), pin.getBitPosition());
+                            digitalInputFragment.inputRequest_inputChanel(IOModule.HIGH_LEVEL, pin.getMemory(), pin.getBitPosition(), pin);
                         } else {
-                            digitalInputFragment.inputEvent(randomGenerator.nextInt(2), pin.getMemory(), pin.getBitPosition());
+                            digitalInputFragment.inputRequest_inputChanel(randomGenerator.nextInt(2), pin.getMemory(), pin.getBitPosition(), pin);
                         }
                         break;
 
@@ -172,12 +172,12 @@ public class DigitalInputAdapter_ATmega328P extends BaseAdapter {
                         case IOModule.PUSH_GND:
                             holder.inputPinState.setBackgroundResource(R.drawable.digital_input_off);
                             pin.setPinState(IOModule.LOW_LEVEL);
-                            digitalInputFragment.inputEvent(IOModule.LOW_LEVEL, pin.getMemory(), pin.getBitPosition());
+                            digitalInputFragment.inputRequest_inputChanel(IOModule.LOW_LEVEL, pin.getMemory(), pin.getBitPosition(), pin);
                             break;
                         case IOModule.PUSH_VDD:
                             holder.inputPinState.setBackgroundResource(R.drawable.digital_input_on);
                             pin.setPinState(IOModule.HIGH_LEVEL);
-                            digitalInputFragment.inputEvent(IOModule.HIGH_LEVEL, pin.getMemory(), pin.getBitPosition());
+                            digitalInputFragment.inputRequest_inputChanel(IOModule.HIGH_LEVEL, pin.getMemory(), pin.getBitPosition(), pin);
                             break;
                         case IOModule.PULL_UP:
                             break;
@@ -197,9 +197,9 @@ public class DigitalInputAdapter_ATmega328P extends BaseAdapter {
                             holder.inputPinState.setBackgroundResource(R.drawable.digital_input_undefined);
                             pin.setPinState(IOModule.TRI_STATE);
                             if (digitalInputFragment.isPullUpEnabled() && digitalInputFragment.isPinPullUPEnabled(pin.getMemory(), pin.getBitPosition())) {
-                                digitalInputFragment.inputEvent(IOModule.HIGH_LEVEL, pin.getMemory(), pin.getBitPosition());
+                                digitalInputFragment.inputRequest_inputChanel(IOModule.HIGH_LEVEL, pin.getMemory(), pin.getBitPosition(),pin);
                             } else {
-                                digitalInputFragment.inputEvent(randomGenerator.nextInt(2), pin.getMemory(), pin.getBitPosition());
+                                digitalInputFragment.inputRequest_inputChanel(randomGenerator.nextInt(2), pin.getMemory(), pin.getBitPosition(),pin);
                             }
                             break;
                         case IOModule.PULL_UP:
