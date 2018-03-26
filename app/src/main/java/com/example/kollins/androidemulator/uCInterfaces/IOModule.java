@@ -1,5 +1,7 @@
 package com.example.kollins.androidemulator.uCInterfaces;
 
+import com.example.kollins.androidemulator.UCModule;
+
 import java.util.logging.Handler;
 
 /**

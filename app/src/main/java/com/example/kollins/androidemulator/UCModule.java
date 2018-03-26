@@ -189,6 +189,7 @@ public class UCModule extends AppCompatActivity {
 
                 resetManager = 0;
                 setUpSuccessful = true;
+                ucView.setStatusLed(UCModule_View.LED_STATUS.RUNNING);
 
             } else {
                 setUpSuccessful = false;
@@ -226,6 +227,14 @@ public class UCModule extends AppCompatActivity {
     public static String[] getPinArray() {
         int id = resources.getIdentifier(UCModule.model + "_pins", "array", PACKAGE_NAME);
         return resources.getStringArray(id);
+    }
+
+    public static boolean[] getButtonPressed() {
+        boolean[] buttonPressed = new boolean[getPinArray().length];
+        for (int i = 0; i < buttonPressed.length; i++){
+            buttonPressed[i] = false;
+        }
+        return buttonPressed;
     }
 
     public static String[] getPinModeArray() {
@@ -276,6 +285,14 @@ public class UCModule extends AppCompatActivity {
 
     public static String getButtonTextOff() {
         return resources.getString(R.string.buttonOff);
+    }
+
+    public static String getStatusRunning() {
+        return resources.getString(R.string.running);
+    }
+
+    public static int getStatusRunningColor() {
+        return resources.getColor(R.color.running);
     }
 
     public synchronized boolean getResetFlag() {

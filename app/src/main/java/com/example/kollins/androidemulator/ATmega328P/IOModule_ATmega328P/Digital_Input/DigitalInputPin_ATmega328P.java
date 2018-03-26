@@ -9,6 +9,8 @@ import com.example.kollins.androidemulator.uCInterfaces.IOModule;
 
 public class DigitalInputPin_ATmega328P {
 
+    public static boolean[] buttonPressed = UCModule.getButtonPressed();
+
     private String pin;
     private int pinState;
     private int pinMode;
@@ -65,4 +67,5 @@ public class DigitalInputPin_ATmega328P {
     public int getBitPosition() {
         return memoryBitPosition[pinSpinnerPosition];
     }
+
 }

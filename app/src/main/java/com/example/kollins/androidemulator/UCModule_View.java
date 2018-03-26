@@ -16,6 +16,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.example.kollins.androidemulator.uCInterfaces.DataMemory;
@@ -24,6 +26,7 @@ import com.example.kollins.androidemulator.uCInterfaces.IOModule;
 import com.example.kollins.androidemulator.uCInterfaces.OutputFragment;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 
@@ -32,6 +35,8 @@ import java.util.concurrent.locks.Lock;
  */
 
 public class UCModule_View extends Fragment implements Runnable {
+
+    public enum LED_STATUS{RUNNING, SHORT_CIRCUIT};
 
     private int oscilator = 16 * ((int) Math.pow(10, 6));
     private long clockPeriod = (long) ((1 / (double) oscilator) * Math.pow(10, 10));
@@ -49,13 +54,15 @@ public class UCModule_View extends Fragment implements Runnable {
     private DigitalInputFragment digitalInputFragment;
     private IOModule ioModule;
 
-    private UCModule.uCHandler uCHandler;
+    private static UCModule.uCHandler uCHandler;
     private UCModule ucModule;
 
     private Toolbar toolbar;
 
-    private TextView simulatedTimeDisplay, startInstructions;
+    private TextView simulatedTimeDisplay, startInstructions, statusInfo;
     private long simulatedTime;
+    private long microSeconds;
+    private long seconds;
 
     private Handler screenUpdater;
 
@@ -77,8 +84,8 @@ public class UCModule_View extends Fragment implements Runnable {
             Class ioModuleDevice = Class.forName(UCModule.PACKAGE_NAME + "." + UCModule.device + ".IOModule_" +
                     UCModule.device + ".IOModule_" + UCModule.device);
             ioModule = (IOModule) ioModuleDevice
-                    .getDeclaredConstructor(UCModule.uCHandler.class, OutputFragment.class, DigitalInputFragment.class)
-                    .newInstance(uCHandler, outputFragment, digitalInputFragment);
+                    .getDeclaredConstructor(OutputFragment.class, DigitalInputFragment.class)
+                    .newInstance(outputFragment, digitalInputFragment);
 
         } catch (ClassNotFoundException | IllegalAccessException | java.lang.InstantiationException
                 | NoSuchMethodException | InvocationTargetException e) {
@@ -98,6 +105,8 @@ public class UCModule_View extends Fragment implements Runnable {
         toolbar.setTitle("Arduino " + UCModule.model);
 //        ((AppCompatActivity)getActivity()).setSupportActionBar((Toolbar) view.findViewById(R.id.mainToolbar));
 
+        statusInfo = (TextView) view.findViewById(R.id.statusInfo);
+
         simulatedTimeDisplay = (TextView) view.findViewById(R.id.simulatedTime);
         startInstructions = (TextView) view.findViewById(R.id.startInstructions);
 
@@ -113,10 +122,15 @@ public class UCModule_View extends Fragment implements Runnable {
         while(!ucModule.getResetFlag()) {
             waitClock();
             simulatedTime += clockPeriod;
+//            seconds = TimeUnit.NANOSECONDS.toSeconds(simulatedTime/10);
+//            microSeconds = TimeUnit.NANOSECONDS.toMicros(simulatedTime/10);
+            microSeconds = (simulatedTime/10)/1000;
+            seconds = (microSeconds/1000)/1000;
+
             screenUpdater.post(new Runnable() {
                 @Override
                 public void run() {
-                    simulatedTimeDisplay.setText((simulatedTime / 10) + "ns");
+                    simulatedTimeDisplay.setText(String.format("%d.%06d s",seconds, microSeconds));
                 }
             });
         }
@@ -177,6 +191,23 @@ public class UCModule_View extends Fragment implements Runnable {
 
     public void setUCHandler(UCModule.uCHandler uCHandler) {
         this.uCHandler = uCHandler;
+    }
+
+    public void setStatusLed(LED_STATUS status) {
+        switch (status){
+            case RUNNING:
+                statusInfo.setText(UCModule.getStatusRunning());
+                statusInfo.setTextColor(UCModule.getStatusRunningColor());
+                break;
+
+            case SHORT_CIRCUIT:
+
+                break;
+        }
+    }
+
+    public static void sendShortCircuit() {
+        uCHandler.sendEmptyMessage(UCModule.SHORT_CIRCUIT_ACTION);
     }
 
     public void setUCDevice(UCModule ucModule) {

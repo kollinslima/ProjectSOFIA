@@ -101,7 +101,7 @@ public class DigitalInputAdapter_ATmega328P extends BaseAdapter {
                 pin.setPinSpinnerPosition(positionSpinner);
 
 
-                //Simulate button release
+                /************Simulate button release*************/
                 int[] coordinates = new int[2];
                 holder.pushButton.getLocationOnScreen(coordinates);
 
@@ -116,6 +116,7 @@ public class DigitalInputAdapter_ATmega328P extends BaseAdapter {
                 // dispatch the event
                 MotionEvent event = MotionEvent.obtain(downTime, eventTime, action, x, y, metaState);
                 holder.pushButton.dispatchTouchEvent(event);
+                /**********************************************/
 
             }
 
@@ -165,6 +166,8 @@ public class DigitalInputAdapter_ATmega328P extends BaseAdapter {
                     holder.pushButton.setText(UCModule.getButtonTextOn());
                     holder.pushButton.setBackgroundColor(UCModule.getButonOnCollor());
 
+                    DigitalInputPin_ATmega328P.buttonPressed[pin.getPinSpinnerPosition()] = true;
+
                     switch (pin.getPinMode()) {
                         case IOModule.PUSH_GND:
                             holder.inputPinState.setBackgroundResource(R.drawable.digital_input_off);
@@ -187,6 +190,8 @@ public class DigitalInputAdapter_ATmega328P extends BaseAdapter {
                 } else if (event.getAction() == MotionEvent.ACTION_UP) {
                     holder.pushButton.setText(UCModule.getButtonTextOff());
                     holder.pushButton.setBackgroundColor(UCModule.getButonOffCollor());
+
+                    DigitalInputPin_ATmega328P.buttonPressed[pin.getPinSpinnerPosition()] = false;
 
                     switch (pin.getPinMode()) {
                         case IOModule.PUSH_GND:

@@ -22,4 +22,7 @@
     <color name="on_digital_input">#FFCC00</color>
 
     <color name="selectedItem">#929292</color>
+
+    <color name="running">#00FF00</color>
+    <color name="reset">#FFFF00</color>
 </resources>
