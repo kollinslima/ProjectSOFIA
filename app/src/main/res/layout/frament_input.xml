@@ -11,7 +11,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/digitalInputSection_fragment"
+            android:text="@string/inputSection_fragment"
             android:textColor="@color/colorAccent" />
 
         <View
@@ -22,7 +22,7 @@
     </LinearLayout>
 
     <ListView
-        android:id="@+id/digitalInputList"
+        android:id="@+id/inputList"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 

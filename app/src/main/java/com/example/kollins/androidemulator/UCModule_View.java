@@ -1,6 +1,8 @@
 package com.example.kollins.androidemulator;
 
+import android.content.res.Resources;
 import android.os.Handler;
+import android.os.Message;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -16,12 +18,10 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.example.kollins.androidemulator.uCInterfaces.DataMemory;
-import com.example.kollins.androidemulator.uCInterfaces.DigitalInputFragment;
+import com.example.kollins.androidemulator.uCInterfaces.InputFragment;
 import com.example.kollins.androidemulator.uCInterfaces.IOModule;
 import com.example.kollins.androidemulator.uCInterfaces.OutputFragment;
 
@@ -36,7 +36,12 @@ import java.util.concurrent.locks.Lock;
 
 public class UCModule_View extends Fragment implements Runnable {
 
-    public enum LED_STATUS{RUNNING, SHORT_CIRCUIT};
+    public enum LED_STATUS {RUNNING, SHORT_CIRCUIT, HEX_FILE_ERROR}
+
+    ;
+
+    public static final int REMOVE_OUTPUT_FRAGMENT = 0;
+    public static final int REMOVE_INPUT_FRAGMENT = 1;
 
     private int oscilator = 16 * ((int) Math.pow(10, 6));
     private long clockPeriod = (long) ((1 / (double) oscilator) * Math.pow(10, 10));
@@ -48,10 +53,10 @@ public class UCModule_View extends Fragment implements Runnable {
     private FragmentTransaction mFragmentTransaction;
 
     private FrameLayout outputFrame;
-    private FrameLayout digitalInputFrame;
+    private FrameLayout inputFrame;
 
     private OutputFragment outputFragment;
-    private DigitalInputFragment digitalInputFragment;
+    private InputFragment inputFragment;
     private IOModule ioModule;
 
     private static UCModule.uCHandler uCHandler;
@@ -59,33 +64,39 @@ public class UCModule_View extends Fragment implements Runnable {
 
     private Toolbar toolbar;
 
-    private TextView simulatedTimeDisplay, startInstructions, statusInfo;
+    private TextView simulatedTimeDisplay, startInstructions, statusInfo, hexFileErrorInstructions;
     private long simulatedTime;
-    private long microSeconds;
+    private String simulatedText;
+    private long nanoSeconds;
     private long seconds;
 
-    private Handler screenUpdater;
+    private Resources resources;
+
+    private ScreenUpdater screenUpdater;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
-        screenUpdater = new Handler();
+        screenUpdater = new ScreenUpdater();
+        resources = getResources();
 
         try {
             Class outputFragmentDevice = Class.forName(UCModule.PACKAGE_NAME + "." + UCModule.device + ".IOModule_" +
                     UCModule.device + ".Output.OutputFragment_" + UCModule.device);
             outputFragment = (OutputFragment) outputFragmentDevice.newInstance();
+            outputFragment.setScreenUpdater(screenUpdater);
 
-            Class digitalInputFragmentDevice = Class.forName(UCModule.PACKAGE_NAME + "." + UCModule.device + ".IOModule_" +
-                    UCModule.device + ".Digital_Input.DigitalInputFragment_" + UCModule.device);
-            digitalInputFragment = (DigitalInputFragment) digitalInputFragmentDevice.newInstance();
+            Class inputFragmentDevice = Class.forName(UCModule.PACKAGE_NAME + "." + UCModule.device + ".IOModule_" +
+                    UCModule.device + ".Input.InputFragment_" + UCModule.device);
+            inputFragment = (InputFragment) inputFragmentDevice.newInstance();
+            inputFragment.setScreenUpdater(screenUpdater);
 
             Class ioModuleDevice = Class.forName(UCModule.PACKAGE_NAME + "." + UCModule.device + ".IOModule_" +
                     UCModule.device + ".IOModule_" + UCModule.device);
             ioModule = (IOModule) ioModuleDevice
-                    .getDeclaredConstructor(OutputFragment.class, DigitalInputFragment.class)
-                    .newInstance(outputFragment, digitalInputFragment);
+                    .getDeclaredConstructor(OutputFragment.class, InputFragment.class)
+                    .newInstance(outputFragment, inputFragment);
 
         } catch (ClassNotFoundException | IllegalAccessException | java.lang.InstantiationException
                 | NoSuchMethodException | InvocationTargetException e) {
@@ -109,9 +120,10 @@ public class UCModule_View extends Fragment implements Runnable {
 
         simulatedTimeDisplay = (TextView) view.findViewById(R.id.simulatedTime);
         startInstructions = (TextView) view.findViewById(R.id.startInstructions);
+        hexFileErrorInstructions = (TextView) view.findViewById(R.id.hexFileErrorInstructions);
 
         outputFrame = (FrameLayout) view.findViewById(R.id.outputPins);
-        digitalInputFrame = (FrameLayout) view.findViewById(R.id.digitalInputPins);
+        inputFrame = (FrameLayout) view.findViewById(R.id.inputPins);
 
         return view;
     }
@@ -119,18 +131,19 @@ public class UCModule_View extends Fragment implements Runnable {
     @Override
     public void run() {
         simulatedTime = 0;
-        while(!ucModule.getResetFlag()) {
+        while (!ucModule.getResetFlag()) {
             waitClock();
             simulatedTime += clockPeriod;
-//            seconds = TimeUnit.NANOSECONDS.toSeconds(simulatedTime/10);
-//            microSeconds = TimeUnit.NANOSECONDS.toMicros(simulatedTime/10);
-            microSeconds = (simulatedTime/10)/1000;
-            seconds = (microSeconds/1000)/1000;
+
+            nanoSeconds = simulatedTime / 10;
+            seconds = TimeUnit.NANOSECONDS.toSeconds(nanoSeconds);
+
+            simulatedText = resources.getString(R.string.simulated_time_format, seconds, nanoSeconds);
 
             screenUpdater.post(new Runnable() {
                 @Override
                 public void run() {
-                    simulatedTimeDisplay.setText(String.format("%d.%06d s",seconds, microSeconds));
+                    simulatedTimeDisplay.setText(simulatedText);
                 }
             });
         }
@@ -173,7 +186,7 @@ public class UCModule_View extends Fragment implements Runnable {
 
     public void setMemoryIO(DataMemory dataMemory) {
         outputFragment.setDataMemory(dataMemory);
-        digitalInputFragment.setDataMemory(dataMemory);
+        inputFragment.setDataMemory(dataMemory);
     }
 
     public IOModule getIOModule() {
@@ -185,7 +198,7 @@ public class UCModule_View extends Fragment implements Runnable {
         ucViewClockCondition = clockLock.newCondition();
     }
 
-    public void resetIO(){
+    public void resetIO() {
         outputFragment.resetOuputs();
     }
 
@@ -193,15 +206,25 @@ public class UCModule_View extends Fragment implements Runnable {
         this.uCHandler = uCHandler;
     }
 
-    public void setStatusLed(LED_STATUS status) {
-        switch (status){
+    public void setStatus(LED_STATUS status) {
+        switch (status) {
             case RUNNING:
                 statusInfo.setText(UCModule.getStatusRunning());
                 statusInfo.setTextColor(UCModule.getStatusRunningColor());
+
+                hexFileErrorInstructions.setVisibility(View.GONE);
                 break;
 
             case SHORT_CIRCUIT:
+                statusInfo.setText(UCModule.getStatusShortCircuit());
+                statusInfo.setTextColor(UCModule.getStatusShortCircuitColor());
+                break;
 
+            case HEX_FILE_ERROR:
+                statusInfo.setText(UCModule.getStatusHexFileError());
+                statusInfo.setTextColor(UCModule.getStatusHexFileErrorColor());
+
+                hexFileErrorInstructions.setVisibility(View.VISIBLE);
                 break;
         }
     }
@@ -236,11 +259,10 @@ public class UCModule_View extends Fragment implements Runnable {
                     break;
 
                 case R.id.action_clear_io:
-                    outputFrame.setVisibility(View.GONE);
                     outputFragment.clearAll();
-                    digitalInputFrame.setVisibility(View.GONE);
-                    digitalInputFragment.clearAll();
-                    startInstructions.setVisibility(View.VISIBLE);
+                    outputFrame.setVisibility(View.GONE);
+                    inputFragment.clearAll();
+                    inputFrame.setVisibility(View.GONE);
                     break;
             }
             return true;
@@ -267,24 +289,57 @@ public class UCModule_View extends Fragment implements Runnable {
                     break;
 
                 case R.id.action_digital_input:
-                    digitalInputFrame.setVisibility(View.VISIBLE);
-                    if (!digitalInputFragment.haveDigitalInput()) {
+                    if (!inputFragment.haveInput()) {
+                        inputFrame.setVisibility(View.VISIBLE);
 
                         mFragmentManager = ((AppCompatActivity) getActivity()).getSupportFragmentManager();
                         mFragmentTransaction = mFragmentManager.beginTransaction();
 
-                        mFragmentTransaction.add(R.id.digitalInputPins, (android.support.v4.app.Fragment) digitalInputFragment, DigitalInputFragment.TAG_DIGITAL_INPUT_FRAGMENT);
+                        mFragmentTransaction.add(R.id.inputPins, (android.support.v4.app.Fragment) inputFragment, InputFragment.TAG_INPUT_FRAGMENT);
                         mFragmentTransaction.commit();
-                    } else {
-                        digitalInputFragment.addDigitalInput();
+
                     }
+                    inputFragment.addDigitalInput();
+
                     break;
 
                 case R.id.action_analog_input:
-//                toast(item.getTitle().toString());
+                    if (!inputFragment.haveInput()) {
+                        inputFrame.setVisibility(View.VISIBLE);
+
+                        mFragmentManager = ((AppCompatActivity) getActivity()).getSupportFragmentManager();
+                        mFragmentTransaction = mFragmentManager.beginTransaction();
+
+                        mFragmentTransaction.add(R.id.inputPins, (android.support.v4.app.Fragment) inputFragment, InputFragment.TAG_INPUT_FRAGMENT);
+                        mFragmentTransaction.commit();
+
+                    }
+                    inputFragment.addAnalogicInput();
                     break;
             }
             return true;
+        }
+    }
+
+    public class ScreenUpdater extends Handler {
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case REMOVE_OUTPUT_FRAGMENT:
+                    outputFrame.setVisibility(View.GONE);
+                    if (inputFrame.getVisibility() != View.VISIBLE) {
+                        startInstructions.setVisibility(View.VISIBLE);
+                    }
+                    break;
+
+                case REMOVE_INPUT_FRAGMENT:
+                    inputFrame.setVisibility(View.GONE);
+                    if (outputFrame.getVisibility() != View.VISIBLE) {
+                        startInstructions.setVisibility(View.VISIBLE);
+                    }
+                    break;
+
+            }
         }
     }
 }

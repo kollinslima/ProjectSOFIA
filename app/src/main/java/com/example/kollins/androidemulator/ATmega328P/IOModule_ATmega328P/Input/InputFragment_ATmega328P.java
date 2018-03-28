@@ -1,12 +1,16 @@
-package com.example.kollins.androidemulator.ATmega328P.IOModule_ATmega328P.Digital_Input;
+package com.example.kollins.androidemulator.ATmega328P.IOModule_ATmega328P.Input;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.util.Log;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.view.ActionMode;
+import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -16,8 +20,9 @@ import com.example.kollins.androidemulator.ATmega328P.DataMemory_ATmega328P;
 import com.example.kollins.androidemulator.ATmega328P.IOModule_ATmega328P.IOModule_ATmega328P;
 import com.example.kollins.androidemulator.R;
 import com.example.kollins.androidemulator.UCModule;
+import com.example.kollins.androidemulator.UCModule_View;
 import com.example.kollins.androidemulator.uCInterfaces.DataMemory;
-import com.example.kollins.androidemulator.uCInterfaces.DigitalInputFragment;
+import com.example.kollins.androidemulator.uCInterfaces.InputFragment;
 import com.example.kollins.androidemulator.uCInterfaces.IOModule;
 
 import java.util.ArrayList;
@@ -27,41 +32,44 @@ import java.util.List;
  * Created by kollins on 3/21/18.
  */
 
-public class DigitalInputFragment_ATmega328P extends Fragment implements DigitalInputFragment, AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener {
+public class InputFragment_ATmega328P extends Fragment implements InputFragment, AdapterView.OnItemLongClickListener, ActionMode.Callback, AdapterView.OnItemClickListener {
 
-    private ListView digitalInputPinsList;
-    private DigitalInputAdapter_ATmega328P digitalInputAdapter;
-    private List<DigitalInputPin_ATmega328P> digitalInputPins;
+    private ListView inputPinsList;
+    private InputAdapter_ATmega328P inputAdapter;
+    private List<InputPin_ATmega328P> inputPins;
 
     private DataMemory_ATmega328P dataMemory;
 
-    private boolean haveDigitalInput;
+    private boolean haveInput;
     private boolean pullUpEnabled;
+
+    private Handler screenUpdater;
+
+    private ActionMode mActionMode;
+
+    public InputFragment_ATmega328P() {
+        inputPins = new ArrayList<InputPin_ATmega328P>();
+        inputAdapter = new InputAdapter_ATmega328P(this, inputPins);
+        haveInput = false;
+    }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
-
-        digitalInputPins = new ArrayList<DigitalInputPin_ATmega328P>();
-        digitalInputPins.add(new DigitalInputPin_ATmega328P(null, IOModule.PUSH_GND));
-
-        digitalInputAdapter = new DigitalInputAdapter_ATmega328P(this, digitalInputPins);
-
-        haveDigitalInput = false;
     }
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View layout = inflater.inflate(R.layout.frament_digital_input, container, false);
+        View layout = inflater.inflate(R.layout.frament_input, container, false);
 
-        digitalInputPinsList = (ListView) layout.findViewById(R.id.digitalInputList);
-        digitalInputPinsList.setAdapter(digitalInputAdapter);
-        digitalInputPinsList.setOnItemClickListener(this);
-        digitalInputPinsList.setOnItemLongClickListener(this);
+        inputPinsList = (ListView) layout.findViewById(R.id.inputList);
+        inputPinsList.setAdapter(inputAdapter);
+        inputPinsList.setOnItemClickListener(this);
+        inputPinsList.setOnItemLongClickListener(this);
 
-        haveDigitalInput = true;
+        haveInput = true;
 
         pullUpEnabled = !dataMemory.readBit(DataMemory_ATmega328P.MCUCR_ADDR, 4);
 
@@ -70,13 +78,19 @@ public class DigitalInputFragment_ATmega328P extends Fragment implements Digital
 
     @Override
     public void addDigitalInput() {
-        digitalInputPins.add(new DigitalInputPin_ATmega328P(null, IOModule.PUSH_GND));
-        digitalInputAdapter.notifyDataSetChanged();
+        inputPins.add(new InputPin_ATmega328P(null, IOModule.PUSH_GND, InputPin_ATmega328P.DIGITAL_PIN));
+        inputAdapter.notifyDataSetChanged();
     }
 
     @Override
-    public boolean haveDigitalInput() {
-        return haveDigitalInput;
+    public void addAnalogicInput() {
+        inputPins.add(new InputPin_ATmega328P(null, InputPin_ATmega328P.ANALOGIC_PIN));
+        inputAdapter.notifyDataSetChanged();
+    }
+
+    @Override
+    public boolean haveInput() {
+        return haveInput;
     }
 
     public boolean isPullUpEnabled() {
@@ -89,11 +103,100 @@ public class DigitalInputFragment_ATmega328P extends Fragment implements Digital
 
     @Override
     public void clearAll() {
-        if (digitalInputPins == null) {
+        if (inputPins == null) {
             return;
         }
-        digitalInputPins.clear();
-        digitalInputAdapter.notifyDataSetChanged();
+        haveInput = false;
+        inputPins.clear();
+        inputAdapter.notifyDataSetChanged();
+    }
+
+    @Override
+    public boolean onCreateActionMode(ActionMode actionMode, Menu menu) {
+        getActivity().getMenuInflater().inflate(R.menu.menu_delete_item, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onPrepareActionMode(ActionMode actionMode, Menu menu) {
+        return false;
+    }
+
+    @Override
+    public boolean onActionItemClicked(ActionMode actionMode, MenuItem menuItem) {
+        if (menuItem.getItemId() == R.id.action_delete) {
+            SparseBooleanArray checked = inputPinsList.getCheckedItemPositions();
+
+            for (int i = checked.size() - 1; i >= 0; i--) {
+                if (checked.valueAt(i)) {
+                    inputPins.remove(checked.keyAt(i));
+                }
+            }
+
+            actionMode.finish();
+            return true;
+        }
+
+        return false;
+    }
+
+    @Override
+    public void onDestroyActionMode(ActionMode actionMode) {
+        mActionMode = null;
+        inputPinsList.clearChoices();
+        inputAdapter.notifyDataSetChanged();
+        inputPinsList.setChoiceMode(ListView.CHOICE_MODE_NONE);
+
+        if (inputPinsList.getCount() == 0){
+            screenUpdater.sendEmptyMessage(UCModule_View.REMOVE_INPUT_FRAGMENT);
+            haveInput = false;
+            getActivity().getSupportFragmentManager().beginTransaction().remove(this).commit();
+        }
+    }
+
+    @Override
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        if (mActionMode == null) {
+            //Add measure
+        } else {
+            int checkedCount = updateCheckedItens(inputPinsList, position);
+            if (checkedCount == 0) {
+                mActionMode.finish();
+            }
+        }
+    }
+
+    @Override
+    public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+        boolean consumed = (mActionMode == null);
+
+        if (consumed) {
+            AppCompatActivity activity = (AppCompatActivity) getActivity();
+
+            mActionMode = activity.startSupportActionMode(this);
+            inputPinsList.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
+            inputPinsList.setItemChecked(position, true);
+            updateCheckedItens(inputPinsList, position);
+        }
+
+        return consumed;
+    }
+
+    private int updateCheckedItens(ListView inputPinsList, int position) {
+        SparseBooleanArray checked = inputPinsList.getCheckedItemPositions();
+
+        inputPinsList.setItemChecked(position, inputPinsList.isItemChecked(position));
+
+        int checkedCount = 0;
+
+        for (int i = 0; i < checked.size(); i++) {
+            if (checked.valueAt(i)) {
+                checkedCount++;
+            }
+        }
+
+        mActionMode.setTitle(UCModule.getNumberSelected(checkedCount));
+        return checkedCount;
     }
 
     @Override
@@ -101,18 +204,13 @@ public class DigitalInputFragment_ATmega328P extends Fragment implements Digital
         this.dataMemory = (DataMemory_ATmega328P) dataMemory;
     }
 
-//    public void inputEvent(int signalState, int memoryPosition, int bitPosition) {
-//        dataMemory.writeIOBit(memoryPosition, bitPosition, signalState == IOModule.HIGH_LEVEL);
-//    }
-
-    public void inputRequest_inputChanel(int signalState, int memoryPosition, int bitPosition, DigitalInputPin_ATmega328P request) {
+    public void inputRequest_inputChanel(int signalState, int memoryPosition, int bitPosition, InputPin_ATmega328P request) {
 
         new InputRequest_InputChanel(request).execute(signalState,memoryPosition,bitPosition);
 
     }
 
     public void inputRequest_outputChanel(int signalState, int memoryPosition, int bitPosition, String request) {
-
         new InputRequest_OutputChanel(request).execute(signalState,memoryPosition,bitPosition);
     }
 
@@ -121,20 +219,20 @@ public class DigitalInputFragment_ATmega328P extends Fragment implements Digital
     }
 
     @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-
+    public void setScreenUpdater(Handler screenUpdater) {
+        this.screenUpdater = screenUpdater;
     }
 
     @Override
-    public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+    public boolean isUpdatingIO() {
         return false;
     }
 
     private class InputRequest_InputChanel extends AsyncTask<Integer, Void, Boolean>{
 
-        private DigitalInputPin_ATmega328P request;
+        private InputPin_ATmega328P request;
 
-        public InputRequest_InputChanel(DigitalInputPin_ATmega328P request) {
+        public InputRequest_InputChanel(InputPin_ATmega328P request) {
             this.request = request;
         }
 
@@ -142,27 +240,30 @@ public class DigitalInputFragment_ATmega328P extends Fragment implements Digital
         @Override
         protected Boolean doInBackground(Integer... memoryParams) {
             try {
-                if (digitalInputPins.size() == 0) {
+                if (inputPins.size() == 0) {
                     //No restrictions, write requested data.
                     dataMemory.writeIOBit(memoryParams[1], memoryParams[2], memoryParams[0] == IOModule.HIGH_LEVEL);
                     return false;
                 }
 
-                //If input requested in a output pin
+                //If input requested in an output pin
                 if (dataMemory.readBit(memoryParams[1] + 1, memoryParams[2])) {
 
                     boolean boolSignalState = (memoryParams[0] == 1);
 
                     if (dataMemory.readBit(memoryParams[1] + 2, memoryParams[2]) ^ boolSignalState) {
                         //Output and requested input are different
-                        return true;
+                        if (!InputPin_ATmega328P.hiZInput[request.getPinSpinnerPosition()]) {
+                            //Input is not HiZ, so it's a short circuit!
+                            return true;
+                        }
                     }
                 }
                 //If requested in a input pin
                 else {
                     //Is there another input in the same pin?
-                    ArrayList<DigitalInputPin_ATmega328P> duplicatedInputs = new ArrayList<DigitalInputPin_ATmega328P>();
-                    for (DigitalInputPin_ATmega328P p : digitalInputPins) {
+                    ArrayList<InputPin_ATmega328P> duplicatedInputs = new ArrayList<InputPin_ATmega328P>();
+                    for (InputPin_ATmega328P p : inputPins) {
                         if (p.equals(request)) {
                             duplicatedInputs.add(p);
                         }
@@ -174,7 +275,7 @@ public class DigitalInputFragment_ATmega328P extends Fragment implements Digital
                         return false;
                     }
 
-                    for (DigitalInputPin_ATmega328P p : duplicatedInputs) {
+                    for (InputPin_ATmega328P p : duplicatedInputs) {
                         if (p.getPinState() == IOModule.TRI_STATE) {
                             continue;
                         }
@@ -213,7 +314,7 @@ public class DigitalInputFragment_ATmega328P extends Fragment implements Digital
         @Override
         protected Boolean doInBackground(Integer... memoryParams) {
             try {
-                if (digitalInputPins.size() == 0) {
+                if (inputPins.size() == 0) {
                     //No restrictions, write requested data.
                     dataMemory.writeIOBit(memoryParams[1], memoryParams[2], memoryParams[0] == IOModule.HIGH_LEVEL);
                     return false;
@@ -222,8 +323,8 @@ public class DigitalInputFragment_ATmega328P extends Fragment implements Digital
                 //It's always an input in when this function is called from IOModule.
 
                 //Is there another input in the same pin?
-                ArrayList<DigitalInputPin_ATmega328P> duplicatedInputs = new ArrayList<DigitalInputPin_ATmega328P>();
-                for (DigitalInputPin_ATmega328P p : digitalInputPins) {
+                ArrayList<InputPin_ATmega328P> duplicatedInputs = new ArrayList<InputPin_ATmega328P>();
+                for (InputPin_ATmega328P p : inputPins) {
                     if (p.getPin().equals(request)) {
                         duplicatedInputs.add(p);
                     }
@@ -235,7 +336,7 @@ public class DigitalInputFragment_ATmega328P extends Fragment implements Digital
                     return false;
                 }
 
-                for (DigitalInputPin_ATmega328P p : duplicatedInputs) {
+                for (InputPin_ATmega328P p : duplicatedInputs) {
                     if (p.getPinState() == IOModule.TRI_STATE) {
                         continue;
                     }

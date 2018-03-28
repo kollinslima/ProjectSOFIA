@@ -1,10 +1,8 @@
-package com.example.kollins.androidemulator.ATmega328P.IOModule_ATmega328P.Digital_Input;
+package com.example.kollins.androidemulator.ATmega328P.IOModule_ATmega328P.Input;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.widget.ArrayAdapter;
-
-import java.util.List;
 
 /**
  * Created by kollins on 3/21/18.

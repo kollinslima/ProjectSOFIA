@@ -1,6 +1,7 @@
 package com.example.kollins.androidemulator.ATmega328P.IOModule_ATmega328P.Output;
 
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
@@ -19,7 +20,9 @@ import com.example.kollins.androidemulator.ATmega328P.DataMemory_ATmega328P;
 import com.example.kollins.androidemulator.ATmega328P.IOModule_ATmega328P.IOModule_ATmega328P;
 import com.example.kollins.androidemulator.R;
 import com.example.kollins.androidemulator.UCModule;
+import com.example.kollins.androidemulator.UCModule_View;
 import com.example.kollins.androidemulator.uCInterfaces.DataMemory;
+import com.example.kollins.androidemulator.uCInterfaces.IOModule;
 import com.example.kollins.androidemulator.uCInterfaces.OutputFragment;
 
 import java.util.ArrayList;
@@ -33,6 +36,8 @@ public class OutputFragment_ATmega328P extends Fragment implements OutputFragmen
 
     public static final int[] BACKGROUND_PIN = {R.drawable.off_led, R.drawable.on_led, R.drawable.hi_z_led};
 
+    //Virtual Pin to hold states until first output
+    public static int[] pinbuffer = new int[UCModule.getPinArray().length];
 
     private ListView outputPinsList;
     private OutputAdapter_ATmega328P outputAdapter;
@@ -43,17 +48,9 @@ public class OutputFragment_ATmega328P extends Fragment implements OutputFragmen
     private boolean haveOutput;
     private boolean pullUpEnabled;
 
+    private Handler screenUpdater;
+
     private ActionMode mActionMode;
-
-
-//    public static OutputFragment_ATmega328P newOutputFragment (DataMemory dataMemory){
-//        Bundle param = new Bundle();
-//        param.putSerializable(EXTRA_DATA_MEMORY, dataMemory);
-//
-//        OutputFragment_ATmega328P outputFragment = new OutputFragment_ATmega328P();
-//        outputFragment.setArguments(param);
-//        return outputFragment;
-//    }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -61,7 +58,7 @@ public class OutputFragment_ATmega328P extends Fragment implements OutputFragmen
         setRetainInstance(true);
 
         outputPins = new ArrayList<OutputPin_ATmega328P>();
-        outputPins.add(new OutputPin_ATmega328P(null, UCModule.getDefaultPinPosition()));
+        outputPins.add(new OutputPin_ATmega328P(null, UCModule.getDefaultPinPosition(), pinbuffer));
 
         outputAdapter = new OutputAdapter_ATmega328P(this, outputPins);
 
@@ -79,7 +76,6 @@ public class OutputFragment_ATmega328P extends Fragment implements OutputFragmen
         outputPinsList.setOnItemClickListener(this);
         outputPinsList.setOnItemLongClickListener(this);
 
-//        dataMemory.setOuputHandler(pinHandler);
         haveOutput = true;
 
         pullUpEnabled = !dataMemory.readBit(DataMemory_ATmega328P.MCUCR_ADDR, 4);
@@ -96,7 +92,7 @@ public class OutputFragment_ATmega328P extends Fragment implements OutputFragmen
     }
 
     public void addOuput() {
-        outputPins.add(new OutputPin_ATmega328P(null, UCModule.getDefaultPinPosition()));
+        outputPins.add(new OutputPin_ATmega328P(null, UCModule.getDefaultPinPosition(), pinbuffer));
         outputAdapter.notifyDataSetChanged();
     }
 
@@ -164,6 +160,12 @@ public class OutputFragment_ATmega328P extends Fragment implements OutputFragmen
         outputPinsList.clearChoices();
         outputAdapter.notifyDataSetChanged();
         outputPinsList.setChoiceMode(ListView.CHOICE_MODE_NONE);
+
+        if (outputPinsList.getCount() == 0){
+            screenUpdater.sendEmptyMessage(UCModule_View.REMOVE_OUTPUT_FRAGMENT);
+            haveOutput = false;
+            getActivity().getSupportFragmentManager().beginTransaction().remove(this).commit();
+        }
     }
 
     @Override
@@ -230,5 +232,13 @@ public class OutputFragment_ATmega328P extends Fragment implements OutputFragmen
         }
     }
 
+    @Override
+    public void setScreenUpdater(Handler screenUpdater) {
+        this.screenUpdater = screenUpdater;
+    }
 
+    @Override
+    public boolean isUpdatingIO() {
+        return false;
+    }
 }

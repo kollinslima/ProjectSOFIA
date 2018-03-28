@@ -1,4 +1,4 @@
-package com.example.kollins.androidemulator.ATmega328P.IOModule_ATmega328P.Digital_Input;
+package com.example.kollins.androidemulator.ATmega328P.IOModule_ATmega328P.Input;
 
 import com.example.kollins.androidemulator.UCModule;
 import com.example.kollins.androidemulator.uCInterfaces.IOModule;
@@ -7,25 +7,49 @@ import com.example.kollins.androidemulator.uCInterfaces.IOModule;
  * Created by kollins on 3/21/18.
  */
 
-public class DigitalInputPin_ATmega328P {
+public class InputPin_ATmega328P {
 
-    public static boolean[] buttonPressed = UCModule.getButtonPressed();
+    public static boolean[] hiZInput = UCModule.getHiZInput();
 
+    public static final boolean DIGITAL_PIN = true;
+    public static final boolean ANALOGIC_PIN = !DIGITAL_PIN;
+
+    //All pins
     private String pin;
-    private int pinState;
-    private int pinMode;
     private int pinSpinnerPosition;
+    private int pinState;
+    private boolean pinDescription;
+
+    //Digital Pins
+    private int pinMode;
+    private int pinModePosition;
     private int[] memoryAddress;
     private int[] memoryBitPosition;
 
-    public DigitalInputPin_ATmega328P(String pin, int pinMode) {
+    //Analog Pins
+    private int seekBarProgress;    //%
+
+    //DIGITAL PINS
+    public InputPin_ATmega328P(String pin, int pinMode, boolean pinDescription) {
         this.pin = pin;
-        this.pinMode = pinMode;
+        this.pinDescription = pinDescription;
         this.pinSpinnerPosition = -1;
+
+        this.pinMode = pinMode;
+        this.pinModePosition = -1;
         this.pinState = IOModule.TRI_STATE;
 
         memoryAddress = UCModule.getDigitalInputMemoryAddress();
         memoryBitPosition = UCModule.getDigitalInputMemoryBitPosition();
+    }
+
+    //ANALOGIC PINS
+    public InputPin_ATmega328P(String pin, boolean pinDescription) {
+        this.pin = pin;
+        this.pinDescription = pinDescription;
+        this.pinSpinnerPosition = -1;
+
+        this.seekBarProgress = 0;
     }
 
     public int getPinMode() {
@@ -44,8 +68,20 @@ public class DigitalInputPin_ATmega328P {
         this.pinSpinnerPosition = pinSpinnerPosition;
     }
 
+    public int getPinModePosition() {
+        return pinModePosition;
+    }
+
+    public void setPinModePosition(int pinModePosition) {
+        this.pinModePosition = pinModePosition;
+    }
+
     public String getPin() {
         return pin;
+    }
+
+    public boolean getDescription(){
+        return pinDescription;
     }
 
     public void setPin(String pin) {

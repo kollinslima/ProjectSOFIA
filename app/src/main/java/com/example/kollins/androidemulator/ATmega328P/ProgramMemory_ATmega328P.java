@@ -76,13 +76,15 @@ public class ProgramMemory_ATmega328P implements ProgramMemory {
                 File hexFile = new File(dcimDir, hexFileLocation);
 
                 //Watch for changes in hexFile
-                codeObserver = new FileObserver(hexFile.getPath().toString(), FileObserver.DELETE_SELF|FileObserver.MODIFY) {
+                codeObserver = new FileObserver(hexFile.getPath().toString()) {
                     @Override
                     public void onEvent(int event, @Nullable String path) {
-                        Log.d(UCModule.MY_LOG_TAG, "File event: " + event);
+                        Log.i(UCModule.MY_LOG_TAG, "File event: " + event);
 
-                        //Send Broadcast
-                        ucHandler.sendEmptyMessage(UCModule.RESET_ACTION);
+                        if (event == FileObserver.CLOSE_WRITE) {
+                            //Send Broadcast
+                            ucHandler.sendEmptyMessage(UCModule.RESET_ACTION);
+                        }
                     }
                 };
                 codeObserver.startWatching();
@@ -230,6 +232,7 @@ public class ProgramMemory_ATmega328P implements ProgramMemory {
         }
     }
 
-
-
+    public void stopCodeObserver(){
+        codeObserver.stopWatching();
+    }
 }

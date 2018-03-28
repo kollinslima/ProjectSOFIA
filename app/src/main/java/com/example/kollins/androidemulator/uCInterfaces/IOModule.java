@@ -2,7 +2,7 @@ package com.example.kollins.androidemulator.uCInterfaces;
 
 import com.example.kollins.androidemulator.UCModule;
 
-import java.util.logging.Handler;
+import android.os.Handler;
 
 /**
  * Created by kollins on 3/21/18.
@@ -27,4 +27,5 @@ public interface IOModule{
     String PORT_IOMESSAGE = "PORT_VALUE";
     String CONFIG_IOMESSAGE = "CONFIG_VALUE";
 
+    boolean isUpdatingIO();
 }

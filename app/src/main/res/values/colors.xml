@@ -24,5 +24,6 @@
     <color name="selectedItem">#929292</color>
 
     <color name="running">#00FF00</color>
-    <color name="reset">#FFFF00</color>
+    <color name="hex_file_error">#FFFF00</color>
+    <color name="short_circuit">#FF0000</color>
 </resources>

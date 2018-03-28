@@ -22,10 +22,10 @@ public class OutputPin_ATmega328P {
         resetPinState();
     }
 
-    public OutputPin_ATmega328P(String pin, int pinState, int pinPositionSpinner){
+    public OutputPin_ATmega328P(String pin, int pinPositionSpinner, int[] pinState){
         this.pin = pin;
-        this.pinState[pinPositionSpinner] = pinState;
         this.pinPositionSpinner = pinPositionSpinner;
+        this.pinState = pinState;
     }
 
     public String getPin() {
@@ -56,5 +56,9 @@ public class OutputPin_ATmega328P {
         for (int i = 0; i < pinState.length; i++){
             pinState[i] = IOModule.TRI_STATE;
         }
+    }
+
+    public int[] getStates() {
+        return pinState;
     }
 }

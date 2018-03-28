@@ -3,20 +3,18 @@ package com.example.kollins.androidemulator.ATmega328P.IOModule_ATmega328P;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Message;
-import android.util.Log;
 
 import com.example.kollins.androidemulator.ATmega328P.DataMemory_ATmega328P;
-import com.example.kollins.androidemulator.ATmega328P.IOModule_ATmega328P.Digital_Input.DigitalInputFragment_ATmega328P;
-import com.example.kollins.androidemulator.ATmega328P.IOModule_ATmega328P.Digital_Input.DigitalInputPin_ATmega328P;
+import com.example.kollins.androidemulator.ATmega328P.IOModule_ATmega328P.Input.InputFragment_ATmega328P;
+import com.example.kollins.androidemulator.ATmega328P.IOModule_ATmega328P.Input.InputPin_ATmega328P;
 import com.example.kollins.androidemulator.ATmega328P.IOModule_ATmega328P.Output.OutputFragment_ATmega328P;
 import com.example.kollins.androidemulator.ATmega328P.IOModule_ATmega328P.Output.OutputPin_ATmega328P;
 import com.example.kollins.androidemulator.UCModule;
 import com.example.kollins.androidemulator.UCModule_View;
-import com.example.kollins.androidemulator.uCInterfaces.DigitalInputFragment;
+import com.example.kollins.androidemulator.uCInterfaces.InputFragment;
 import com.example.kollins.androidemulator.uCInterfaces.IOModule;
 import com.example.kollins.androidemulator.uCInterfaces.OutputFragment;
 
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -27,21 +25,24 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
 
     private byte portRead;
     private byte configRead;
+    private boolean updatingIO;
 
     private static UCModule.uCHandler uCHandler;
     private OutputFragment_ATmega328P outputFragment;
-    private DigitalInputFragment_ATmega328P digitalInputFragment;
+    private InputFragment_ATmega328P inputFragment;
 
     public IOModule_ATmega328P(OutputFragment outputFragment,
-                               DigitalInputFragment digitalInputFragment) {
+                               InputFragment inputFragment) {
 
         this.uCHandler = uCHandler;
         this.outputFragment = (OutputFragment_ATmega328P) outputFragment;
-        this.digitalInputFragment = (DigitalInputFragment_ATmega328P) digitalInputFragment;
+        this.inputFragment = (InputFragment_ATmega328P) inputFragment;
+        setUpdatingIO(false);
     }
 
     @Override
     public void handleMessage(Message msg) {
+
         switch (msg.what) {
             case PORTB_EVENT:
 
@@ -50,10 +51,8 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
 
                 List<OutputPin_ATmega328P> outputPins = outputFragment.getOutputPins();
 
-                if (outputPins == null) {
-                    break;
-                }
-
+//                Log.i(UCModule.MY_LOG_TAG, "PortB: " + Integer.toBinaryString(portRead));
+//                Log.i(UCModule.MY_LOG_TAG, "DDRB: " + Integer.toBinaryString(configRead));
                 new PortBUpdateView().execute(outputPins);
 
                 break;
@@ -64,31 +63,44 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
         UCModule_View.sendShortCircuit();
     }
 
+    @Override
+    public synchronized boolean isUpdatingIO() {
+        return false;
+    }
+
+    private synchronized void setUpdatingIO(boolean state) {
+        updatingIO = state;
+    }
+
+
     private class PortBUpdateView extends AsyncTask<List<OutputPin_ATmega328P>, Integer, Void> {
 
-        private OutputPin_ATmega328P pin;
         private int index;
         private boolean digitalPINState;
+        private int bitPosition;
 
         @Override
         protected void onPreExecute() {
-//            Auxiliar pin, position in spinner won't be used.
-            pin = new OutputPin_ATmega328P("Pin X", 100);
             index = 0;
         }
 
         @Override
         protected Void doInBackground(List<OutputPin_ATmega328P>... pins) {
-            for (int i = 8; i <= 13; i++) {
+
+            for (int i = 8, bitPosition = 0; i <= 13; i++, bitPosition++) {
                 //Is input?
-                if ((0x01 & (configRead >> (i - 8))) == 0) {
+                if ((0x01 & (configRead>>bitPosition)) == 0) {
+//                    Log.i(UCModule.MY_LOG_TAG, "Input");
 
-                    digitalPINState = digitalInputFragment.getPINState(DataMemory_ATmega328P.PINB_ADDR, (i - 8));
+                    digitalPINState = inputFragment.getPINState(DataMemory_ATmega328P.PINB_ADDR, bitPosition);
 
-                    if ((0x01 & (portRead >> (i - 8))) == 1 && outputFragment.isPullUpEnabled()) {
+                    if (((0x01 & (portRead>>bitPosition)) == 1) && outputFragment.isPullUpEnabled()) {
 
-                        if (!(digitalPINState || DigitalInputPin_ATmega328P.buttonPressed[i])) {
-                            digitalInputFragment.inputRequest_outputChanel(IOModule.HIGH_LEVEL, DataMemory_ATmega328P.PINB_ADDR, (i - 8), "Pin " + i);
+//                        Log.i(UCModule.MY_LOG_TAG, "Port == 1 && pull-Up enabled");
+
+                        if (!digitalPINState && InputPin_ATmega328P.hiZInput[i]) {
+//                            Log.i(UCModule.MY_LOG_TAG, "Requesting pull up");
+                            inputFragment.inputRequest_outputChanel(IOModule.HIGH_LEVEL, DataMemory_ATmega328P.PINB_ADDR, bitPosition, "Pin " + i);
 
                             /*
                             Each time pin is updated, this function is called again from dataMemory,
@@ -97,29 +109,43 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
 
                             return null;
                         }
-                        pin.setPinState(digitalPINState ? 1 : 0, i);
+
+                        outputFragment.pinbuffer[i] = digitalPINState ? 1 : 0;
 
                     } else {
-                        if (DigitalInputPin_ATmega328P.buttonPressed[i]) {
-                            pin.setPinState(digitalPINState ? 1 : 0, i);
+//                        Log.i(UCModule.MY_LOG_TAG, "Port == 0 or pull-up disabled");
+                        if (!InputPin_ATmega328P.hiZInput[i]) {
+//                            Log.i(UCModule.MY_LOG_TAG, "Button pressed");
+                            outputFragment.pinbuffer[i] = digitalPINState ? 1 : 0;
                         } else {
-                            pin.setPinState(IOModule.TRI_STATE, i);
+//                            Log.i(UCModule.MY_LOG_TAG, "Button not pressed");
+                            outputFragment.pinbuffer[i] = IOModule.TRI_STATE;
                         }
                     }
                 }
                 //Is output!
                 else {
-                    pin.setPinState(0x01 & (portRead >> (i - 8)), i);
+//                    Log.i(UCModule.MY_LOG_TAG, "Output");
+                    outputFragment.pinbuffer[i] = (0x01 & (portRead>>bitPosition));
+                }
+
+//                portRead = (byte) (portRead >> 1);
+//                configRead = (byte) (configRead >> 1);
+            }
+
+            if (pins[0] != null) {
+                try {
+                    setUpdatingIO(true);
+                    for (OutputPin_ATmega328P p : pins[0]) {
+                        p.setPinState(outputFragment.pinbuffer[p.getPinPositionSpinner()], p.getPinPositionSpinner());
+                        publishProgress(index);
+                        index += 1;
+                    }
+                } finally {
+                    setUpdatingIO(false);
                 }
             }
 
-//            synchronized (pins[0]) {
-            for (OutputPin_ATmega328P p : pins[0]) {
-                p.setPinState(pin.getPinState(p.getPinPositionSpinner()), p.getPinPositionSpinner());
-                publishProgress(index);
-                index += 1;
-            }
-//            }
             return null;
         }
 

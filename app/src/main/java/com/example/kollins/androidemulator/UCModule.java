@@ -6,25 +6,16 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.PopupMenu;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.kollins.androidemulator.ATmega328P.IOModule_ATmega328P.IOModule_ATmega328P;
 import com.example.kollins.androidemulator.uCInterfaces.DataMemory;
-import com.example.kollins.androidemulator.uCInterfaces.DigitalInputFragment;
 import com.example.kollins.androidemulator.uCInterfaces.IOModule;
 import com.example.kollins.androidemulator.uCInterfaces.OutputFragment;
 import com.example.kollins.androidemulator.uCInterfaces.ProgramMemory;
@@ -116,27 +107,10 @@ public class UCModule extends AppCompatActivity {
 
         ft.add(R.id.fragmentIO, ucView, OutputFragment.TAG_OUTPUT_FRAGMENT);
         ft.commit();
-//        ((Button) findViewById(R.id.manualClock)).setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                clockLock.lock();
-//                try {
-//                    clockVector[MANUAL_CLOCK] = true;
-//                    for (boolean b : clockVector) {
-//                        if (!b) {
-//                            return;
-//                        }
-//                    }
-//                    UCModule.resetClockVector();
-//
-//                    //Send Broadcast
-//                    uCHandler.sendEmptyMessage(CLOCK_ACTION);
-//                } finally {
-//                    clockLock.unlock();
-//                }
-//            }
-//        });
 
+        ucView.setClockLock(clockLock);
+        ucView.setUCHandler(uCHandler);
+        ucView.setUCDevice(this);
     }
 
     @Override
@@ -152,6 +126,7 @@ public class UCModule extends AppCompatActivity {
     }
 
     private void setUpUc() {
+        Log.i(MY_LOG_TAG, "SetUp");
         setResetFlag(false);
 
         try {
@@ -171,14 +146,12 @@ public class UCModule extends AppCompatActivity {
 
                 //Init RAM
                 Class dataMemoryDevice = Class.forName(PACKAGE_NAME + "." + device + ".DataMemory_" + device);
-                dataMemory = (DataMemory) dataMemoryDevice.getDeclaredConstructor(Handler.class).newInstance((Handler) ucView.getIOModule());
+                dataMemory = (DataMemory) dataMemoryDevice.getDeclaredConstructor(IOModule.class)
+                        .newInstance(ucView.getIOModule());
 
                 Log.d(MY_LOG_TAG, "SDRAM size: " + dataMemory.getMemorySize());
 
                 ucView.setMemoryIO(dataMemory);
-                ucView.setClockLock(clockLock);
-                ucView.setUCHandler(uCHandler);
-                ucView.setUCDevice(this);
 
                 threadUCView = new Thread(ucView);
                 threadUCView.start();
@@ -189,12 +162,12 @@ public class UCModule extends AppCompatActivity {
 
                 resetManager = 0;
                 setUpSuccessful = true;
-                ucView.setStatusLed(UCModule_View.LED_STATUS.RUNNING);
+                ucView.setStatus(UCModule_View.LED_STATUS.RUNNING);
 
             } else {
                 setUpSuccessful = false;
-                ((TextView) findViewById(R.id.hexFileErrorInstructions)).setVisibility(View.VISIBLE);
-                toast(getResources().getString(R.string.hex_file_read_fail));
+                ucView.setStatus(UCModule_View.LED_STATUS.HEX_FILE_ERROR);
+//                toast(getResources().getString(R.string.hex_file_read_fail));
             }
 
         } catch (ClassNotFoundException |
@@ -203,6 +176,7 @@ public class UCModule extends AppCompatActivity {
                 NoSuchMethodException |
                 InvocationTargetException e) {
             setUpSuccessful = false;
+            ucView.setStatus(UCModule_View.LED_STATUS.HEX_FILE_ERROR);
             e.printStackTrace();
         }
 
@@ -229,16 +203,20 @@ public class UCModule extends AppCompatActivity {
         return resources.getStringArray(id);
     }
 
-    public static boolean[] getButtonPressed() {
-        boolean[] buttonPressed = new boolean[getPinArray().length];
-        for (int i = 0; i < buttonPressed.length; i++){
-            buttonPressed[i] = false;
+    public static boolean[] getHiZInput() {
+        boolean[] hiZInput = new boolean[getPinArray().length];
+        for (int i = 0; i < hiZInput.length; i++){
+            hiZInput[i] = true;
         }
-        return buttonPressed;
+        return hiZInput;
     }
 
     public static String[] getPinModeArray() {
         return resources.getStringArray(R.array.inputModes);
+    }
+
+    public static int getSourcePower() {
+        return resources.getInteger(R.integer.defaultSourcePower);
     }
 
     public static String[] getPinArrayWithHint() {
@@ -295,6 +273,22 @@ public class UCModule extends AppCompatActivity {
         return resources.getColor(R.color.running);
     }
 
+    public static String getStatusShortCircuit() {
+        return resources.getString(R.string.short_circuit);
+    }
+
+    public static int getStatusShortCircuitColor() {
+        return resources.getColor(R.color.short_circuit);
+    }
+
+    public static String getStatusHexFileError() {
+        return resources.getString(R.string.hex_file_read_fail);
+    }
+
+    public static int getStatusHexFileErrorColor() {
+        return resources.getColor(R.color.hex_file_error);
+    }
+
     public synchronized boolean getResetFlag() {
         return resetFlag;
     }
@@ -306,6 +300,14 @@ public class UCModule extends AppCompatActivity {
     private void reset() {
 
         Log.i(MY_LOG_TAG, "Reset");
+
+        stopSystem();
+        ucView.resetIO();
+        setUpUc();
+    }
+
+    private void stopSystem(){
+        Log.i(MY_LOG_TAG, "Stopping system");
 
         setResetFlag(true);
 
@@ -339,8 +341,17 @@ public class UCModule extends AppCompatActivity {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        ucView.resetIO();
-        setUpUc();
+
+        if (setUpSuccessful){
+            programMemory.stopCodeObserver();
+        }
+    }
+
+    private void shortCircuit() {
+
+        Log.i(MY_LOG_TAG, "Short Circuit");
+        ucView.setStatus(UCModule_View.LED_STATUS.SHORT_CIRCUIT);
+        stopSystem();
     }
 
     public static void resetClockVector() {
@@ -370,8 +381,8 @@ public class UCModule extends AppCompatActivity {
                     break;
 
                 case SHORT_CIRCUIT_ACTION:
-                    Toast.makeText(UCModule.this, "SHORT CIRCUIT!!!", Toast.LENGTH_SHORT).show();
-                    reset();
+//                    Toast.makeText(UCModule.this, "SHORT CIRCUIT!!!", Toast.LENGTH_SHORT).show();
+                    shortCircuit();
                     break;
             }
         }

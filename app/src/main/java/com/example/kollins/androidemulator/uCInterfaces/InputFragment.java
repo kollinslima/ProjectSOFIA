@@ -3,19 +3,18 @@ package com.example.kollins.androidemulator.uCInterfaces;
 import android.os.Handler;
 
 /**
- * Created by kollins on 3/20/18.
+ * Created by kollins on 3/21/18.
  */
 
-public interface OutputFragment extends IOModule{
+public interface InputFragment extends IOModule{
 
-    String TAG_OUTPUT_FRAGMENT = "outputFragmentTAG";
+    String TAG_INPUT_FRAGMENT = "inputFragmentTAG";
 
-    void addOuput();
-    void resetOuputs();
+    void addDigitalInput();
+    void addAnalogicInput();
+    boolean haveInput();
     void clearAll();
 
     void setDataMemory(DataMemory dataMemory);
     void setScreenUpdater(Handler screenUpdater);
-
-    boolean haveOutput();
 }

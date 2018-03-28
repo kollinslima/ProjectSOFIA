@@ -9,6 +9,8 @@ public interface ProgramMemory {
     boolean loadProgramMemory(String hexFileLocation);
     int loadInstruction();
 
+    void stopCodeObserver();
+
     void setPC(int pc);
     void addToPC(int offset);
 }

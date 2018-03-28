@@ -30,12 +30,14 @@ public class DataMemory_ATmega328P implements DataMemory {
     private byte[] sdramMemory;
 
     private Handler pinHandler;
+    private IOModule ioModule;
 
     private Bundle ioBundle;
 
-    public DataMemory_ATmega328P(Handler pinHandler) {
+    public DataMemory_ATmega328P(IOModule ioModule) {
         sdramMemory = new byte[SDRAM_SIZE];
-        this.pinHandler = pinHandler;
+        this.pinHandler = (Handler) ioModule;
+        this.ioModule = ioModule;
 
         ioBundle = new Bundle();
 
@@ -52,10 +54,11 @@ public class DataMemory_ATmega328P implements DataMemory {
         //PORTB
         sdramMemory[PORTB_ADDR] = 0x00;
 
+        notify(DDRB_ADDR);
+
         //MCU Control Register
         sdramMemory[MCUCR_ADDR] = 0x00;
     }
-
 
     @Override
     public int getMemorySize() {
@@ -92,13 +95,37 @@ public class DataMemory_ATmega328P implements DataMemory {
 //                }
 //            }
         } else {
-            checkAddress(byteAddress);
             sdramMemory[byteAddress] = byteData;
+            notify(byteAddress);
         }
     }
 
-    private void checkAddress(int byteAddress) {
-        Log.v(UCModule.MY_LOG_TAG, String.format("Checking Address: 0x%s",
+    private void notify(int byteAddress) {
+        Log.i(UCModule.MY_LOG_TAG, String.format("Notify Address: 0x%s",
+                Integer.toHexString((int) byteAddress)));
+
+        switch (byteAddress) {
+            case DDRB_ADDR:
+            case PORTB_ADDR:
+
+                //Wait IO update
+                while (ioModule.isUpdatingIO());
+
+                Message ioMessage = new Message();
+
+                ioBundle.putByte(IOModule.CONFIG_IOMESSAGE, readByte(DataMemory_ATmega328P.DDRB_ADDR));
+                ioBundle.putByte(IOModule.PORT_IOMESSAGE, readByte(DataMemory_ATmega328P.PORTB_ADDR));
+
+                ioMessage.what = IOModule.PORTB_EVENT;
+                ioMessage.setData(ioBundle);
+
+                pinHandler.sendMessage(ioMessage);
+                break;
+        }
+    }
+
+    private void notifyIO(int byteAddress) {
+        Log.i(UCModule.MY_LOG_TAG, String.format("Nority IO Address: 0x%s",
                 Integer.toHexString((int) byteAddress)));
 
         switch (byteAddress) {
@@ -106,14 +133,10 @@ public class DataMemory_ATmega328P implements DataMemory {
             case PORTB_ADDR:
             case PINB_ADDR:
 
-//                Log.i("Pull", "Send message to portB");
-//                Log.i("Pull", "PORT: " + readByte(DataMemory_ATmega328P.PORTB_ADDR));
-//                Log.i("Pull", "DDR: " + readByte(DataMemory_ATmega328P.DDRB_ADDR));
-
                 Message ioMessage = new Message();
 
-                ioBundle.putByte(IOModule.PORT_IOMESSAGE, readByte(DataMemory_ATmega328P.PORTB_ADDR));
                 ioBundle.putByte(IOModule.CONFIG_IOMESSAGE, readByte(DataMemory_ATmega328P.DDRB_ADDR));
+                ioBundle.putByte(IOModule.PORT_IOMESSAGE, readByte(DataMemory_ATmega328P.PORTB_ADDR));
 
                 ioMessage.what = IOModule.PORTB_EVENT;
                 ioMessage.setData(ioBundle);
@@ -131,7 +154,6 @@ public class DataMemory_ATmega328P implements DataMemory {
         return sdramMemory[byteAddress];
     }
 
-
     @Override
     public synchronized void writeBit(int byteAddress, int bitPosition, boolean bitState) {
         Log.d(UCModule.MY_LOG_TAG,
@@ -140,23 +162,25 @@ public class DataMemory_ATmega328P implements DataMemory {
 
         if (byteAddress == PINB_ADDR){
             //Toggle bits in PORTx
-            writeBit(byteAddress+2, bitPosition,!readBit(byteAddress+2, bitPosition));
+            if (bitState) {
+                writeBit(byteAddress + 2, bitPosition, !readBit(byteAddress + 2, bitPosition));
+            }
         } else {
-            checkAddress(byteAddress);
             sdramMemory[byteAddress] = (byte) (sdramMemory[byteAddress] & (0xFF7F >> (7 - bitPosition)));   //Clear
             if (bitState) {
                 sdramMemory[byteAddress] = (byte) (sdramMemory[byteAddress] | (0x01 << bitPosition));     //Set
             }
+            notify(byteAddress);
         }
-
     }
 
     public synchronized void writeIOBit(int byteAddress, int bitPosition, boolean bitState){
-        checkAddress(byteAddress);
+
         sdramMemory[byteAddress] = (byte) (sdramMemory[byteAddress] & (0xFF7F >> (7 - bitPosition)));   //Clear
         if (bitState) {
             sdramMemory[byteAddress] = (byte) (sdramMemory[byteAddress] | (0x01 << bitPosition));     //Set
         }
+        notifyIO(byteAddress);
 
 //        Log.i(UCModule.MY_LOG_TAG,
 //                String.format("Write IO byte\nAddress: 0x%s, Data: 0x%02X",

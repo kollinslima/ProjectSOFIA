@@ -34,20 +34,13 @@
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="3">
-
-        <TextView
-            android:id="@+id/startInstructions"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:text="@string/start_instructions"
-            android:textAppearance="?android:attr/textAppearanceLarge"
-            android:visibility="visible"/>
+        android:layout_weight="1">
 
         <LinearLayout
+            android:id="@+id/fragmentBox"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:background="@android:color/white"
             android:orientation="vertical">
 
             <FrameLayout
@@ -59,15 +52,7 @@
 
 
             <FrameLayout
-                android:id="@+id/analogInputPins"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:visibility="gone"/>
-
-
-            <FrameLayout
-                android:id="@+id/digitalInputPins"
+                android:id="@+id/inputPins"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
@@ -75,21 +60,27 @@
         </LinearLayout>
 
         <TextView
+            android:id="@+id/startInstructions"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="@string/start_instructions"
+            android:background="@android:color/white"
+            android:textColor="@color/colorPrimary"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:visibility="visible"/>
+
+        <TextView
             android:id="@+id/hexFileErrorInstructions"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:gravity="center"
             android:text="@string/hex_file_read_fail_instructions"
+            android:textColor="@color/colorPrimary"
+            android:background="@android:color/white"
+            android:textAppearance="?android:attr/textAppearanceLarge"
             android:visibility="gone"/>
 
     </FrameLayout>
-
-
-    <!--<Button-->
-        <!--android:id="@+id/manualClock"-->
-        <!--android:layout_width="match_parent"-->
-        <!--android:layout_height="0dp"-->
-        <!--android:layout_weight="1"-->
-        <!--android:text="Clock" />-->
 
 </LinearLayout>
