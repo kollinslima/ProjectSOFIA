@@ -191,6 +191,7 @@ public class InputAdapter_ATmega328P extends BaseAdapter {
                             if (pin.getPinSpinnerPosition() < 0) {
                                 break;
                             }
+                            InputPin_ATmega328P.hiZInput[pin.getPinSpinnerPosition()] = false;
                             inputFragment.inputRequest_inputChanel(IOModule.LOW_LEVEL, pin.getMemory(), pin.getBitPosition(), pin);
                             break;
 

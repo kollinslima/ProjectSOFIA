@@ -101,8 +101,8 @@ public class DataMemory_ATmega328P implements DataMemory {
     }
 
     private void notify(int byteAddress) {
-        Log.i(UCModule.MY_LOG_TAG, String.format("Notify Address: 0x%s",
-                Integer.toHexString((int) byteAddress)));
+//        Log.i(UCModule.MY_LOG_TAG, String.format("Notify Address: 0x%s",
+//                Integer.toHexString((int) byteAddress)));
 
         switch (byteAddress) {
             case DDRB_ADDR:
@@ -125,8 +125,8 @@ public class DataMemory_ATmega328P implements DataMemory {
     }
 
     private void notifyIO(int byteAddress) {
-        Log.i(UCModule.MY_LOG_TAG, String.format("Nority IO Address: 0x%s",
-                Integer.toHexString((int) byteAddress)));
+//        Log.i(UCModule.MY_LOG_TAG, String.format("Nority IO Address: 0x%s",
+//                Integer.toHexString((int) byteAddress)));
 
         switch (byteAddress) {
             case DDRB_ADDR:
