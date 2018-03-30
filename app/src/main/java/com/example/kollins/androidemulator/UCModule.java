@@ -66,6 +66,7 @@ public class UCModule extends AppCompatActivity {
     private uCHandler uCHandler;
 
     private boolean resetFlag;
+    private boolean shortCircuitFlag;
     private static int resetManager;
 
     public static boolean setUpSuccessful;
@@ -97,6 +98,7 @@ public class UCModule extends AppCompatActivity {
         resetClockVector();
 
         setUpSuccessful = false;
+        shortCircuitFlag = false;
 
         ucView = new UCModule_View();
 
@@ -127,6 +129,12 @@ public class UCModule extends AppCompatActivity {
 
     private void setUpUc() {
         Log.i(MY_LOG_TAG, "SetUp");
+
+        if (shortCircuitFlag && ucView.getIOModule().checkShortCircuit()){
+            return;
+        }
+
+        shortCircuitFlag = false;
         setResetFlag(false);
 
         try {
@@ -148,6 +156,8 @@ public class UCModule extends AppCompatActivity {
                 Class dataMemoryDevice = Class.forName(PACKAGE_NAME + "." + device + ".DataMemory_" + device);
                 dataMemory = (DataMemory) dataMemoryDevice.getDeclaredConstructor(IOModule.class)
                         .newInstance(ucView.getIOModule());
+
+                ucView.getIOModule().getPINConfig();
 
                 Log.d(MY_LOG_TAG, "SDRAM size: " + dataMemory.getMemorySize());
 
@@ -348,8 +358,8 @@ public class UCModule extends AppCompatActivity {
     }
 
     private void shortCircuit() {
-
         Log.i(MY_LOG_TAG, "Short Circuit");
+        shortCircuitFlag = true;
         ucView.setStatus(UCModule_View.LED_STATUS.SHORT_CIRCUIT);
         stopSystem();
     }

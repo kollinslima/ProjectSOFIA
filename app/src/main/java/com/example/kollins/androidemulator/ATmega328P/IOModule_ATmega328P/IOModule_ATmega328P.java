@@ -16,7 +16,12 @@ import com.example.kollins.androidemulator.uCInterfaces.InputFragment;
 import com.example.kollins.androidemulator.uCInterfaces.IOModule;
 import com.example.kollins.androidemulator.uCInterfaces.OutputFragment;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  * Created by kollins on 3/23/18.
@@ -73,6 +78,65 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
         updatingIO = state;
     }
 
+    @Override
+    public boolean checkShortCircuit() {
+        List<InputPin_ATmega328P> inputPins = inputFragment.getPinList();
+        List<OutputPin_ATmega328P> outputPins = outputFragment.getPinList();
+
+        try {
+            /****************Check short circuit between inputs*****************/
+            if (inputPins.size() > 0) {
+                InputPin_ATmega328P pi, pj;
+                for (int i = 0; i < inputPins.size(); i++) {
+                    for (int j = i; j < inputPins.size(); j++) {
+                        pi = inputPins.get(i);
+                        pj = inputPins.get(j);
+
+                        if (pi.getPinSpinnerPosition() == pj.getPinSpinnerPosition()) {
+                            if (pi.getHiZ(pi.getPinSpinnerPosition())) {
+                                continue;
+                            }
+                            if (pi.getPinState() == IOModule.TRI_STATE || pj.getPinState() == IOModule.TRI_STATE) {
+                                continue;
+                            }
+                            if (pi.getPinState() != pj.getPinState()) {
+                                return true;
+                            }
+                        }
+                    }
+                }
+
+
+                /****************Check short circuit between input and output*****************/
+                if (outputPins.size() > 0) {
+                    OutputPin_ATmega328P pk;
+
+                    for (int i = 0; i < inputPins.size(); i++) {
+                        for (int k = 0; k < outputPins.size(); k++) {
+                            pi = inputPins.get(i);
+                            pk = outputPins.get(k);
+
+                            if (pi.getPinState() == IOModule.TRI_STATE ||
+                                    pk.getPinState(pk.getPinPositionSpinner()) == IOModule.TRI_STATE) {
+                                continue;
+                            }
+                            if (pi.getPinState() != pk.getPinState(pk.getPinPositionSpinner())) {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (NullPointerException e){
+            //input/output list is null
+        }
+        return false;
+    }
+
+    @Override
+    public void getPINConfig() {
+        inputFragment.getPINConfig();
+    }
 
     private class PortBUpdateView extends AsyncTask<List<OutputPin_ATmega328P>, Integer, Void> {
 
@@ -90,16 +154,16 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
 
             for (int i = 8, bitPosition = 0; i <= 13; i++, bitPosition++) {
                 //Is input?
-                if ((0x01 & (configRead>>bitPosition)) == 0) {
+                if ((0x01 & (configRead >> bitPosition)) == 0) {
 //                    Log.i(UCModule.MY_LOG_TAG, "Input");
 
                     digitalPINState = inputFragment.getPINState(DataMemory_ATmega328P.PINB_ADDR, bitPosition);
 
-                    if (((0x01 & (portRead>>bitPosition)) == 1) && outputFragment.isPullUpEnabled()) {
+                    if (((0x01 & (portRead >> bitPosition)) == 1) && outputFragment.isPullUpEnabled()) {
 
 //                        Log.i(UCModule.MY_LOG_TAG, "Port == 1 && pull-Up enabled");
 
-                        if (!digitalPINState && InputPin_ATmega328P.hiZInput[i]) {
+                        if (!digitalPINState && inputFragment.isPinHiZ(i)) {
 //                            Log.i(UCModule.MY_LOG_TAG, "Requesting pull up");
                             inputFragment.inputRequest_outputChanel(IOModule.HIGH_LEVEL, DataMemory_ATmega328P.PINB_ADDR, bitPosition, "Pin " + i);
 
@@ -114,8 +178,7 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
                         outputFragment.pinbuffer[i] = digitalPINState ? 1 : 0;
 
                     } else {
-//                        Log.i(UCModule.MY_LOG_TAG, "Port == 0 or pull-up disabled");
-                        if (!InputPin_ATmega328P.hiZInput[i]) {
+                        if (!inputFragment.isPinHiZ(i)) {
 //                            Log.i(UCModule.MY_LOG_TAG, "Button pressed");
                             outputFragment.pinbuffer[i] = digitalPINState ? 1 : 0;
                         } else {
@@ -127,7 +190,7 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
                 //Is output!
                 else {
 //                    Log.i(UCModule.MY_LOG_TAG, "Output");
-                    outputFragment.pinbuffer[i] = (0x01 & (portRead>>bitPosition));
+                    outputFragment.pinbuffer[i] = (0x01 & (portRead >> bitPosition));
                 }
 
 //                portRead = (byte) (portRead >> 1);

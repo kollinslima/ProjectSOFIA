@@ -6,6 +6,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.view.ActionMode;
+import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -18,6 +19,7 @@ import android.widget.TextView;
 
 import com.example.kollins.androidemulator.ATmega328P.DataMemory_ATmega328P;
 import com.example.kollins.androidemulator.ATmega328P.IOModule_ATmega328P.IOModule_ATmega328P;
+import com.example.kollins.androidemulator.ATmega328P.IOModule_ATmega328P.Input.InputPin_ATmega328P;
 import com.example.kollins.androidemulator.R;
 import com.example.kollins.androidemulator.UCModule;
 import com.example.kollins.androidemulator.UCModule_View;
@@ -80,6 +82,8 @@ public class OutputFragment_ATmega328P extends Fragment implements OutputFragmen
 
         pullUpEnabled = !dataMemory.readBit(DataMemory_ATmega328P.MCUCR_ADDR, 4);
 
+        Log.i("OutputAdd", "PinBuffer: " + pinbuffer[UCModule.getDefaultPinPosition()]);
+
         return layout;
     }
 
@@ -92,6 +96,7 @@ public class OutputFragment_ATmega328P extends Fragment implements OutputFragmen
     }
 
     public void addOuput() {
+        Log.i("OutputAdd", "PinBuffer: " + pinbuffer[UCModule.getDefaultPinPosition()]);
         outputPins.add(new OutputPin_ATmega328P(null, UCModule.getDefaultPinPosition(), pinbuffer));
         outputAdapter.notifyDataSetChanged();
     }
@@ -240,5 +245,19 @@ public class OutputFragment_ATmega328P extends Fragment implements OutputFragmen
     @Override
     public boolean isUpdatingIO() {
         return false;
+    }
+
+    @Override
+    public boolean checkShortCircuit() {
+        return false;
+    }
+
+    @Override
+    public void getPINConfig() {
+        return;
+    }
+
+    public List<OutputPin_ATmega328P> getPinList(){
+        return outputPins;
     }
 }

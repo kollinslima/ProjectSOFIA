@@ -2,6 +2,7 @@ package com.example.kollins.androidemulator.ATmega328P.IOModule_ATmega328P.Input
 
 import android.graphics.Color;
 import android.os.SystemClock;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -129,6 +130,8 @@ public class InputAdapter_ATmega328P extends BaseAdapter {
                 holder.pinModeSpinner.setSelection(pin.getPinModePosition());
             }
 
+            holder.inputPinState.setBackgroundResource(R.drawable.digital_input_undefined);
+
             holder.pinSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> parent, View view, int positionSpinner, long id) {
@@ -138,23 +141,28 @@ public class InputAdapter_ATmega328P extends BaseAdapter {
                     pin.setPin(pinArray[positionSpinner]);
                     pin.setPinSpinnerPosition(positionSpinner);
 
+                    if (pin.getPinMode() == IOModule.TOGGLE){
+                        inputFragment.requestHiZ(false, pin);
+                        inputFragment.inputRequest_inputChanel(IOModule.LOW_LEVEL, pin.getMemory(), pin.getBitPosition(), pin);
+                    } else {
 
-                    /************Simulate button release*************/
-                    int[] coordinates = new int[2];
-                    holder.pushButton.getLocationOnScreen(coordinates);
+                        /************Simulate button release*************/
+                        int[] coordinates = new int[2];
+                        holder.pushButton.getLocationOnScreen(coordinates);
 
-                    // MotionEvent parameters
-                    long downTime = SystemClock.uptimeMillis();
-                    long eventTime = SystemClock.uptimeMillis();
-                    int action = MotionEvent.ACTION_UP;
-                    int x = coordinates[0];
-                    int y = coordinates[1];
-                    int metaState = 0;
+                        // MotionEvent parameters
+                        long downTime = SystemClock.uptimeMillis();
+                        long eventTime = SystemClock.uptimeMillis();
+                        int action = MotionEvent.ACTION_UP;
+                        int x = coordinates[0];
+                        int y = coordinates[1];
+                        int metaState = 0;
 
-                    // dispatch the event
-                    MotionEvent event = MotionEvent.obtain(downTime, eventTime, action, x, y, metaState);
-                    holder.pushButton.dispatchTouchEvent(event);
-                    /**********************************************/
+                        // dispatch the event
+                        MotionEvent event = MotionEvent.obtain(downTime, eventTime, action, x, y, metaState);
+                        holder.pushButton.dispatchTouchEvent(event);
+                        /**********************************************/
+                    }
 
                 }
 
@@ -191,7 +199,8 @@ public class InputAdapter_ATmega328P extends BaseAdapter {
                             if (pin.getPinSpinnerPosition() < 0) {
                                 break;
                             }
-                            InputPin_ATmega328P.hiZInput[pin.getPinSpinnerPosition()] = false;
+                            inputFragment.requestHiZ(false, pin);
+//                            InputPin_ATmega328P.hiZInput[pin.getPinSpinnerPosition()] = false;
                             inputFragment.inputRequest_inputChanel(IOModule.LOW_LEVEL, pin.getMemory(), pin.getBitPosition(), pin);
                             break;
 
@@ -234,7 +243,8 @@ public class InputAdapter_ATmega328P extends BaseAdapter {
                         holder.pushButton.setText(UCModule.getButtonTextOn());
                         holder.pushButton.setBackgroundColor(UCModule.getButonOnCollor());
 
-                        InputPin_ATmega328P.hiZInput[pin.getPinSpinnerPosition()] = false;
+//                        InputPin_ATmega328P.hiZInput[pin.getPinSpinnerPosition()] = false;
+                        inputFragment.requestHiZ(false, pin);
 
                         switch (pin.getPinMode()) {
                             case IOModule.PUSH_GND:
@@ -277,23 +287,27 @@ public class InputAdapter_ATmega328P extends BaseAdapter {
                         switch (pin.getPinMode()) {
                             case IOModule.PUSH_GND:
                             case IOModule.PUSH_VDD:
-                                InputPin_ATmega328P.hiZInput[pin.getPinSpinnerPosition()] = true;
+//                                InputPin_ATmega328P.hiZInput[pin.getPinSpinnerPosition()] = true;
+                                inputFragment.requestHiZ(true, pin);
                                 holder.inputPinState.setBackgroundResource(R.drawable.digital_input_undefined);
                                 pin.setPinState(IOModule.TRI_STATE);
                                 if (inputFragment.isPullUpEnabled() && inputFragment.isPinPullUPEnabled(pin.getMemory(), pin.getBitPosition())) {
                                     inputFragment.inputRequest_inputChanel(IOModule.HIGH_LEVEL, pin.getMemory(), pin.getBitPosition(), pin);
-                                } else {
+                                } else if (pin.getHiZ(pin.getPinSpinnerPosition())){
+                                    Log.i("Short", "Send random");
                                     inputFragment.inputRequest_inputChanel(randomGenerator.nextInt(2), pin.getMemory(), pin.getBitPosition(), pin);
                                 }
                                 break;
                             case IOModule.PULL_UP:
-                                InputPin_ATmega328P.hiZInput[pin.getPinSpinnerPosition()] = false;
+//                                InputPin_ATmega328P.hiZInput[pin.getPinSpinnerPosition()] = false;
+                                inputFragment.requestHiZ(false, pin);
                                 holder.inputPinState.setBackgroundResource(R.drawable.digital_input_on);
                                 pin.setPinState(IOModule.HIGH_LEVEL);
                                 inputFragment.inputRequest_inputChanel(IOModule.HIGH_LEVEL, pin.getMemory(), pin.getBitPosition(), pin);
                                 break;
                             case IOModule.PULL_DOWN:
-                                InputPin_ATmega328P.hiZInput[pin.getPinSpinnerPosition()] = false;
+//                                InputPin_ATmega328P.hiZInput[pin.getPinSpinnerPosition()] = false;
+                                inputFragment.requestHiZ(false, pin);
                                 holder.inputPinState.setBackgroundResource(R.drawable.digital_input_off);
                                 pin.setPinState(IOModule.LOW_LEVEL);
                                 inputFragment.inputRequest_inputChanel(IOModule.LOW_LEVEL, pin.getMemory(), pin.getBitPosition(), pin);

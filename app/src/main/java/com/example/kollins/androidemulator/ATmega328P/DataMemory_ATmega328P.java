@@ -45,6 +45,8 @@ public class DataMemory_ATmega328P implements DataMemory {
     }
 
     private void initDefaultContent() {
+        Log.i("Config", "Configuring Memory");
+
         //Status Register
         sdramMemory[SREG_ADDR] = 0x00;
 

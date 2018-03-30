@@ -9,7 +9,7 @@ import com.example.kollins.androidemulator.uCInterfaces.IOModule;
 
 public class InputPin_ATmega328P {
 
-    public static boolean[] hiZInput = UCModule.getHiZInput();
+    private static boolean[] hiZInput = UCModule.getHiZInput();
 
     public static final boolean DIGITAL_PIN = true;
     public static final boolean ANALOGIC_PIN = !DIGITAL_PIN;
@@ -102,6 +102,17 @@ public class InputPin_ATmega328P {
 
     public int getBitPosition() {
         return memoryBitPosition[pinSpinnerPosition];
+    }
+
+    public synchronized void setHiZ(boolean state, int position){
+        InputPin_ATmega328P.hiZInput[position] = state;
+    }
+
+    public synchronized boolean getHiZ(int position){
+        if (position < 0) {
+            return true;
+        }
+        return InputPin_ATmega328P.hiZInput[position];
     }
 
 }

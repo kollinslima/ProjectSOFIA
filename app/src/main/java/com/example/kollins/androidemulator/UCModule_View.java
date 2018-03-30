@@ -289,8 +289,8 @@ public class UCModule_View extends Fragment implements Runnable {
                     break;
 
                 case R.id.action_digital_input:
+                    inputFrame.setVisibility(View.VISIBLE);
                     if (!inputFragment.haveInput()) {
-                        inputFrame.setVisibility(View.VISIBLE);
 
                         mFragmentManager = ((AppCompatActivity) getActivity()).getSupportFragmentManager();
                         mFragmentTransaction = mFragmentManager.beginTransaction();
@@ -304,8 +304,8 @@ public class UCModule_View extends Fragment implements Runnable {
                     break;
 
                 case R.id.action_analog_input:
+                    inputFrame.setVisibility(View.VISIBLE);
                     if (!inputFragment.haveInput()) {
-                        inputFrame.setVisibility(View.VISIBLE);
 
                         mFragmentManager = ((AppCompatActivity) getActivity()).getSupportFragmentManager();
                         mFragmentTransaction = mFragmentManager.beginTransaction();

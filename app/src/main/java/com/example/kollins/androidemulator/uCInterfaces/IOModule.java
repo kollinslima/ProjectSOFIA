@@ -28,4 +28,7 @@ public interface IOModule{
     String CONFIG_IOMESSAGE = "CONFIG_VALUE";
 
     boolean isUpdatingIO();
+    boolean checkShortCircuit();
+
+    void getPINConfig();
 }
