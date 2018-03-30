@@ -105,7 +105,9 @@ public class InputPin_ATmega328P {
     }
 
     public synchronized void setHiZ(boolean state, int position){
-        InputPin_ATmega328P.hiZInput[position] = state;
+        if (position >= 0) {
+            InputPin_ATmega328P.hiZInput[position] = state;
+        }
     }
 
     public synchronized boolean getHiZ(int position){

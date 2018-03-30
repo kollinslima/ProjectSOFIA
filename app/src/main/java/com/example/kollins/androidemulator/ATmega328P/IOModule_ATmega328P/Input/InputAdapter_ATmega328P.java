@@ -86,12 +86,12 @@ public class InputAdapter_ATmega328P extends BaseAdapter {
 
         View view = convertView;
         final ViewHolderInput_ATmega328P holder;
-        ListView listView = (ListView) parent;
+        final ListView listView = (ListView) parent;
 
         final InputPin_ATmega328P pin = inputPins.get(position);
 
         if (pin.getDescription()) {
-        //DIGITAL PIN
+            //DIGITAL PIN
 
             final HintAdapter pinSpinnerAdapter =
                     new HintAdapter(inputFragment.getContext(), android.R.layout.simple_spinner_item, pinArray);
@@ -130,7 +130,9 @@ public class InputAdapter_ATmega328P extends BaseAdapter {
                 holder.pinModeSpinner.setSelection(pin.getPinModePosition());
             }
 
-            holder.inputPinState.setBackgroundResource(R.drawable.digital_input_undefined);
+            if (listView.getChoiceMode() != ListView.CHOICE_MODE_MULTIPLE) {
+                holder.inputPinState.setBackgroundResource(R.drawable.digital_input_undefined);
+            }
 
             holder.pinSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
@@ -141,7 +143,7 @@ public class InputAdapter_ATmega328P extends BaseAdapter {
                     pin.setPin(pinArray[positionSpinner]);
                     pin.setPinSpinnerPosition(positionSpinner);
 
-                    if (pin.getPinMode() == IOModule.TOGGLE){
+                    if (pin.getPinMode() == IOModule.TOGGLE) {
                         inputFragment.requestHiZ(false, pin);
                         inputFragment.inputRequest_inputChanel(IOModule.LOW_LEVEL, pin.getMemory(), pin.getBitPosition(), pin);
                     } else {
@@ -192,6 +194,9 @@ public class InputAdapter_ATmega328P extends BaseAdapter {
                             pin.setPinState(IOModule.LOW_LEVEL);
                             break;
                         case IOModule.TOGGLE:
+                            if (listView.getChoiceMode() == ListView.CHOICE_MODE_MULTIPLE) {
+                                break;
+                            }
                             pin.setPinState(IOModule.LOW_LEVEL);
                             holder.inputPinState.setBackgroundResource(R.drawable.digital_input_off);
 
@@ -200,7 +205,6 @@ public class InputAdapter_ATmega328P extends BaseAdapter {
                                 break;
                             }
                             inputFragment.requestHiZ(false, pin);
-//                            InputPin_ATmega328P.hiZInput[pin.getPinSpinnerPosition()] = false;
                             inputFragment.inputRequest_inputChanel(IOModule.LOW_LEVEL, pin.getMemory(), pin.getBitPosition(), pin);
                             break;
 
@@ -268,6 +272,7 @@ public class InputAdapter_ATmega328P extends BaseAdapter {
                                 inputFragment.inputRequest_inputChanel(IOModule.HIGH_LEVEL, pin.getMemory(), pin.getBitPosition(), pin);
                                 break;
                             case IOModule.TOGGLE:
+
                                 if (pin.getPinState() == IOModule.LOW_LEVEL) {
                                     holder.inputPinState.setBackgroundResource(R.drawable.digital_input_on);
                                     pin.setPinState(IOModule.HIGH_LEVEL);
@@ -287,15 +292,21 @@ public class InputAdapter_ATmega328P extends BaseAdapter {
                         switch (pin.getPinMode()) {
                             case IOModule.PUSH_GND:
                             case IOModule.PUSH_VDD:
-//                                InputPin_ATmega328P.hiZInput[pin.getPinSpinnerPosition()] = true;
+
                                 inputFragment.requestHiZ(true, pin);
                                 holder.inputPinState.setBackgroundResource(R.drawable.digital_input_undefined);
                                 pin.setPinState(IOModule.TRI_STATE);
-                                if (inputFragment.isPullUpEnabled() && inputFragment.isPinPullUPEnabled(pin.getMemory(), pin.getBitPosition())) {
-                                    inputFragment.inputRequest_inputChanel(IOModule.HIGH_LEVEL, pin.getMemory(), pin.getBitPosition(), pin);
-                                } else if (pin.getHiZ(pin.getPinSpinnerPosition())){
-                                    Log.i("Short", "Send random");
-                                    inputFragment.inputRequest_inputChanel(randomGenerator.nextInt(2), pin.getMemory(), pin.getBitPosition(), pin);
+
+                                //Check if request HiZ was acepted
+                                if (pin.getHiZ(pin.getPinSpinnerPosition())) {
+                                    if (inputFragment.isPullUpEnabled() && inputFragment.isPinPullUPEnabled(pin.getMemory(), pin.getBitPosition())) {
+
+                                        inputFragment.inputRequest_inputChanel(IOModule.HIGH_LEVEL, pin.getMemory(), pin.getBitPosition(), pin);
+
+                                    } else {
+                                        Log.i("Short", "Send random");
+                                        inputFragment.inputRequest_inputChanel(randomGenerator.nextInt(2), pin.getMemory(), pin.getBitPosition(), pin);
+                                    }
                                 }
                                 break;
                             case IOModule.PULL_UP:
@@ -352,7 +363,7 @@ public class InputAdapter_ATmega328P extends BaseAdapter {
             holder.voltageLevel.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
                 @Override
                 public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                    double voltage = sourcePower*(progress/100.0);
+                    double voltage = sourcePower * (progress / 100.0);
                     holder.voltageDisplay.setText(decimalFormat.format(voltage));
                 }
 

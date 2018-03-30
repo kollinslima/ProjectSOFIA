@@ -23,6 +23,14 @@ public class DataMemory_ATmega328P implements DataMemory {
     public static final int DDRB_ADDR = 0x24;
     public static final int PORTB_ADDR = 0x25;
 
+    public static final int PINC_ADDR = 0x26;
+    public static final int DDRC_ADDR = 0x27;
+    public static final int PORTC_ADDR = 0x28;
+
+    public static final int PIND_ADDR = 0x29;
+    public static final int DDRD_ADDR = 0x2A;
+    public static final int PORTD_ADDR = 0x2B;
+
     public static final int MCUCR_ADDR = 0x55;
 
     //2kBytes
@@ -52,11 +60,21 @@ public class DataMemory_ATmega328P implements DataMemory {
 
         //DDRB
         sdramMemory[DDRB_ADDR] = 0x00;
-
         //PORTB
         sdramMemory[PORTB_ADDR] = 0x00;
-
         notify(DDRB_ADDR);
+
+        //DDRC
+        sdramMemory[DDRC_ADDR] = 0x00;
+        //PORTC
+        sdramMemory[PORTC_ADDR] = 0x00;
+        notify(DDRC_ADDR);
+
+        //DDRD
+        sdramMemory[DDRD_ADDR] = 0x00;
+        //PORTD
+        sdramMemory[PORTD_ADDR] = 0x00;
+        notify(DDRD_ADDR);
 
         //MCU Control Register
         sdramMemory[MCUCR_ADDR] = 0x00;
@@ -73,7 +91,7 @@ public class DataMemory_ATmega328P implements DataMemory {
                 String.format("Write byte SDRAM\nAddress: 0x%s, Data: 0x%02X",
                         Integer.toHexString((int) byteAddress), byteData));
 
-        if (byteAddress == PINB_ADDR){
+        if (byteAddress == PINB_ADDR || byteAddress==PINC_ADDR || byteAddress==PIND_ADDR){
             //Toggle bits in PORTx
             boolean toggleBit;
             byte toggleByte = 0x00;
@@ -105,6 +123,7 @@ public class DataMemory_ATmega328P implements DataMemory {
     private void notify(int byteAddress) {
 //        Log.i(UCModule.MY_LOG_TAG, String.format("Notify Address: 0x%s",
 //                Integer.toHexString((int) byteAddress)));
+        Message ioMessage;
 
         switch (byteAddress) {
             case DDRB_ADDR:
@@ -113,12 +132,47 @@ public class DataMemory_ATmega328P implements DataMemory {
                 //Wait IO update
                 while (ioModule.isUpdatingIO());
 
-                Message ioMessage = new Message();
+                ioMessage = new Message();
 
                 ioBundle.putByte(IOModule.CONFIG_IOMESSAGE, readByte(DataMemory_ATmega328P.DDRB_ADDR));
                 ioBundle.putByte(IOModule.PORT_IOMESSAGE, readByte(DataMemory_ATmega328P.PORTB_ADDR));
 
                 ioMessage.what = IOModule.PORTB_EVENT;
+                ioMessage.setData(ioBundle);
+
+                pinHandler.sendMessage(ioMessage);
+                break;
+
+            case DDRC_ADDR:
+            case PORTC_ADDR:
+
+                //Wait IO update
+                while (ioModule.isUpdatingIO());
+
+                ioMessage = new Message();
+
+                ioBundle.putByte(IOModule.CONFIG_IOMESSAGE, readByte(DataMemory_ATmega328P.DDRC_ADDR));
+                ioBundle.putByte(IOModule.PORT_IOMESSAGE, readByte(DataMemory_ATmega328P.PORTC_ADDR));
+
+                ioMessage.what = IOModule.PORTC_EVENT;
+                ioMessage.setData(ioBundle);
+
+                pinHandler.sendMessage(ioMessage);
+                break;
+
+
+            case DDRD_ADDR:
+            case PORTD_ADDR:
+
+                //Wait IO update
+                while (ioModule.isUpdatingIO());
+
+                ioMessage = new Message();
+
+                ioBundle.putByte(IOModule.CONFIG_IOMESSAGE, readByte(DataMemory_ATmega328P.DDRD_ADDR));
+                ioBundle.putByte(IOModule.PORT_IOMESSAGE, readByte(DataMemory_ATmega328P.PORTD_ADDR));
+
+                ioMessage.what = IOModule.PORTD_EVENT;
                 ioMessage.setData(ioBundle);
 
                 pinHandler.sendMessage(ioMessage);
@@ -130,17 +184,49 @@ public class DataMemory_ATmega328P implements DataMemory {
 //        Log.i(UCModule.MY_LOG_TAG, String.format("Nority IO Address: 0x%s",
 //                Integer.toHexString((int) byteAddress)));
 
+        Message ioMessage;
+
         switch (byteAddress) {
             case DDRB_ADDR:
             case PORTB_ADDR:
             case PINB_ADDR:
 
-                Message ioMessage = new Message();
+                ioMessage = new Message();
 
                 ioBundle.putByte(IOModule.CONFIG_IOMESSAGE, readByte(DataMemory_ATmega328P.DDRB_ADDR));
                 ioBundle.putByte(IOModule.PORT_IOMESSAGE, readByte(DataMemory_ATmega328P.PORTB_ADDR));
 
                 ioMessage.what = IOModule.PORTB_EVENT;
+                ioMessage.setData(ioBundle);
+
+                pinHandler.sendMessage(ioMessage);
+                break;
+
+            case DDRC_ADDR:
+            case PORTC_ADDR:
+            case PINC_ADDR:
+
+                ioMessage = new Message();
+
+                ioBundle.putByte(IOModule.CONFIG_IOMESSAGE, readByte(DataMemory_ATmega328P.DDRC_ADDR));
+                ioBundle.putByte(IOModule.PORT_IOMESSAGE, readByte(DataMemory_ATmega328P.PORTC_ADDR));
+
+                ioMessage.what = IOModule.PORTC_EVENT;
+                ioMessage.setData(ioBundle);
+
+                pinHandler.sendMessage(ioMessage);
+                break;
+
+            case DDRD_ADDR:
+            case PORTD_ADDR:
+            case PIND_ADDR:
+
+                ioMessage = new Message();
+
+                ioBundle.putByte(IOModule.CONFIG_IOMESSAGE, readByte(DataMemory_ATmega328P.DDRD_ADDR));
+                ioBundle.putByte(IOModule.PORT_IOMESSAGE, readByte(DataMemory_ATmega328P.PORTD_ADDR));
+
+                ioMessage.what = IOModule.PORTD_EVENT;
                 ioMessage.setData(ioBundle);
 
                 pinHandler.sendMessage(ioMessage);
@@ -162,7 +248,7 @@ public class DataMemory_ATmega328P implements DataMemory {
                 String.format("Write bit SDRAM\nAddress: 0x%s", Integer.toHexString((int) byteAddress))
                         + " position: " + bitPosition + " state: " + bitState);
 
-        if (byteAddress == PINB_ADDR){
+        if (byteAddress == PINB_ADDR || byteAddress==PINC_ADDR || byteAddress==PIND_ADDR){
             //Toggle bits in PORTx
             if (bitState) {
                 writeBit(byteAddress + 2, bitPosition, !readBit(byteAddress + 2, bitPosition));
@@ -177,6 +263,10 @@ public class DataMemory_ATmega328P implements DataMemory {
     }
 
     public synchronized void writeIOBit(int byteAddress, int bitPosition, boolean bitState){
+
+        Log.i(UCModule.MY_LOG_TAG,
+                String.format("Write IO bit SDRAM\nAddress: 0x%s", Integer.toHexString((int) byteAddress))
+                        + " position: " + bitPosition + " state: " + bitState);
 
         sdramMemory[byteAddress] = (byte) (sdramMemory[byteAddress] & (0xFF7F >> (7 - bitPosition)));   //Clear
         if (bitState) {

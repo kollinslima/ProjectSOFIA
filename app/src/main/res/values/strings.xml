@@ -43,20 +43,20 @@
     <!--Pins of model-->
     <string-array
         name="UNO_pins">
-        <item>Pin 0</item>
-        <item>Pin 1</item>
-        <item>Pin 2</item>
-        <item>Pin 3</item>
-        <item>Pin 4</item>
-        <item>Pin 5</item>
-        <item>Pin 6</item>
-        <item>Pin 7</item>
-        <item>Pin 8</item>
-        <item>Pin 9</item>
-        <item>Pin 10</item>
-        <item>Pin 11</item>
-        <item>Pin 12</item>
-        <item>Pin 13</item>
+        <item>Pin0</item>
+        <item>Pin1</item>
+        <item>Pin2</item>
+        <item>Pin3</item>
+        <item>Pin4</item>
+        <item>Pin5</item>
+        <item>Pin6</item>
+        <item>Pin7</item>
+        <item>Pin8</item>
+        <item>Pin9</item>
+        <item>Pin10</item>
+        <item>Pin11</item>
+        <item>Pin12</item>
+        <item>Pin13</item>
         <item>A0</item>
         <item>A1</item>
         <item>A2</item>

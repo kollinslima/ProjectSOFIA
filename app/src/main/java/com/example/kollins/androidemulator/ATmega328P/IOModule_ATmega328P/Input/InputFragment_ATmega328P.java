@@ -110,7 +110,7 @@ public class InputFragment_ATmega328P extends Fragment implements InputFragment,
         }
 //        haveInput = false;
 
-        for (InputPin_ATmega328P p : inputPins){
+        for (InputPin_ATmega328P p : inputPins) {
             requestHiZ(true, p);
         }
 
@@ -214,7 +214,12 @@ public class InputFragment_ATmega328P extends Fragment implements InputFragment,
 
     public void inputRequest_inputChanel(int signalState, int memoryPosition, int bitPosition, InputPin_ATmega328P request) {
 
+        if (signalState == IOModule.TRI_STATE) {
+            return;
+        }
+
         new InputRequest_InputChanel(request).execute(signalState, memoryPosition, bitPosition);
+
 
     }
 
@@ -232,8 +237,8 @@ public class InputFragment_ATmega328P extends Fragment implements InputFragment,
         return dataMemory.readBit(memoryAddress, bitPosition);
     }
 
-    public boolean isPinHiZ(int position){
-        if (inputPins == null || inputPins.size() == 0){
+    public boolean isPinHiZ(int position) {
+        if (inputPins == null || inputPins.size() == 0) {
             return true;
         }
         return inputPins.get(0).getHiZ(position);
@@ -257,14 +262,14 @@ public class InputFragment_ATmega328P extends Fragment implements InputFragment,
     @Override
     public void getPINConfig() {
         Log.i("Config", "Configuring PIN");
-        for (InputPin_ATmega328P p : inputPins){
+        for (InputPin_ATmega328P p : inputPins) {
             if (p.getPinSpinnerPosition() > 0) {
                 inputRequest_inputChanel(p.getPinState(), p.getMemory(), p.getBitPosition(), p);
             }
         }
     }
 
-    public List<InputPin_ATmega328P> getPinList(){
+    public List<InputPin_ATmega328P> getPinList() {
         return inputPins;
     }
 
@@ -293,7 +298,7 @@ public class InputFragment_ATmega328P extends Fragment implements InputFragment,
 
                     if (dataMemory.readBit(memoryParams[1] + 2, memoryParams[2]) ^ boolSignalState) {
                         //Output and requested input are different
-                        if (!request.getHiZ(request.getPinSpinnerPosition())){
+                        if (!request.getHiZ(request.getPinSpinnerPosition())) {
 //                        if (!InputPin_ATmega328P.hiZInput[request.getPinSpinnerPosition()]) {
                             //Input is not HiZ, so it's a short circuit!
                             return true;
@@ -305,7 +310,7 @@ public class InputFragment_ATmega328P extends Fragment implements InputFragment,
                     //Is there another input in the same pin?
                     ArrayList<InputPin_ATmega328P> duplicatedInputs = new ArrayList<InputPin_ATmega328P>();
                     for (InputPin_ATmega328P p : inputPins) {
-                        if (Objects.equals(p.getPin(),request.getPin())) {
+                        if (Objects.equals(p.getPin(), request.getPin())) {
                             duplicatedInputs.add(p);
                         }
                     }
@@ -373,7 +378,7 @@ public class InputFragment_ATmega328P extends Fragment implements InputFragment,
                 //Is there another input in the same pin?
                 ArrayList<InputPin_ATmega328P> duplicatedInputs = new ArrayList<InputPin_ATmega328P>();
                 for (InputPin_ATmega328P p : inputPins) {
-                    if (Objects.equals(p.getPin(),request.getPin())) {
+                    if (Objects.equals(p.getPin(), request.getPin())) {
                         duplicatedInputs.add(p);
                     }
                 }
@@ -426,7 +431,7 @@ public class InputFragment_ATmega328P extends Fragment implements InputFragment,
                 //Is there another input in the same pin?
                 ArrayList<InputPin_ATmega328P> duplicatedInputs = new ArrayList<InputPin_ATmega328P>();
                 for (InputPin_ATmega328P p : inputPins) {
-                    if (Objects.equals(p.getPin(),request)) {
+                    if (Objects.equals(p.getPin(), request)) {
                         duplicatedInputs.add(p);
                     }
                 }

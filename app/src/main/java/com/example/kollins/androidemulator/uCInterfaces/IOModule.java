@@ -23,6 +23,8 @@ public interface IOModule{
     int[] PIN_MODES = {IOModule.PUSH_GND, IOModule.PUSH_VDD, IOModule.PULL_UP, IOModule.PULL_DOWN, IOModule.TOGGLE};
 
     int PORTB_EVENT = 100;
+    int PORTC_EVENT = 101;
+    int PORTD_EVENT = 102;
 
     String PORT_IOMESSAGE = "PORT_VALUE";
     String CONFIG_IOMESSAGE = "CONFIG_VALUE";

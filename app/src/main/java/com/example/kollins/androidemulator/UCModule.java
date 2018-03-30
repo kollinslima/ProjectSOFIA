@@ -5,6 +5,7 @@ import android.content.res.Resources;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.os.SystemClock;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -31,6 +32,9 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 
 public class UCModule extends AppCompatActivity {
+
+    //To calculate efective clock average
+    private static int sum, n;
 
     public static final int CPU_ID = 0;
     public static final int SIMULATED_TIMER_ID = 1;
@@ -94,7 +98,7 @@ public class UCModule extends AppCompatActivity {
         device = getDevice(model);
         setTitle("Arduino " + model);
 
-        clockVector = new boolean[getDeviceModules()+1];    //+1 for SIMULATED_TIMER;
+        clockVector = new boolean[getDeviceModules() + 1];    //+1 for SIMULATED_TIMER;
         resetClockVector();
 
         setUpSuccessful = false;
@@ -130,7 +134,7 @@ public class UCModule extends AppCompatActivity {
     private void setUpUc() {
         Log.i(MY_LOG_TAG, "SetUp");
 
-        if (shortCircuitFlag && ucView.getIOModule().checkShortCircuit()){
+        if (shortCircuitFlag && ucView.getIOModule().checkShortCircuit()) {
             return;
         }
 
@@ -215,7 +219,7 @@ public class UCModule extends AppCompatActivity {
 
     public static boolean[] getHiZInput() {
         boolean[] hiZInput = new boolean[getPinArray().length];
-        for (int i = 0; i < hiZInput.length; i++){
+        for (int i = 0; i < hiZInput.length; i++) {
             hiZInput[i] = true;
         }
         return hiZInput;
@@ -316,7 +320,7 @@ public class UCModule extends AppCompatActivity {
         setUpUc();
     }
 
-    private void stopSystem(){
+    private void stopSystem() {
         Log.i(MY_LOG_TAG, "Stopping system");
 
         setResetFlag(true);
@@ -324,7 +328,7 @@ public class UCModule extends AppCompatActivity {
         try {
             if (threadCPU != null) {
                 Log.i(MY_LOG_TAG, "Waiting CPU thread");
-                while (threadCPU.isAlive()){
+                while (threadCPU.isAlive()) {
                     cpuModule.clockCPU();
                 }
                 threadCPU.join();
@@ -337,7 +341,7 @@ public class UCModule extends AppCompatActivity {
             }
             if (threadUCView != null) {
                 Log.i(MY_LOG_TAG, "Waiting UCView Thread");
-                while (threadUCView.isAlive()){
+                while (threadUCView.isAlive()) {
                     ucView.clockUCView();
                 }
                 threadUCView.join();
@@ -352,7 +356,7 @@ public class UCModule extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        if (setUpSuccessful){
+        if (setUpSuccessful) {
             programMemory.stopCodeObserver();
         }
     }
@@ -376,12 +380,26 @@ public class UCModule extends AppCompatActivity {
 
     public class uCHandler extends Handler {
 
+        private long time1 = 0, time2 = 0;
+
+        private double getAvgClock(double newClock) {
+            sum += newClock;
+            return (sum / ++n);
+        }
+
+
         @Override
         public void handleMessage(Message msg) {
             int action = msg.what;
 
             switch (action) {
                 case CLOCK_ACTION:
+
+                    //Measure efective clock
+//                    time2 = SystemClock.elapsedRealtimeNanos();
+//                    Log.i("Clock", String.valueOf(getAvgClock(Math.pow(10, 9) / (time2 - time1))));
+//                    time1 = time2;
+
                     ucView.clockUCView();
                     cpuModule.clockCPU();
                     break;
