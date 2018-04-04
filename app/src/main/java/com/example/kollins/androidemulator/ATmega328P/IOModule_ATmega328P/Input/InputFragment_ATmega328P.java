@@ -317,7 +317,7 @@ public class InputFragment_ATmega328P extends Fragment implements InputFragment,
 
                     //No duplicated itens
                     if (duplicatedInputs.size() == 1) {
-                        Log.i("Short", "No dupliated pins");
+                        Log.i("Short", "No dupliated pins - InputFragment");
                         dataMemory.writeIOBit(memoryParams[1], memoryParams[2], memoryParams[0] == IOModule.HIGH_LEVEL);
                         return false;
                     }
@@ -335,7 +335,7 @@ public class InputFragment_ATmega328P extends Fragment implements InputFragment,
                         }
                         if (p.getPinState() != memoryParams[0]) {
                             //Short Circuit!
-                            Log.i("Short", "Send short circuit");
+                            Log.i("Short", "Send short circuit - InputChanel");
                             return true;
                         }
                     }
@@ -449,6 +449,7 @@ public class InputFragment_ATmega328P extends Fragment implements InputFragment,
                     }
                     if (p.getPinState() != memoryParams[0]) {
                         //Short Circuit!
+                        Log.i("Short", "Send short circuit - OutputChanel");
                         return true;
                     }
                 }

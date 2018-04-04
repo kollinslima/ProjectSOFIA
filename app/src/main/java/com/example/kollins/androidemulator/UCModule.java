@@ -55,6 +55,7 @@ public class UCModule extends AppCompatActivity {
     public static final int RESET_ACTION = 0;
     public static final int CLOCK_ACTION = 1;
     public static final int SHORT_CIRCUIT_ACTION = 2;
+    public static final int STOP_ACTION = 3;
 
     public static final String MY_LOG_TAG = "LOG_SIMULATOR";
 
@@ -362,7 +363,7 @@ public class UCModule extends AppCompatActivity {
     }
 
     private void shortCircuit() {
-        Log.i(MY_LOG_TAG, "Short Circuit");
+        Log.i(MY_LOG_TAG, "Short Circuit - UCModule");
         shortCircuitFlag = true;
         ucView.setStatus(UCModule_View.LED_STATUS.SHORT_CIRCUIT);
         stopSystem();
@@ -409,8 +410,11 @@ public class UCModule extends AppCompatActivity {
                     break;
 
                 case SHORT_CIRCUIT_ACTION:
-//                    Toast.makeText(UCModule.this, "SHORT CIRCUIT!!!", Toast.LENGTH_SHORT).show();
                     shortCircuit();
+                    break;
+
+                case STOP_ACTION:
+                    stopSystem();
                     break;
             }
         }

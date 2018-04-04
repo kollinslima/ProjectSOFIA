@@ -109,6 +109,7 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
                 /****************Check short circuit between input and output*****************/
                 if (outputPins.size() > 0) {
                     if (checkInputOutputShortCircuit(inputPins, outputPins)){
+
                         return true;
                     }
                 }
@@ -138,6 +139,7 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
                         continue;
                     }
                     if (pi.getPinState() != pj.getPinState()) {
+                        Log.i("Short", "Send short circuit - CheckInput(IOModule)");
                         return true;
                     }
                 }
@@ -157,10 +159,12 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
                 if (pi.getPinSpinnerPosition() == pk.getPinPositionSpinner()) {
 
                     if (pi.getPinState() == IOModule.TRI_STATE ||
-                            pk.getPinState(pk.getPinPositionSpinner()) == IOModule.TRI_STATE) {
+                            pk.getPinState(pk.getPinPositionSpinner()) == IOModule.TRI_STATE ||
+                            Objects.equals(pk.getPin(),pi.getPin())) {  //No short circuit if measuring input
                         continue;
                     }
                     if (pi.getPinState() != pk.getPinState(pk.getPinPositionSpinner())) {
+                        Log.i("Short", "Send short circuit - CheckInputOutput(IOModule)");
                         return true;
                     }
                 }

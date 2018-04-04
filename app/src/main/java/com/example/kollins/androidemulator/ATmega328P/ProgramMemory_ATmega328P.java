@@ -115,11 +115,15 @@ public class ProgramMemory_ATmega328P implements ProgramMemory {
 
         Log.d(UCModule.MY_LOG_TAG, "Loading instruction -> PC: " + (int)pcPointer);
 
-        byte instPart1, instPart2;
+        byte instPart1 = 0x00, instPart2 = 0x00;
 
-        //little-endian read
-        instPart1 = flashMemory[pcPointer*2];
-        instPart2 = flashMemory[(pcPointer*2)+1];
+        try {
+            //little-endian read
+            instPart1 = flashMemory[pcPointer*2];
+            instPart2 = flashMemory[(pcPointer*2)+1];
+        } catch (ArrayIndexOutOfBoundsException e){
+            ucHandler.sendEmptyMessage(UCModule.STOP_ACTION);
+        }
 
         pcPointer += 1;
 
