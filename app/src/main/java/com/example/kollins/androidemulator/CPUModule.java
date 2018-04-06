@@ -115,8 +115,20 @@ public class CPUModule implements Runnable {
         INSTRUCTION_GROUP_0 {
             @Override
             public void executeInstruction() {
-                switch ((0x0C00 & instruction)) {
+                switch ((0x0F00 & instruction)) {
+                    case 0x0100:
+                        /*************************MOVW***********************/
+                        Log.d(UCModule.MY_LOG_TAG, "instruction MOVW");
+
+                        dataMemory.writeByte(((0x00F0 & instruction)>>4),dataMemory.readByte((0x000F & instruction)));
+                        dataMemory.writeByte((((0x00F0 & instruction)>>4)+1),dataMemory.readByte(((0x000F & instruction)+1)));
+
+                        break;
+
                     case 0x0400:
+                    case 0x0500:
+                    case 0x0600:
+                    case 0x0700:
                         /*************************CPC***********************/
                         Log.d(UCModule.MY_LOG_TAG, "instruction CPC");
 
@@ -593,56 +605,86 @@ public class CPUModule implements Runnable {
                         //2 clockCycles
                         waitClock();
 
-                        int offset = ((0x0030 & instruction) * 2);
-                        byte inDataL = dataMemory.readByte(0x18 + offset);
-                        byte inDataH = dataMemory.readByte(0x19 + offset);
+                        int offset_ADIW = (((0x0030 & instruction)>>4) * 2);
+                        byte inDataL_ADIW = dataMemory.readByte(0x18 + offset_ADIW);
+                        byte inDataH_ADIW = dataMemory.readByte(0x19 + offset_ADIW);
 
-                        int outData = (((0x00FF & inDataH) << 8) | (0x00FF & inDataL)) +
+                        int outData_ADIW = (((0x00FF & inDataH_ADIW) << 8) | (0x00FF & inDataL_ADIW)) +
                                 (((0x00C0 & instruction) >> 2) | (0x000F & instruction));
 
-                        dataMemory.writeByte(0x18 + offset, (byte) (0x00FF & outData));
-                        dataMemory.writeByte(0x19 + offset, (byte) ((0xFF00 & outData) >> 8));
+                        dataMemory.writeByte(0x18 + offset_ADIW, (byte) (0x000000FF & outData_ADIW));
+                        dataMemory.writeByte(0x19 + offset_ADIW, (byte) ((0x0000FF00 & outData_ADIW) >> 8));
 
                         //Update status register
                         //Flag C
                         dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 0,
-                                !(((inDataH & 0x80) & ((~(outData & 0x00008000)) >> 8)) == 0));
+                                !(((inDataH_ADIW & 0x80) & ((~(outData_ADIW & 0x00008000)) >> 8)) == 0));
 
                         //Flag Z
                         dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 1,
-                                (outData & 0x0000FFFF) == 0);
+                                (outData_ADIW & 0x0000FFFF) == 0);
 
                         //Flag N
                         dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 2,
-                                !((outData & 0x00008000) == 0));
+                                !((outData_ADIW & 0x00008000) == 0));
 
                         //Flag V
                         dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 3,
-                                !(((~(inDataH & 0x80)) & ((outData & 0x00008000) >> 8)) == 0));
+                                !(((~(inDataH_ADIW & 0x80)) & ((outData_ADIW & 0x00008000) >> 8)) == 0));
 
                         //Flag S
                         dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 4,
                                 dataMemory.readBit(DataMemory_ATmega328P.SREG_ADDR, 2) ^ dataMemory.readBit(DataMemory_ATmega328P.SREG_ADDR, 3));
 
                         break;
+                    case 0x0700:
+                        /*************************SBIW***********************/
+                        Log.d(UCModule.MY_LOG_TAG, "instruction SBIW");
+                        waitClock();
 
+                        int offset_SBIW = (((0x0030 & instruction)>>4) * 2);
+                        byte inDataL_SBIW = dataMemory.readByte(0x18 + offset_SBIW);
+                        byte inDataH_SBIW = dataMemory.readByte(0x19 + offset_SBIW);
 
+                        int outData_SBIW = (((0x00FF & inDataH_SBIW) << 8) | (0x00FF & inDataL_SBIW)) -
+                                (((0x00C0 & instruction) >> 2) | (0x000F & instruction));
+
+                        dataMemory.writeByte(0x18 + offset_SBIW, (byte) (0x000000FF & outData_SBIW));
+                        dataMemory.writeByte(0x19 + offset_SBIW, (byte) ((0x0000FF00 & outData_SBIW) >> 8));
+
+                        //Flag C
+                        dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 0,
+                                !(((~(inDataH_SBIW & 0x80)) & ((outData_SBIW & 0x00008000) >> 8)) == 0));
+
+                        //Flag Z
+                        dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 1,
+                                (outData_SBIW & 0x0000FFFF) == 0);
+
+                        //Flag N
+                        dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 2,
+                                !((outData_SBIW & 0x00008000) == 0));
+
+                        //Flag V
+                        dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 3,
+                                !(((inDataH_SBIW & 0x80) & ((~(outData_SBIW & 0x00008000)) >> 8)) == 0));
+
+                        //Flag S
+                        dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 4,
+                                dataMemory.readBit(DataMemory_ATmega328P.SREG_ADDR, 2) ^ dataMemory.readBit(DataMemory_ATmega328P.SREG_ADDR, 3));
+
+                        break;
                     case 0x0800:
                         /*************************CBI***********************/
                         Log.d(UCModule.MY_LOG_TAG, "instruction CBI");
                         waitClock();
                         dataMemory.writeBit(((0x00F8 & instruction) >> 3) + 0x20, (0x0007 & instruction), false);
                         break;
-
-
                     case 0x0A00:
                         /*************************SBI***********************/
                         Log.d(UCModule.MY_LOG_TAG, "instruction SBI");
                         waitClock();
                         dataMemory.writeBit(((0x00F8 & instruction) >> 3) + 0x20, (0x0007 & instruction), true);
                         break;
-
-
                     case 0x0B00:
                         /*************************SBIS***********************/
                         Log.d(UCModule.MY_LOG_TAG, "instruction SBIS");
