@@ -311,13 +311,31 @@ public class CPUModule implements Runnable {
         },
 
         /*
-        * ADIW - CALL - CBI - JMP - SBI - SBIS
+        * ADIW - CALL - CBI - JMP LDS - SBI - SBIS
         * BSET - SEC - SEZ - SEN - SEI - SES - SEV - SET - SEH
         * */
         INSTRUCTION_GROUP_9 {
             @Override
             public void executeInstruction() {
                 switch ((0x0F00 & instruction)) {
+                    case 0x0000:
+                    case 0x0001:
+                        switch ((0x000F & instruction)) {
+                            case 0x0000:
+                                /*************************LDS***********************/
+                                Log.d(UCModule.MY_LOG_TAG, "instruction LDS");
+
+                                waitClock();
+
+                                int sdramDataAddress = (0x0000FFFF & programMemory.loadInstruction());
+
+                                dataMemory.writeByte(((0x01F0 & instruction) >> 4),
+                                        dataMemory.readByte(sdramDataAddress));
+
+                            default:
+                                Log.w(UCModule.MY_LOG_TAG, "Unknown instruction Group 9: " + Integer.toBinaryString(instruction));
+                        }
+                        break;
                     case 0x0200:
                     case 0x0300:
                         switch ((0x000F & instruction)) {
@@ -586,6 +604,12 @@ public class CPUModule implements Runnable {
             @Override
             public void executeInstruction() {
                 switch ((0x0800 & instruction)) {
+                    case 0x0000:
+                        /*************************IN***********************/
+                        Log.d(UCModule.MY_LOG_TAG, "instruction IN");
+                        dataMemory.writeByte(((0x01F0 & instruction) >> 4),                                              //Address
+                                dataMemory.readByte(((((0x0600 & instruction) >> 5) | ((0x000F & instruction))) + 0x20)));//Data
+                        break;
                     case 0x0800:
                         /*************************OUT***********************/
                         Log.d(UCModule.MY_LOG_TAG, "instruction OUT");
