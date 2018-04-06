@@ -310,7 +310,10 @@ public class CPUModule implements Runnable {
             }
         },
 
-        /*ADIW - CALL - CBI - JMP - SBI - SBIS*/
+        /*
+        * ADIW - CALL - CBI - JMP - SBI - SBIS
+        * BSET - SEC - SEZ - SEN - SEI - SES - SEV - SET - SEH
+        * */
         INSTRUCTION_GROUP_9 {
             @Override
             public void executeInstruction() {
@@ -348,8 +351,26 @@ public class CPUModule implements Runnable {
 
                     case 0x0400:
                         switch ((0x000F & instruction)) {
-//                            case 0x0008:
-//                                break;
+                            case 0x0008:
+                                switch ((0x0080 & instruction)){
+                                    case 0x0000:
+                                        /*********************BSET*********************/
+                                        Log.d(UCModule.MY_LOG_TAG, "instruction BSET");
+
+                                        dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, (0x07 & (instruction>>4)),true);
+
+                                        break;
+                                    case 0x0080:
+                                        /*********************BCLR*********************/
+                                        Log.d(UCModule.MY_LOG_TAG, "instruction BCLR");
+
+                                        dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, (0x07 & (instruction>>4)),false);
+
+                                        break;
+                                    default:
+                                        Log.w(UCModule.MY_LOG_TAG, "Unknown instruction Group 9: " + Integer.toBinaryString(instruction));
+                                }
+                                break;
 //                            case 0x0009:
 //                                break;
 
