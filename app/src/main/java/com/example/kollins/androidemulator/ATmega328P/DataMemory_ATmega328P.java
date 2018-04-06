@@ -17,8 +17,6 @@ import com.example.kollins.androidemulator.uCInterfaces.IOModule;
 
 public class DataMemory_ATmega328P implements DataMemory {
 
-    public static final int SREG_ADDR = 0x5F;
-
     public static final int PINB_ADDR = 0x23;
     public static final int DDRB_ADDR = 0x24;
     public static final int PORTB_ADDR = 0x25;
@@ -32,6 +30,10 @@ public class DataMemory_ATmega328P implements DataMemory {
     public static final int PORTD_ADDR = 0x2B;
 
     public static final int MCUCR_ADDR = 0x55;
+
+    public static final int SPL_ADDR = 0x5D;
+    public static final int SPH_ADDR = 0x5E;
+    public static final int SREG_ADDR = 0x5F;
 
     //2kBytes
     private final int SDRAM_SIZE = 2 * ((int) Math.pow(2, 10));
@@ -54,6 +56,7 @@ public class DataMemory_ATmega328P implements DataMemory {
 
     private void initDefaultContent() {
         Log.i("Config", "Configuring Memory");
+        //RESET CONDITION
 
         //Status Register
         sdramMemory[SREG_ADDR] = 0x00;
@@ -75,6 +78,10 @@ public class DataMemory_ATmega328P implements DataMemory {
         //PORTD
         sdramMemory[PORTD_ADDR] = 0x00;
         notify(DDRD_ADDR);
+
+        //STACK (SPL and SPH)
+        sdramMemory[SPL_ADDR] = 0x01;
+        sdramMemory[SPH_ADDR] = 0x00;
 
         //MCU Control Register
         sdramMemory[MCUCR_ADDR] = 0x00;

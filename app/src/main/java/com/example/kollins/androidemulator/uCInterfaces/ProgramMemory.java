@@ -11,6 +11,7 @@ public interface ProgramMemory {
 
     void stopCodeObserver();
 
+    int getPC();
     void setPC(int pc);
     void addToPC(int offset);
 }

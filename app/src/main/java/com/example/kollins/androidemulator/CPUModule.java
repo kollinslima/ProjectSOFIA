@@ -111,10 +111,65 @@ public class CPUModule implements Runnable {
     }
 
     public enum Decoder {
+        /*CPC*/
         INSTRUCTION_GROUP_0 {
             @Override
             public void executeInstruction() {
-                Log.w(UCModule.MY_LOG_TAG, "Unknown instruction Group 0: " + Integer.toBinaryString(instruction));
+                switch ((0x0C00 & instruction)) {
+                    case 0x0400:
+                        /*************************CPC***********************/
+                        Log.d(UCModule.MY_LOG_TAG, "instruction CPC");
+
+                        byte regD = dataMemory.readByte((0x01F0 & instruction) >> 4);
+                        byte regR = dataMemory.readByte(((0x0200 & instruction) >> 5) | (0x000F & instruction));
+
+                        int result = regD - regR;
+
+                        //If carry is set
+                        if (dataMemory.readBit(DataMemory_ATmega328P.SREG_ADDR, 0)) {
+                            result -= 1;
+                        }
+
+                        //Flag H
+                        dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 5,
+                                (0x00000001 &
+                                        ((((~(0x08 & regD) & (0x08 & regR)) |
+                                                ((0x08 & result) & (0x08 & regR)) |
+                                                (~(0x08 & regD) & (0x08 & result)))
+                                                >> 3))) != 0);
+
+                        //Flag V
+                        dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 3,
+                                (0x00000001 &
+                                        (((0x80 & regD) & (~(0x80 & regR)) & (~(0x80 & result)) |
+                                                (~(0x80 & regD)) & (0x80 & regR) & (0x80 & result))
+                                                >> 7)) != 0);
+
+                        //Flag N
+                        dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 2,
+                                !((result & 0x00000080) == 0));
+
+                        //Flag S
+                        dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 4,
+                                dataMemory.readBit(DataMemory_ATmega328P.SREG_ADDR, 2) ^ dataMemory.readBit(DataMemory_ATmega328P.SREG_ADDR, 3));
+
+                        //Flag Z
+                        dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 1,
+                                ((result & 0x000000FF) == 0) & dataMemory.readBit(DataMemory_ATmega328P.SREG_ADDR, 1));
+
+                        //Flag C
+                        dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 0,
+                                (0x00000001 &
+                                        ((((~(0x80 & regD) & (0x80 & regR)) |
+                                                ((0x80 & result) & (0x80 & regR)) |
+                                                (~(0x80 & regD) & (0x80 & result)))
+                                                >> 7))) != 0);
+
+                        break;
+
+                    default:
+                        Log.w(UCModule.MY_LOG_TAG, "Unknown instruction Group 0: " + Integer.toBinaryString(instruction));
+                }
             }
         },
         INSTRUCTION_GROUP_1 {
@@ -172,16 +227,16 @@ public class CPUModule implements Runnable {
                 dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 5,
                         (0x00000001 &
                                 ((((~(0x08 & regRead) & (0x08 & constValue)) |
-                                ((0x08 & result) & (0x08 & constValue)) |
-                                (~(0x08 & regRead) & (0x08 & result)))
+                                        ((0x08 & result) & (0x08 & constValue)) |
+                                        (~(0x08 & regRead) & (0x08 & result)))
                                         >> 3))) != 0);
 
                 //Flag V
                 dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 3,
                         (0x00000001 &
-                        (((0x80 & regRead) & (~(0x80 & constValue)) & (~(0x80 & result)) |
-                                (~(0x80 & regRead)) & (0x80 & constValue) & (0x80 & result))
-                                >> 7)) != 0);
+                                (((0x80 & regRead) & (~(0x80 & constValue)) & (~(0x80 & result)) |
+                                        (~(0x80 & regRead)) & (0x80 & constValue) & (0x80 & result))
+                                        >> 7)) != 0);
 
                 //Flag N
                 dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 2,
@@ -255,7 +310,7 @@ public class CPUModule implements Runnable {
             }
         },
 
-        /*ADIW - CBI - JMP - SBI - SBIS*/
+        /*ADIW - CALL - CBI - JMP - SBI - SBIS*/
         INSTRUCTION_GROUP_9 {
             @Override
             public void executeInstruction() {
@@ -263,7 +318,7 @@ public class CPUModule implements Runnable {
                     case 0x0200:
                     case 0x0300:
                         switch ((0x000F & instruction)) {
-                            case 0x00D:
+                            case 0x000D:
                                 /*************************ST (X post increment)***********************/
                                 Log.d(UCModule.MY_LOG_TAG, "instruction ST (X post increment)");
 
@@ -282,6 +337,8 @@ public class CPUModule implements Runnable {
 
                                 dataMemory.writeByte(0x1A, xRegL);
                                 dataMemory.writeByte(0x1B, xRegH);
+
+                                break;
 
                             default:
                                 Log.w(UCModule.MY_LOG_TAG, "Unknown instruction Group 9: " + Integer.toBinaryString(instruction));
@@ -313,6 +370,39 @@ public class CPUModule implements Runnable {
 
                                 break;
 
+                            case 0x000E:
+                            case 0x000F:
+                                /*************************CALL***********************/
+                                //4 clockCycles
+                                waitClock();
+                                waitClock();
+                                waitClock();
+
+                                int callOut = (0x0001 & instruction) | ((0x01F0 & instruction) >> 3);
+                                instruction = programMemory.loadInstruction();
+                                callOut = (callOut << 16) | instruction;
+
+                                //PC is already in position to go to stack (write little-endian)
+
+                                int stackPointer = (dataMemory.readByte(DataMemory_ATmega328P.SPH_ADDR) << 8) |
+                                        (0x000000FF & dataMemory.readByte(DataMemory_ATmega328P.SPL_ADDR));
+
+                                //Write PC low
+                                dataMemory.writeByte(stackPointer, (byte) (0x000000FF & programMemory.getPC()));
+                                stackPointer -= 1;
+                                //Write PC high
+                                dataMemory.writeByte(stackPointer, (byte) ((0x000000FF & (programMemory.getPC()>>8))));
+                                stackPointer -= 1;
+
+                                //Update SPL
+                                dataMemory.writeByte(DataMemory_ATmega328P.SPL_ADDR, (byte) (0x000000FF & stackPointer));
+                                //Update SPH
+                                dataMemory.writeByte(DataMemory_ATmega328P.SPH_ADDR, (byte) ((0x0000FF00 & stackPointer)>>8));
+
+                                programMemory.setPC(callOut);
+
+                                break;
+
                             default:
                                 Log.w(UCModule.MY_LOG_TAG, "Unknown instruction Group 9: " + Integer.toBinaryString(instruction));
                         }
@@ -335,6 +425,39 @@ public class CPUModule implements Runnable {
                                 jumpOut = (jumpOut << 16) | instruction;
 
                                 programMemory.setPC(jumpOut);
+                                break;
+
+                            case 0x000E:
+                            case 0x000F:
+                                /*************************CALL***********************/
+                                //4 clockCycles
+                                waitClock();
+                                waitClock();
+                                waitClock();
+
+                                int callOut = (0x0001 & instruction) | ((0x01F0 & instruction) >> 3);
+                                instruction = programMemory.loadInstruction();
+                                callOut = (callOut << 16) | instruction;
+
+                                //PC is already in position to go to stack (write little-endian)
+
+                                int stackPointer = (dataMemory.readByte(DataMemory_ATmega328P.SPH_ADDR) << 8) |
+                                        (0x000000FF & dataMemory.readByte(DataMemory_ATmega328P.SPL_ADDR));
+
+                                //Write PC low
+                                dataMemory.writeByte(stackPointer, (byte) (0x000000FF & programMemory.getPC()));
+                                stackPointer -= 1;
+                                //Write PC high
+                                dataMemory.writeByte(stackPointer, (byte) ((0x000000FF & (programMemory.getPC()>>8))));
+                                stackPointer -= 1;
+
+                                //Update SPL
+                                dataMemory.writeByte(DataMemory_ATmega328P.SPL_ADDR, (byte) (0x000000FF & stackPointer));
+                                //Update SPH
+                                dataMemory.writeByte(DataMemory_ATmega328P.SPH_ADDR, (byte) ((0x0000FF00 & stackPointer)>>8));
+
+                                programMemory.setPC(callOut);
+
                                 break;
 
                             default:
