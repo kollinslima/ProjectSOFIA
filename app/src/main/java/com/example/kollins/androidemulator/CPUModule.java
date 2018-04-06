@@ -251,6 +251,8 @@ public class CPUModule implements Runnable {
         INSTRUCTION_GROUP_3 {
             @Override
             public void executeInstruction() {
+                /*************************CPI***********************/
+                Log.d(UCModule.MY_LOG_TAG, "instruction CPI");
 
                 int constValue = (((0x00000F00 & instruction) >> 4) | (0x0000000F & instruction));
                 byte regRead = dataMemory.readByte(0x10 | (0x000000F0 & instruction) >> 4);
@@ -473,6 +475,8 @@ public class CPUModule implements Runnable {
                             case 0x000E:
                             case 0x000F:
                                 /*************************CALL***********************/
+                                Log.d(UCModule.MY_LOG_TAG, "instruction CALL");
+
                                 //4 clockCycles
                                 waitClock();
                                 waitClock();
@@ -562,6 +566,8 @@ public class CPUModule implements Runnable {
                             case 0x000E:
                             case 0x000F:
                                 /*************************CALL***********************/
+                                Log.d(UCModule.MY_LOG_TAG, "instruction CALL");
+
                                 //4 clockCycles
                                 waitClock();
                                 waitClock();
