@@ -319,7 +319,7 @@ public class CPUModule implements Runnable {
             public void executeInstruction() {
                 switch ((0x0F00 & instruction)) {
                     case 0x0000:
-                    case 0x0001:
+                    case 0x0100:
                         switch ((0x000F & instruction)) {
                             case 0x0000:
                                 /*************************LDS***********************/
@@ -331,6 +331,22 @@ public class CPUModule implements Runnable {
 
                                 dataMemory.writeByte(((0x01F0 & instruction) >> 4),
                                         dataMemory.readByte(sdramDataAddress));
+                                break;
+
+                            case 0x0008:
+                                /*************************LPM (Z unchanged)***********************/
+                                Log.d(UCModule.MY_LOG_TAG, "instruction LPM (Z unchanged)");
+
+                                waitClock();
+                                waitClock();
+
+                                byte zRegL = dataMemory.readByte(0x1E);
+                                byte zRegH = dataMemory.readByte(0x1F);
+                                int destAddress = (0x0000FF00 & (zRegH << 8)) | (0x000000FF & zRegL);
+
+                                dataMemory.writeByte((0x01F0 & instruction) >> 4, dataMemory.readByte(destAddress));
+
+                                break;
 
                             default:
                                 Log.w(UCModule.MY_LOG_TAG, "Unknown instruction Group 9: " + Integer.toBinaryString(instruction));
@@ -339,6 +355,17 @@ public class CPUModule implements Runnable {
                     case 0x0200:
                     case 0x0300:
                         switch ((0x000F & instruction)) {
+                            case 0x0000:
+                                /*************************STS***********************/
+                                Log.d(UCModule.MY_LOG_TAG, "instruction STS");
+
+                                waitClock();
+                                int sdramDataAddress = (0x0000FFFF & programMemory.loadInstruction());
+
+                                dataMemory.writeByte(sdramDataAddress,
+                                        dataMemory.readByte(((0x01F0 & instruction) >> 4)));
+
+                                break;
                             case 0x000D:
                                 /*************************ST (X post increment)***********************/
                                 Log.d(UCModule.MY_LOG_TAG, "instruction ST (X post increment)");
