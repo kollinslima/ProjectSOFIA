@@ -388,11 +388,11 @@ public class CPUModule implements Runnable {
                                         (0x000000FF & dataMemory.readByte(DataMemory_ATmega328P.SPL_ADDR));
 
                                 //Write PC low
+                                stackPointer -= 1;
                                 dataMemory.writeByte(stackPointer, (byte) (0x000000FF & programMemory.getPC()));
                                 stackPointer -= 1;
                                 //Write PC high
                                 dataMemory.writeByte(stackPointer, (byte) ((0x000000FF & (programMemory.getPC()>>8))));
-                                stackPointer -= 1;
 
                                 //Update SPL
                                 dataMemory.writeByte(DataMemory_ATmega328P.SPL_ADDR, (byte) (0x000000FF & stackPointer));

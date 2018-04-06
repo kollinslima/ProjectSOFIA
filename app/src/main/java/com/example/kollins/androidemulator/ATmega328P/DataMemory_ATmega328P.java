@@ -35,8 +35,8 @@ public class DataMemory_ATmega328P implements DataMemory {
     public static final int SPH_ADDR = 0x5E;
     public static final int SREG_ADDR = 0x5F;
 
-    //2kBytes
-    private final int SDRAM_SIZE = 2 * ((int) Math.pow(2, 10));
+    //2kBytes SDRAM + 32 Registers + 64 I/O Registers + 160 Ext I/O Registers
+    private final int SDRAM_SIZE = (2 * ((int) Math.pow(2, 10))) + 32 + 64 + 160;
     private byte[] sdramMemory;
 
     private Handler pinHandler;
