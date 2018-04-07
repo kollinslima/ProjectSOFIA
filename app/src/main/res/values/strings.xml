@@ -76,4 +76,5 @@
     <string name="action_clear_io">Clear I/O</string>
     <string name="start_instructions">Tap \'+\' to start</string>
 
+    <string name="developer">Developed by Kollins Gabriel Lima</string>
 </resources>

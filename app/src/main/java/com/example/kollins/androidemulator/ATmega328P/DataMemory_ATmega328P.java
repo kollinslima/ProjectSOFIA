@@ -469,4 +469,10 @@ public class DataMemory_ATmega328P implements DataMemory {
         this.pinHandler = pinHandler;
     }
 
+    public synchronized void feedbackOutput(int byteAddress, int bitPosition, boolean bitState) {
+        sdramMemory[byteAddress] = (byte) (sdramMemory[byteAddress] & (0xFF7F >> (7 - bitPosition)));   //Clear
+        if (bitState) {
+            sdramMemory[byteAddress] = (byte) (sdramMemory[byteAddress] | (0x01 << bitPosition));     //Set
+        }
+    }
 }

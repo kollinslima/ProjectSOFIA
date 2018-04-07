@@ -260,4 +260,8 @@ public class OutputFragment_ATmega328P extends Fragment implements OutputFragmen
     public List<OutputPin_ATmega328P> getPinList(){
         return outputPins;
     }
+
+    public void feedbackOutput(int address, int bitPosition, boolean state) {
+        dataMemory.feedbackOutput(address,bitPosition,state);
+    }
 }

@@ -233,6 +233,7 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
                 else {
 //                    Log.i(UCModule.MY_LOG_TAG, "Output");
                     outputFragment.pinbuffer[i] = (0x01 & (portRead >> bitPosition));
+                    outputFragment.feedbackOutput(DataMemory_ATmega328P.PINB_ADDR, bitPosition, outputFragment.pinbuffer[i] != 0);
                 }
 
 //                portRead = (byte) (portRead >> 1);
@@ -323,6 +324,7 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
                 else {
 //                    Log.i(UCModule.MY_LOG_TAG, "Output");
                     outputFragment.pinbuffer[i] = (0x01 & (portRead >> bitPosition));
+                    outputFragment.feedbackOutput(DataMemory_ATmega328P.PINC_ADDR, bitPosition, outputFragment.pinbuffer[i] != 0);
                 }
 
 //                portRead = (byte) (portRead >> 1);
@@ -414,6 +416,7 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
                 else {
 //                    Log.i(UCModule.MY_LOG_TAG, "Output");
                     outputFragment.pinbuffer[i] = (0x01 & (portRead >> bitPosition));
+                    outputFragment.feedbackOutput(DataMemory_ATmega328P.PIND_ADDR, bitPosition, outputFragment.pinbuffer[i] != 0);
                 }
 
 //                portRead = (byte) (portRead >> 1);
