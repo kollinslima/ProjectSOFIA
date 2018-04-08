@@ -305,7 +305,7 @@ public class DataMemory_ATmega328P implements DataMemory {
             case PORTB_ADDR:
 
                 //Wait IO update
-                while (ioModule.isUpdatingIO()) ;
+                while (ioModule.isUpdatingIO());
 
                 ioMessage = new Message();
 
@@ -414,6 +414,12 @@ public class DataMemory_ATmega328P implements DataMemory {
         Log.d(UCModule.MY_LOG_TAG,
                 String.format("Read byte SDRAM\nAddress: 0x%s, Data read: 0x%02X",
                         Integer.toHexString((int) byteAddress), sdramMemory[byteAddress]));
+
+        if (byteAddress == PINB_ADDR || byteAddress == PINC_ADDR || byteAddress == PIND_ADDR) {
+            //Wait IO update
+            while (ioModule.isUpdatingIO());
+        }
+
         return sdramMemory[byteAddress];
     }
 
@@ -460,6 +466,12 @@ public class DataMemory_ATmega328P implements DataMemory {
         Log.d(UCModule.MY_LOG_TAG,
                 String.format("Read bit SDRAM\nAddress: 0x%s", Integer.toHexString((int) byteAddress))
                         + " position: " + bitPosition + " state: " + ((0x01 & (sdramMemory[byteAddress] >> bitPosition)) != 0));
+
+        if (byteAddress == PINB_ADDR || byteAddress == PINC_ADDR || byteAddress == PIND_ADDR) {
+            //Wait IO update
+            while (ioModule.isUpdatingIO());
+        }
+
         return (0x01 & (sdramMemory[byteAddress] >> bitPosition)) != 0;
 
     }
