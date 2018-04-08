@@ -18,13 +18,10 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.example.kollins.androidemulator.ATmega328P.DataMemory_ATmega328P;
-import com.example.kollins.androidemulator.ATmega328P.IOModule_ATmega328P.IOModule_ATmega328P;
-import com.example.kollins.androidemulator.ATmega328P.IOModule_ATmega328P.Input.InputPin_ATmega328P;
 import com.example.kollins.androidemulator.R;
 import com.example.kollins.androidemulator.UCModule;
 import com.example.kollins.androidemulator.UCModule_View;
 import com.example.kollins.androidemulator.uCInterfaces.DataMemory;
-import com.example.kollins.androidemulator.uCInterfaces.IOModule;
 import com.example.kollins.androidemulator.uCInterfaces.OutputFragment;
 
 import java.util.ArrayList;
@@ -261,7 +258,7 @@ public class OutputFragment_ATmega328P extends Fragment implements OutputFragmen
         return outputPins;
     }
 
-    public void feedbackOutput(int address, int bitPosition, boolean state) {
-        dataMemory.feedbackOutput(address,bitPosition,state);
+    public void writeFeedback(int address, int bitPosition, boolean state) {
+        dataMemory.writeFeedback(address,bitPosition,state);
     }
 }

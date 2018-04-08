@@ -422,7 +422,8 @@ public class InputFragment_ATmega328P extends Fragment implements InputFragment,
             try {
                 if (inputPins.size() == 0) {
                     //No restrictions, write requested data.
-                    dataMemory.writeIOBit(memoryParams[1], memoryParams[2], memoryParams[0] == IOModule.HIGH_LEVEL);
+//                    dataMemory.writeIOBit(memoryParams[1], memoryParams[2], memoryParams[0] == IOModule.HIGH_LEVEL);
+                    dataMemory.writeFeedback(memoryParams[1], memoryParams[2], memoryParams[0] == IOModule.HIGH_LEVEL);
                     return false;
                 }
 
@@ -438,7 +439,7 @@ public class InputFragment_ATmega328P extends Fragment implements InputFragment,
 
                 //No inputs
                 if (duplicatedInputs.size() == 0) {
-                    dataMemory.writeIOBit(memoryParams[1], memoryParams[2], memoryParams[0] == IOModule.HIGH_LEVEL);
+                    dataMemory.writeFeedback(memoryParams[1], memoryParams[2], memoryParams[0] == IOModule.HIGH_LEVEL);
                     return false;
                 }
 
@@ -453,10 +454,10 @@ public class InputFragment_ATmega328P extends Fragment implements InputFragment,
                         return true;
                     }
                 }
-                dataMemory.writeIOBit(memoryParams[1], memoryParams[2], memoryParams[0] == IOModule.HIGH_LEVEL);
+                dataMemory.writeFeedback(memoryParams[1], memoryParams[2], memoryParams[0] == IOModule.HIGH_LEVEL);
 
             } catch (NullPointerException e) {
-                dataMemory.writeIOBit(memoryParams[1], memoryParams[2], memoryParams[0] == IOModule.HIGH_LEVEL);
+                dataMemory.writeFeedback(memoryParams[1], memoryParams[2], memoryParams[0] == IOModule.HIGH_LEVEL);
             }
             return false;
         }

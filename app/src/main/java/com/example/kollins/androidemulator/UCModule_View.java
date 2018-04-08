@@ -67,7 +67,8 @@ public class UCModule_View extends Fragment implements Runnable {
     private TextView simulatedTimeDisplay, startInstructions, statusInfo, hexFileErrorInstructions;
     private long simulatedTime;
     private String simulatedText;
-    private long nanoSeconds;
+//    private long nanoSeconds;
+    private long microSeconds;
     private long seconds;
 
     private Resources resources;
@@ -135,10 +136,12 @@ public class UCModule_View extends Fragment implements Runnable {
             waitClock();
             simulatedTime += clockPeriod;
 
-            nanoSeconds = simulatedTime / 10;
-            seconds = TimeUnit.NANOSECONDS.toSeconds(nanoSeconds);
+//            nanoSeconds = simulatedTime / 10;
+            microSeconds = (simulatedTime/10)/1000;
+//            seconds = TimeUnit.NANOSECONDS.toSeconds(nanoSeconds);
+            seconds = TimeUnit.MICROSECONDS.toSeconds(microSeconds);
 
-            simulatedText = resources.getString(R.string.simulated_time_format, seconds, nanoSeconds);
+            simulatedText = resources.getString(R.string.simulated_time_format, seconds, microSeconds);
 
             screenUpdater.post(new Runnable() {
                 @Override
