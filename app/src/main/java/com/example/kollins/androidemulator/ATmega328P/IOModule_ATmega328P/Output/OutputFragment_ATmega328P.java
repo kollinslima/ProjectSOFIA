@@ -259,6 +259,7 @@ public class OutputFragment_ATmega328P extends Fragment implements OutputFragmen
     }
 
     public void writeFeedback(int address, int bitPosition, boolean state) {
+        UCModule.interruptionModule.checkIOInterruption(address, bitPosition,dataMemory.readBit(address,bitPosition),state);
         dataMemory.writeFeedback(address,bitPosition,state);
     }
 }

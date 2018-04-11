@@ -56,6 +56,33 @@ public class CPUModule implements Runnable, CPUInstructions {
 
             /*************************Decode and execute*******************/
             Executor.values()[INSTRUCTION_ID[instruction]].executeInstruction();
+
+            if (UCModule.interruptionModule.haveInterruption()){
+                //Virtual CALL
+                waitClock();
+                waitClock();
+                waitClock();
+                waitClock();
+
+                //PC is already in position to go to stack (write little-endian)
+                int stackPointer = (dataMemory.readByte(DataMemory_ATmega328P.SPH_ADDR) << 8) |
+                        (0x000000FF & dataMemory.readByte(DataMemory_ATmega328P.SPL_ADDR));
+
+                //Write PC low
+                stackPointer -= 1;
+                dataMemory.writeByte(stackPointer, (byte) (0x000000FF & programMemory.getPC()));
+                stackPointer -= 1;
+                //Write PC high
+                dataMemory.writeByte(stackPointer, (byte) ((0x000000FF & (programMemory.getPC() >> 8))));
+
+                //Update SPL
+                dataMemory.writeByte(DataMemory_ATmega328P.SPL_ADDR, (byte) (0x000000FF & stackPointer));
+                //Update SPH
+                dataMemory.writeByte(DataMemory_ATmega328P.SPH_ADDR, (byte) ((0x0000FF00 & stackPointer) >> 8));
+
+                programMemory.setPC(UCModule.interruptionModule.getPCInterruptionAddress());
+                UCModule.interruptionModule.disableGlobalInterruptions();
+            }
         }
 
         Log.i(UCModule.MY_LOG_TAG, "Finishing CPU");
@@ -770,7 +797,31 @@ public class CPUModule implements Runnable, CPUInstructions {
         INSTRUCTION_RETI {
             @Override
             public void executeInstruction() {
-                Log.w(UCModule.MY_LOG_TAG, "Not implemented instruction: RETI");
+                /*************************RETI***********************/
+                Log.d(UCModule.MY_LOG_TAG, "Instruction RETI");
+
+                //4 clockCycles
+                waitClock();
+                waitClock();
+                waitClock();
+
+                int stackPointer = (dataMemory.readByte(DataMemory_ATmega328P.SPH_ADDR) << 8) |
+                        (0x000000FF & dataMemory.readByte(DataMemory_ATmega328P.SPL_ADDR));
+
+                //PC little endian read
+                byte pcHigh = dataMemory.readByte(stackPointer);
+                stackPointer += 1;
+                byte pcLow = dataMemory.readByte(stackPointer);
+                stackPointer += 1;
+
+                programMemory.setPC(((0x000000FF & pcHigh) << 8) | (0x000000FF & pcLow));
+
+                //Update SPL
+                dataMemory.writeByte(DataMemory_ATmega328P.SPL_ADDR, (byte) (0x000000FF & stackPointer));
+                //Update SPH
+                dataMemory.writeByte(DataMemory_ATmega328P.SPH_ADDR, (byte) ((0x0000FF00 & stackPointer) >> 8));
+
+                UCModule.interruptionModule.enableGlobalInterruptions();
             }
         },
         INSTRUCTION_RJMP {

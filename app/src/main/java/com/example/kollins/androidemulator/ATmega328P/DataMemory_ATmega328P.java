@@ -305,7 +305,7 @@ public class DataMemory_ATmega328P implements DataMemory {
             case PORTB_ADDR:
 
                 //Wait IO update
-                while (ioModule.isUpdatingIO());
+                while (ioModule.isUpdatingIO()) ;
 
                 ioMessage = new Message();
 
@@ -313,9 +313,10 @@ public class DataMemory_ATmega328P implements DataMemory {
                 ioBundle.putByte(IOModule.PORT_IOMESSAGE, readByte(DataMemory_ATmega328P.PORTB_ADDR));
 
                 ioMessage.what = IOModule.PORTB_EVENT;
+
                 ioMessage.setData(ioBundle);
 
-                pinHandler.sendMessage(ioMessage);
+                pinHandler.dispatchMessage(ioMessage);
                 break;
 
             case DDRC_ADDR:
@@ -332,7 +333,7 @@ public class DataMemory_ATmega328P implements DataMemory {
                 ioMessage.what = IOModule.PORTC_EVENT;
                 ioMessage.setData(ioBundle);
 
-                pinHandler.sendMessage(ioMessage);
+                pinHandler.dispatchMessage(ioMessage);
                 break;
 
 
@@ -350,7 +351,7 @@ public class DataMemory_ATmega328P implements DataMemory {
                 ioMessage.what = IOModule.PORTD_EVENT;
                 ioMessage.setData(ioBundle);
 
-                pinHandler.sendMessage(ioMessage);
+                pinHandler.dispatchMessage(ioMessage);
                 break;
         }
     }
@@ -374,7 +375,7 @@ public class DataMemory_ATmega328P implements DataMemory {
                 ioMessage.what = IOModule.PORTB_EVENT;
                 ioMessage.setData(ioBundle);
 
-                pinHandler.sendMessage(ioMessage);
+                pinHandler.dispatchMessage(ioMessage);
                 break;
 
             case DDRC_ADDR:
@@ -389,7 +390,7 @@ public class DataMemory_ATmega328P implements DataMemory {
                 ioMessage.what = IOModule.PORTC_EVENT;
                 ioMessage.setData(ioBundle);
 
-                pinHandler.sendMessage(ioMessage);
+                pinHandler.dispatchMessage(ioMessage);
                 break;
 
             case DDRD_ADDR:
@@ -404,7 +405,7 @@ public class DataMemory_ATmega328P implements DataMemory {
                 ioMessage.what = IOModule.PORTD_EVENT;
                 ioMessage.setData(ioBundle);
 
-                pinHandler.sendMessage(ioMessage);
+                pinHandler.dispatchMessage(ioMessage);
                 break;
         }
     }
@@ -417,7 +418,7 @@ public class DataMemory_ATmega328P implements DataMemory {
 
         if (byteAddress == PINB_ADDR || byteAddress == PINC_ADDR || byteAddress == PIND_ADDR) {
             //Wait IO update
-            while (ioModule.isUpdatingIO());
+            while (ioModule.isUpdatingIO()) ;
         }
 
         return sdramMemory[byteAddress];
@@ -469,7 +470,7 @@ public class DataMemory_ATmega328P implements DataMemory {
 
         if (byteAddress == PINB_ADDR || byteAddress == PINC_ADDR || byteAddress == PIND_ADDR) {
             //Wait IO update
-            while (ioModule.isUpdatingIO());
+            while (ioModule.isUpdatingIO()) ;
         }
 
         return (0x01 & (sdramMemory[byteAddress] >> bitPosition)) != 0;
@@ -482,6 +483,7 @@ public class DataMemory_ATmega328P implements DataMemory {
     }
 
     public synchronized void writeFeedback(int byteAddress, int bitPosition, boolean bitState) {
+
         sdramMemory[byteAddress] = (byte) (sdramMemory[byteAddress] & (0xFF7F >> (7 - bitPosition)));   //Clear
         if (bitState) {
             sdramMemory[byteAddress] = (byte) (sdramMemory[byteAddress] | (0x01 << bitPosition));     //Set

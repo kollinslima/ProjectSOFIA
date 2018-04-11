@@ -29,6 +29,7 @@ import com.example.kollins.androidemulator.uCInterfaces.IOModule;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Random;
 
 /**
  * Created by kollins on 3/21/18.
@@ -234,6 +235,10 @@ public class InputFragment_ATmega328P extends Fragment implements InputFragment,
     }
 
     public boolean getPINState(int memoryAddress, int bitPosition) {
+        if (dataMemory == null){
+            //PIN not defined, so I'll use false
+            return false;
+        }
         return dataMemory.readBit(memoryAddress, bitPosition);
     }
 
@@ -287,6 +292,7 @@ public class InputFragment_ATmega328P extends Fragment implements InputFragment,
             try {
                 if (inputPins.size() == 0) {
                     //No restrictions, write requested data.
+                    UCModule.interruptionModule.checkIOInterruption(memoryParams[1], memoryParams[2],dataMemory.readBit(memoryParams[1],memoryParams[2]),memoryParams[0] == IOModule.HIGH_LEVEL);
                     dataMemory.writeIOBit(memoryParams[1], memoryParams[2], memoryParams[0] == IOModule.HIGH_LEVEL);
                     return false;
                 }
@@ -318,6 +324,7 @@ public class InputFragment_ATmega328P extends Fragment implements InputFragment,
                     //No duplicated itens
                     if (duplicatedInputs.size() == 1) {
                         Log.i("Short", "No dupliated pins - InputFragment");
+                        UCModule.interruptionModule.checkIOInterruption(memoryParams[1], memoryParams[2],dataMemory.readBit(memoryParams[1],memoryParams[2]),memoryParams[0] == IOModule.HIGH_LEVEL);
                         dataMemory.writeIOBit(memoryParams[1], memoryParams[2], memoryParams[0] == IOModule.HIGH_LEVEL);
                         return false;
                     }
@@ -339,11 +346,13 @@ public class InputFragment_ATmega328P extends Fragment implements InputFragment,
                             return true;
                         }
                     }
+                    UCModule.interruptionModule.checkIOInterruption(memoryParams[1], memoryParams[2],dataMemory.readBit(memoryParams[1],memoryParams[2]),memoryParams[0] == IOModule.HIGH_LEVEL);
                     dataMemory.writeIOBit(memoryParams[1], memoryParams[2], memoryParams[0] == IOModule.HIGH_LEVEL);
 
                 }
 
             } catch (NullPointerException e) {
+                UCModule.interruptionModule.checkIOInterruption(memoryParams[1], memoryParams[2],dataMemory.readBit(memoryParams[1],memoryParams[2]),memoryParams[0] == IOModule.HIGH_LEVEL);
                 dataMemory.writeIOBit(memoryParams[1], memoryParams[2], memoryParams[0] == IOModule.HIGH_LEVEL);
             }
             return false;
@@ -423,6 +432,7 @@ public class InputFragment_ATmega328P extends Fragment implements InputFragment,
                 if (inputPins.size() == 0) {
                     //No restrictions, write requested data.
 //                    dataMemory.writeIOBit(memoryParams[1], memoryParams[2], memoryParams[0] == IOModule.HIGH_LEVEL);
+                    UCModule.interruptionModule.checkIOInterruption(memoryParams[1], memoryParams[2],dataMemory.readBit(memoryParams[1],memoryParams[2]),memoryParams[0] == IOModule.HIGH_LEVEL);
                     dataMemory.writeFeedback(memoryParams[1], memoryParams[2], memoryParams[0] == IOModule.HIGH_LEVEL);
                     return false;
                 }
@@ -439,6 +449,7 @@ public class InputFragment_ATmega328P extends Fragment implements InputFragment,
 
                 //No inputs
                 if (duplicatedInputs.size() == 0) {
+                    UCModule.interruptionModule.checkIOInterruption(memoryParams[1], memoryParams[2],dataMemory.readBit(memoryParams[1],memoryParams[2]),memoryParams[0] == IOModule.HIGH_LEVEL);
                     dataMemory.writeFeedback(memoryParams[1], memoryParams[2], memoryParams[0] == IOModule.HIGH_LEVEL);
                     return false;
                 }
@@ -454,9 +465,11 @@ public class InputFragment_ATmega328P extends Fragment implements InputFragment,
                         return true;
                     }
                 }
+                UCModule.interruptionModule.checkIOInterruption(memoryParams[1], memoryParams[2],dataMemory.readBit(memoryParams[1],memoryParams[2]),memoryParams[0] == IOModule.HIGH_LEVEL);
                 dataMemory.writeFeedback(memoryParams[1], memoryParams[2], memoryParams[0] == IOModule.HIGH_LEVEL);
 
             } catch (NullPointerException e) {
+                UCModule.interruptionModule.checkIOInterruption(memoryParams[1], memoryParams[2],dataMemory.readBit(memoryParams[1],memoryParams[2]),memoryParams[0] == IOModule.HIGH_LEVEL);
                 dataMemory.writeFeedback(memoryParams[1], memoryParams[2], memoryParams[0] == IOModule.HIGH_LEVEL);
             }
             return false;

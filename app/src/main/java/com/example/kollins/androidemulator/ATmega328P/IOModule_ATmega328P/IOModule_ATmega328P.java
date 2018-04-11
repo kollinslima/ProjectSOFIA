@@ -98,28 +98,28 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
         try {
             /****************Check short circuit between inputs*****************/
             if (inputPins.size() > 0) {
-                if (checkInputShortCircuit(inputPins)){
+                if (checkInputShortCircuit(inputPins)) {
                     return true;
                 }
 
                 /****************Check short circuit between input and output*****************/
                 if (outputPins.size() > 0) {
-                    if (checkInputOutputShortCircuit(inputPins, outputPins)){
+                    if (checkInputOutputShortCircuit(inputPins, outputPins)) {
 
                         return true;
                     }
                 }
             }
-        } catch (NullPointerException e){
+        } catch (NullPointerException e) {
             //input/output list is null
         }
         return false;
     }
 
-    private boolean checkInputShortCircuit(List<InputPin_ATmega328P> inputPins) throws NullPointerException{
+    private boolean checkInputShortCircuit(List<InputPin_ATmega328P> inputPins) throws NullPointerException {
         InputPin_ATmega328P pi, pj;
         for (int i = 0; i < inputPins.size(); i++) {
-            for (int j = i+1; j < inputPins.size(); j++) {
+            for (int j = i + 1; j < inputPins.size(); j++) {
                 pi = inputPins.get(i);
                 pj = inputPins.get(j);
 
@@ -144,7 +144,7 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
         return false;
     }
 
-    private boolean checkInputOutputShortCircuit(List<InputPin_ATmega328P> inputPins, List<OutputPin_ATmega328P> outputPins) throws NullPointerException{
+    private boolean checkInputOutputShortCircuit(List<InputPin_ATmega328P> inputPins, List<OutputPin_ATmega328P> outputPins) throws NullPointerException {
         InputPin_ATmega328P pi;
         OutputPin_ATmega328P pk;
 
@@ -156,7 +156,7 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
 
                     if (pi.getPinState() == IOModule.TRI_STATE ||
                             pk.getPinState(pk.getPinPositionSpinner()) == IOModule.TRI_STATE ||
-                            Objects.equals(pk.getPin(),pi.getPin())) {  //No short circuit if measuring input
+                            Objects.equals(pk.getPin(), pi.getPin())) {  //No short circuit if measuring input
                         continue;
                     }
                     if (pi.getPinState() != pk.getPinState(pk.getPinPositionSpinner())) {
@@ -195,7 +195,7 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
             for (int i = 8, bitPosition = 0; i <= 13; i++, bitPosition++) {
                 //Is input?
                 if ((0x01 & (configRead >> bitPosition)) == 0) {
-//                    Log.i(UCModule.MY_LOG_TAG, "Input");
+//                    Log.i(UCModule.MY_LOG_TAG, "Input: " + i);
 
                     digitalPINState = inputFragment.getPINState(DataMemory_ATmega328P.PINB_ADDR, bitPosition);
 
@@ -224,7 +224,7 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
                 }
                 //Is output!
                 else {
-//                    Log.i(UCModule.MY_LOG_TAG, "Output");
+//                    Log.i(UCModule.MY_LOG_TAG, "Output: " + i);
                     outputFragment.pinbuffer[i] = (0x01 & (portRead >> bitPosition));
                     outputFragment.writeFeedback(DataMemory_ATmega328P.PINB_ADDR, bitPosition, outputFragment.pinbuffer[i] != 0);
                 }
@@ -234,23 +234,23 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
             }
 
             if (pins[0] != null) {
-                try {
+//                try {
 //                    setUpdatingIO(true);
-                    for (OutputPin_ATmega328P p : pins[0]) {
-                        p.setPinState(outputFragment.pinbuffer[p.getPinPositionSpinner()], p.getPinPositionSpinner());
-                        publishProgress(index);
-                        index += 1;
-                    }
-                } finally {
-//                    setUpdatingIO(false);
+                for (OutputPin_ATmega328P p : pins[0]) {
+                    p.setPinState(outputFragment.pinbuffer[p.getPinPositionSpinner()], p.getPinPositionSpinner());
+                    publishProgress(index);
+                    index += 1;
                 }
+//                } finally {
+//                    setUpdatingIO(false);
+//                }
             }
 
             try {
-                if (checkInputOutputShortCircuit(inputFragment.getPinList(), pins[0])){
+                if (checkInputOutputShortCircuit(inputFragment.getPinList(), pins[0])) {
                     sendShortCircuit();
                 }
-            } catch (NullPointerException e){
+            } catch (NullPointerException e) {
                 //Output list is null;
             }
 
@@ -328,23 +328,23 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
             }
 
             if (pins[0] != null) {
-                try {
+//                try {
 //                    setUpdatingIO(true);
                     for (OutputPin_ATmega328P p : pins[0]) {
                         p.setPinState(outputFragment.pinbuffer[p.getPinPositionSpinner()], p.getPinPositionSpinner());
                         publishProgress(index);
                         index += 1;
                     }
-                } finally {
+//                } finally {
 //                    setUpdatingIO(false);
-                }
+//                }
             }
 
             try {
-                if (checkInputOutputShortCircuit(inputFragment.getPinList(), pins[0])){
+                if (checkInputOutputShortCircuit(inputFragment.getPinList(), pins[0])) {
                     sendShortCircuit();
                 }
-            } catch (NullPointerException e){
+            } catch (NullPointerException e) {
                 //Output list is null;
             }
 
@@ -394,7 +394,7 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
 
                         if (!digitalPINState && inputFragment.isPinHiZ(i)) {
                             Log.i(UCModule.MY_LOG_TAG, "Requesting pull up");
-                            Log.i(UCModule.MY_LOG_TAG, "HiZ["+i+"]: " + inputFragment.isPinHiZ(i));
+                            Log.i(UCModule.MY_LOG_TAG, "HiZ[" + i + "]: " + inputFragment.isPinHiZ(i));
                             inputFragment.inputRequest_outputChanel(IOModule.HIGH_LEVEL, DataMemory_ATmega328P.PIND_ADDR, bitPosition, "Pin" + i);
 
 //                            return null;
@@ -424,23 +424,23 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
             }
 
             if (pins[0] != null) {
-                try {
+//                try {
 //                    setUpdatingIO(true);
                     for (OutputPin_ATmega328P p : pins[0]) {
                         p.setPinState(outputFragment.pinbuffer[p.getPinPositionSpinner()], p.getPinPositionSpinner());
                         publishProgress(index);
                         index += 1;
                     }
-                } finally {
+//                } finally {
 //                    setUpdatingIO(false);
-                }
+//                }
             }
 
             try {
-                if (checkInputOutputShortCircuit(inputFragment.getPinList(), pins[0])){
+                if (checkInputOutputShortCircuit(inputFragment.getPinList(), pins[0])) {
                     sendShortCircuit();
                 }
-            } catch (NullPointerException e){
+            } catch (NullPointerException e) {
                 //Output list is null;
             }
 

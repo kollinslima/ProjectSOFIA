@@ -17,6 +17,7 @@ import android.widget.Toast;
 
 import com.example.kollins.androidemulator.uCInterfaces.DataMemory;
 import com.example.kollins.androidemulator.uCInterfaces.IOModule;
+import com.example.kollins.androidemulator.uCInterfaces.InterruptionModule;
 import com.example.kollins.androidemulator.uCInterfaces.OutputFragment;
 import com.example.kollins.androidemulator.uCInterfaces.ProgramMemory;
 
@@ -60,6 +61,8 @@ public class UCModule extends AppCompatActivity {
 
     public static boolean[] clockVector;
     private Lock clockLock;
+
+    public static InterruptionModule interruptionModule;
 
     private DataMemory dataMemory;
     private ProgramMemory programMemory;
@@ -117,6 +120,15 @@ public class UCModule extends AppCompatActivity {
         ucView.setClockLock(clockLock);
         ucView.setUCHandler(uCHandler);
         ucView.setUCDevice(this);
+
+
+        try {
+            Class interruptionDevice = Class.forName(PACKAGE_NAME + "." + device + ".InterruptionModule_" + device);
+            interruptionModule = (InterruptionModule) interruptionDevice.newInstance();
+        } catch (ClassNotFoundException|IllegalAccessException|InstantiationException e) {
+            e.printStackTrace();
+        }
+
     }
 
     @Override
@@ -166,6 +178,7 @@ public class UCModule extends AppCompatActivity {
                 Log.d(MY_LOG_TAG, "SDRAM size: " + dataMemory.getMemorySize());
 
                 ucView.setMemoryIO(dataMemory);
+                interruptionModule.setMemory(dataMemory);
 
                 threadUCView = new Thread(ucView);
                 threadUCView.start();
