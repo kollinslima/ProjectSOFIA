@@ -215,7 +215,7 @@ public class OutputFragment_ATmega328P extends Fragment implements OutputFragmen
         return checkedCount;
     }
 
-    public void updateView(int index) {
+    public synchronized void updateView(int index) {
         View view = outputPinsList.getChildAt(index -
                 outputPinsList.getFirstVisiblePosition());
 
@@ -237,11 +237,6 @@ public class OutputFragment_ATmega328P extends Fragment implements OutputFragmen
     @Override
     public void setScreenUpdater(Handler screenUpdater) {
         this.screenUpdater = screenUpdater;
-    }
-
-    @Override
-    public boolean isUpdatingIO() {
-        return false;
     }
 
     @Override

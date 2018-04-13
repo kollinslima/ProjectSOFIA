@@ -20,6 +20,7 @@ import com.example.kollins.androidemulator.uCInterfaces.IOModule;
 import com.example.kollins.androidemulator.uCInterfaces.InterruptionModule;
 import com.example.kollins.androidemulator.uCInterfaces.OutputFragment;
 import com.example.kollins.androidemulator.uCInterfaces.ProgramMemory;
+import com.example.kollins.androidemulator.uCInterfaces.Timer0Module;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
@@ -38,7 +39,8 @@ public class UCModule extends AppCompatActivity {
 
     public static final int CPU_ID = 0;
     public static final int SIMULATED_TIMER_ID = 1;
-    public static final int MANUAL_CLOCK = 2;
+    public static final int TIMER0_ID = 2;
+    public static final int MANUAL_CLOCK = 3;
 
     public static String PACKAGE_NAME;
 
@@ -69,6 +71,9 @@ public class UCModule extends AppCompatActivity {
 
     private CPUModule cpuModule;
     private Thread threadCPU;
+
+    private Timer0Module timer0;
+    private Thread threadTimer0;
 
     private uCHandler uCHandler;
 
@@ -183,9 +188,18 @@ public class UCModule extends AppCompatActivity {
                 threadUCView = new Thread(ucView);
                 threadUCView.start();
 
+                //Init CPU
                 cpuModule = new CPUModule(programMemory, dataMemory, this, uCHandler, clockLock);
                 threadCPU = new Thread(cpuModule);
                 threadCPU.start();
+
+                //Init Timer0
+                Class timerDevice = Class.forName(PACKAGE_NAME + "." + device + ".Timer0_" + device);
+                timer0 = (Timer0Module) timerDevice.getDeclaredConstructor(DataMemory.class, Handler.class, Lock.class, UCModule.class, IOModule.class)
+                        .newInstance(dataMemory, uCHandler, clockLock, this, ucView.getIOModule());
+
+                threadTimer0 = new Thread(timer0);
+                threadTimer0.start();
 
                 resetManager = 0;
                 setUpSuccessful = true;
@@ -365,6 +379,19 @@ public class UCModule extends AppCompatActivity {
 
                 resetManager = 2;
             }
+            if (threadTimer0 != null) {
+                Log.i(MY_LOG_TAG, "Waiting Timer0 thread");
+                while (threadTimer0.isAlive()) {
+                    timer0.clockTimer0();
+                }
+                threadTimer0.join();
+
+                clockLock.lock();
+                clockVector[TIMER0_ID] = true;
+                clockLock.unlock();
+
+                resetManager = 3;
+            }
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -415,6 +442,7 @@ public class UCModule extends AppCompatActivity {
 
                     ucView.clockUCView();
                     cpuModule.clockCPU();
+                    timer0.clockTimer0();
                     break;
 
                 case RESET_ACTION:

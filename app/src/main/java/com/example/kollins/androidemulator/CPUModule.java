@@ -32,6 +32,7 @@ public class CPUModule implements Runnable, CPUInstructions {
 
     public CPUModule(ProgramMemory programMemory, DataMemory dataMemory, UCModule uCModule,
                      Handler uCHandler, Lock clockLock) {
+
         this.programMemory = programMemory;
         this.dataMemory = dataMemory;
         this.uCHandler = uCHandler;
@@ -43,6 +44,7 @@ public class CPUModule implements Runnable, CPUInstructions {
 
     @Override
     public void run() {
+        Thread.currentThread().setName("CPU");
 
         while (!uCModule.getResetFlag()) {
 

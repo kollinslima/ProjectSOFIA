@@ -2,7 +2,7 @@
 <resources>
 
     <!--Number of modules of each device-->
-    <integer name="ATmega328P">1</integer>
+    <integer name="ATmega328P">2</integer>
 
     <!--Position in array of pins-->
     <integer name="UNO_defaultPinPosition">13</integer>

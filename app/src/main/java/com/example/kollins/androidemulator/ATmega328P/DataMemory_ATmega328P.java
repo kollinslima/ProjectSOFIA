@@ -5,6 +5,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
+import com.example.kollins.androidemulator.ATmega328P.IOModule_ATmega328P.IOModule_ATmega328P;
 import com.example.kollins.androidemulator.ATmega328P.IOModule_ATmega328P.Output.OutputFragment_ATmega328P;
 import com.example.kollins.androidemulator.UCModule;
 import com.example.kollins.androidemulator.uCInterfaces.DataMemory;
@@ -289,6 +290,9 @@ public class DataMemory_ATmega328P implements DataMemory {
 //                    writeBit(byteAddress+2, i, !readBit(byteAddress+2, i));
 //                }
 //            }
+        } else if ((byteAddress == EIFR_ADDR || byteAddress == PCIFR_ADDR)) {
+            //Clear Flags
+            sdramMemory[byteAddress] = 0x00;
         } else {
             sdramMemory[byteAddress] = byteData;
             notify(byteAddress);
@@ -304,9 +308,6 @@ public class DataMemory_ATmega328P implements DataMemory {
             case DDRB_ADDR:
             case PORTB_ADDR:
 
-                //Wait IO update
-                while (ioModule.isUpdatingIO()) ;
-
                 ioMessage = new Message();
 
                 ioBundle.putByte(IOModule.CONFIG_IOMESSAGE, readByte(DataMemory_ATmega328P.DDRB_ADDR));
@@ -317,13 +318,12 @@ public class DataMemory_ATmega328P implements DataMemory {
                 ioMessage.setData(ioBundle);
 
                 pinHandler.dispatchMessage(ioMessage);
+
                 break;
 
             case DDRC_ADDR:
             case PORTC_ADDR:
 
-                //Wait IO update
-                while (ioModule.isUpdatingIO()) ;
 
                 ioMessage = new Message();
 
@@ -334,14 +334,12 @@ public class DataMemory_ATmega328P implements DataMemory {
                 ioMessage.setData(ioBundle);
 
                 pinHandler.dispatchMessage(ioMessage);
+
                 break;
 
 
             case DDRD_ADDR:
             case PORTD_ADDR:
-
-                //Wait IO update
-                while (ioModule.isUpdatingIO()) ;
 
                 ioMessage = new Message();
 
@@ -352,6 +350,7 @@ public class DataMemory_ATmega328P implements DataMemory {
                 ioMessage.setData(ioBundle);
 
                 pinHandler.dispatchMessage(ioMessage);
+
                 break;
         }
     }
@@ -416,11 +415,6 @@ public class DataMemory_ATmega328P implements DataMemory {
                 String.format("Read byte SDRAM\nAddress: 0x%s, Data read: 0x%02X",
                         Integer.toHexString((int) byteAddress), sdramMemory[byteAddress]));
 
-        if (byteAddress == PINB_ADDR || byteAddress == PINC_ADDR || byteAddress == PIND_ADDR) {
-            //Wait IO update
-            while (ioModule.isUpdatingIO()) ;
-        }
-
         return sdramMemory[byteAddress];
     }
 
@@ -435,6 +429,9 @@ public class DataMemory_ATmega328P implements DataMemory {
             if (bitState) {
                 writeBit(byteAddress + 2, bitPosition, !readBit(byteAddress + 2, bitPosition));
             }
+        } else if ((byteAddress == EIFR_ADDR || byteAddress == PCIFR_ADDR) && bitState) {
+            //Clear Flag
+            sdramMemory[byteAddress] = (byte) (sdramMemory[byteAddress] & (0xFF7F >> (7 - bitPosition)));
         } else {
             sdramMemory[byteAddress] = (byte) (sdramMemory[byteAddress] & (0xFF7F >> (7 - bitPosition)));   //Clear
             if (bitState) {
@@ -445,10 +442,9 @@ public class DataMemory_ATmega328P implements DataMemory {
     }
 
     public synchronized void writeIOBit(int byteAddress, int bitPosition, boolean bitState) {
-
-        Log.i(UCModule.MY_LOG_TAG,
-                String.format("Write IO bit SDRAM\nAddress: 0x%s", Integer.toHexString((int) byteAddress))
-                        + " position: " + bitPosition + " state: " + bitState);
+//        Log.i(UCModule.MY_LOG_TAG,
+//                String.format("Write IO bit SDRAM\nAddress: 0x%s", Integer.toHexString((int) byteAddress))
+//                        + " position: " + bitPosition + " state: " + bitState);
 
         sdramMemory[byteAddress] = (byte) (sdramMemory[byteAddress] & (0xFF7F >> (7 - bitPosition)));   //Clear
         if (bitState) {
@@ -467,11 +463,6 @@ public class DataMemory_ATmega328P implements DataMemory {
         Log.d(UCModule.MY_LOG_TAG,
                 String.format("Read bit SDRAM\nAddress: 0x%s", Integer.toHexString((int) byteAddress))
                         + " position: " + bitPosition + " state: " + ((0x01 & (sdramMemory[byteAddress] >> bitPosition)) != 0));
-
-        if (byteAddress == PINB_ADDR || byteAddress == PINC_ADDR || byteAddress == PIND_ADDR) {
-            //Wait IO update
-            while (ioModule.isUpdatingIO()) ;
-        }
 
         return (0x01 & (sdramMemory[byteAddress] >> bitPosition)) != 0;
 

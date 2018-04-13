@@ -29,7 +29,6 @@ public interface IOModule{
     String PORT_IOMESSAGE = "PORT_VALUE";
     String CONFIG_IOMESSAGE = "CONFIG_VALUE";
 
-    boolean isUpdatingIO();
     boolean checkShortCircuit();
 
     void getPINConfig();

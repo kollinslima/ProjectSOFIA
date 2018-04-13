@@ -12,4 +12,6 @@ public interface InterruptionModule {
 
     void disableGlobalInterruptions();
     void enableGlobalInterruptions();
+
+    void timer0Overflow();
 }

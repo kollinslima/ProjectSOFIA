@@ -29,7 +29,6 @@ import com.example.kollins.androidemulator.uCInterfaces.IOModule;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Random;
 
 /**
  * Created by kollins on 3/21/18.
@@ -252,11 +251,6 @@ public class InputFragment_ATmega328P extends Fragment implements InputFragment,
     @Override
     public void setScreenUpdater(Handler screenUpdater) {
         this.screenUpdater = screenUpdater;
-    }
-
-    @Override
-    public boolean isUpdatingIO() {
-        return false;
     }
 
     @Override

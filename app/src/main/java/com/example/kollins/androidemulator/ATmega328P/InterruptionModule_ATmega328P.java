@@ -147,6 +147,11 @@ public class InterruptionModule_ATmega328P implements InterruptionModule {
     }
 
     @Override
+    public void timer0Overflow() {
+        dataMemory.writeBit(DataMemory_ATmega328P.TIFR0_ADDR, 0, true);
+    }
+
+    @Override
     public void checkIOInterruption(int pinAddress, int pinPosition, boolean oldState, boolean newState) {
         Log.v(INTERRUPTION_TAG, "Check IO Interruption");
         Log.v(INTERRUPTION_TAG, "Address: " + Integer.toHexString(pinAddress));
@@ -186,6 +191,7 @@ public class InterruptionModule_ATmega328P implements InterruptionModule {
                     //Level interrupt
                     if (!newState) {
                         Log.v(INTERRUPTION_TAG, "INT0 Level");
+                        dataMemory.writeBit(DataMemory_ATmega328P.EIFR_ADDR, 0, false);
                         return true;
                     }
                     break;
@@ -229,6 +235,7 @@ public class InterruptionModule_ATmega328P implements InterruptionModule {
                     //Level interrupt
                     if (!newState) {
                         Log.v(INTERRUPTION_TAG, "INT1 Level");
+                        dataMemory.writeBit(DataMemory_ATmega328P.EIFR_ADDR, 1, false);
                         return true;
                     }
                     break;
