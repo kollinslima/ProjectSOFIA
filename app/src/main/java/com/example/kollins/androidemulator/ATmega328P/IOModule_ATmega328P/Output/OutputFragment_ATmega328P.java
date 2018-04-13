@@ -215,23 +215,29 @@ public class OutputFragment_ATmega328P extends Fragment implements OutputFragmen
         return checkedCount;
     }
 
-    public synchronized void updateView(int index) {
-        View view = outputPinsList.getChildAt(index -
-                outputPinsList.getFirstVisiblePosition());
+    public synchronized void updateView(final int index) {
 
-        if (view == null) {
-            return;
-        }
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                View view = outputPinsList.getChildAt(index -
+                        outputPinsList.getFirstVisiblePosition());
 
-        TextView led = (TextView) view.findViewById(R.id.ledState);
+                if (view == null) {
+                    return;
+                }
 
-        try {
-            OutputPin_ATmega328P pin = outputPins.get(index);
-            led.setText(UCModule.resources.getStringArray(R.array.ledText)[pin.getPinState(pin.getPinPositionSpinner())]);
-            led.setBackgroundResource(BACKGROUND_PIN[pin.getPinState(pin.getPinPositionSpinner())]);
-        } catch (IndexOutOfBoundsException e){
-            //AsyncTask may be still running and cause this error.
-        }
+                TextView led = (TextView) view.findViewById(R.id.ledState);
+
+                try {
+                    OutputPin_ATmega328P pin = outputPins.get(index);
+                    led.setText(UCModule.resources.getStringArray(R.array.ledText)[pin.getPinState(pin.getPinPositionSpinner())]);
+                    led.setBackgroundResource(BACKGROUND_PIN[pin.getPinState(pin.getPinPositionSpinner())]);
+                } catch (IndexOutOfBoundsException e){
+                    //AsyncTask may be still running and cause this error.
+                }
+            }
+        });
     }
 
     @Override
@@ -256,5 +262,9 @@ public class OutputFragment_ATmega328P extends Fragment implements OutputFragmen
     public void writeFeedback(int address, int bitPosition, boolean state) {
         UCModule.interruptionModule.checkIOInterruption(address, bitPosition,dataMemory.readBit(address,bitPosition),state);
         dataMemory.writeFeedback(address,bitPosition,state);
+    }
+
+    public boolean isMeasrureOutput(int memoryAddress, int bitPosition) {
+        return !dataMemory.readBit(memoryAddress, bitPosition);
     }
 }

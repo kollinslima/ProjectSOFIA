@@ -28,6 +28,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class IOModule_ATmega328P extends Handler implements IOModule {
 
+    private final int OC0B_PIN_POSITION = 5;
     private final int OC0A_PIN_POSITION = 6;
 
     private byte portRead;
@@ -156,6 +157,11 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
                             pk.getPinState(pk.getPinPositionSpinner()) == IOModule.TRI_STATE) {
                         continue;
                     }
+                    //No short-circuit if measuring the output
+                    if (Objects.equals(pi.getPin(), pk.getPin()) &&
+                            outputFragment.isMeasrureOutput(pi.getMemory() + 1, pi.getBitPosition())) {
+                        continue;
+                    }
                     if (pi.getPinState() != pk.getPinState(pk.getPinPositionSpinner())) {
                         Log.i("Short", "Send short circuit - CheckInputOutput(IOModule)");
                         return true;
@@ -175,7 +181,38 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
     public void setOC0A(int stateOC0A) {
 
         outputFragment.pinbuffer[OC0A_PIN_POSITION] = stateOC0A;
+
         try {
+            int index = 0;
+            for (OutputPin_ATmega328P p : outputFragment.getOutputPins()) {
+                if (p.getPinPositionSpinner() == OC0A_PIN_POSITION) {
+                    outputFragment.updateView(index);
+                }
+                index += 1;
+            }
+
+            if (checkInputOutputShortCircuit(inputFragment.getPinList(), outputFragment.getOutputPins())) {
+                sendShortCircuit();
+            }
+        } catch (NullPointerException e) {
+            //Output list is null;
+        }
+
+    }
+
+    public void setOC0B(int stateOC0B) {
+
+        outputFragment.pinbuffer[OC0B_PIN_POSITION] = stateOC0B;
+
+        try {
+            int index = 0;
+            for (OutputPin_ATmega328P p : outputFragment.getOutputPins()) {
+                if (p.getPinPositionSpinner() == OC0B_PIN_POSITION) {
+                    outputFragment.updateView(index);
+                }
+                index += 1;
+            }
+
             if (checkInputOutputShortCircuit(inputFragment.getPinList(), outputFragment.getOutputPins())) {
                 sendShortCircuit();
             }

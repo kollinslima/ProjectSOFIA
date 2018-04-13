@@ -261,44 +261,6 @@ public class DataMemory_ATmega328P implements DataMemory {
         return SDRAM_SIZE;
     }
 
-    @Override
-    public synchronized void writeByte(int byteAddress, byte byteData) {
-        Log.d(UCModule.MY_LOG_TAG,
-                String.format("Write byte SDRAM\nAddress: 0x%s, Data: 0x%02X",
-                        Integer.toHexString((int) byteAddress), byteData));
-
-        if (byteAddress == PINB_ADDR || byteAddress == PINC_ADDR || byteAddress == PIND_ADDR) {
-            //Toggle bits in PORTx
-            boolean toggleBit;
-            byte toggleByte = 0x00;
-
-            for (int i = 0; i < 8; i++) {
-                toggleBit = readBit(byteAddress + 2, i);
-
-                if ((0x01 & byteData) == 1) {
-                    toggleByte = (byte) (toggleByte | ((toggleBit ? 0 : 1) << i)); //NOT
-                } else {
-                    toggleByte = (byte) (toggleByte | ((toggleBit ? 1 : 0) << i));
-                }
-
-                byteData = (byte) (byteData >> 1);
-            }
-
-            writeByte(byteAddress + 2, toggleByte);
-//            for (int i = 0; i < 8; i++) {
-//                if ((0x01 & (byteData >> i)) == 1) {
-//                    writeBit(byteAddress+2, i, !readBit(byteAddress+2, i));
-//                }
-//            }
-        } else if ((byteAddress == EIFR_ADDR || byteAddress == PCIFR_ADDR)) {
-            //Clear Flags
-            sdramMemory[byteAddress] = 0x00;
-        } else {
-            sdramMemory[byteAddress] = byteData;
-            notify(byteAddress);
-        }
-    }
-
     private void notify(int byteAddress) {
 //        Log.i(UCModule.MY_LOG_TAG, String.format("Notify Address: 0x%s",
 //                Integer.toHexString((int) byteAddress)));
@@ -415,7 +377,58 @@ public class DataMemory_ATmega328P implements DataMemory {
                 String.format("Read byte SDRAM\nAddress: 0x%s, Data read: 0x%02X",
                         Integer.toHexString((int) byteAddress), sdramMemory[byteAddress]));
 
+        if (byteAddress == TCCR0B_ADDR) {
+            return (byte) (0x0F & sdramMemory[byteAddress]);    //Force math always read as 0
+        }
         return sdramMemory[byteAddress];
+    }
+
+    @Override
+    public synchronized void writeByte(int byteAddress, byte byteData) {
+        Log.d(UCModule.MY_LOG_TAG,
+                String.format("Write byte SDRAM\nAddress: 0x%s, Data: 0x%02X",
+                        Integer.toHexString((int) byteAddress), byteData));
+
+        if (byteAddress == PINB_ADDR || byteAddress == PINC_ADDR || byteAddress == PIND_ADDR) {
+            //Toggle bits in PORTx
+            boolean toggleBit;
+            byte toggleByte = 0x00;
+
+            for (int i = 0; i < 8; i++) {
+                toggleBit = readBit(byteAddress + 2, i);
+
+                if ((0x01 & byteData) == 1) {
+                    toggleByte = (byte) (toggleByte | ((toggleBit ? 0 : 1) << i)); //NOT
+                } else {
+                    toggleByte = (byte) (toggleByte | ((toggleBit ? 1 : 0) << i));
+                }
+
+                byteData = (byte) (byteData >> 1);
+            }
+
+            writeByte(byteAddress + 2, toggleByte);
+//            for (int i = 0; i < 8; i++) {
+//                if ((0x01 & (byteData >> i)) == 1) {
+//                    writeBit(byteAddress+2, i, !readBit(byteAddress+2, i));
+//                }
+//            }
+        } else if ((byteAddress == EIFR_ADDR
+                || byteAddress == PCIFR_ADDR
+                || byteAddress == TIFR0_ADDR)) {
+            //Clear Flags
+            sdramMemory[byteAddress] = 0x00;
+        } else if (byteAddress == GTCCR_ADDR) {
+            //Synchronization Mode
+            sdramMemory[byteAddress] = byteData;
+
+            if (!readBit(GTCCR_ADDR, 7)) {
+                writeBit(GTCCR_ADDR, 0, false);
+                writeBit(GTCCR_ADDR, 1, false);
+            }
+        } else {
+            sdramMemory[byteAddress] = byteData;
+            notify(byteAddress);
+        }
     }
 
     @Override
@@ -429,9 +442,23 @@ public class DataMemory_ATmega328P implements DataMemory {
             if (bitState) {
                 writeBit(byteAddress + 2, bitPosition, !readBit(byteAddress + 2, bitPosition));
             }
-        } else if ((byteAddress == EIFR_ADDR || byteAddress == PCIFR_ADDR) && bitState) {
+        } else if (byteAddress == EIFR_ADDR
+                || byteAddress == PCIFR_ADDR
+                || byteAddress == TIFR0_ADDR) {
             //Clear Flag
             sdramMemory[byteAddress] = (byte) (sdramMemory[byteAddress] & (0xFF7F >> (7 - bitPosition)));
+
+        } else if (byteAddress == GTCCR_ADDR) {
+            //Synchronization Mode
+            sdramMemory[byteAddress] = (byte) (sdramMemory[byteAddress] & (0xFF7F >> (7 - bitPosition)));   //Clear
+            if (bitState) {
+                sdramMemory[byteAddress] = (byte) (sdramMemory[byteAddress] | (0x01 << bitPosition));     //Set
+            }
+            if (!readBit(GTCCR_ADDR, 7)) {
+                sdramMemory[byteAddress] = (byte) (sdramMemory[byteAddress] & (0xFF7F >> (7 - 1)));
+                sdramMemory[byteAddress] = (byte) (sdramMemory[byteAddress] & (0xFF7F >> (7 - 0)));
+            }
+
         } else {
             sdramMemory[byteAddress] = (byte) (sdramMemory[byteAddress] & (0xFF7F >> (7 - bitPosition)));   //Clear
             if (bitState) {
@@ -464,6 +491,9 @@ public class DataMemory_ATmega328P implements DataMemory {
                 String.format("Read bit SDRAM\nAddress: 0x%s", Integer.toHexString((int) byteAddress))
                         + " position: " + bitPosition + " state: " + ((0x01 & (sdramMemory[byteAddress] >> bitPosition)) != 0));
 
+        if (byteAddress == TCCR0B_ADDR && (bitPosition == 7 || bitPosition == 6)) {
+            return false;   //Force math always read as 0;
+        }
         return (0x01 & (sdramMemory[byteAddress] >> bitPosition)) != 0;
 
     }
@@ -479,5 +509,13 @@ public class DataMemory_ATmega328P implements DataMemory {
         if (bitState) {
             sdramMemory[byteAddress] = (byte) (sdramMemory[byteAddress] | (0x01 << bitPosition));     //Set
         }
+    }
+
+    public boolean readForceMatchA() {
+        return (0x01 & (sdramMemory[TCCR0B_ADDR] >> 7)) != 0;
+    }
+
+    public boolean readForceMatchB() {
+        return (0x01 & (sdramMemory[TCCR0B_ADDR] >> 6)) != 0;
     }
 }

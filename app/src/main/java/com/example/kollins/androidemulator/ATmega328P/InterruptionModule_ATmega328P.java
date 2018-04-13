@@ -14,6 +14,9 @@ public class InterruptionModule_ATmega328P implements InterruptionModule {
     private static final int POINTER_ADDR_PCINT0 = 2;
     private static final int POINTER_ADDR_PCINT1 = 3;
     private static final int POINTER_ADDR_PCINT2 = 4;
+    private static final int POINTER_ADDR_TIMER0_COMP_A = 13;
+    private static final int POINTER_ADDR_TIMER0_COMP_B = 14;
+    private static final int POINTER_ADDR_TIMER0_OVERFLOW = 15;
 
     private static final char[] INTERRUPT_VECTOR = {
             0x0002,  //INT0
@@ -64,7 +67,7 @@ public class InterruptionModule_ATmega328P implements InterruptionModule {
                     if (dataMemory.readBit(DataMemory_ATmega328P.EIFR_ADDR, 0)){
 
                         //Interruption will execute -> Clear flag
-                        dataMemory.writeBit(DataMemory_ATmega328P.EIFR_ADDR, 0,false);
+                        dataMemory.writeIOBit(DataMemory_ATmega328P.EIFR_ADDR, 0,false);
 
                         pcInterruption = INTERRUPT_VECTOR[POINTER_ADDR_INT0];
                         return true;
@@ -85,7 +88,7 @@ public class InterruptionModule_ATmega328P implements InterruptionModule {
                     if (dataMemory.readBit(DataMemory_ATmega328P.EIFR_ADDR, 1)){
 
                         //Interruption will execute -> Clear flag
-                        dataMemory.writeBit(DataMemory_ATmega328P.EIFR_ADDR, 1,false);
+                        dataMemory.writeIOBit(DataMemory_ATmega328P.EIFR_ADDR, 1,false);
 
                         pcInterruption = INTERRUPT_VECTOR[POINTER_ADDR_INT1];
                         return true;
@@ -98,7 +101,7 @@ public class InterruptionModule_ATmega328P implements InterruptionModule {
                 if (dataMemory.readBit(DataMemory_ATmega328P.PCIFR_ADDR, 0)){
 
                     //Interruption will execute -> Clear flag
-                    dataMemory.writeBit(DataMemory_ATmega328P.PCIFR_ADDR, 0,false);
+                    dataMemory.writeIOBit(DataMemory_ATmega328P.PCIFR_ADDR, 0,false);
 
                     pcInterruption = INTERRUPT_VECTOR[POINTER_ADDR_PCINT0];
                     return true;
@@ -109,8 +112,10 @@ public class InterruptionModule_ATmega328P implements InterruptionModule {
             if (dataMemory.readBit(DataMemory_ATmega328P.PCICR_ADDR, 1)){
                 if (dataMemory.readBit(DataMemory_ATmega328P.PCIFR_ADDR, 1)){
 
+                    Log.i("Interruption", "PCINT1 to be executed");
+
                     //Interruption will execute -> Clear flag
-                    dataMemory.writeBit(DataMemory_ATmega328P.PCIFR_ADDR, 1,false);
+                    dataMemory.writeIOBit(DataMemory_ATmega328P.PCIFR_ADDR, 1,false);
 
                     pcInterruption = INTERRUPT_VECTOR[POINTER_ADDR_PCINT1];
                     return true;
@@ -122,9 +127,45 @@ public class InterruptionModule_ATmega328P implements InterruptionModule {
                 if (dataMemory.readBit(DataMemory_ATmega328P.PCIFR_ADDR, 2)){
 
                     //Interruption will execute -> Clear flag
-                    dataMemory.writeBit(DataMemory_ATmega328P.PCIFR_ADDR, 2,false);
+                    dataMemory.writeIOBit(DataMemory_ATmega328P.PCIFR_ADDR, 2,false);
 
                     pcInterruption = INTERRUPT_VECTOR[POINTER_ADDR_PCINT2];
+                    return true;
+                }
+            }
+
+            //Check TIMER0 CompA
+            if (dataMemory.readBit(DataMemory_ATmega328P.TIMSK0_ADDR, 1)){
+                if (dataMemory.readBit(DataMemory_ATmega328P.TIFR0_ADDR, 1)){
+
+                    //Interruption will execute -> Clear flag
+                    dataMemory.writeIOBit(DataMemory_ATmega328P.TIFR0_ADDR, 1,false);
+
+                    pcInterruption = INTERRUPT_VECTOR[POINTER_ADDR_TIMER0_COMP_A];
+                    return true;
+                }
+            }
+
+            //Check TIMER0 CompB
+            if (dataMemory.readBit(DataMemory_ATmega328P.TIMSK0_ADDR, 2)){
+                if (dataMemory.readBit(DataMemory_ATmega328P.TIFR0_ADDR, 2)){
+
+                    //Interruption will execute -> Clear flag
+                    dataMemory.writeIOBit(DataMemory_ATmega328P.TIFR0_ADDR, 2,false);
+
+                    pcInterruption = INTERRUPT_VECTOR[POINTER_ADDR_TIMER0_COMP_B];
+                    return true;
+                }
+            }
+
+            //Check TIMER0 Overflow
+            if (dataMemory.readBit(DataMemory_ATmega328P.TIMSK0_ADDR, 0)){
+                if (dataMemory.readBit(DataMemory_ATmega328P.TIFR0_ADDR, 0)){
+
+                    //Interruption will execute -> Clear flag
+                    dataMemory.writeIOBit(DataMemory_ATmega328P.TIFR0_ADDR, 0,false);
+
+                    pcInterruption = INTERRUPT_VECTOR[POINTER_ADDR_TIMER0_OVERFLOW];
                     return true;
                 }
             }
@@ -139,16 +180,26 @@ public class InterruptionModule_ATmega328P implements InterruptionModule {
 
     @Override
     public void disableGlobalInterruptions() {
-        dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 7, false);
+        dataMemory.writeIOBit(DataMemory_ATmega328P.SREG_ADDR, 7, false);
     }
     @Override
     public void enableGlobalInterruptions() {
-        dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 7, true);
+        dataMemory.writeIOBit(DataMemory_ATmega328P.SREG_ADDR, 7, true);
     }
 
     @Override
     public void timer0Overflow() {
-        dataMemory.writeBit(DataMemory_ATmega328P.TIFR0_ADDR, 0, true);
+        dataMemory.writeIOBit(DataMemory_ATmega328P.TIFR0_ADDR, 0, true);
+    }
+
+    @Override
+    public void timer0MatchA() {
+        dataMemory.writeIOBit(DataMemory_ATmega328P.TIFR0_ADDR, 1, true);
+    }
+
+    @Override
+    public void timer0MatchB() {
+        dataMemory.writeIOBit(DataMemory_ATmega328P.TIFR0_ADDR, 2, true);
     }
 
     @Override
@@ -191,7 +242,7 @@ public class InterruptionModule_ATmega328P implements InterruptionModule {
                     //Level interrupt
                     if (!newState) {
                         Log.v(INTERRUPTION_TAG, "INT0 Level");
-                        dataMemory.writeBit(DataMemory_ATmega328P.EIFR_ADDR, 0, false);
+                        dataMemory.writeIOBit(DataMemory_ATmega328P.EIFR_ADDR, 0, false);
                         return true;
                     }
                     break;
@@ -199,7 +250,7 @@ public class InterruptionModule_ATmega328P implements InterruptionModule {
                     //Change interrupt
                     if (oldState ^ newState) {
                         Log.v(INTERRUPTION_TAG, "INT0 Change");
-                        dataMemory.writeBit(DataMemory_ATmega328P.EIFR_ADDR, 0, true);
+                        dataMemory.writeIOBit(DataMemory_ATmega328P.EIFR_ADDR, 0, true);
                         return true;
                     }
                     break;
@@ -207,7 +258,7 @@ public class InterruptionModule_ATmega328P implements InterruptionModule {
                     //Falling edge interrupt
                     if (oldState && !newState) {
                         Log.v(INTERRUPTION_TAG, "INT0 Falling Edge");
-                        dataMemory.writeBit(DataMemory_ATmega328P.EIFR_ADDR, 0, true);
+                        dataMemory.writeIOBit(DataMemory_ATmega328P.EIFR_ADDR, 0, true);
                         return true;
                     }
                     break;
@@ -215,7 +266,7 @@ public class InterruptionModule_ATmega328P implements InterruptionModule {
                     //Rising edge interrupt
                     if (!oldState && newState) {
                         Log.v(INTERRUPTION_TAG, "INT0 Rising Edge");
-                        dataMemory.writeBit(DataMemory_ATmega328P.EIFR_ADDR, 0, true);
+                        dataMemory.writeIOBit(DataMemory_ATmega328P.EIFR_ADDR, 0, true);
                         return true;
                     }
                     break;
@@ -235,7 +286,7 @@ public class InterruptionModule_ATmega328P implements InterruptionModule {
                     //Level interrupt
                     if (!newState) {
                         Log.v(INTERRUPTION_TAG, "INT1 Level");
-                        dataMemory.writeBit(DataMemory_ATmega328P.EIFR_ADDR, 1, false);
+                        dataMemory.writeIOBit(DataMemory_ATmega328P.EIFR_ADDR, 1, false);
                         return true;
                     }
                     break;
@@ -243,7 +294,7 @@ public class InterruptionModule_ATmega328P implements InterruptionModule {
                     //Change interrupt
                     if (oldState ^ newState) {
                         Log.v(INTERRUPTION_TAG, "INT1 Change");
-                        dataMemory.writeBit(DataMemory_ATmega328P.EIFR_ADDR, 1, true);
+                        dataMemory.writeIOBit(DataMemory_ATmega328P.EIFR_ADDR, 1, true);
                         return true;
                     }
                     break;
@@ -251,7 +302,7 @@ public class InterruptionModule_ATmega328P implements InterruptionModule {
                     //Falling edge interrupt
                     if (oldState && !newState) {
                         Log.v(INTERRUPTION_TAG, "INT1 Falling Edge");
-                        dataMemory.writeBit(DataMemory_ATmega328P.EIFR_ADDR, 1, true);
+                        dataMemory.writeIOBit(DataMemory_ATmega328P.EIFR_ADDR, 1, true);
                         return true;
                     }
                     break;
@@ -259,7 +310,7 @@ public class InterruptionModule_ATmega328P implements InterruptionModule {
                     //Rising edge interrupt
                     if (!oldState && newState) {
                         Log.v(INTERRUPTION_TAG, "INT1 Rising Edge");
-                        dataMemory.writeBit(DataMemory_ATmega328P.EIFR_ADDR, 1, true);
+                        dataMemory.writeIOBit(DataMemory_ATmega328P.EIFR_ADDR, 1, true);
                         return true;
                     }
                     break;
@@ -275,7 +326,7 @@ public class InterruptionModule_ATmega328P implements InterruptionModule {
                 //PIN interruption enabled
                 if (oldState ^ newState) {
                     Log.v(INTERRUPTION_TAG, "PCINT" + (16+pinPosition));
-                    dataMemory.writeBit(DataMemory_ATmega328P.PCIFR_ADDR, 2, true);
+                    dataMemory.writeIOBit(DataMemory_ATmega328P.PCIFR_ADDR, 2, true);
                 }
             }
         }
@@ -288,7 +339,8 @@ public class InterruptionModule_ATmega328P implements InterruptionModule {
                 //PIN interruption enabled
                 if (oldState ^ newState) {
                     Log.v(INTERRUPTION_TAG, "PCINT" + (8 + pinPosition));
-                    dataMemory.writeBit(DataMemory_ATmega328P.PCIFR_ADDR, 1, true);
+                    dataMemory.writeIOBit(DataMemory_ATmega328P.PCIFR_ADDR, 1, true);
+                    Log.v(INTERRUPTION_TAG, "Write: " + dataMemory.readBit(DataMemory_ATmega328P.PCIFR_ADDR, 1));
                 }
             }
         }
@@ -301,7 +353,7 @@ public class InterruptionModule_ATmega328P implements InterruptionModule {
                 //PIN interruption enabled
                 if (oldState ^ newState) {
                     Log.v(INTERRUPTION_TAG, "PCINT" + pinPosition);
-                    dataMemory.writeBit(DataMemory_ATmega328P.PCIFR_ADDR, 0, true);
+                    dataMemory.writeIOBit(DataMemory_ATmega328P.PCIFR_ADDR, 0, true);
                 }
             }
         }

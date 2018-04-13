@@ -14,4 +14,8 @@ public interface InterruptionModule {
     void enableGlobalInterruptions();
 
     void timer0Overflow();
+
+    void timer0MatchA();
+
+    void timer0MatchB();
 }
