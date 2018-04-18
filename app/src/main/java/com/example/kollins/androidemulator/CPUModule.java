@@ -418,13 +418,72 @@ public class CPUModule implements Runnable, CPUInstructions {
         INSTRUCTION_COM {
             @Override
             public void executeInstruction() {
-                Log.w(UCModule.MY_LOG_TAG, "Not implemented instruction: COM");
+                /*************************COM***********************/
+                Log.d(UCModule.MY_LOG_TAG, "Instruction COM");
+
+                byte regValue = dataMemory.readByte((0x01F0 & instruction) >> 4);
+                regValue = (byte) (0xFF - regValue);
+                dataMemory.writeByte((0x01F0 & instruction) >> 4, regValue);
+
+                //Flag C
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 0, true);
+                //Flag Z
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 1, regValue == 0);
+                //Flag N
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 2, !((0x80 & regValue) == 0));
+                //Flag V
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 3, false);
+                //Flag S
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 4,
+                        dataMemory.readBit(DataMemory_ATmega328P.SREG_ADDR, 2) ^ dataMemory.readBit(DataMemory_ATmega328P.SREG_ADDR, 3));
+
             }
         },
         INSTRUCTION_CP {
             @Override
             public void executeInstruction() {
-                Log.w(UCModule.MY_LOG_TAG, "Not implemented instruction: CP");
+                /*************************CP***********************/
+                Log.d(UCModule.MY_LOG_TAG, "Instruction CP");
+
+                byte regD = dataMemory.readByte((0x01F0 & instruction) >> 4);
+                byte regR = dataMemory.readByte(((0x0200 & instruction) >> 5) | (0x000F & instruction));
+
+                int result = regD - regR;
+
+                //Flag H
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 5,
+                        (0x00000001 &
+                                ((((~(0x08 & regD) & (0x08 & regR)) |
+                                        ((0x08 & result) & (0x08 & regR)) |
+                                        (~(0x08 & regD) & (0x08 & result)))
+                                        >> 3))) != 0);
+
+                //Flag V
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 3,
+                        (0x00000001 &
+                                (((0x80 & regD) & (~(0x80 & regR)) & (~(0x80 & result)) |
+                                        (~(0x80 & regD)) & (0x80 & regR) & (0x80 & result))
+                                        >> 7)) != 0);
+
+                //Flag N
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 2,
+                        !((result & 0x00000080) == 0));
+
+                //Flag S
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 4,
+                        dataMemory.readBit(DataMemory_ATmega328P.SREG_ADDR, 2) ^ dataMemory.readBit(DataMemory_ATmega328P.SREG_ADDR, 3));
+
+                //Flag Z
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 1,
+                        (result & 0x000000FF) == 0);
+
+                //Flag C
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 0,
+                        (0x00000001 &
+                                ((((~(0x80 & regD) & (0x80 & regR)) |
+                                        ((0x80 & result) & (0x80 & regR)) |
+                                        (~(0x80 & regD) & (0x80 & result)))
+                                        >> 7))) != 0);
             }
         },
         INSTRUCTION_CPC {

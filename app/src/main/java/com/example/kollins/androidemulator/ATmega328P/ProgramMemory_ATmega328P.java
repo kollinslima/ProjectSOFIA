@@ -26,7 +26,7 @@ public class ProgramMemory_ATmega328P implements ProgramMemory {
     private char pcPointer;
 
     //32kBytes, each instruction is 16bits wide
-    private final int FLASH_SIZE = 32 * ((int)Math.pow(2,10));
+    private final int FLASH_SIZE = 32 * ((int) Math.pow(2, 10));
     private final int WORD_SIZE = 16;
     private byte[] flashMemory = null;
 
@@ -38,7 +38,7 @@ public class ProgramMemory_ATmega328P implements ProgramMemory {
     private FileObserver codeObserver;
     private Handler ucHandler;
 
-    public ProgramMemory_ATmega328P(Handler ucHandler){
+    public ProgramMemory_ATmega328P(Handler ucHandler) {
         this.ucHandler = ucHandler;
         flashMemory = new byte[FLASH_SIZE];
 
@@ -74,6 +74,23 @@ public class ProgramMemory_ATmega328P implements ProgramMemory {
 
             if (dcimDir.exists()) {
                 File hexFile = new File(dcimDir, hexFileLocation);
+                if (!hexFile.exists()) {
+
+                    //If file was not found, wait 1s and try again
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+
+                    hexFile = new File(dcimDir, hexFileLocation);
+                    if (!hexFile.exists()) {
+                        //Not found again? Sorry, I give up...
+                        Log.e(UCModule.MY_LOG_TAG, "ERROR: File not found");
+                        return false;
+                    }
+
+                }
 
                 //Watch for changes in hexFile
                 codeObserver = new FileObserver(hexFile.getPath().toString()) {
@@ -81,7 +98,8 @@ public class ProgramMemory_ATmega328P implements ProgramMemory {
                     public void onEvent(int event, @Nullable String path) {
                         Log.i(UCModule.MY_LOG_TAG, "File event: " + event);
 
-                        if (event == FileObserver.CLOSE_WRITE) {
+                        if (event == FileObserver.CLOSE_WRITE
+                                || event == FileObserver.DELETE_SELF) {
                             //Send Broadcast
                             ucHandler.sendEmptyMessage(UCModule.RESET_ACTION);
                         }
@@ -89,15 +107,11 @@ public class ProgramMemory_ATmega328P implements ProgramMemory {
                 };
                 codeObserver.startWatching();
 
-                if (hexFile.exists()) {
-                    try {
-                        FileInputStream fis = new FileInputStream(hexFile);
-                        loadHexFile(fis);
-                    } catch (FileNotFoundException e) {
-                        Log.e(UCModule.MY_LOG_TAG, "ERROR: Load .hex file", e);
-                        return false;
-                    }
-                } else{
+                try {
+                    FileInputStream fis = new FileInputStream(hexFile);
+                    loadHexFile(fis);
+                } catch (FileNotFoundException e) {
+                    Log.e(UCModule.MY_LOG_TAG, "ERROR: Load .hex file", e);
                     return false;
                 }
             }
@@ -111,29 +125,29 @@ public class ProgramMemory_ATmega328P implements ProgramMemory {
     }
 
     @Override
-    public int loadInstruction(){
+    public int loadInstruction() {
 
-        Log.d(UCModule.MY_LOG_TAG, "Loading instruction -> PC: " + (int)pcPointer);
+        Log.d(UCModule.MY_LOG_TAG, "Loading instruction -> PC: " + (int) pcPointer);
 
         byte instPart1 = 0x00, instPart2 = 0x00;
 
         try {
             //little-endian read
-            instPart1 = flashMemory[pcPointer*2];
-            instPart2 = flashMemory[(pcPointer*2)+1];
-        } catch (ArrayIndexOutOfBoundsException e){
+            instPart1 = flashMemory[pcPointer * 2];
+            instPart2 = flashMemory[(pcPointer * 2) + 1];
+        } catch (ArrayIndexOutOfBoundsException e) {
             ucHandler.sendEmptyMessage(UCModule.STOP_ACTION);
         }
 
         pcPointer += 1;
 
-        return (((0x00FF & instPart2)<<8)|(0x00FF & instPart1));
+        return (((0x00FF & instPart2) << 8) | (0x00FF & instPart1));
     }
 
     @Override
     public void setPC(int pc) {
         pcPointer = (char) pc;
-        Log.d(UCModule.MY_LOG_TAG, "Setting PC to " + (int)pcPointer);
+        Log.d(UCModule.MY_LOG_TAG, "Setting PC to " + (int) pcPointer);
     }
 
     @Override
@@ -144,7 +158,7 @@ public class ProgramMemory_ATmega328P implements ProgramMemory {
     @Override
     public void addToPC(int offset) {
         pcPointer += offset;
-        Log.d(UCModule.MY_LOG_TAG, "Adding " + offset + " to PC. New value: " + (int)pcPointer);
+        Log.d(UCModule.MY_LOG_TAG, "Adding " + offset + " to PC. New value: " + (int) pcPointer);
     }
 
     @Override
@@ -244,12 +258,12 @@ public class ProgramMemory_ATmega328P implements ProgramMemory {
             fis.close();
         } catch (IOException e) {
             Log.e(UCModule.MY_LOG_TAG, "ERROR: Load .hex file", e);
-        } catch (ArrayIndexOutOfBoundsException e){
+        } catch (ArrayIndexOutOfBoundsException e) {
             Log.e(UCModule.MY_LOG_TAG, "ERROR: .hex file bigger than 32kB", e);
         }
     }
 
-    public void stopCodeObserver(){
+    public void stopCodeObserver() {
         codeObserver.stopWatching();
     }
 }
