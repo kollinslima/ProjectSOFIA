@@ -1228,7 +1228,16 @@ public class CPUModule implements Runnable, CPUInstructions {
         INSTRUCTION_ST_X_UNCHANGED {
             @Override
             public void executeInstruction() {
-                Log.w(UCModule.MY_LOG_TAG, "Not implemented instruction: ST_X_UNCHANGED");
+                /*************************ST (X unchanged)***********************/
+                Log.d(UCModule.MY_LOG_TAG, "Instruction ST (X unchanged)");
+
+                waitClock();
+
+                byte xRegL = dataMemory.readByte(0x1A);
+                byte xRegH = dataMemory.readByte(0x1B);
+                int destAddress = (0x0000FF00 & (xRegH << 8)) | (0x000000FF & xRegL);
+
+                dataMemory.writeByte(destAddress, dataMemory.readByte((0x01F0 & instruction) >> 4));
             }
         },
         INSTRUCTION_ST_Y_POST_INCREMENT {
