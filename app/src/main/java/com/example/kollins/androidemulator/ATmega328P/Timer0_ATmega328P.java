@@ -33,7 +33,7 @@ public class Timer0_ATmega328P implements Timer0Module {
     private boolean buffer_WGM02;
 
     private static int stateOC0A, stateOC0B;
-    private static boolean nextOverflow, nextClear;
+    private static boolean nextOverflow, nextClear, phaseCorrect_UPCount;
     private static byte doubleBufferOCR0A, doubleBufferOCR0B;
 
     public Timer0_ATmega328P(DataMemory dataMemory, Handler uCHandler, Lock clockLock, UCModule uCModule, IOModule ioModule) {
@@ -48,6 +48,7 @@ public class Timer0_ATmega328P implements Timer0Module {
 
         timerOutputControl_OC0A = false;
         timerOutputControl_OC0B = false;
+        phaseCorrect_UPCount = true;
 
         stateOC0A = IOModule.TRI_STATE;
         stateOC0B = IOModule.TRI_STATE;
@@ -310,7 +311,118 @@ public class Timer0_ATmega328P implements Timer0Module {
         PWM_PHASE_CORRECT_TOP_0XFF {
             @Override
             public void count() {
+                boolean match_A = false, match_B = false;
+                byte progress = dataMemory.readByte(DataMemory_ATmega328P.TCNT0_ADDR);
+                if (progress == MAX) {
+                    doubleBufferOCR0A = dataMemory.readByte(DataMemory_ATmega328P.OCR0A_ADDR);
+                    doubleBufferOCR0B = dataMemory.readByte(DataMemory_ATmega328P.OCR0B_ADDR);
+                }
 
+                if (phaseCorrect_UPCount) {
+                    progress = (byte) (progress + 1);
+                } else {
+                    progress = (byte) (progress - 1);
+                }
+
+                if (progress == BOTTOM) {
+                    UCModule.interruptionModule.timer0Overflow();
+                    phaseCorrect_UPCount = true;
+                } else if (progress == MAX){
+                    phaseCorrect_UPCount = false;
+                }
+
+                if (progress == doubleBufferOCR0A) {
+                    UCModule.interruptionModule.timer0MatchA();
+                    match_A = true;
+                }
+                if (progress == doubleBufferOCR0B) {
+                    UCModule.interruptionModule.timer0MatchB();
+                    match_B = true;
+                }
+
+                byte outputMode = dataMemory.readByte(DataMemory_ATmega328P.TCCR0A_ADDR);
+
+                //CHANEL A
+                switch (0xC0 & outputMode) {
+                    case 0x00:
+                    case 0x40:
+                        //OC0A disconected
+                        timerOutputControl_OC0A = false;
+                        break;
+                    case 0x80:
+                        //OC0A Clear on Compare Match counting up, OC0A Set on Compare Match counting down
+                        timerOutputControl_OC0A = true;
+                        if (doubleBufferOCR0A == MAX) {
+                            stateOC0A = IOModule.HIGH_LEVEL;
+                            ioModule.setOC0A(stateOC0A);
+                        } else if (doubleBufferOCR0A == BOTTOM) {
+                            stateOC0A = IOModule.LOW_LEVEL;
+                            ioModule.setOC0A(stateOC0A);
+                        } else {
+                            if (match_A) {
+                                if (phaseCorrect_UPCount) {
+                                    stateOC0A = IOModule.LOW_LEVEL;
+                                } else {
+                                    stateOC0A = IOModule.HIGH_LEVEL;
+                                }
+                                ioModule.setOC0A(stateOC0A);
+                            }
+                        }
+                        break;
+                    case 0xC0:
+                        //OC0A Set on Compare Match counting up, OC0A Clear on Compare Match counting down
+                        timerOutputControl_OC0A = true;
+                        if (doubleBufferOCR0A == MAX) {
+                            stateOC0A = IOModule.LOW_LEVEL;
+                            ioModule.setOC0A(stateOC0A);
+                        } else if (doubleBufferOCR0A == BOTTOM) {
+                            stateOC0A = IOModule.HIGH_LEVEL;
+                            ioModule.setOC0A(stateOC0A);
+                        } else {
+                            if (match_A) {
+                                if (phaseCorrect_UPCount) {
+                                    stateOC0A = IOModule.HIGH_LEVEL;
+                                } else {
+                                    stateOC0A = IOModule.LOW_LEVEL;
+                                }
+                                ioModule.setOC0A(stateOC0A);
+                            }
+                        }
+                }
+
+                //CHANEL B
+                switch (0x30 & outputMode) {
+                    case 0x00:
+                    case 0x10:
+                        //OC0B disconected
+                        timerOutputControl_OC0B = false;
+                        break;
+                    case 0x20:
+                        //OC0B Clear on Compare Match counting up, OC0B Set on Compare Match counting down
+                        timerOutputControl_OC0B = true;
+                        if (match_B) {
+                            if (phaseCorrect_UPCount) {
+                                stateOC0B = IOModule.LOW_LEVEL;
+                            } else {
+                                stateOC0B = IOModule.HIGH_LEVEL;
+                            }
+                            ioModule.setOC0B(stateOC0B);
+                        }
+                        break;
+                    case 0x30:
+                        //OC0B Set on Compare Match counting up, OC0B Clear on Compare Match counting down
+                        timerOutputControl_OC0B = true;
+                        if (match_B) {
+                            if (phaseCorrect_UPCount) {
+                                stateOC0B = IOModule.HIGH_LEVEL;
+                            } else {
+                                stateOC0B = IOModule.LOW_LEVEL;
+                            }
+                            ioModule.setOC0B(stateOC0B);
+                        }
+                }
+
+                dataMemory.writeByte(DataMemory_ATmega328P.TCNT0_ADDR, progress);
             }
         },
         CTC_OPERATION {
@@ -424,9 +536,10 @@ public class Timer0_ATmega328P implements Timer0Module {
                     doubleBufferOCR0A = dataMemory.readByte(DataMemory_ATmega328P.OCR0A_ADDR);
                     doubleBufferOCR0B = dataMemory.readByte(DataMemory_ATmega328P.OCR0B_ADDR);
                 }
+
                 progress = (byte) (progress + 1);
 
-                if (progress == MAX) {
+                if (progress == BOTTOM) {
                     UCModule.interruptionModule.timer0Overflow();
                 }
                 if (progress == doubleBufferOCR0A) {
@@ -522,7 +635,128 @@ public class Timer0_ATmega328P implements Timer0Module {
         PWM_PHASE_CORRECT_TOP_OCRA {
             @Override
             public void count() {
+                boolean match_A = false, match_B = false;
+                byte progress = dataMemory.readByte(DataMemory_ATmega328P.TCNT0_ADDR);
+                if (progress == doubleBufferOCR0A) {
+                    doubleBufferOCR0A = dataMemory.readByte(DataMemory_ATmega328P.OCR0A_ADDR);
+                    doubleBufferOCR0B = dataMemory.readByte(DataMemory_ATmega328P.OCR0B_ADDR);
+                }
 
+                if (phaseCorrect_UPCount) {
+                    progress = (byte) (progress + 1);
+                } else {
+                    progress = (byte) (progress - 1);
+                }
+
+                if (progress == BOTTOM) {
+                    UCModule.interruptionModule.timer0Overflow();
+                    phaseCorrect_UPCount = true;
+                } else if (progress == doubleBufferOCR0A){
+                    phaseCorrect_UPCount = false;
+                }
+
+                if (progress == doubleBufferOCR0A) {
+                    UCModule.interruptionModule.timer0MatchA();
+                    match_A = true;
+                }
+                if (progress == doubleBufferOCR0B) {
+                    UCModule.interruptionModule.timer0MatchB();
+                    match_B = true;
+                }
+
+                byte outputMode = dataMemory.readByte(DataMemory_ATmega328P.TCCR0A_ADDR);
+
+                //CHANEL A
+                switch (0xC0 & outputMode) {
+                    case 0x00:
+                        //OC0A disconected
+                        timerOutputControl_OC0A = false;
+                        break;
+                    case 0x40:
+                        timerOutputControl_OC0A = true;
+                        if (match_A) {
+                            Log.i("TIMER0", "UPDATE A");
+                            Log.i("TIMER0", "Progress: " + progress);
+                            stateOC0A = (stateOC0A + 1) % 2;
+                            ioModule.setOC0A(stateOC0A);
+                        }
+                        break;
+                    case 0x80:
+                        //OC0A Clear on Compare Match counting up, OC0A Set on Compare Match counting down
+                        timerOutputControl_OC0A = true;
+                        if (doubleBufferOCR0A == MAX) {
+                            stateOC0A = IOModule.HIGH_LEVEL;
+                            ioModule.setOC0A(stateOC0A);
+                        } else if (doubleBufferOCR0A == BOTTOM) {
+                            stateOC0A = IOModule.LOW_LEVEL;
+                            ioModule.setOC0A(stateOC0A);
+                        } else {
+                            if (match_A) {
+                                if (phaseCorrect_UPCount) {
+                                    stateOC0A = IOModule.LOW_LEVEL;
+                                } else {
+                                    stateOC0A = IOModule.HIGH_LEVEL;
+                                }
+                                ioModule.setOC0A(stateOC0A);
+                            }
+                        }
+                        break;
+                    case 0xC0:
+                        //OC0A Set on Compare Match counting up, OC0A Clear on Compare Match counting down
+                        timerOutputControl_OC0A = true;
+                        if (doubleBufferOCR0A == MAX) {
+                            stateOC0A = IOModule.LOW_LEVEL;
+                            ioModule.setOC0A(stateOC0A);
+                        } else if (doubleBufferOCR0A == BOTTOM) {
+                            stateOC0A = IOModule.HIGH_LEVEL;
+                            ioModule.setOC0A(stateOC0A);
+                        } else {
+                            if (match_A) {
+                                if (phaseCorrect_UPCount) {
+                                    stateOC0A = IOModule.HIGH_LEVEL;
+                                } else {
+                                    stateOC0A = IOModule.LOW_LEVEL;
+                                }
+                                ioModule.setOC0A(stateOC0A);
+                            }
+                        }
+                }
+
+                //CHANEL B
+                switch (0x30 & outputMode) {
+                    case 0x00:
+                    case 0x10:
+                        //OC0B disconected
+                        timerOutputControl_OC0B = false;
+                        break;
+                    case 0x20:
+                        //OC0B Clear on Compare Match counting up, OC0B Set on Compare Match counting down
+                        timerOutputControl_OC0B = true;
+                        if (match_B) {
+                            Log.i("TIMER0", "UPDATE B");
+                            Log.i("TIMER0", "Progress: " + progress);
+                            if (phaseCorrect_UPCount) {
+                                stateOC0B = IOModule.LOW_LEVEL;
+                            } else {
+                                stateOC0B = IOModule.HIGH_LEVEL;
+                            }
+                            ioModule.setOC0B(stateOC0B);
+                        }
+                        break;
+                    case 0x30:
+                        //OC0B Set on Compare Match counting up, OC0B Clear on Compare Match counting down
+                        timerOutputControl_OC0B = true;
+                        if (match_B) {
+                            if (phaseCorrect_UPCount) {
+                                stateOC0B = IOModule.HIGH_LEVEL;
+                            } else {
+                                stateOC0B = IOModule.LOW_LEVEL;
+                            }
+                            ioModule.setOC0B(stateOC0B);
+                        }
+                }
+
+                dataMemory.writeByte(DataMemory_ATmega328P.TCNT0_ADDR, progress);
             }
         },
         FAST_PWM_TOP_OCRA {
@@ -534,6 +768,7 @@ public class Timer0_ATmega328P implements Timer0Module {
                     doubleBufferOCR0A = dataMemory.readByte(DataMemory_ATmega328P.OCR0A_ADDR);
                     doubleBufferOCR0B = dataMemory.readByte(DataMemory_ATmega328P.OCR0B_ADDR);
                 }
+
                 progress = (byte) (progress + 1);
 
                 if (nextClear) {
@@ -570,7 +805,7 @@ public class Timer0_ATmega328P implements Timer0Module {
                     case 0x40:
                         timerOutputControl_OC0A = true;
                         if (match_A) {
-                            stateOC0A = (stateOC0A + 1)%2;  //Toggle
+                            stateOC0A = (stateOC0A + 1) % 2;  //Toggle
                             ioModule.setOC0A(stateOC0A);
                         }
                         break;
