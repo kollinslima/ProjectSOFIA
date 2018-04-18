@@ -180,6 +180,11 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
 
     public void setOC0A(int stateOC0A) {
 
+        //Affected only if it is an output.
+        if (outputFragment.isMeasrureOutput(DataMemory_ATmega328P.DDRD_ADDR, 6)){
+            return;
+        }
+
         outputFragment.pinbuffer[OC0A_PIN_POSITION] = stateOC0A;
 
         try {
@@ -201,6 +206,11 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
     }
 
     public void setOC0B(int stateOC0B) {
+
+        //Affected only if it is an output.
+        if (outputFragment.isMeasrureOutput(DataMemory_ATmega328P.DDRD_ADDR, 5)){
+            return;
+        }
 
         outputFragment.pinbuffer[OC0B_PIN_POSITION] = stateOC0B;
 
