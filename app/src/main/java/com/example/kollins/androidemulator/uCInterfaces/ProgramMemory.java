@@ -14,4 +14,6 @@ public interface ProgramMemory {
     int getPC();
     void setPC(int pc);
     void addToPC(int offset);
+
+    byte readByte(int address);
 }

@@ -137,6 +137,7 @@ public class Timer0_ATmega328P implements Timer0Module {
         NO_CLOCK_SOURCE {
             @Override
             public boolean work() {
+                Log.i("Timer0", "No Clock Source");
                 waitClock();
                 return false;
             }
@@ -151,36 +152,36 @@ public class Timer0_ATmega328P implements Timer0Module {
         CLOCK_PRESCALER_8 {
             @Override
             public boolean work() {
-                for (int i = 0; i < 8; i++) {
+//                for (int i = 0; i < 8; i++) {
                     waitClock();
-                }
+//                }
                 return true;
             }
         },
         CLOCK_PRESCALER_64 {
             @Override
             public boolean work() {
-                for (int i = 0; i < 64; i++) {
+//                for (int i = 0; i < 64; i++) {
                     waitClock();
-                }
+//                }
                 return true;
             }
         },
         CLOCK_PRESCALER_256 {
             @Override
             public boolean work() {
-                for (int i = 0; i < 256; i++) {
+//                for (int i = 0; i < 256; i++) {
                     waitClock();
-                }
+//                }
                 return true;
             }
         },
         CLOCK_PRESCALER_1024 {
             @Override
             public boolean work() {
-                for (int i = 0; i < 1024; i++) {
+//                for (int i = 0; i < 1024; i++) {
                     waitClock();
-                }
+//                }
                 return true;
             }
         },

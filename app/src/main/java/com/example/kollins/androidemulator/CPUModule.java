@@ -132,7 +132,55 @@ public class CPUModule implements Runnable, CPUInstructions {
         INSTRUCTION_ADC {
             @Override
             public void executeInstruction() {
-                Log.w(UCModule.MY_LOG_TAG, "Not implemented instruction: ADC");
+                /*************************ADC***********************/
+                Log.d(UCModule.MY_LOG_TAG, "Instruction ADC");
+
+                byte regD = dataMemory.readByte((0x01F0 & instruction) >> 4);
+                byte regR = dataMemory.readByte(((0x0200 & instruction) >> 5) | (0x000F & instruction));
+
+                byte result = (byte) (regD + regR);
+
+                //If carry is set
+                if (dataMemory.readBit(DataMemory_ATmega328P.SREG_ADDR, 0)) {
+                    result += 1;
+                }
+
+                dataMemory.writeByte((0x01F0 & instruction) >> 4, result);
+
+                //Flag H
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 5,
+                        (0x00000001 &
+                                (((((0x08 & regD) & (0x08 & regR)) |
+                                        ((~(0x08 & result)) & (0x08 & regR)) |
+                                        ((0x08 & regD) & (~(0x08 & result))))
+                                        >> 3))) != 0);
+
+                //Flag V
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 3,
+                        (0x00000001 &
+                                (((0x80 & regD) & (0x80 & regR) & (~(0x80 & result)) |
+                                        (~(0x80 & regD)) & (~(0x80 & regR)) & (0x80 & result))
+                                        >> 7)) != 0);
+
+                //Flag N
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 2,
+                        !((result & 0x00000080) == 0));
+
+                //Flag S
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 4,
+                        dataMemory.readBit(DataMemory_ATmega328P.SREG_ADDR, 2) ^ dataMemory.readBit(DataMemory_ATmega328P.SREG_ADDR, 3));
+
+                //Flag Z
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 1,
+                        ((result & 0x000000FF) == 0));
+
+                //Flag C
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 0,
+                        (0x00000001 &
+                                (((((0x80 & regD) & (0x80 & regR)) |
+                                        ((~(0x80 & result)) & (0x80 & regR)) |
+                                        ((0x80 & regD) & (~(0x80 & result))))
+                                        >> 7))) != 0);
             }
         },
         INSTRUCTION_ADD {
@@ -696,7 +744,7 @@ public class CPUModule implements Runnable, CPUInstructions {
                 byte zRegH = dataMemory.readByte(0x1F);
                 int destAddress = (0x0000FF00 & (zRegH << 8)) | (0x000000FF & zRegL);
 
-                dataMemory.writeByte((0x01F0 & instruction) >> 4, dataMemory.readByte(destAddress));
+                dataMemory.writeByte((0x01F0 & instruction) >> 4, programMemory.readByte(destAddress));
             }
         },
         INSTRUCTION_LSR {
@@ -721,8 +769,8 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************MOVW***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction MOVW");
 
-                dataMemory.writeByte(((0x00F0 & instruction) >> 4), dataMemory.readByte((0x000F & instruction)));
-                dataMemory.writeByte((((0x00F0 & instruction) >> 4) + 1), dataMemory.readByte(((0x000F & instruction) + 1)));
+                dataMemory.writeByte((((0x00F0 & instruction) >> 4)<<1), dataMemory.readByte(((0x000F & instruction)<<1)));
+                dataMemory.writeByte(((((0x00F0 & instruction) >> 4)<<1) + 1), dataMemory.readByte((((0x000F & instruction)<<1) + 1)));
             }
         },
         INSTRUCTION_MUL {
@@ -800,13 +848,46 @@ public class CPUModule implements Runnable, CPUInstructions {
         INSTRUCTION_POP {
             @Override
             public void executeInstruction() {
-                Log.w(UCModule.MY_LOG_TAG, "Not implemented instruction: POP");
+                /*************************POP***********************/
+                Log.d(UCModule.MY_LOG_TAG, "Instruction POP");
+
+                waitClock();
+
+                int stackPointer = (dataMemory.readByte(DataMemory_ATmega328P.SPH_ADDR) << 8) |
+                        (0x000000FF & dataMemory.readByte(DataMemory_ATmega328P.SPL_ADDR));
+
+                //PC little endian read
+                byte value = dataMemory.readByte(stackPointer);
+                stackPointer += 1;
+
+                dataMemory.writeByte((0x01F0 & instruction) >> 4, value);
+
+                //Update SPL
+                dataMemory.writeByte(DataMemory_ATmega328P.SPL_ADDR, (byte) (0x000000FF & stackPointer));
+                //Update SPH
+                dataMemory.writeByte(DataMemory_ATmega328P.SPH_ADDR, (byte) ((0x0000FF00 & stackPointer) >> 8));
             }
         },
         INSTRUCTION_PUSH {
             @Override
             public void executeInstruction() {
-                Log.w(UCModule.MY_LOG_TAG, "Not implemented instruction: PUSH");
+                /*************************PUSH***********************/
+                Log.d(UCModule.MY_LOG_TAG, "Instruction PUSH");
+
+                waitClock();
+
+                byte value = dataMemory.readByte((0x01F0 & instruction) >> 4);
+
+                int stackPointer = (dataMemory.readByte(DataMemory_ATmega328P.SPH_ADDR) << 8) |
+                        (0x000000FF & dataMemory.readByte(DataMemory_ATmega328P.SPL_ADDR));
+
+                stackPointer -= 1;
+                dataMemory.writeByte(stackPointer, value);
+
+                //Update SPL
+                dataMemory.writeByte(DataMemory_ATmega328P.SPL_ADDR, (byte) (0x000000FF & stackPointer));
+                //Update SPH
+                dataMemory.writeByte(DataMemory_ATmega328P.SPH_ADDR, (byte) ((0x0000FF00 & stackPointer) >> 8));
             }
         },
         INSTRUCTION_RCALL {
@@ -897,7 +978,54 @@ public class CPUModule implements Runnable, CPUInstructions {
         INSTRUCTION_SBCI {
             @Override
             public void executeInstruction() {
-                Log.w(UCModule.MY_LOG_TAG, "Not implemented instruction: SBCI");
+                /*************************SBCI***********************/
+                Log.d(UCModule.MY_LOG_TAG, "Instruction SBCI");
+
+                byte regD = dataMemory.readByte(0x10 | (0x00F0 & instruction) >> 4);
+                int imediateValue = ((0x0F00 & instruction)>>4) | (0x000F & instruction);
+                byte result = (byte) (regD - imediateValue);
+
+                //If carry is set
+                if (dataMemory.readBit(DataMemory_ATmega328P.SREG_ADDR, 0)) {
+                    result -= 1;
+                }
+
+                dataMemory.writeByte((0x10 | (0x00F0 & instruction) >> 4), result);
+
+                //Flag H
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 5,
+                        (0x00000001 &
+                                (((((~(0x08 & regD)) & (0x08 & imediateValue)) |
+                                        ((0x08 & result) & (0x08 & imediateValue)) |
+                                        ((~(0x08 & regD)) & (0x08 & result)))
+                                        >> 3))) != 0);
+
+                //Flag V
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 3,
+                        (0x00000001 &
+                                (((0x80 & regD) & (~(0x80 & imediateValue)) & (~(0x80 & result)) |
+                                        (~(0x80 & regD)) & (0x80 & imediateValue) & (0x80 & result))
+                                        >> 7)) != 0);
+
+                //Flag N
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 2,
+                        !((result & 0x00000080) == 0));
+
+                //Flag S
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 4,
+                        dataMemory.readBit(DataMemory_ATmega328P.SREG_ADDR, 2) ^ dataMemory.readBit(DataMemory_ATmega328P.SREG_ADDR, 3));
+
+                //Flag Z
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 1,
+                        ((result & 0x000000FF) == 0) & dataMemory.readBit(DataMemory_ATmega328P.SREG_ADDR, 1));
+
+                //Flag C
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 0,
+                        (0x00000001 &
+                                (((((~(0x80 & regD)) & (0x80 & imediateValue)) |
+                                        ((0x80 & result) & (0x80 & imediateValue)) |
+                                        ((~(0x80 & regD)) & (0x80 & result)))
+                                        >> 7))) != 0);
             }
         },
         INSTRUCTION_SBI {
@@ -1110,7 +1238,50 @@ public class CPUModule implements Runnable, CPUInstructions {
         INSTRUCTION_SUBI {
             @Override
             public void executeInstruction() {
-                Log.w(UCModule.MY_LOG_TAG, "Not implemented instruction: SUBI");
+                /*************************SUBI***********************/
+                Log.d(UCModule.MY_LOG_TAG, "Instruction SUBI");
+
+                byte regD = dataMemory.readByte(0x10 | (0x00F0 & instruction) >> 4);
+                int imediateValue = ((0x0F00 & instruction)>>4) | (0x000F & instruction);
+                byte result = (byte) (regD - imediateValue);
+
+                dataMemory.writeByte((0x10 | (0x00F0 & instruction) >> 4), result);
+
+                //Flag H
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 5,
+                        (0x00000001 &
+                                (((((~(0x08 & regD)) & (0x08 & imediateValue)) |
+                                        ((0x08 & result) & (0x08 & imediateValue)) |
+                                        ((~(0x08 & regD)) & (0x08 & result)))
+                                        >> 3))) != 0);
+
+                //Flag V
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 3,
+                        (0x00000001 &
+                                (((0x80 & regD) & (~(0x80 & imediateValue)) & (~(0x80 & result)) |
+                                        (~(0x80 & regD)) & (0x80 & imediateValue) & (0x80 & result))
+                                        >> 7)) != 0);
+
+                //Flag N
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 2,
+                        !((result & 0x00000080) == 0));
+
+                //Flag S
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 4,
+                        dataMemory.readBit(DataMemory_ATmega328P.SREG_ADDR, 2) ^ dataMemory.readBit(DataMemory_ATmega328P.SREG_ADDR, 3));
+
+                //Flag Z
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 1,
+                        ((result & 0x000000FF) == 0));
+
+                //Flag C
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 0,
+                        (0x00000001 &
+                                (((((~(0x80 & regD)) & (0x80 & imediateValue)) |
+                                        ((0x80 & result) & (0x80 & imediateValue)) |
+                                        ((~(0x80 & regD)) & (0x80 & result)))
+                                        >> 7))) != 0);
+
             }
         },
         INSTRUCTION_SWAP {

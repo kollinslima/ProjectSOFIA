@@ -147,6 +147,14 @@ public class ProgramMemory_ATmega328P implements ProgramMemory {
         Log.d(UCModule.MY_LOG_TAG, "Adding " + offset + " to PC. New value: " + (int)pcPointer);
     }
 
+    @Override
+    public byte readByte(int address) {
+        Log.d(UCModule.MY_LOG_TAG,
+                String.format("Read byte FLASH\nAddress: 0x%s, Data read: 0x%02X",
+                        Integer.toHexString((int) address), flashMemory[address]));
+        return flashMemory[address];
+    }
+
     private void loadHexFile(FileInputStream fis) {
 
         BufferedReader reader = new BufferedReader(new InputStreamReader(fis));
