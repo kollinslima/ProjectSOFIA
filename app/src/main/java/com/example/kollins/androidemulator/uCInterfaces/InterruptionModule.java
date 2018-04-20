@@ -18,4 +18,10 @@ public interface InterruptionModule {
     void timer0MatchA();
 
     void timer0MatchB();
+
+    void timer1Overflow();
+
+    void timer1MatchA();
+
+    void timer1MatchB();
 }

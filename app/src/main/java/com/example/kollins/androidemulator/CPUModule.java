@@ -74,6 +74,7 @@ public class CPUModule implements Runnable, CPUInstructions {
                 int stackPointer = (dataMemory.readByte(DataMemory_ATmega328P.SPH_ADDR) << 8) |
                         (0x000000FF & dataMemory.readByte(DataMemory_ATmega328P.SPL_ADDR));
 
+
                 //Write PC low
                 stackPointer -= 1;
                 dataMemory.writeByte(stackPointer, (byte) (0x000000FF & programMemory.getPC()));

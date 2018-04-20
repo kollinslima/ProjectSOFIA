@@ -135,6 +135,8 @@ public class DataMemory_ATmega328P implements DataMemory {
 
     private Bundle ioBundle;
 
+    private byte timer1_TEMP;
+
     public DataMemory_ATmega328P(IOModule ioModule) {
         sdramMemory = new byte[SDRAM_SIZE];
         this.pinHandler = (Handler) ioModule;
@@ -379,6 +381,23 @@ public class DataMemory_ATmega328P implements DataMemory {
 
         if (byteAddress == TCCR0B_ADDR) {
             return (byte) (0x0F & sdramMemory[byteAddress]);    //Force math always read as 0
+        } else if (byteAddress == TCNT1L_ADDR){
+            timer1_TEMP = sdramMemory[TCNT1H_ADDR];
+            return sdramMemory[byteAddress];
+        } else if (byteAddress == OCR1AL_ADDR){
+            timer1_TEMP = sdramMemory[OCR1AH_ADDR];
+            return sdramMemory[byteAddress];
+        } else if (byteAddress == OCR1BL_ADDR){
+            timer1_TEMP = sdramMemory[OCR1BH_ADDR];
+            return sdramMemory[byteAddress];
+        } else if (byteAddress == ICR1L_ADDR){
+            timer1_TEMP = sdramMemory[ICR1H_ADDR];
+            return sdramMemory[byteAddress];
+        } else if (byteAddress == TCNT1H_ADDR
+                || byteAddress == OCR1AH_ADDR
+                || byteAddress == OCR1BH_ADDR
+                || byteAddress == ICR1H_ADDR){
+            return timer1_TEMP;
         }
         return sdramMemory[byteAddress];
     }
@@ -425,6 +444,23 @@ public class DataMemory_ATmega328P implements DataMemory {
                 writeBit(GTCCR_ADDR, 0, false);
                 writeBit(GTCCR_ADDR, 1, false);
             }
+        } else if (byteAddress == TCNT1H_ADDR
+                || byteAddress == OCR1AH_ADDR
+                || byteAddress == OCR1BH_ADDR
+                || byteAddress == ICR1H_ADDR){
+            timer1_TEMP = byteData;
+        } else if (byteAddress == TCNT1L_ADDR){
+            sdramMemory[byteAddress] = byteData;
+            sdramMemory[TCNT1H_ADDR] = timer1_TEMP;
+        } else if (byteAddress == OCR1AL_ADDR){
+            sdramMemory[byteAddress] = byteData;
+            sdramMemory[OCR1AH_ADDR] = timer1_TEMP;
+        } else if (byteAddress == OCR1BL_ADDR){
+            sdramMemory[byteAddress] = byteData;
+            sdramMemory[OCR1BH_ADDR] = timer1_TEMP;
+        } else if (byteAddress == ICR1L_ADDR){
+            sdramMemory[byteAddress] = byteData;
+            sdramMemory[ICR1H_ADDR] = timer1_TEMP;
         } else {
             sdramMemory[byteAddress] = byteData;
             notify(byteAddress);
@@ -507,11 +543,19 @@ public class DataMemory_ATmega328P implements DataMemory {
         }
     }
 
-    public boolean readForceMatchA() {
+    public boolean readForceMatchA_timer0() {
         return (0x01 & (sdramMemory[TCCR0B_ADDR] >> 7)) != 0;
     }
 
-    public boolean readForceMatchB() {
+    public boolean readForceMatchB_timer0() {
         return (0x01 & (sdramMemory[TCCR0B_ADDR] >> 6)) != 0;
+    }
+
+    public boolean readForceMatchA_timer1() {
+        return (0x01 & (sdramMemory[TCCR1C_ADDR] >> 7)) != 0;
+    }
+
+    public boolean readForceMatchB_timer1() {
+        return (0x01 & (sdramMemory[TCCR1C_ADDR] >> 6)) != 0;
     }
 }

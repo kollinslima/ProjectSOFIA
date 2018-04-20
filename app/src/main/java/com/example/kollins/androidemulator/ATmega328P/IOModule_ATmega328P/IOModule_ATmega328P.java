@@ -11,6 +11,7 @@ import com.example.kollins.androidemulator.ATmega328P.IOModule_ATmega328P.Input.
 import com.example.kollins.androidemulator.ATmega328P.IOModule_ATmega328P.Output.OutputFragment_ATmega328P;
 import com.example.kollins.androidemulator.ATmega328P.IOModule_ATmega328P.Output.OutputPin_ATmega328P;
 import com.example.kollins.androidemulator.ATmega328P.Timer0_ATmega328P;
+import com.example.kollins.androidemulator.ATmega328P.Timer1_ATmega328P;
 import com.example.kollins.androidemulator.UCModule;
 import com.example.kollins.androidemulator.UCModule_View;
 import com.example.kollins.androidemulator.uCInterfaces.InputFragment;
@@ -30,6 +31,9 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
 
     private final int OC0B_PIN_POSITION = 5;
     private final int OC0A_PIN_POSITION = 6;
+
+    private final int OC1B_PIN_POSITION = 9;
+    private final int OC1A_PIN_POSITION = 10;
 
     private byte portRead;
     private byte configRead;
@@ -192,6 +196,7 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
             for (OutputPin_ATmega328P p : outputFragment.getOutputPins()) {
                 if (p.getPinPositionSpinner() == OC0A_PIN_POSITION) {
                     outputFragment.updateView(index);
+                    break;
                 }
                 index += 1;
             }
@@ -219,6 +224,7 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
             for (OutputPin_ATmega328P p : outputFragment.getOutputPins()) {
                 if (p.getPinPositionSpinner() == OC0B_PIN_POSITION) {
                     outputFragment.updateView(index);
+                    break;
                 }
                 index += 1;
             }
@@ -230,6 +236,58 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
             //Output list is null;
         }
 
+    }
+
+    public void setOC1A(int stateOC1A) {
+        //Affected only if it is an output.
+        if (outputFragment.isMeasrureOutput(DataMemory_ATmega328P.DDRB_ADDR, 1)){
+            return;
+        }
+
+        outputFragment.pinbuffer[OC1A_PIN_POSITION] = stateOC1A;
+
+        try {
+            int index = 0;
+            for (OutputPin_ATmega328P p : outputFragment.getOutputPins()) {
+                if (p.getPinPositionSpinner() == OC1A_PIN_POSITION) {
+                    outputFragment.updateView(index);
+                    break;
+                }
+                index += 1;
+            }
+
+            if (checkInputOutputShortCircuit(inputFragment.getPinList(), outputFragment.getOutputPins())) {
+                sendShortCircuit();
+            }
+        } catch (NullPointerException e) {
+            //Output list is null;
+        }
+    }
+
+    public void setOC1B(int stateOC1B) {
+        //Affected only if it is an output.
+        if (outputFragment.isMeasrureOutput(DataMemory_ATmega328P.DDRB_ADDR, 2)){
+            return;
+        }
+
+        outputFragment.pinbuffer[OC1B_PIN_POSITION] = stateOC1B;
+
+        try {
+            int index = 0;
+            for (OutputPin_ATmega328P p : outputFragment.getOutputPins()) {
+                if (p.getPinPositionSpinner() == OC1B_PIN_POSITION) {
+                    outputFragment.updateView(index);
+                    break;
+                }
+                index += 1;
+            }
+
+            if (checkInputOutputShortCircuit(inputFragment.getPinList(), outputFragment.getOutputPins())) {
+                sendShortCircuit();
+            }
+        } catch (NullPointerException e) {
+            //Output list is null;
+        }
     }
 
     private class PortBUpdateView extends AsyncTask<List<OutputPin_ATmega328P>, Integer, Void> {
@@ -285,7 +343,12 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
                 //Is output!
                 else {
 //                    Log.i(UCModule.MY_LOG_TAG, "Output: " + i);
-                    outputFragment.pinbuffer[i] = (0x01 & (portRead >> bitPosition));
+                    //Check MUX Timer1
+                    if ((i < 9 || i > 10)
+                            || (i == 9 && !Timer1_ATmega328P.timerOutputControl_OC1A)
+                            || (i == 10 && !Timer1_ATmega328P.timerOutputControl_OC1B)) {
+                        outputFragment.pinbuffer[i] = (0x01 & (portRead >> bitPosition));
+                    }
                     outputFragment.writeFeedback(DataMemory_ATmega328P.PINB_ADDR, bitPosition, outputFragment.pinbuffer[i] != 0);
                 }
 

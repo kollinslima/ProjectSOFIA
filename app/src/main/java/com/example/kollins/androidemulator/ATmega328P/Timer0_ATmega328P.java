@@ -4,7 +4,6 @@ import android.os.Handler;
 import android.util.Log;
 
 import com.example.kollins.androidemulator.ATmega328P.IOModule_ATmega328P.IOModule_ATmega328P;
-import com.example.kollins.androidemulator.ATmega328P.IOModule_ATmega328P.Output.OutputFragment_ATmega328P;
 import com.example.kollins.androidemulator.UCModule;
 import com.example.kollins.androidemulator.uCInterfaces.DataMemory;
 import com.example.kollins.androidemulator.uCInterfaces.IOModule;
@@ -236,13 +235,13 @@ public class Timer0_ATmega328P implements Timer0Module {
                 if (progress == BOTTOM) {
                     UCModule.interruptionModule.timer0Overflow();
                 }
-                if (dataMemory.readForceMatchA()) {
+                if (dataMemory.readForceMatchA_timer0()) {
                     match_A = true; //FORCE MATCH
                 } else if (progress == dataMemory.readByte(DataMemory_ATmega328P.OCR0A_ADDR)) {
                     UCModule.interruptionModule.timer0MatchA();
                     match_A = true;
                 }
-                if (dataMemory.readForceMatchB()) {
+                if (dataMemory.readForceMatchB_timer0()) {
                     match_B = true; //FORCE MATCH
                 } else if (progress == dataMemory.readByte(DataMemory_ATmega328P.OCR0B_ADDR)) {
                     UCModule.interruptionModule.timer0MatchB();
@@ -454,7 +453,7 @@ public class Timer0_ATmega328P implements Timer0Module {
                     nextOverflow = true;
                 }
 
-                if (dataMemory.readForceMatchA()) {
+                if (dataMemory.readForceMatchA_timer0()) {
                     match_A = true; //FORCE MATCH
                 } else if (progress == dataMemory.readByte(DataMemory_ATmega328P.OCR0A_ADDR)) {
                     UCModule.interruptionModule.timer0MatchA();
@@ -462,7 +461,7 @@ public class Timer0_ATmega328P implements Timer0Module {
                     nextClear = true;
                 }
 
-                if (dataMemory.readForceMatchB()) {
+                if (dataMemory.readForceMatchB_timer0()) {
                     match_B = true; //FORCE MATCH
                 } else if (progress == dataMemory.readByte(DataMemory_ATmega328P.OCR0B_ADDR)) {
                     UCModule.interruptionModule.timer0MatchB();
