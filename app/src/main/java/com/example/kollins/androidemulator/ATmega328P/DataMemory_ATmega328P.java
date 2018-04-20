@@ -373,9 +373,9 @@ public class DataMemory_ATmega328P implements DataMemory {
 
     @Override
     public synchronized byte readByte(int byteAddress) {
-        Log.d(UCModule.MY_LOG_TAG,
-                String.format("Read byte SDRAM\nAddress: 0x%s, Data read: 0x%02X",
-                        Integer.toHexString((int) byteAddress), sdramMemory[byteAddress]));
+//        Log.d(UCModule.MY_LOG_TAG,
+//                String.format("Read byte SDRAM\nAddress: 0x%s, Data read: 0x%02X",
+//                        Integer.toHexString((int) byteAddress), sdramMemory[byteAddress]));
 
         if (byteAddress == TCCR0B_ADDR) {
             return (byte) (0x0F & sdramMemory[byteAddress]);    //Force math always read as 0
@@ -385,9 +385,9 @@ public class DataMemory_ATmega328P implements DataMemory {
 
     @Override
     public synchronized void writeByte(int byteAddress, byte byteData) {
-        Log.d(UCModule.MY_LOG_TAG,
-                String.format("Write byte SDRAM\nAddress: 0x%s, Data: 0x%02X",
-                        Integer.toHexString((int) byteAddress), byteData));
+//        Log.d(UCModule.MY_LOG_TAG,
+//                String.format("Write byte SDRAM\nAddress: 0x%s, Data: 0x%02X",
+//                        Integer.toHexString((int) byteAddress), byteData));
 
         if (byteAddress == PINB_ADDR || byteAddress == PINC_ADDR || byteAddress == PIND_ADDR) {
             //Toggle bits in PORTx
@@ -433,9 +433,9 @@ public class DataMemory_ATmega328P implements DataMemory {
 
     @Override
     public synchronized void writeBit(int byteAddress, int bitPosition, boolean bitState) {
-        Log.d(UCModule.MY_LOG_TAG,
-                String.format("Write bit SDRAM\nAddress: 0x%s", Integer.toHexString((int) byteAddress))
-                        + " position: " + bitPosition + " state: " + bitState);
+//        Log.d(UCModule.MY_LOG_TAG,
+//                String.format("Write bit SDRAM\nAddress: 0x%s", Integer.toHexString((int) byteAddress))
+//                        + " position: " + bitPosition + " state: " + bitState);
 
         if (byteAddress == PINB_ADDR || byteAddress == PINC_ADDR || byteAddress == PIND_ADDR) {
             //Toggle bits in PORTx
@@ -479,17 +479,13 @@ public class DataMemory_ATmega328P implements DataMemory {
         }
         notifyIO(byteAddress);
 
-//        Log.i(UCModule.MY_LOG_TAG,
-//                String.format("Write IO byte\nAddress: 0x%s, Data: 0x%02X",
-//                        Integer.toHexString((int) byteAddress), sdramMemory[byteAddress]));
-
     }
 
     @Override
     public synchronized boolean readBit(int byteAddress, int bitPosition) {
-        Log.d(UCModule.MY_LOG_TAG,
-                String.format("Read bit SDRAM\nAddress: 0x%s", Integer.toHexString((int) byteAddress))
-                        + " position: " + bitPosition + " state: " + ((0x01 & (sdramMemory[byteAddress] >> bitPosition)) != 0));
+//        Log.d(UCModule.MY_LOG_TAG,
+//                String.format("Read bit SDRAM\nAddress: 0x%s", Integer.toHexString((int) byteAddress))
+//                        + " position: " + bitPosition + " state: " + ((0x01 & (sdramMemory[byteAddress] >> bitPosition)) != 0));
 
         if (byteAddress == TCCR0B_ADDR && (bitPosition == 7 || bitPosition == 6)) {
             return false;   //Force math always read as 0;

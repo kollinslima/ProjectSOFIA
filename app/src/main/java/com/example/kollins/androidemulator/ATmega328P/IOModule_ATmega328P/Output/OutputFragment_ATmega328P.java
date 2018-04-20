@@ -45,7 +45,7 @@ public class OutputFragment_ATmega328P extends Fragment implements OutputFragmen
     private DataMemory_ATmega328P dataMemory;
 
     private boolean haveOutput;
-    private boolean pullUpEnabled;
+//    private boolean pullUpEnabled;
 
     private Handler screenUpdater;
 
@@ -77,8 +77,6 @@ public class OutputFragment_ATmega328P extends Fragment implements OutputFragmen
 
         haveOutput = true;
 
-        pullUpEnabled = !dataMemory.readBit(DataMemory_ATmega328P.MCUCR_ADDR, 4);
-
         Log.i("OutputAdd", "PinBuffer: " + pinbuffer[UCModule.getDefaultPinPosition()]);
 
         return layout;
@@ -89,7 +87,7 @@ public class OutputFragment_ATmega328P extends Fragment implements OutputFragmen
     }
 
     public boolean isPullUpEnabled(){
-        return pullUpEnabled;
+        return !dataMemory.readBit(DataMemory_ATmega328P.MCUCR_ADDR, 4);
     }
 
     public void addOuput() {

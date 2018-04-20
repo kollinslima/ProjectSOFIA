@@ -294,13 +294,21 @@ public class InputAdapter_ATmega328P extends BaseAdapter {
                             case IOModule.PUSH_VDD:
 
                                 inputFragment.requestHiZ(true, pin);
+
+                                //Wait for pull Up Request
+                                try {
+                                    Thread.sleep(10);
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
+
                                 holder.inputPinState.setBackgroundResource(R.drawable.digital_input_undefined);
                                 pin.setPinState(IOModule.TRI_STATE);
 
                                 //Check if request HiZ was acepted
                                 if (pin.getHiZ(pin.getPinSpinnerPosition())) {
                                     if (inputFragment.isPullUpEnabled() && inputFragment.isPinPullUPEnabled(pin.getMemory(), pin.getBitPosition())) {
-
+//                                        Log.i(UCModule.MY_LOG_TAG, "Sending PULL-UP");
                                         inputFragment.inputRequest_inputChanel(IOModule.HIGH_LEVEL, pin.getMemory(), pin.getBitPosition(), pin);
 
                                     } else {

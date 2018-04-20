@@ -59,6 +59,7 @@ public class Timer0_ATmega328P implements Timer0Module {
 
     @Override
     public void run() {
+        Thread.currentThread().setName("TIMER 0");
         while (!uCModule.getResetFlag()) {
             if (ClockSource.values()[0x07 & dataMemory.readByte(DataMemory_ATmega328P.TCCR0B_ADDR)].work()) {
 
@@ -147,6 +148,7 @@ public class Timer0_ATmega328P implements Timer0Module {
         CLOCK_PRESCALER_1 {
             @Override
             public boolean work() {
+                Log.i("Timer0", "Prescaler 1");
                 waitClock();
                 return true;
             }
@@ -154,6 +156,7 @@ public class Timer0_ATmega328P implements Timer0Module {
         CLOCK_PRESCALER_8 {
             @Override
             public boolean work() {
+                Log.i("Timer0", "Prescaler 8");
                 for (int i = 0; i < 8; i++) {
                     waitClock();
                 }
@@ -163,15 +166,17 @@ public class Timer0_ATmega328P implements Timer0Module {
         CLOCK_PRESCALER_64 {
             @Override
             public boolean work() {
+                Log.i("Timer0", "Prescaler 64");
                 for (int i = 0; i < 64; i++) {
                     waitClock();
                 }
-                return true;
+                return false;
             }
         },
         CLOCK_PRESCALER_256 {
             @Override
             public boolean work() {
+                Log.i("Timer0", "Prescaler 256");
                 for (int i = 0; i < 256; i++) {
                     waitClock();
                 }
@@ -181,6 +186,7 @@ public class Timer0_ATmega328P implements Timer0Module {
         CLOCK_PRESCALER_1024 {
             @Override
             public boolean work() {
+                Log.i("Timer0", "Prescaler 1024");
                 for (int i = 0; i < 1024; i++) {
                     waitClock();
                 }

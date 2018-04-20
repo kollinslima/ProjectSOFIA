@@ -131,6 +131,7 @@ public class UCModule_View extends Fragment implements Runnable {
 
     @Override
     public void run() {
+        Thread.currentThread().setName("UCModule_View");
         simulatedTime = 0;
         while (!ucModule.getResetFlag()) {
             waitClock();

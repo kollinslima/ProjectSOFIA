@@ -21,6 +21,7 @@ import com.example.kollins.androidemulator.uCInterfaces.InterruptionModule;
 import com.example.kollins.androidemulator.uCInterfaces.OutputFragment;
 import com.example.kollins.androidemulator.uCInterfaces.ProgramMemory;
 import com.example.kollins.androidemulator.uCInterfaces.Timer0Module;
+import com.example.kollins.androidemulator.uCInterfaces.Timer1Module;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
@@ -40,7 +41,8 @@ public class UCModule extends AppCompatActivity {
     public static final int CPU_ID = 0;
     public static final int SIMULATED_TIMER_ID = 1;
     public static final int TIMER0_ID = 2;
-    public static final int MANUAL_CLOCK = 3;
+    public static final int TIMER1_ID = 3;
+//    public static final int MANUAL_CLOCK = 3;
 
     public static String PACKAGE_NAME;
 
@@ -75,6 +77,9 @@ public class UCModule extends AppCompatActivity {
     private Timer0Module timer0;
     private Thread threadTimer0;
 
+    private Timer1Module timer1;
+    private Thread threadTimer1;
+
     private uCHandler uCHandler;
 
     private boolean resetFlag;
@@ -91,8 +96,6 @@ public class UCModule extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_view);
-
-//        Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
 
         PACKAGE_NAME = getApplicationContext().getPackageName();
         resources = getResources();
@@ -194,12 +197,20 @@ public class UCModule extends AppCompatActivity {
                 threadCPU.start();
 
                 //Init Timer0
-                Class timerDevice = Class.forName(PACKAGE_NAME + "." + device + ".Timer0_" + device);
-                timer0 = (Timer0Module) timerDevice.getDeclaredConstructor(DataMemory.class, Handler.class, Lock.class, UCModule.class, IOModule.class)
+                Class timer0Device = Class.forName(PACKAGE_NAME + "." + device + ".Timer0_" + device);
+                timer0 = (Timer0Module) timer0Device.getDeclaredConstructor(DataMemory.class, Handler.class, Lock.class, UCModule.class, IOModule.class)
                         .newInstance(dataMemory, uCHandler, clockLock, this, ucView.getIOModule());
 
                 threadTimer0 = new Thread(timer0);
                 threadTimer0.start();
+
+                //Init Timer1
+                Class timer1Device = Class.forName(PACKAGE_NAME + "." + device + ".Timer1_" + device);
+                timer1 = (Timer1Module) timer1Device.getDeclaredConstructor(DataMemory.class, Handler.class, Lock.class, UCModule.class, IOModule.class)
+                        .newInstance(dataMemory, uCHandler, clockLock, this, ucView.getIOModule());
+
+                threadTimer1 = new Thread(timer1);
+                threadTimer1.start();
 
                 resetManager = 0;
                 setUpSuccessful = true;
@@ -392,6 +403,19 @@ public class UCModule extends AppCompatActivity {
 
                 resetManager = 3;
             }
+            if (threadTimer1 != null) {
+                Log.i(MY_LOG_TAG, "Waiting Timer1 thread");
+                while (threadTimer1.isAlive()) {
+                    timer1.clockTimer1();
+                }
+                threadTimer1.join();
+
+                clockLock.lock();
+                clockVector[TIMER1_ID] = true;
+                clockLock.unlock();
+
+                resetManager = 4;
+            }
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -443,6 +467,7 @@ public class UCModule extends AppCompatActivity {
                     ucView.clockUCView();
                     cpuModule.clockCPU();
                     timer0.clockTimer0();
+                    timer1.clockTimer1();
                     break;
 
                 case RESET_ACTION:

@@ -246,9 +246,13 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
 
         @Override
         protected Void doInBackground(List<OutputPin_ATmega328P>... pins) {
+            Thread.currentThread().setName("ASYNC_PORTB_UPDATE");
 
             //Pin8 - Pin13
             for (int i = 8, bitPosition = 0; i <= 13; i++, bitPosition++) {
+
+//                Log.i(UCModule.MY_LOG_TAG, "PORTB UPDATE " + i);
+
                 //Is input?
                 if ((0x01 & (configRead >> bitPosition)) == 0) {
 //                    Log.i(UCModule.MY_LOG_TAG, "Input: " + i);
@@ -409,23 +413,24 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
 
         @Override
         protected Void doInBackground(List<OutputPin_ATmega328P>... pins) {
-
+            Thread.currentThread().setName("ASYNC_PORTD_UPDATE");
 
             //Pin0 - Pin7
             for (int i = 0, bitPosition = 0; i <= 7; i++, bitPosition++) {
                 //Is input?
                 if ((0x01 & (configRead >> bitPosition)) == 0) {
-//                    Log.i(UCModule.MY_LOG_TAG, "Input");
+//                    Log.i(UCModule.MY_LOG_TAG, "Input pullUP: " + outputFragment.isPullUpEnabled());
 
                     digitalPINState = inputFragment.getPINState(DataMemory_ATmega328P.PIND_ADDR, bitPosition);
 
                     if (((0x01 & (portRead >> bitPosition)) == 1) && outputFragment.isPullUpEnabled()) {
 
 //                        Log.i(UCModule.MY_LOG_TAG, "Port == 1 && pull-Up enabled");
+//                        Log.i(UCModule.MY_LOG_TAG, "Pin HiZ: " + inputFragment.isPinHiZ(i));
 
                         if (!digitalPINState && inputFragment.isPinHiZ(i)) {
-                            Log.i(UCModule.MY_LOG_TAG, "Requesting pull up");
-                            Log.i(UCModule.MY_LOG_TAG, "HiZ[" + i + "]: " + inputFragment.isPinHiZ(i));
+//                            Log.i(UCModule.MY_LOG_TAG, "Requesting pull up");
+//                            Log.i(UCModule.MY_LOG_TAG, "HiZ[" + i + "]: " + inputFragment.isPinHiZ(i));
                             inputFragment.inputRequest_outputChanel(IOModule.HIGH_LEVEL, DataMemory_ATmega328P.PIND_ADDR, bitPosition, "Pin" + i);
 
 //                            return null;

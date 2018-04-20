@@ -43,7 +43,7 @@ public class InputFragment_ATmega328P extends Fragment implements InputFragment,
     private DataMemory_ATmega328P dataMemory;
 
     private boolean haveInput;
-    private boolean pullUpEnabled;
+//    private boolean pullUpEnabled;
 
     private Handler screenUpdater;
 
@@ -53,6 +53,7 @@ public class InputFragment_ATmega328P extends Fragment implements InputFragment,
         inputPins = new ArrayList<InputPin_ATmega328P>();
         inputAdapter = new InputAdapter_ATmega328P(this, inputPins);
         haveInput = false;
+
     }
 
     @Override
@@ -72,8 +73,6 @@ public class InputFragment_ATmega328P extends Fragment implements InputFragment,
         inputPinsList.setOnItemLongClickListener(this);
 
         haveInput = true;
-
-        pullUpEnabled = !dataMemory.readBit(DataMemory_ATmega328P.MCUCR_ADDR, 4);
 
         return layout;
     }
@@ -96,7 +95,7 @@ public class InputFragment_ATmega328P extends Fragment implements InputFragment,
     }
 
     public boolean isPullUpEnabled() {
-        return pullUpEnabled;
+        return !dataMemory.readBit(DataMemory_ATmega328P.MCUCR_ADDR, 4);
     }
 
     public boolean isPinPullUPEnabled(int memory, int bitPosition) {
@@ -283,6 +282,7 @@ public class InputFragment_ATmega328P extends Fragment implements InputFragment,
         //signalState - memoryPosition - bitPosition
         @Override
         protected Boolean doInBackground(Integer... memoryParams) {
+            Thread.currentThread().setName("ASYNC_INPUT_REQUEST_INPUT_CHANEL");
             try {
                 if (inputPins.size() == 0) {
                     //No restrictions, write requested data.
@@ -370,6 +370,7 @@ public class InputFragment_ATmega328P extends Fragment implements InputFragment,
 
         @Override
         protected Void doInBackground(Boolean... params) {
+            Thread.currentThread().setName("ASYNC_REQUEST_HIZ");
 
             //There is no restriction to remove pin from HiZ
             if (!params[0]) {
@@ -408,7 +409,6 @@ public class InputFragment_ATmega328P extends Fragment implements InputFragment,
 
             return null;
         }
-
     }
 
     private class InputRequest_OutputChanel extends AsyncTask<Integer, Void, Boolean> {
@@ -422,6 +422,7 @@ public class InputFragment_ATmega328P extends Fragment implements InputFragment,
         //signalState - memoryPosition - bitPosition
         @Override
         protected Boolean doInBackground(Integer... memoryParams) {
+            Thread.currentThread().setName("ASYNC_INPUT_REQUEST_OUTPUT_CHANEL");
             try {
                 if (inputPins.size() == 0) {
                     //No restrictions, write requested data.
