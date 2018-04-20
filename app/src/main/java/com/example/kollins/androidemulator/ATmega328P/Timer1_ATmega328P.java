@@ -103,6 +103,7 @@ public class Timer1_ATmega328P implements Timer1Module {
                     case 0x0B:
                         break;
                     case 0x0C:
+                        Timer1_ATmega328P.TimerMode.CTC_OPERATION_TOP_ICR1.count();
                         break;
                     case 0x0E:
                         break;
@@ -343,12 +344,22 @@ public class Timer1_ATmega328P implements Timer1Module {
 
                 //Input Capture Unit
                 newICP1 = dataMemory.readBit(DataMemory_ATmega328P.PINB_ADDR, 0);
-                if (oldICP1^newICP1){   //If it's different.
-                    oldICP1 = newICP1;
-                    UCModule.interruptionModule.timer1InputCapture();
-                    dataMemory.writeIOByte(DataMemory_ATmega328P.ICR1H_ADDR, (byte) (0x00FF & (progress>>8)));
-                    dataMemory.writeIOByte(DataMemory_ATmega328P.ICR1L_ADDR, (byte) (0x00FF & progress));
+                if (dataMemory.readBit(DataMemory_ATmega328P.TCCR1B_ADDR, 6)){
+                    //Rising Edge detect
+                    if (!oldICP1 && newICP1){
+                        UCModule.interruptionModule.timer1InputCapture();
+                        dataMemory.writeIOByte(DataMemory_ATmega328P.ICR1H_ADDR, (byte) (0x00FF & (progress>>8)));
+                        dataMemory.writeIOByte(DataMemory_ATmega328P.ICR1L_ADDR, (byte) (0x00FF & progress));
+                    }
+                } else {
+                    //Falling Edge detect
+                    if (oldICP1 && !newICP1){
+                        UCModule.interruptionModule.timer1InputCapture();
+                        dataMemory.writeIOByte(DataMemory_ATmega328P.ICR1H_ADDR, (byte) (0x00FF & (progress>>8)));
+                        dataMemory.writeIOByte(DataMemory_ATmega328P.ICR1L_ADDR, (byte) (0x00FF & progress));
+                    }
                 }
+                oldICP1 = newICP1;
 
                 dataMemory.writeByte(DataMemory_ATmega328P.TCNT1H_ADDR, (byte) (0x00FF & (progress>>8)));
                 dataMemory.writeByte(DataMemory_ATmega328P.TCNT1L_ADDR, (byte) (0x00FF & progress));
@@ -467,11 +478,141 @@ public class Timer1_ATmega328P implements Timer1Module {
 
                 //Input Capture Unit
                 newICP1 = dataMemory.readBit(DataMemory_ATmega328P.PINB_ADDR, 0);
-                if (oldICP1^newICP1){   //If it's different.
-                    oldICP1 = newICP1;
+                if (dataMemory.readBit(DataMemory_ATmega328P.TCCR1B_ADDR, 6)){
+                    //Rising Edge detect
+                    if (!oldICP1 && newICP1){
+                        UCModule.interruptionModule.timer1InputCapture();
+                        dataMemory.writeIOByte(DataMemory_ATmega328P.ICR1H_ADDR, (byte) (0x00FF & (progress>>8)));
+                        dataMemory.writeIOByte(DataMemory_ATmega328P.ICR1L_ADDR, (byte) (0x00FF & progress));
+                    }
+                } else {
+                    //Falling Edge detect
+                    if (oldICP1 && !newICP1){
+                        UCModule.interruptionModule.timer1InputCapture();
+                        dataMemory.writeIOByte(DataMemory_ATmega328P.ICR1H_ADDR, (byte) (0x00FF & (progress>>8)));
+                        dataMemory.writeIOByte(DataMemory_ATmega328P.ICR1L_ADDR, (byte) (0x00FF & progress));
+                    }
+                }
+                oldICP1 = newICP1;
+
+                dataMemory.writeByte(DataMemory_ATmega328P.TCNT1H_ADDR, (byte) (0x00FF & (progress>>8)));
+                dataMemory.writeByte(DataMemory_ATmega328P.TCNT1L_ADDR, (byte) (0x00FF & progress));
+            }
+        },
+        CTC_OPERATION_TOP_ICR1 {
+            @Override
+            public void count() {
+                enableICRWrite = true;
+                boolean match_A = false, match_B = false;
+                char progress = (char) (0x00FF & dataMemory.readByte(DataMemory_ATmega328P.TCNT1L_ADDR));
+                progress = (char) ((dataMemory.readByte(DataMemory_ATmega328P.TCNT1H_ADDR)<<8) | progress);
+                progress += 1;
+
+                if (nextClear) {
+                    nextClear = false;
+                    progress = BOTTOM;
+                }
+
+                char icr1 = (char) (0x00FF & dataMemory.readByte(DataMemory_ATmega328P.ICR1L_ADDR));
+                icr1 = (char) ((dataMemory.readByte(DataMemory_ATmega328P.ICR1H_ADDR)<<8) | icr1);
+                if (progress == icr1){
                     UCModule.interruptionModule.timer1InputCapture();
-                    dataMemory.writeIOByte(DataMemory_ATmega328P.ICR1H_ADDR, (byte) (0x00FF & (progress>>8)));
-                    dataMemory.writeIOByte(DataMemory_ATmega328P.ICR1L_ADDR, (byte) (0x00FF & progress));
+                    nextClear = true;
+                }
+
+                if (progress == BOTTOM && nextOverflow) {
+                    nextOverflow = false;
+                    UCModule.interruptionModule.timer1Overflow();
+                } else if (progress == MAX) {
+                    nextOverflow = true;
+                }
+
+                if (dataMemory.readForceMatchA_timer1()) {
+                    match_A = true; //FORCE MATCH
+                } else{
+                    char ocr1a = (char) (0x00FF & dataMemory.readByte(DataMemory_ATmega328P.OCR1AL_ADDR));
+                    ocr1a = (char) ((dataMemory.readByte(DataMemory_ATmega328P.OCR1AH_ADDR)<<8) | ocr1a);
+
+                    if (progress == ocr1a) {
+                        UCModule.interruptionModule.timer1MatchA();
+                        match_A = true;
+                    }
+                }
+
+                if (dataMemory.readForceMatchB_timer1()) {
+                    match_B = true; //FORCE MATCH
+                } else {
+                    char ocr1b = (char) (0x00FF & dataMemory.readByte(DataMemory_ATmega328P.OCR1BL_ADDR));
+                    ocr1b = (char) ((dataMemory.readByte(DataMemory_ATmega328P.OCR1BH_ADDR)<<8) | ocr1b);
+
+                    if (progress == ocr1b) {
+                        UCModule.interruptionModule.timer1MatchB();
+                        match_B = true;
+                    }
+                }
+
+                byte outputMode = dataMemory.readByte(DataMemory_ATmega328P.TCCR1A_ADDR);
+
+                //CHANEL A
+                switch (0xC0 & outputMode) {
+                    case 0x00:
+                        //OC1A disconected
+                        timerOutputControl_OC1A = false;
+                        break;
+                    case 0x40:
+                        //OC1A Toggle on Compare Match
+                        timerOutputControl_OC1A = true;
+                        if (match_A) {
+                            stateOC1A = (stateOC1A + 1) % 2;
+                            ioModule.setOC1A(stateOC1A);
+                        }
+                        break;
+                    case 0x80:
+                        //OC1A Clear on Compare Match
+                        timerOutputControl_OC1A = true;
+                        if (match_A) {
+                            stateOC1A = IOModule.LOW_LEVEL;
+                            ioModule.setOC1A(stateOC1A);
+                        }
+                        break;
+                    case 0xC0:
+                        //OC1A Set on Compare Match
+                        timerOutputControl_OC1A = true;
+                        if (match_A) {
+                            stateOC1A = IOModule.HIGH_LEVEL;
+                            ioModule.setOC1A(stateOC1A);
+                        }
+                }
+
+                //CHANEL B
+                switch (0x30 & outputMode) {
+                    case 0x00:
+                        //OC1B disconected
+                        timerOutputControl_OC1B = false;
+                        break;
+                    case 0x10:
+                        //OC0B Toggle on Compare Match
+                        timerOutputControl_OC1B = true;
+                        if (match_B) {
+                            stateOC1B = (stateOC1B + 1) % 2;
+                            ioModule.setOC1B(stateOC1B);
+                        }
+                        break;
+                    case 0x20:
+                        //OC0B Clear on Compare Match
+                        timerOutputControl_OC1B = true;
+                        if (match_B) {
+                            stateOC1B = IOModule.LOW_LEVEL;
+                            ioModule.setOC1B(stateOC1B);
+                        }
+                        break;
+                    case 0x30:
+                        //OC0B Set on Compare Match
+                        timerOutputControl_OC1B = true;
+                        if (match_B) {
+                            stateOC1B = IOModule.HIGH_LEVEL;
+                            ioModule.setOC1B(stateOC1B);
+                        }
                 }
 
                 dataMemory.writeByte(DataMemory_ATmega328P.TCNT1H_ADDR, (byte) (0x00FF & (progress>>8)));
