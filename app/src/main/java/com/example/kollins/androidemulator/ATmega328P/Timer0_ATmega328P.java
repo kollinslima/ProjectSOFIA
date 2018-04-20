@@ -437,7 +437,6 @@ public class Timer0_ATmega328P implements Timer0Module {
             @Override
             public void count() {
                 boolean match_A = false, match_B = false;
-
                 byte progress = dataMemory.readByte(DataMemory_ATmega328P.TCNT0_ADDR);
                 progress = (byte) (progress + 1);
 

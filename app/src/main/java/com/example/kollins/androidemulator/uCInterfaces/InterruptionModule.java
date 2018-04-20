@@ -24,4 +24,6 @@ public interface InterruptionModule {
     void timer1MatchA();
 
     void timer1MatchB();
+
+    void timer1InputCapture();
 }

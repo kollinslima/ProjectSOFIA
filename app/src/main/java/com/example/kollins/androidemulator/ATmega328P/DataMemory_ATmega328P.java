@@ -433,7 +433,8 @@ public class DataMemory_ATmega328P implements DataMemory {
 //            }
         } else if ((byteAddress == EIFR_ADDR
                 || byteAddress == PCIFR_ADDR
-                || byteAddress == TIFR0_ADDR)) {
+                || byteAddress == TIFR0_ADDR
+                || byteAddress == TIFR1_ADDR)) {
             //Clear Flags
             sdramMemory[byteAddress] = 0x00;
         } else if (byteAddress == GTCCR_ADDR) {
@@ -446,8 +447,7 @@ public class DataMemory_ATmega328P implements DataMemory {
             }
         } else if (byteAddress == TCNT1H_ADDR
                 || byteAddress == OCR1AH_ADDR
-                || byteAddress == OCR1BH_ADDR
-                || byteAddress == ICR1H_ADDR){
+                || byteAddress == OCR1BH_ADDR){
             timer1_TEMP = byteData;
         } else if (byteAddress == TCNT1L_ADDR){
             sdramMemory[byteAddress] = byteData;
@@ -458,9 +458,15 @@ public class DataMemory_ATmega328P implements DataMemory {
         } else if (byteAddress == OCR1BL_ADDR){
             sdramMemory[byteAddress] = byteData;
             sdramMemory[OCR1BH_ADDR] = timer1_TEMP;
+        } else if (byteAddress == ICR1H_ADDR){
+            if (Timer1_ATmega328P.enableICRWrite){
+                timer1_TEMP = byteData;
+            }
         } else if (byteAddress == ICR1L_ADDR){
-            sdramMemory[byteAddress] = byteData;
-            sdramMemory[ICR1H_ADDR] = timer1_TEMP;
+            if (Timer1_ATmega328P.enableICRWrite){
+                sdramMemory[byteAddress] = byteData;
+                sdramMemory[ICR1H_ADDR] = timer1_TEMP;
+            }
         } else {
             sdramMemory[byteAddress] = byteData;
             notify(byteAddress);
@@ -480,7 +486,8 @@ public class DataMemory_ATmega328P implements DataMemory {
             }
         } else if (byteAddress == EIFR_ADDR
                 || byteAddress == PCIFR_ADDR
-                || byteAddress == TIFR0_ADDR) {
+                || byteAddress == TIFR0_ADDR
+                || byteAddress == TIFR1_ADDR) {
             //Clear Flag
             sdramMemory[byteAddress] = (byte) (sdramMemory[byteAddress] & (0xFF7F >> (7 - bitPosition)));
 
@@ -515,6 +522,16 @@ public class DataMemory_ATmega328P implements DataMemory {
         }
         notifyIO(byteAddress);
 
+    }
+
+    public synchronized void writeIOByte(int byteAddress, byte byteData) {
+        if (byteAddress == ICR1H_ADDR){
+            timer1_TEMP = byteData;
+        } else if (byteAddress == ICR1L_ADDR){
+            sdramMemory[byteAddress] = byteData;
+            sdramMemory[ICR1H_ADDR] = timer1_TEMP;
+        }
+        sdramMemory[byteAddress] = byteData;
     }
 
     @Override
@@ -558,4 +575,5 @@ public class DataMemory_ATmega328P implements DataMemory {
     public boolean readForceMatchB_timer1() {
         return (0x01 & (sdramMemory[TCCR1C_ADDR] >> 6)) != 0;
     }
+
 }
