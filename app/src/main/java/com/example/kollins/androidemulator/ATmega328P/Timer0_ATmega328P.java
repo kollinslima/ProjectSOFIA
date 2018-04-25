@@ -571,7 +571,7 @@ public class Timer0_ATmega328P implements Timer0Module {
                         //OC0A Clear on Compare Match, set at BOTTOM
                         timerOutputControl_OC0A = true;
                         if (doubleBufferOCR0A == MAX) {
-                            stateOC0A = IOModule.LOW_LEVEL;
+                            stateOC0A = IOModule.HIGH_LEVEL;
                             ioModule.setOC0A(stateOC0A);
                         } else {
                             if (match_A) {
@@ -588,7 +588,7 @@ public class Timer0_ATmega328P implements Timer0Module {
                         //OC0A Set on Compare Match, clear at BOTTOM
                         timerOutputControl_OC0A = true;
                         if (doubleBufferOCR0A == MAX) {
-                            stateOC0A = IOModule.HIGH_LEVEL;
+                            stateOC0A = IOModule.LOW_LEVEL;
                             ioModule.setOC0A(stateOC0A);
                         } else {
                             if (match_A) {
@@ -781,13 +781,7 @@ public class Timer0_ATmega328P implements Timer0Module {
                 if (nextClear) {
                     nextClear = false;
                     progress = BOTTOM;
-                }
-
-                if (progress == BOTTOM && nextOverflow) {
-                    nextOverflow = false;
                     UCModule.interruptionModule.timer0Overflow();
-                } else if (progress == MAX) {
-                    nextOverflow = true;
                 }
 
                 if (progress == doubleBufferOCR0A) {

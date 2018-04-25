@@ -136,6 +136,7 @@ public class DataMemory_ATmega328P implements DataMemory {
     private Bundle ioBundle;
 
     private byte timer1_TEMP;
+    private boolean flagOCR1AReady;
 
     public DataMemory_ATmega328P(IOModule ioModule) {
         sdramMemory = new byte[SDRAM_SIZE];
@@ -143,6 +144,7 @@ public class DataMemory_ATmega328P implements DataMemory {
         this.ioModule = ioModule;
 
         ioBundle = new Bundle();
+        flagOCR1AReady = false;
 
         initDefaultContent();
     }
@@ -404,9 +406,9 @@ public class DataMemory_ATmega328P implements DataMemory {
 
     @Override
     public synchronized void writeByte(int byteAddress, byte byteData) {
-//        Log.d(UCModule.MY_LOG_TAG,
-//                String.format("Write byte SDRAM\nAddress: 0x%s, Data: 0x%02X",
-//                        Integer.toHexString((int) byteAddress), byteData));
+        Log.d(UCModule.MY_LOG_TAG,
+                String.format("Write byte SDRAM\nAddress: 0x%s, Data: 0x%02X",
+                        Integer.toHexString((int) byteAddress), byteData));
 
         if (byteAddress == PINB_ADDR || byteAddress == PINC_ADDR || byteAddress == PIND_ADDR) {
             //Toggle bits in PORTx
@@ -455,6 +457,7 @@ public class DataMemory_ATmega328P implements DataMemory {
         } else if (byteAddress == OCR1AL_ADDR){
             sdramMemory[byteAddress] = byteData;
             sdramMemory[OCR1AH_ADDR] = timer1_TEMP;
+            flagOCR1AReady = true;
         } else if (byteAddress == OCR1BL_ADDR){
             sdramMemory[byteAddress] = byteData;
             sdramMemory[OCR1BH_ADDR] = timer1_TEMP;
@@ -576,4 +579,7 @@ public class DataMemory_ATmega328P implements DataMemory {
         return (0x01 & (sdramMemory[TCCR1C_ADDR] >> 6)) != 0;
     }
 
+    public boolean isOCR1AReady() {
+        return flagOCR1AReady;
+    }
 }

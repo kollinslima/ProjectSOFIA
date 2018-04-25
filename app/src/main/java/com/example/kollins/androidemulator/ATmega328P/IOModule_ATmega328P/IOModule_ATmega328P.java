@@ -32,8 +32,8 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
     private final int OC0B_PIN_POSITION = 5;
     private final int OC0A_PIN_POSITION = 6;
 
-    private final int OC1B_PIN_POSITION = 9;
-    private final int OC1A_PIN_POSITION = 10;
+    private final int OC1B_PIN_POSITION = 10;
+    private final int OC1A_PIN_POSITION = 9;
 
     private byte portRead;
     private byte configRead;
