@@ -54,6 +54,9 @@ public class Timer0_ATmega328P implements Timer0Module {
 
         nextOverflow = false;
         nextClear = false;
+
+        doubleBufferOCR0A = 0;
+        doubleBufferOCR0B = 0;
     }
 
     @Override
@@ -682,8 +685,6 @@ public class Timer0_ATmega328P implements Timer0Module {
                     case 0x40:
                         timerOutputControl_OC0A = true;
                         if (match_A) {
-                            Log.i("TIMER0", "UPDATE A");
-                            Log.i("TIMER0", "Progress: " + progress);
                             stateOC0A = (stateOC0A + 1) % 2;
                             ioModule.setOC0A(stateOC0A);
                         }
@@ -740,8 +741,6 @@ public class Timer0_ATmega328P implements Timer0Module {
                         //OC0B Clear on Compare Match counting up, OC0B Set on Compare Match counting down
                         timerOutputControl_OC0B = true;
                         if (match_B) {
-                            Log.i("TIMER0", "UPDATE B");
-                            Log.i("TIMER0", "Progress: " + progress);
                             if (phaseCorrect_UPCount) {
                                 stateOC0B = IOModule.LOW_LEVEL;
                             } else {

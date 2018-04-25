@@ -5,7 +5,8 @@
     <!--CPU-->
     <!--TIMER 0-->
     <!--TIMER 1-->
-    <integer name="ATmega328P">3</integer>
+    <!--TIMER 2-->
+    <integer name="ATmega328P">4</integer>
 
     <!--Position in array of pins-->
     <integer name="UNO_defaultPinPosition">13</integer>

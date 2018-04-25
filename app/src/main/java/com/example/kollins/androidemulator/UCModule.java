@@ -5,6 +5,7 @@ import android.content.res.Resources;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.os.SystemClock;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -22,6 +23,7 @@ import com.example.kollins.androidemulator.uCInterfaces.OutputFragment;
 import com.example.kollins.androidemulator.uCInterfaces.ProgramMemory;
 import com.example.kollins.androidemulator.uCInterfaces.Timer0Module;
 import com.example.kollins.androidemulator.uCInterfaces.Timer1Module;
+import com.example.kollins.androidemulator.uCInterfaces.Timer2Module;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
@@ -36,12 +38,13 @@ import java.util.concurrent.locks.ReentrantLock;
 public class UCModule extends AppCompatActivity {
 
     //To calculate efective clock average
-    private static int sum, n;
+    private static int sum, n = 0;
 
     public static final int CPU_ID = 0;
     public static final int SIMULATED_TIMER_ID = 1;
     public static final int TIMER0_ID = 2;
     public static final int TIMER1_ID = 3;
+    public static final int TIMER2_ID = 4;
 //    public static final int MANUAL_CLOCK = 3;
 
     public static String PACKAGE_NAME;
@@ -79,6 +82,9 @@ public class UCModule extends AppCompatActivity {
 
     private Timer1Module timer1;
     private Thread threadTimer1;
+
+    private Timer2Module timer2;
+    private Thread threadTimer2;
 
     private uCHandler uCHandler;
 
@@ -211,6 +217,14 @@ public class UCModule extends AppCompatActivity {
 
                 threadTimer1 = new Thread(timer1);
                 threadTimer1.start();
+
+                //Init Timer2
+                Class timer2Device = Class.forName(PACKAGE_NAME + "." + device + ".Timer2_" + device);
+                timer2 = (Timer2Module) timer2Device.getDeclaredConstructor(DataMemory.class, Handler.class, Lock.class, UCModule.class, IOModule.class)
+                        .newInstance(dataMemory, uCHandler, clockLock, this, ucView.getIOModule());
+
+                threadTimer2 = new Thread(timer2);
+                threadTimer2.start();
 
                 resetManager = 0;
                 setUpSuccessful = true;
@@ -416,6 +430,19 @@ public class UCModule extends AppCompatActivity {
 
                 resetManager = 4;
             }
+            if (threadTimer2 != null) {
+                Log.i(MY_LOG_TAG, "Waiting Timer2 thread");
+                while (threadTimer2.isAlive()) {
+                    timer2.clockTimer2();
+                }
+                threadTimer2.join();
+
+                clockLock.lock();
+                clockVector[TIMER2_ID] = true;
+                clockLock.unlock();
+
+                resetManager = 5;
+            }
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -444,12 +471,12 @@ public class UCModule extends AppCompatActivity {
 
     public class uCHandler extends Handler {
 
-        private long time1 = 0, time2 = 0;
-
-        private double getAvgClock(double newClock) {
-            sum += newClock;
-            return (sum / ++n);
-        }
+//        private long time1 = 0, time2 = 0;
+//
+//        private double getAvgClock(double newClock) {
+//            sum += newClock;
+//            return (sum / ++n);
+//        }
 
 
         @Override
@@ -459,7 +486,7 @@ public class UCModule extends AppCompatActivity {
             switch (action) {
                 case CLOCK_ACTION:
 
-                    //Measure efective clock
+//                    Measure efective clock
 //                    time2 = SystemClock.elapsedRealtimeNanos();
 //                    Log.i("Clock", String.valueOf(getAvgClock(Math.pow(10, 9) / (time2 - time1))));
 //                    time1 = time2;
@@ -468,6 +495,7 @@ public class UCModule extends AppCompatActivity {
                     cpuModule.clockCPU();
                     timer0.clockTimer0();
                     timer1.clockTimer1();
+                    timer2.clockTimer2();
                     break;
 
                 case RESET_ACTION:

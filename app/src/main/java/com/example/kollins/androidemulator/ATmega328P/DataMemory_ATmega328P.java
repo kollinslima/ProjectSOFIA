@@ -377,9 +377,9 @@ public class DataMemory_ATmega328P implements DataMemory {
 
     @Override
     public synchronized byte readByte(int byteAddress) {
-//        Log.d(UCModule.MY_LOG_TAG,
-//                String.format("Read byte SDRAM\nAddress: 0x%s, Data read: 0x%02X",
-//                        Integer.toHexString((int) byteAddress), sdramMemory[byteAddress]));
+        Log.d(UCModule.MY_LOG_TAG,
+                String.format("Read byte SDRAM\nAddress: 0x%s, Data read: 0x%02X",
+                        Integer.toHexString((int) byteAddress), sdramMemory[byteAddress]));
 
         if (byteAddress == TCCR0B_ADDR) {
             return (byte) (0x0F & sdramMemory[byteAddress]);    //Force math always read as 0
@@ -433,10 +433,11 @@ public class DataMemory_ATmega328P implements DataMemory {
 //                    writeBit(byteAddress+2, i, !readBit(byteAddress+2, i));
 //                }
 //            }
-        } else if ((byteAddress == EIFR_ADDR
+        } else if (byteAddress == EIFR_ADDR
                 || byteAddress == PCIFR_ADDR
                 || byteAddress == TIFR0_ADDR
-                || byteAddress == TIFR1_ADDR)) {
+                || byteAddress == TIFR1_ADDR
+                || byteAddress == TIFR2_ADDR) {
             //Clear Flags
             sdramMemory[byteAddress] = 0x00;
         } else if (byteAddress == GTCCR_ADDR) {
@@ -490,7 +491,8 @@ public class DataMemory_ATmega328P implements DataMemory {
         } else if (byteAddress == EIFR_ADDR
                 || byteAddress == PCIFR_ADDR
                 || byteAddress == TIFR0_ADDR
-                || byteAddress == TIFR1_ADDR) {
+                || byteAddress == TIFR1_ADDR
+                || byteAddress == TIFR2_ADDR) {
             //Clear Flag
             sdramMemory[byteAddress] = (byte) (sdramMemory[byteAddress] & (0xFF7F >> (7 - bitPosition)));
 
@@ -581,5 +583,13 @@ public class DataMemory_ATmega328P implements DataMemory {
 
     public boolean isOCR1AReady() {
         return flagOCR1AReady;
+    }
+
+    public boolean readForceMatchA_timer2() {
+        return (0x01 & (sdramMemory[TCCR2B_ADDR] >> 7)) != 0;
+    }
+
+    public boolean readForceMatchB_timer2() {
+        return (0x01 & (sdramMemory[TCCR2B_ADDR] >> 6)) != 0;
     }
 }
