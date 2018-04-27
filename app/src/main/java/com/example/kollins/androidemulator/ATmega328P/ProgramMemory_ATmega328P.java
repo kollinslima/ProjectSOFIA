@@ -70,10 +70,15 @@ public class ProgramMemory_ATmega328P implements ProgramMemory {
         //All set to read and write data in SDCard
         if (Environment.MEDIA_MOUNTED.equals(state) || Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)) {
 
-            File dcimDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
+            File fileDir = null;
+            if (hexFileLocation.equals(UCModule.DEFAULT_HEX_LOCATION)) {
+                fileDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
+            } else {
+                fileDir = Environment.getExternalStorageDirectory();
+            }
 
-            if (dcimDir.exists()) {
-                File hexFile = new File(dcimDir, hexFileLocation);
+            if (fileDir.exists()) {
+                File hexFile = new File(fileDir, hexFileLocation);
                 if (!hexFile.exists()) {
 
                     //If file was not found, wait 1s and try again
@@ -83,10 +88,10 @@ public class ProgramMemory_ATmega328P implements ProgramMemory {
                         e.printStackTrace();
                     }
 
-                    hexFile = new File(dcimDir, hexFileLocation);
+                    hexFile = new File(fileDir, hexFileLocation);
                     if (!hexFile.exists()) {
                         //Not found again? Sorry, I give up...
-                        Log.e(UCModule.MY_LOG_TAG, "ERROR: File not found");
+                        Log.e(UCModule.MY_LOG_TAG, "ERROR: File not found\n" + hexFileLocation);
                         return false;
                     }
 

@@ -1,4 +1,4 @@
-package com.example.kollins.androidemulator;
+package com.example.kollins.androidemulator.Extra;
 
 import android.content.Context;
 import android.content.Intent;
@@ -9,7 +9,10 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 
+import com.example.kollins.androidemulator.CPUModule;
 import com.example.kollins.androidemulator.Database.DataBaseHelper;
+import com.example.kollins.androidemulator.R;
+import com.example.kollins.androidemulator.UCModule;
 
 import java.io.IOException;
 

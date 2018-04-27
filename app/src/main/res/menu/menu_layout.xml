@@ -12,6 +12,11 @@
         android:title="@string/action_add"
         app:showAsAction="ifRoom"/>
 
+    <item android:id="@+id/action_import"
+        android:icon="@drawable/ic_action_import"
+        android:title="@string/action_import"
+        app:showAsAction="ifRoom"/>
+
     <item android:id="@+id/action_clear_io"
         android:title="@string/action_clear_io"
         app:showAsAction="never"/>

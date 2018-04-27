@@ -19,4 +19,6 @@ public interface DataMemory {
     boolean readBit(int byteAddress, int bitPosition);
 
     void setPinHandler(Handler pinHandler);
+
+    double getMemoryUsage();
 }

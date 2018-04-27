@@ -638,7 +638,31 @@ public class CPUModule implements Runnable, CPUInstructions {
         INSTRUCTION_DEC {
             @Override
             public void executeInstruction() {
-                Log.w(UCModule.MY_LOG_TAG, "Not implemented instruction: DEC");
+                /*************************DEC***********************/
+                Log.d(UCModule.MY_LOG_TAG, "Instruction DEC");
+
+                byte regD = dataMemory.readByte((0x01F0 & instruction) >> 4);
+                byte result = (byte) (regD - 1);
+
+                dataMemory.writeByte((0x01F0 & instruction) >> 4, result);
+
+
+                //Flag V
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 3,
+                        ((result & 0x000000FF) == 0x7F));
+
+                //Flag N
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 2,
+                        !((result & 0x00000080) == 0));
+
+                //Flag S
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 4,
+                        dataMemory.readBit(DataMemory_ATmega328P.SREG_ADDR, 2) ^ dataMemory.readBit(DataMemory_ATmega328P.SREG_ADDR, 3));
+
+                //Flag Z
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 1,
+                        ((result & 0x000000FF) == 0));
+
             }
         },
         INSTRUCTION_EOR {//EOR - CLR
@@ -737,7 +761,31 @@ public class CPUModule implements Runnable, CPUInstructions {
         INSTRUCTION_INC {
             @Override
             public void executeInstruction() {
-                Log.w(UCModule.MY_LOG_TAG, "Not implemented instruction: INC");
+                /*************************INC***********************/
+                Log.d(UCModule.MY_LOG_TAG, "Instruction INC");
+
+                byte regD = dataMemory.readByte((0x01F0 & instruction) >> 4);
+                byte result = (byte) (regD + 1);
+
+                dataMemory.writeByte((0x01F0 & instruction) >> 4, result);
+
+
+                //Flag V
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 3,
+                        ((result & 0x000000FF) == 0x80));
+
+                //Flag N
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 2,
+                        !((result & 0x00000080) == 0));
+
+                //Flag S
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 4,
+                        dataMemory.readBit(DataMemory_ATmega328P.SREG_ADDR, 2) ^ dataMemory.readBit(DataMemory_ATmega328P.SREG_ADDR, 3));
+
+                //Flag Z
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 1,
+                        ((result & 0x000000FF) == 0));
+
             }
         },
         INSTRUCTION_JMP {
@@ -760,13 +808,26 @@ public class CPUModule implements Runnable, CPUInstructions {
         INSTRUCTION_LD_X_POST_INCREMENT {
             @Override
             public void executeInstruction() {
-                Log.w(UCModule.MY_LOG_TAG, "Not implemented instruction: LD_X_POST_INCREMENT");
+                /*************************LD (X Post Increment)***********************/
+                Log.d(UCModule.MY_LOG_TAG, "Instruction LD (X Post Increment)");
+
+                waitClock();
+
+                byte xRegL = dataMemory.readByte(0x1A);
+                byte xRegH = dataMemory.readByte(0x1B);
+                int destAddress = (0x0000FF00 & (xRegH << 8)) | (0x000000FF & xRegL);
+
+                dataMemory.writeByte((0x01F0 & instruction) >> 4, dataMemory.readByte(destAddress));
+
+                destAddress += 1;
+                dataMemory.writeByte(0x1A, (byte) (0x000000FF & destAddress));
+                dataMemory.writeByte(0x1B, (byte) ((0x0000FF00 & destAddress) >> 8));
             }
         },
-        INSTRUCTION_LD_X_PRE_INCREMENT {
+        INSTRUCTION_LD_X_PRE_DECREMENT {
             @Override
             public void executeInstruction() {
-                Log.w(UCModule.MY_LOG_TAG, "Not implemented instruction: LD_X_PRE_INCREMENT");
+                Log.w(UCModule.MY_LOG_TAG, "Not implemented instruction: LD_X_PRE_DECREMENT");
             }
         },
         INSTRUCTION_LD_X_UNCHANGED {
@@ -790,10 +851,10 @@ public class CPUModule implements Runnable, CPUInstructions {
                 Log.w(UCModule.MY_LOG_TAG, "Not implemented instruction: LD_Y_POST_INCREMENT");
             }
         },
-        INSTRUCTION_LD_Y_PRE_INCREMENT {
+        INSTRUCTION_LD_Y_PRE_DECREMENT {
             @Override
             public void executeInstruction() {
-                Log.w(UCModule.MY_LOG_TAG, "Not implemented instruction: LD_X_PRE_INCREMENT");
+                Log.w(UCModule.MY_LOG_TAG, "Not implemented instruction: LD_X_PRE_DECREMENT");
             }
         },
         INSTRUCTION_LD_Y_UNCHANGED {
@@ -805,13 +866,26 @@ public class CPUModule implements Runnable, CPUInstructions {
         INSTRUCTION_LD_Z_POST_INCREMENT {
             @Override
             public void executeInstruction() {
-                Log.w(UCModule.MY_LOG_TAG, "Not implemented instruction: LD_Z_POST_INCREMENT");
+                /*************************LD (Z Post Increment)***********************/
+                Log.d(UCModule.MY_LOG_TAG, "Instruction LD (Z Post Increment)");
+
+                waitClock();
+
+                byte zRegL = dataMemory.readByte(0x1E);
+                byte zRegH = dataMemory.readByte(0x1F);
+                int destAddress = (0x0000FF00 & (zRegH << 8)) | (0x000000FF & zRegL);
+
+                dataMemory.writeByte((0x01F0 & instruction) >> 4, dataMemory.readByte(destAddress));
+
+                destAddress += 1;
+                dataMemory.writeByte(0x1E, (byte) (0x000000FF & destAddress));
+                dataMemory.writeByte(0x1F, (byte) ((0x0000FF00 & destAddress) >> 8));
             }
         },
-        INSTRUCTION_LD_Z_PRE_INCREMENT {
+        INSTRUCTION_LD_Z_PRE_DECREMENT {
             @Override
             public void executeInstruction() {
-                Log.w(UCModule.MY_LOG_TAG, "Not implemented instruction: LD_Z_PRE_INCREMENT");
+                Log.w(UCModule.MY_LOG_TAG, "Not implemented instruction: LD_Z_PRE_DECREMENT");
             }
         },
         INSTRUCTION_LD_Z_UNCHANGED {
@@ -838,7 +912,18 @@ public class CPUModule implements Runnable, CPUInstructions {
         INSTRUCTION_LDD_Z {
             @Override
             public void executeInstruction() {
-                Log.w(UCModule.MY_LOG_TAG, "Not implemented instruction: LDD_Z");
+                /*************************LDD (Z)***********************/
+                Log.d(UCModule.MY_LOG_TAG, "Instruction LDD (Z)");
+
+                waitClock();
+
+                byte zRegL = dataMemory.readByte(0x1E);
+                byte zRegH = dataMemory.readByte(0x1F);
+                int destAddress = (0x0000FF00 & (zRegH << 8)) | (0x000000FF & zRegL);
+
+                destAddress += (((0x2000 & instruction)>>8) | ((0x0C00 & instruction)>>7) | (0x0007 & instruction));
+
+                dataMemory.writeByte((0x01F0 & instruction) >> 4, dataMemory.readByte(destAddress));
             }
         },
         INSTRUCTION_LDI {//LDI - SER
@@ -1071,7 +1156,29 @@ public class CPUModule implements Runnable, CPUInstructions {
         INSTRUCTION_RCALL {
             @Override
             public void executeInstruction() {
-                Log.w(UCModule.MY_LOG_TAG, "Not implemented instruction: RCALL");
+                /*************************RCALL***********************/
+                Log.d(UCModule.MY_LOG_TAG, "Instruction RCALL");
+                waitClock();
+                waitClock();
+
+                int callOut = ((0x0FFF & instruction) << 20) >> 20;
+
+                int stackPointer = (dataMemory.readByte(DataMemory_ATmega328P.SPH_ADDR) << 8) |
+                        (0x000000FF & dataMemory.readByte(DataMemory_ATmega328P.SPL_ADDR));
+
+                //Write PC low
+                stackPointer -= 1;
+                dataMemory.writeByte(stackPointer, (byte) (0x000000FF & programMemory.getPC()));
+                stackPointer -= 1;
+                //Write PC high
+                dataMemory.writeByte(stackPointer, (byte) ((0x000000FF & (programMemory.getPC() >> 8))));
+
+                //Update SPL
+                dataMemory.writeByte(DataMemory_ATmega328P.SPL_ADDR, (byte) (0x000000FF & stackPointer));
+                //Update SPH
+                dataMemory.writeByte(DataMemory_ATmega328P.SPH_ADDR, (byte) ((0x0000FF00 & stackPointer) >> 8));
+
+                programMemory.addToPC(callOut);          //Make sign extension to get correct two complement
             }
         },
         INSTRUCTION_RET {
@@ -1150,7 +1257,54 @@ public class CPUModule implements Runnable, CPUInstructions {
         INSTRUCTION_SBC {
             @Override
             public void executeInstruction() {
-                Log.w(UCModule.MY_LOG_TAG, "Not implemented instruction: SBC");
+                /*************************SBC***********************/
+                Log.d(UCModule.MY_LOG_TAG, "Instruction SBC");
+
+                byte regD = dataMemory.readByte(0x10 | (0x00F0 & instruction) >> 4);
+                byte regR = dataMemory.readByte(((0x0200 & instruction) >> 5) | (0x000F & instruction));
+                byte result = (byte) (regD - regR);
+
+                //If carry is set
+                if (dataMemory.readBit(DataMemory_ATmega328P.SREG_ADDR, 0)) {
+                    result -= 1;
+                }
+
+                dataMemory.writeByte((0x10 | (0x00F0 & instruction) >> 4), result);
+
+                //Flag H
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 5,
+                        (0x00000001 &
+                                (((((~(0x08 & regD)) & (0x08 & regR)) |
+                                        ((0x08 & result) & (0x08 & regR)) |
+                                        ((~(0x08 & regD)) & (0x08 & result)))
+                                        >> 3))) != 0);
+
+                //Flag V
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 3,
+                        (0x00000001 &
+                                (((0x80 & regD) & (~(0x80 & regR)) & (~(0x80 & result)) |
+                                        (~(0x80 & regD)) & (0x80 & regR) & (0x80 & result))
+                                        >> 7)) != 0);
+
+                //Flag N
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 2,
+                        !((result & 0x00000080) == 0));
+
+                //Flag S
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 4,
+                        dataMemory.readBit(DataMemory_ATmega328P.SREG_ADDR, 2) ^ dataMemory.readBit(DataMemory_ATmega328P.SREG_ADDR, 3));
+
+                //Flag Z
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 1,
+                        ((result & 0x000000FF) == 0) & dataMemory.readBit(DataMemory_ATmega328P.SREG_ADDR, 1));
+
+                //Flag C
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 0,
+                        (0x00000001 &
+                                (((((~(0x80 & regD)) & (0x80 & regR)) |
+                                        ((0x80 & result) & (0x80 & regR)) |
+                                        ((~(0x80 & regD)) & (0x80 & result)))
+                                        >> 7))) != 0);
             }
         },
         INSTRUCTION_SBCI {
@@ -1334,10 +1488,27 @@ public class CPUModule implements Runnable, CPUInstructions {
                 dataMemory.writeByte(0x1B, xRegH);
             }
         },
-        INSTRUCTION_ST_X_PRE_INCREMENT {
+        INSTRUCTION_ST_X_PRE_DECREMENT {
             @Override
             public void executeInstruction() {
-                Log.w(UCModule.MY_LOG_TAG, "Not implemented instruction: ST_X_PRE_INCREMENT");
+                /*************************ST (X pre decrement)***********************/
+                Log.d(UCModule.MY_LOG_TAG, "Instruction ST (X Pre Decrement)");
+
+                waitClock();
+
+                byte xRegL = dataMemory.readByte(0x1A);
+                byte xRegH = dataMemory.readByte(0x1B);
+                int destAddress = (0x0000FF00 & (xRegH << 8)) | (0x000000FF & xRegL);
+
+                xRegL -= 1;
+                if (xRegL == 0x00) {
+                    xRegH += 1;
+                }
+
+                dataMemory.writeByte(destAddress, dataMemory.readByte((0x01F0 & instruction) >> 4));
+
+                dataMemory.writeByte(0x1A, xRegL);
+                dataMemory.writeByte(0x1B, xRegH);
             }
         },
         INSTRUCTION_ST_X_UNCHANGED {
@@ -1361,10 +1532,10 @@ public class CPUModule implements Runnable, CPUInstructions {
                 Log.w(UCModule.MY_LOG_TAG, "Not implemented instruction: ST_Y_POST_INCREMENT");
             }
         },
-        INSTRUCTION_ST_Y_PRE_INCREMENT {
+        INSTRUCTION_ST_Y_PRE_DECREMENT {
             @Override
             public void executeInstruction() {
-                Log.w(UCModule.MY_LOG_TAG, "Not implemented instruction: ST_X_PRE_INCREMENT");
+                Log.w(UCModule.MY_LOG_TAG, "Not implemented instruction: ST_Y_PRE_DECREMENT");
             }
         },
         INSTRUCTION_ST_Y_UNCHANGED {
@@ -1376,13 +1547,40 @@ public class CPUModule implements Runnable, CPUInstructions {
         INSTRUCTION_ST_Z_POST_INCREMENT {
             @Override
             public void executeInstruction() {
-                Log.w(UCModule.MY_LOG_TAG, "Not implemented instruction: ST_Z_POST_INCREMENT");
+                /*************************ST (Z Post Increment)***********************/
+                Log.d(UCModule.MY_LOG_TAG, "Instruction ST (Z Post Increment)");
+
+                waitClock();
+
+                byte zRegL = dataMemory.readByte(0x1E);
+                byte zRegH = dataMemory.readByte(0x1F);
+                int destAddress = (0x0000FF00 & (zRegH << 8)) | (0x000000FF & zRegL);
+
+                dataMemory.writeByte(destAddress, dataMemory.readByte((0x01F0 & instruction) >> 4));
+
+                destAddress += 1;
+                dataMemory.writeByte(0x1E, (byte) (0x000000FF & destAddress));
+                dataMemory.writeByte(0x1F, (byte) ((0x0000FF00 & destAddress) >> 8));
             }
         },
-        INSTRUCTION_ST_Z_PRE_INCREMENT {
+        INSTRUCTION_ST_Z_PRE_DECREMENT {
             @Override
             public void executeInstruction() {
-                Log.w(UCModule.MY_LOG_TAG, "Not implemented instruction: ST_Z_PRE_INCREMENT");
+                /*************************ST (Z Pre Increment)***********************/
+                Log.d(UCModule.MY_LOG_TAG, "Instruction ST (Z Pre Decrement)");
+
+                waitClock();
+
+                byte zRegL = dataMemory.readByte(0x1E);
+                byte zRegH = dataMemory.readByte(0x1F);
+                int destAddress = (0x0000FF00 & (zRegH << 8)) | (0x000000FF & zRegL);
+
+                destAddress -= 1;
+
+                dataMemory.writeByte(destAddress, dataMemory.readByte((0x01F0 & instruction) >> 4));
+
+                dataMemory.writeByte(0x1E, (byte) (0x000000FF & destAddress));
+                dataMemory.writeByte(0x1F, (byte) ((0x0000FF00 & destAddress) >> 8));
             }
         },
         INSTRUCTION_ST_Z_UNCHANGED {
@@ -1403,13 +1601,35 @@ public class CPUModule implements Runnable, CPUInstructions {
         INSTRUCTION_STD_Y {
             @Override
             public void executeInstruction() {
-                Log.w(UCModule.MY_LOG_TAG, "Not implemented instruction: STD_Y");
+                /*************************STD (Y)***********************/
+                Log.d(UCModule.MY_LOG_TAG, "Instruction STD (Y)");
+
+                waitClock();
+
+                byte yRegL = dataMemory.readByte(0x1C);
+                byte yRegH = dataMemory.readByte(0x1D);
+                int destAddress = (0x0000FF00 & (yRegH << 8)) | (0x000000FF & yRegL);
+
+                destAddress += (((0x2000 & instruction)>>8) | ((0x0C00 & instruction)>>7) | (0x0007 & instruction));
+
+                dataMemory.writeByte(destAddress, dataMemory.readByte((0x01F0 & instruction) >> 4));
             }
         },
         INSTRUCTION_STD_Z {
             @Override
             public void executeInstruction() {
-                Log.w(UCModule.MY_LOG_TAG, "Not implemented instruction: STD_Z");
+                /*************************STD (Z)***********************/
+                Log.d(UCModule.MY_LOG_TAG, "Instruction STD (Z)");
+
+                waitClock();
+
+                byte zRegL = dataMemory.readByte(0x1E);
+                byte zRegH = dataMemory.readByte(0x1F);
+                int destAddress = (0x0000FF00 & (zRegH << 8)) | (0x000000FF & zRegL);
+
+                destAddress += (((0x2000 & instruction)>>8) | ((0x0C00 & instruction)>>7) | (0x0007 & instruction));
+
+                dataMemory.writeByte(destAddress, dataMemory.readByte((0x01F0 & instruction) >> 4));
             }
         },
         INSTRUCTION_STS {
@@ -1428,7 +1648,50 @@ public class CPUModule implements Runnable, CPUInstructions {
         INSTRUCTION_SUB {
             @Override
             public void executeInstruction() {
-                Log.w(UCModule.MY_LOG_TAG, "Not implemented instruction: SUB");
+                /*************************SUB***********************/
+                Log.d(UCModule.MY_LOG_TAG, "Instruction SUB");
+
+                byte regD = dataMemory.readByte((0x01F0 & instruction) >> 4);
+                byte regR = dataMemory.readByte(((0x0200 & instruction) >> 5) | (0x000F & instruction));
+
+                byte result = (byte) (regD - regR);
+
+                dataMemory.writeByte((0x01F0 & instruction) >> 4, result);
+
+                //Flag H
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 5,
+                        (0x00000001 &
+                                (((((~(0x08 & regD)) & (0x08 & regR)) |
+                                        ((0x08 & result) & (0x08 & regR)) |
+                                        ((~(0x08 & regD)) & (0x08 & result)))
+                                        >> 3))) != 0);
+
+                //Flag V
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 3,
+                        (0x00000001 &
+                                (((0x80 & regD) & (~(0x80 & regR)) & (~(0x80 & result)) |
+                                        (~(0x80 & regD)) & (0x80 & regR) & (0x80 & result))
+                                        >> 7)) != 0);
+
+                //Flag N
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 2,
+                        !((result & 0x00000080) == 0));
+
+                //Flag S
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 4,
+                        dataMemory.readBit(DataMemory_ATmega328P.SREG_ADDR, 2) ^ dataMemory.readBit(DataMemory_ATmega328P.SREG_ADDR, 3));
+
+                //Flag Z
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 1,
+                        ((result & 0x000000FF) == 0));
+
+                //Flag C
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 0,
+                        (0x00000001 &
+                                (((((~(0x80 & regD)) & (0x80 & regR)) |
+                                        ((0x80 & result) & (0x80 & regR)) |
+                                        ((~(0x80 & regD)) & (0x80 & result)))
+                                        >> 7))) != 0);
             }
         },
         INSTRUCTION_SUBI {

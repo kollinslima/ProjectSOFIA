@@ -5,8 +5,6 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
-import com.example.kollins.androidemulator.ATmega328P.IOModule_ATmega328P.IOModule_ATmega328P;
-import com.example.kollins.androidemulator.ATmega328P.IOModule_ATmega328P.Output.OutputFragment_ATmega328P;
 import com.example.kollins.androidemulator.UCModule;
 import com.example.kollins.androidemulator.uCInterfaces.DataMemory;
 import com.example.kollins.androidemulator.uCInterfaces.IOModule;
@@ -126,9 +124,16 @@ public class DataMemory_ATmega328P implements DataMemory {
     public static final int UBRR0H_ADDR = 0xC5;
     public static final int UDR0_ADDR = 0xC6;
 
-    //2kBytes SDRAM + 32 Registers + 64 I/O Registers + 160 Ext I/O Registers
-    private final int SDRAM_SIZE = (2 * ((int) Math.pow(2, 10))) + 32 + 64 + 160;
+    private final int RAMEND = 0x08FF;
+    private final int SDRAM_EXTERNAL_SIZE = (2 * ((int) Math.pow(2, 10)));
+
+    //2kBytes external SDRAM + 32 Registers + 64 I/O Registers + 160 Ext I/O Registers
+    private final int SDRAM_SIZE_TOTAL = SDRAM_EXTERNAL_SIZE + 32 + 64 + 160;
     private byte[] sdramMemory;
+
+    public static int memoryUsageMeasure;
+    private boolean[] memoryUsage;
+    private int oldStackPointer;
 
     private Handler pinHandler;
     private IOModule ioModule;
@@ -136,15 +141,22 @@ public class DataMemory_ATmega328P implements DataMemory {
     private Bundle ioBundle;
 
     private byte timer1_TEMP;
-    private boolean flagOCR1AReady;
+    private boolean flagOCR1AReady, stackPointerReady;
+    private boolean timer1WriteEnable;
 
     public DataMemory_ATmega328P(IOModule ioModule) {
-        sdramMemory = new byte[SDRAM_SIZE];
+        sdramMemory = new byte[SDRAM_SIZE_TOTAL];
+        memoryUsageMeasure = 0;
+        memoryUsage = new boolean[SDRAM_EXTERNAL_SIZE];
+        oldStackPointer = RAMEND;
+
         this.pinHandler = (Handler) ioModule;
         this.ioModule = ioModule;
 
         ioBundle = new Bundle();
         flagOCR1AReady = false;
+        stackPointerReady = false;
+        timer1WriteEnable = false;
 
         initDefaultContent();
     }
@@ -262,7 +274,7 @@ public class DataMemory_ATmega328P implements DataMemory {
 
     @Override
     public int getMemorySize() {
-        return SDRAM_SIZE;
+        return SDRAM_SIZE_TOTAL;
     }
 
     private void notify(int byteAddress) {
@@ -404,6 +416,42 @@ public class DataMemory_ATmega328P implements DataMemory {
         return sdramMemory[byteAddress];
     }
 
+    private void updateMemoryUsage(int byteAddress){
+
+        int memoryUsageAddress = byteAddress - 0x0100;
+
+        //EXTERNAL SDRAM START FOR UNO
+        if (byteAddress >= 0x0100){
+            if (!memoryUsage[memoryUsageAddress]){
+                Log.d("MemoryMeasure", "More memory...");
+                memoryUsage[memoryUsageAddress] = true;
+                memoryUsageMeasure += 1;
+            }
+        }
+
+        int stackPointer = (sdramMemory[SPH_ADDR] << 8) |
+                (0x000000FF & sdramMemory[SPL_ADDR]);
+
+        if (stackPointer == RAMEND){
+            stackPointerReady = true;
+        }
+
+        if (stackPointerReady) {
+            //POP
+            if (stackPointer > oldStackPointer) {
+                memoryUsage[oldStackPointer - 0x0100] = false;
+                memoryUsageMeasure -= 1;
+            }
+            oldStackPointer = stackPointer;
+        }
+    }
+
+    @Override
+    public double getMemoryUsage(){
+        return ((double)memoryUsageMeasure/SDRAM_EXTERNAL_SIZE);
+//        return memoryUsageMeasure;
+    }
+
     @Override
     public synchronized void writeByte(int byteAddress, byte byteData) {
         Log.d(UCModule.MY_LOG_TAG,
@@ -453,6 +501,7 @@ public class DataMemory_ATmega328P implements DataMemory {
                 || byteAddress == OCR1BH_ADDR){
             timer1_TEMP = byteData;
         } else if (byteAddress == TCNT1L_ADDR){
+            timer1WriteEnable = false;
             sdramMemory[byteAddress] = byteData;
             sdramMemory[TCNT1H_ADDR] = timer1_TEMP;
         } else if (byteAddress == OCR1AL_ADDR){
@@ -475,6 +524,9 @@ public class DataMemory_ATmega328P implements DataMemory {
             sdramMemory[byteAddress] = byteData;
             notify(byteAddress);
         }
+
+        updateMemoryUsage(byteAddress);
+
     }
 
     @Override
@@ -537,6 +589,7 @@ public class DataMemory_ATmega328P implements DataMemory {
             sdramMemory[ICR1H_ADDR] = timer1_TEMP;
         }
         sdramMemory[byteAddress] = byteData;
+        updateMemoryUsage(byteAddress);
     }
 
     @Override
@@ -550,6 +603,28 @@ public class DataMemory_ATmega328P implements DataMemory {
         }
         return (0x01 & (sdramMemory[byteAddress] >> bitPosition)) != 0;
 
+    }
+
+    public synchronized void write16bits(int byteAddressLow, int byteAddressHigh,byte byteLow, byte byteHigh){
+
+        //Write TCNT1L and TCNT1H
+        if (byteAddressLow == 0x84 && !timer1WriteEnable){
+            return;
+        }
+        sdramMemory[byteAddressLow] = byteLow;
+        sdramMemory[byteAddressHigh] = byteHigh;
+    }
+
+    public synchronized char read16bits(int byteAddressLow, int byteAddressHigh){
+        char data = (char) (0x00FF & sdramMemory[byteAddressLow]);
+        data = (char) ((sdramMemory[byteAddressHigh] << 8) | data);
+
+        //Read TCNT1L and TCNT1H
+        if (byteAddressLow == 0x84){
+            timer1WriteEnable = true;
+        }
+
+        return data;
     }
 
 

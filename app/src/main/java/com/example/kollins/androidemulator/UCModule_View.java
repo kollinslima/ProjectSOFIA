@@ -1,6 +1,9 @@
 package com.example.kollins.androidemulator;
 
+import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.content.res.Resources;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v4.app.Fragment;
@@ -19,7 +22,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.example.kollins.androidemulator.Extra.PathUtil;
 import com.example.kollins.androidemulator.uCInterfaces.DataMemory;
 import com.example.kollins.androidemulator.uCInterfaces.InputFragment;
 import com.example.kollins.androidemulator.uCInterfaces.IOModule;
@@ -30,6 +35,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 
+import static android.app.Activity.RESULT_OK;
+
 /**
  * Created by kollins on 3/23/18.
  */
@@ -38,7 +45,7 @@ public class UCModule_View extends Fragment implements Runnable {
 
     public enum LED_STATUS {RUNNING, SHORT_CIRCUIT, HEX_FILE_ERROR}
 
-    ;
+    private static final int FILE_IMPORT_CODE = 0;
 
     public static final int REMOVE_OUTPUT_FRAGMENT = 0;
     public static final int REMOVE_INPUT_FRAGMENT = 1;
@@ -64,9 +71,9 @@ public class UCModule_View extends Fragment implements Runnable {
 
     private Toolbar toolbar;
 
-    private TextView simulatedTimeDisplay, startInstructions, statusInfo, hexFileErrorInstructions;
+    private TextView simulatedTimeDisplay, startInstructions, statusInfo, memoryUsage, hexFileErrorInstructions;
     private long simulatedTime;
-    private String simulatedText;
+    private String simulatedText, memoryUsageText;
     private long nanoSeconds;
 //    private long microSeconds;
     private long seconds;
@@ -118,8 +125,9 @@ public class UCModule_View extends Fragment implements Runnable {
 //        ((AppCompatActivity)getActivity()).setSupportActionBar((Toolbar) view.findViewById(R.id.mainToolbar));
 
         statusInfo = (TextView) view.findViewById(R.id.statusInfo);
-
         simulatedTimeDisplay = (TextView) view.findViewById(R.id.simulatedTime);
+        memoryUsage = (TextView) view.findViewById(R.id.memoryUsage);
+
         startInstructions = (TextView) view.findViewById(R.id.startInstructions);
         hexFileErrorInstructions = (TextView) view.findViewById(R.id.hexFileErrorInstructions);
 
@@ -129,6 +137,7 @@ public class UCModule_View extends Fragment implements Runnable {
         return view;
     }
 
+    @SuppressLint("StringFormatInvalid")
     @Override
     public void run() {
         Thread.currentThread().setName("UCModule_View");
@@ -143,11 +152,13 @@ public class UCModule_View extends Fragment implements Runnable {
 //            seconds = TimeUnit.MICROSECONDS.toSeconds(microSeconds);
 
             simulatedText = resources.getString(R.string.simulated_time_format, seconds, nanoSeconds);
+            memoryUsageText = resources.getString(R.string.memory_usage_format, ucModule.getMemoryUsage());
 
             screenUpdater.post(new Runnable() {
                 @Override
                 public void run() {
                     simulatedTimeDisplay.setText(simulatedText);
+                    memoryUsage.setText(memoryUsageText);
                 }
             });
         }
@@ -262,15 +273,51 @@ public class UCModule_View extends Fragment implements Runnable {
                     popup.show();
                     break;
 
+                case R.id.action_import:
+                    /*
+                    Thanks: https://stackoverflow.com/questions/7856959/android-file-chooser
+                     */
+                    Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                    intent.setType("*/*");
+                    intent.addCategory(Intent.CATEGORY_OPENABLE);
+
+                    try {
+                        startActivityForResult(
+                                Intent.createChooser(intent, "Select a File to Import"),
+                                FILE_IMPORT_CODE);
+                    } catch (android.content.ActivityNotFoundException ex) {
+                        // Potentially direct the user to the Market with a Dialog
+                        Toast.makeText(getContext(), "Please install a File Manager.",
+                                Toast.LENGTH_SHORT).show();
+                    }
+                    break;
+
                 case R.id.action_clear_io:
                     outputFragment.clearAll();
                     outputFrame.setVisibility(View.GONE);
                     inputFragment.clearAll();
                     inputFrame.setVisibility(View.GONE);
+                    startInstructions.setVisibility(View.VISIBLE);
                     break;
             }
             return true;
         }
+
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch (requestCode) {
+            case FILE_IMPORT_CODE:
+                if (resultCode == RESULT_OK) {
+                    Uri uri = data.getData();
+                    Log.d("FileImporter", "Path: " + PathUtil.getPath(getContext(),uri));
+                    ucModule.changeFileLocation(PathUtil.getPath(getContext(),uri));
+                    uCHandler.sendEmptyMessage(UCModule.RESET_ACTION);
+                }
+                break;
+        }
+        super.onActivityResult(requestCode, resultCode, data);
     }
 
     private class PopUpMenuItemClick implements PopupMenu.OnMenuItemClickListener {

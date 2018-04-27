@@ -56,8 +56,8 @@ public class UCModule extends AppCompatActivity {
     public static Resources resources;
 
     //Default location
-    private String hexFolderLocation = "ArduinoSimulator/";
-    private String hexFileLocation = hexFolderLocation + "code.hex";
+    public static final String DEFAULT_HEX_LOCATION = "ArduinoSimulator/code.hex";
+    private String hexFileLocation = DEFAULT_HEX_LOCATION;
 
     public static final int RESET_ACTION = 0;
     public static final int CLOCK_ACTION = 1;
@@ -246,6 +246,11 @@ public class UCModule extends AppCompatActivity {
             e.printStackTrace();
         }
 
+    }
+
+    public int getMemoryUsage() {
+        return (int) (dataMemory.getMemoryUsage()*100);
+//        return (int) dataMemory.getMemoryUsage();
     }
 
     public static int getDeviceModules() {
@@ -467,6 +472,15 @@ public class UCModule extends AppCompatActivity {
 
     private void toast(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+    }
+
+    public void changeFileLocation(String newHexFileLocation) {
+        if (newHexFileLocation.substring(newHexFileLocation.length() - 3).equals("hex")) {
+            hexFileLocation = newHexFileLocation.replace("/storage/emulated/0/", "");
+            Log.d("FileImporter", "New Path: " + hexFileLocation);
+        } else {
+            Toast.makeText(this, "Not a .hex file", Toast.LENGTH_SHORT).show();
+        }
     }
 
     public class uCHandler extends Handler {
