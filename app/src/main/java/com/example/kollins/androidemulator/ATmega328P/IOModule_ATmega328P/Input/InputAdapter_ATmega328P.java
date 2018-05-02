@@ -91,7 +91,7 @@ public class InputAdapter_ATmega328P extends BaseAdapter {
         final InputPin_ATmega328P pin = inputPins.get(position);
 
         if (pin.getDescription()) {
-            //DIGITAL PIN
+            ///////////////////////////////DIGITAL PIN/////////////////////////////////////////
 
             final HintAdapter pinSpinnerAdapter =
                     new HintAdapter(inputFragment.getContext(), android.R.layout.simple_spinner_item, pinArray);
@@ -294,6 +294,8 @@ public class InputAdapter_ATmega328P extends BaseAdapter {
                             case IOModule.PUSH_VDD:
 
                                 inputFragment.requestHiZ(true, pin);
+                                pin.setPinState(IOModule.TRI_STATE);
+                                holder.inputPinState.setBackgroundResource(R.drawable.digital_input_undefined);
 
                                 //Wait for pull Up Request
                                 try {
@@ -302,9 +304,6 @@ public class InputAdapter_ATmega328P extends BaseAdapter {
                                     e.printStackTrace();
                                 }
 
-                                holder.inputPinState.setBackgroundResource(R.drawable.digital_input_undefined);
-                                pin.setPinState(IOModule.TRI_STATE);
-
                                 //Check if request HiZ was acepted
                                 if (pin.getHiZ(pin.getPinSpinnerPosition())) {
                                     if (inputFragment.isPullUpEnabled() && inputFragment.isPinPullUPEnabled(pin.getMemory(), pin.getBitPosition())) {
@@ -312,7 +311,7 @@ public class InputAdapter_ATmega328P extends BaseAdapter {
                                         inputFragment.inputRequest_inputChanel(IOModule.HIGH_LEVEL, pin.getMemory(), pin.getBitPosition(), pin);
 
                                     } else {
-                                        Log.i("Short", "Send random");
+//                                        Log.i("Short", "Send random: ");
                                         inputFragment.inputRequest_inputChanel(randomGenerator.nextInt(2), pin.getMemory(), pin.getBitPosition(), pin);
                                     }
                                 }
@@ -338,7 +337,8 @@ public class InputAdapter_ATmega328P extends BaseAdapter {
                 }
             });
         } else {
-            HintAdapter pinSpinnerAdapter =
+            ///////////////////////////////ANALOGIC PIN/////////////////////////////////////////
+            final HintAdapter pinSpinnerAdapter =
                     new HintAdapter(inputFragment.getContext(), android.R.layout.simple_spinner_item, pinArray);
 
             if (convertView == null) {
@@ -368,11 +368,88 @@ public class InputAdapter_ATmega328P extends BaseAdapter {
                 holder.pinSpinner.setSelection(pin.getPinSpinnerPosition());
             }
 
+            holder.pinSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parent, View view, int positionSpinner, long id) {
+                    if (positionSpinner == pinSpinnerAdapter.getCount()) {
+                        return;
+                    }
+                    pin.setPin(pinArray[positionSpinner]);
+                    pin.setPinSpinnerPosition(positionSpinner);
+
+                    double voltage = sourcePower * (holder.voltageLevel.getProgress() / 100.0);
+
+                    int state = pin.getPinStateFromAnalog(voltage);
+                    pin.setPinState(state);
+
+                    if (state == IOModule.TRI_STATE){
+                        inputFragment.requestHiZ(true, pin);
+
+                        //Wait for pull Up Request
+                        try {
+                            Thread.sleep(10);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+
+                        //Check if request HiZ was acepted
+                        if (pin.getHiZ(pin.getPinSpinnerPosition())) {
+                            if (inputFragment.isPullUpEnabled() && inputFragment.isPinPullUPEnabled(pin.getMemory(), pin.getBitPosition())) {
+                                inputFragment.inputRequest_inputChanel(IOModule.HIGH_LEVEL, pin.getMemory(), pin.getBitPosition(), pin);
+
+                            } else {
+                                inputFragment.inputRequest_inputChanel(randomGenerator.nextInt(2), pin.getMemory(), pin.getBitPosition(), pin);
+                            }
+                        }
+
+                    } else {
+                        inputFragment.requestHiZ(false, pin);
+                        inputFragment.inputRequest_inputChanel(state, pin.getMemory(), pin.getBitPosition(), pin);
+                    }
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> parent) {
+
+                }
+            });
+
             holder.voltageLevel.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
                 @Override
                 public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                     double voltage = sourcePower * (progress / 100.0);
                     holder.voltageDisplay.setText(decimalFormat.format(voltage));
+
+                    int state = pin.getPinStateFromAnalog(voltage);
+                    pin.setPinState(state);
+//                    Log.d("Analog", "AnalogState: " + state);
+
+                    if (state == IOModule.TRI_STATE){
+                        Log.d("Analog", "Analog Request HiZ");
+                        inputFragment.requestHiZ(true, pin);
+
+                        //Wait for pull Up Request
+                        try {
+                            Thread.sleep(10);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+
+                        //Check if request HiZ was acepted
+                        if (pin.getHiZ(pin.getPinSpinnerPosition())) {
+                            if (inputFragment.isPullUpEnabled() && inputFragment.isPinPullUPEnabled(pin.getMemory(), pin.getBitPosition())) {
+                                inputFragment.inputRequest_inputChanel(IOModule.HIGH_LEVEL, pin.getMemory(), pin.getBitPosition(), pin);
+
+                            } else {
+                                inputFragment.inputRequest_inputChanel(randomGenerator.nextInt(2), pin.getMemory(), pin.getBitPosition(), pin);
+                            }
+                        }
+
+                    } else {
+                        Log.d("Analog", "Analog Request State");
+                        inputFragment.requestHiZ(false, pin);
+                        inputFragment.inputRequest_inputChanel(state, pin.getMemory(), pin.getBitPosition(), pin);
+                    }
                 }
 
                 @Override

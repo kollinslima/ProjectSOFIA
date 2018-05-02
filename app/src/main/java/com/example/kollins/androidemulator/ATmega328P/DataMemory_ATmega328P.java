@@ -1,5 +1,6 @@
 package com.example.kollins.androidemulator.ATmega328P;
 
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -168,13 +169,13 @@ public class DataMemory_ATmega328P implements DataMemory {
         /***********************************************/
         sdramMemory[DDRB_ADDR] = 0x00;
         sdramMemory[PORTB_ADDR] = 0x00;
-        notify(DDRB_ADDR);
+        new Notify().execute(DDRB_ADDR);
         sdramMemory[DDRC_ADDR] = 0x00;
         sdramMemory[PORTC_ADDR] = 0x00;
-        notify(DDRC_ADDR);
+        new Notify().execute(DDRC_ADDR);
         sdramMemory[DDRD_ADDR] = 0x00;
         sdramMemory[PORTD_ADDR] = 0x00;
-        notify(DDRD_ADDR);
+        new Notify().execute(DDRD_ADDR);
         /***********************************************/
         sdramMemory[TIFR0_ADDR] = 0x00;
         sdramMemory[TIFR1_ADDR] = 0x00;
@@ -277,116 +278,6 @@ public class DataMemory_ATmega328P implements DataMemory {
         return SDRAM_SIZE_TOTAL;
     }
 
-    private void notify(int byteAddress) {
-//        Log.i(UCModule.MY_LOG_TAG, String.format("Notify Address: 0x%s",
-//                Integer.toHexString((int) byteAddress)));
-        Message ioMessage;
-
-        switch (byteAddress) {
-            case DDRB_ADDR:
-            case PORTB_ADDR:
-
-                ioMessage = new Message();
-
-                ioBundle.putByte(IOModule.CONFIG_IOMESSAGE, readByte(DataMemory_ATmega328P.DDRB_ADDR));
-                ioBundle.putByte(IOModule.PORT_IOMESSAGE, readByte(DataMemory_ATmega328P.PORTB_ADDR));
-
-                ioMessage.what = IOModule.PORTB_EVENT;
-
-                ioMessage.setData(ioBundle);
-
-                pinHandler.dispatchMessage(ioMessage);
-
-                break;
-
-            case DDRC_ADDR:
-            case PORTC_ADDR:
-
-
-                ioMessage = new Message();
-
-                ioBundle.putByte(IOModule.CONFIG_IOMESSAGE, readByte(DataMemory_ATmega328P.DDRC_ADDR));
-                ioBundle.putByte(IOModule.PORT_IOMESSAGE, readByte(DataMemory_ATmega328P.PORTC_ADDR));
-
-                ioMessage.what = IOModule.PORTC_EVENT;
-                ioMessage.setData(ioBundle);
-
-                pinHandler.dispatchMessage(ioMessage);
-
-                break;
-
-
-            case DDRD_ADDR:
-            case PORTD_ADDR:
-
-                ioMessage = new Message();
-
-                ioBundle.putByte(IOModule.CONFIG_IOMESSAGE, readByte(DataMemory_ATmega328P.DDRD_ADDR));
-                ioBundle.putByte(IOModule.PORT_IOMESSAGE, readByte(DataMemory_ATmega328P.PORTD_ADDR));
-
-                ioMessage.what = IOModule.PORTD_EVENT;
-                ioMessage.setData(ioBundle);
-
-                pinHandler.dispatchMessage(ioMessage);
-
-                break;
-        }
-    }
-
-    private void notifyIO(int byteAddress) {
-//        Log.i(UCModule.MY_LOG_TAG, String.format("Nority IO Address: 0x%s",
-//                Integer.toHexString((int) byteAddress)));
-
-        Message ioMessage;
-
-        switch (byteAddress) {
-            case DDRB_ADDR:
-            case PORTB_ADDR:
-            case PINB_ADDR:
-
-                ioMessage = new Message();
-
-                ioBundle.putByte(IOModule.CONFIG_IOMESSAGE, readByte(DataMemory_ATmega328P.DDRB_ADDR));
-                ioBundle.putByte(IOModule.PORT_IOMESSAGE, readByte(DataMemory_ATmega328P.PORTB_ADDR));
-
-                ioMessage.what = IOModule.PORTB_EVENT;
-                ioMessage.setData(ioBundle);
-
-                pinHandler.dispatchMessage(ioMessage);
-                break;
-
-            case DDRC_ADDR:
-            case PORTC_ADDR:
-            case PINC_ADDR:
-
-                ioMessage = new Message();
-
-                ioBundle.putByte(IOModule.CONFIG_IOMESSAGE, readByte(DataMemory_ATmega328P.DDRC_ADDR));
-                ioBundle.putByte(IOModule.PORT_IOMESSAGE, readByte(DataMemory_ATmega328P.PORTC_ADDR));
-
-                ioMessage.what = IOModule.PORTC_EVENT;
-                ioMessage.setData(ioBundle);
-
-                pinHandler.dispatchMessage(ioMessage);
-                break;
-
-            case DDRD_ADDR:
-            case PORTD_ADDR:
-            case PIND_ADDR:
-
-                ioMessage = new Message();
-
-                ioBundle.putByte(IOModule.CONFIG_IOMESSAGE, readByte(DataMemory_ATmega328P.DDRD_ADDR));
-                ioBundle.putByte(IOModule.PORT_IOMESSAGE, readByte(DataMemory_ATmega328P.PORTD_ADDR));
-
-                ioMessage.what = IOModule.PORTD_EVENT;
-                ioMessage.setData(ioBundle);
-
-                pinHandler.dispatchMessage(ioMessage);
-                break;
-        }
-    }
-
     @Override
     public synchronized byte readByte(int byteAddress) {
         Log.d(UCModule.MY_LOG_TAG,
@@ -413,6 +304,15 @@ public class DataMemory_ATmega328P implements DataMemory {
                 || byteAddress == ICR1H_ADDR){
             return timer1_TEMP;
         }
+        return sdramMemory[byteAddress];
+    }
+
+
+    public synchronized byte readIOByte(int byteAddress) {
+//        Log.d(UCModule.MY_LOG_TAG,
+//                String.format("Read IO byte SDRAM\nAddress: 0x%s, Data read: 0x%02X",
+//                        Integer.toHexString((int) byteAddress), sdramMemory[byteAddress]));
+
         return sdramMemory[byteAddress];
     }
 
@@ -522,7 +422,7 @@ public class DataMemory_ATmega328P implements DataMemory {
             }
         } else {
             sdramMemory[byteAddress] = byteData;
-            notify(byteAddress);
+            new Notify().execute(byteAddress);
         }
 
         updateMemoryUsage(byteAddress);
@@ -564,7 +464,7 @@ public class DataMemory_ATmega328P implements DataMemory {
             if (bitState) {
                 sdramMemory[byteAddress] = (byte) (sdramMemory[byteAddress] | (0x01 << bitPosition));     //Set
             }
-            notify(byteAddress);
+            new Notify().execute(byteAddress);
         }
     }
 
@@ -577,7 +477,7 @@ public class DataMemory_ATmega328P implements DataMemory {
         if (bitState) {
             sdramMemory[byteAddress] = (byte) (sdramMemory[byteAddress] | (0x01 << bitPosition));     //Set
         }
-        notifyIO(byteAddress);
+        new NotifyIO().execute(byteAddress);
 
     }
 
@@ -666,5 +566,128 @@ public class DataMemory_ATmega328P implements DataMemory {
 
     public boolean readForceMatchB_timer2() {
         return (0x01 & (sdramMemory[TCCR2B_ADDR] >> 6)) != 0;
+    }
+
+    private class Notify extends AsyncTask<Integer, Void, Void>{
+
+        @Override
+        protected Void doInBackground(Integer... byteAddress) {
+            Log.i(UCModule.MY_LOG_TAG, String.format("Notify Address: 0x%s",
+                Integer.toHexString((int) byteAddress[0])));
+                    Message ioMessage;
+
+            switch (byteAddress[0]) {
+                case DDRB_ADDR:
+                case PORTB_ADDR:
+
+                    ioMessage = new Message();
+
+                    ioBundle.putByte(IOModule.CONFIG_IOMESSAGE, readIOByte(DDRB_ADDR));
+                    ioBundle.putByte(IOModule.VALUE_IOMESSAGE, readIOByte(PORTB_ADDR));
+
+                    ioMessage.what = IOModule.PORTB_EVENT;
+
+                    ioMessage.setData(ioBundle);
+
+                    pinHandler.sendMessage(ioMessage);
+
+                    break;
+
+                case DDRC_ADDR:
+                case PORTC_ADDR:
+
+
+                    ioMessage = new Message();
+
+                    ioBundle.putByte(IOModule.CONFIG_IOMESSAGE, readIOByte(DDRC_ADDR));
+                    ioBundle.putByte(IOModule.VALUE_IOMESSAGE, readIOByte(PORTC_ADDR));
+
+                    ioMessage.what = IOModule.PORTC_EVENT;
+                    ioMessage.setData(ioBundle);
+
+                    pinHandler.sendMessage(ioMessage);
+
+                    break;
+
+
+                case DDRD_ADDR:
+                case PORTD_ADDR:
+
+                    ioMessage = new Message();
+
+                    ioBundle.putByte(IOModule.CONFIG_IOMESSAGE, readIOByte(DDRD_ADDR));
+                    ioBundle.putByte(IOModule.VALUE_IOMESSAGE, readIOByte(PORTD_ADDR));
+
+                    ioMessage.what = IOModule.PORTD_EVENT;
+                    ioMessage.setData(ioBundle);
+
+                    pinHandler.sendMessage(ioMessage);
+
+                    break;
+            }
+
+            return null;
+        }
+    }
+
+    private class NotifyIO extends AsyncTask<Integer, Void, Void>{
+
+        @Override
+        protected Void doInBackground(Integer... byteAddress) {
+            //        Log.i(UCModule.MY_LOG_TAG, String.format("Nority IO Address: 0x%s",
+//                Integer.toHexString((int) byteAddress)));
+
+            Message ioMessage;
+
+            switch (byteAddress[0]) {
+                case DDRB_ADDR:
+//                case PORTB_ADDR:
+                case PINB_ADDR:
+
+                    ioMessage = new Message();
+
+                    ioBundle.putByte(IOModule.CONFIG_IOMESSAGE, readIOByte(DDRB_ADDR));
+                    ioBundle.putByte(IOModule.VALUE_IOMESSAGE, readIOByte(PINB_ADDR));
+
+                    ioMessage.what = IOModule.PORTB_EVENT;
+                    ioMessage.setData(ioBundle);
+
+                    pinHandler.dispatchMessage(ioMessage);
+                    break;
+
+                case DDRC_ADDR:
+//                case PORTC_ADDR:
+                case PINC_ADDR:
+
+                    ioMessage = new Message();
+
+                    ioBundle.putByte(IOModule.CONFIG_IOMESSAGE, readIOByte(DDRC_ADDR));
+                    ioBundle.putByte(IOModule.VALUE_IOMESSAGE, readIOByte(PINC_ADDR));
+
+                    Log.d("Analog", "Analog Notify: " + Integer.toHexString(readIOByte(PINC_ADDR)));
+
+                    ioMessage.what = IOModule.PORTC_EVENT;
+                    ioMessage.setData(ioBundle);
+
+                    pinHandler.dispatchMessage(ioMessage);
+                    break;
+
+                case DDRD_ADDR:
+//                case PORTD_ADDR:
+                case PIND_ADDR:
+
+                    ioMessage = new Message();
+
+                    ioBundle.putByte(IOModule.CONFIG_IOMESSAGE, readIOByte(DDRD_ADDR));
+                    ioBundle.putByte(IOModule.VALUE_IOMESSAGE, readIOByte(PIND_ADDR));
+
+                    ioMessage.what = IOModule.PORTD_EVENT;
+                    ioMessage.setData(ioBundle);
+
+                    pinHandler.dispatchMessage(ioMessage);
+                    break;
+            }
+            return null;
+        }
     }
 }

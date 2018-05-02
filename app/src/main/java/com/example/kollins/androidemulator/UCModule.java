@@ -16,6 +16,7 @@ import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.kollins.androidemulator.uCInterfaces.ADCModule;
 import com.example.kollins.androidemulator.uCInterfaces.DataMemory;
 import com.example.kollins.androidemulator.uCInterfaces.IOModule;
 import com.example.kollins.androidemulator.uCInterfaces.InterruptionModule;
@@ -40,11 +41,12 @@ public class UCModule extends AppCompatActivity {
     //To calculate efective clock
     private static int sum, n = 0;
 
-    public static final int CPU_ID = 0;
-    public static final int SIMULATED_TIMER_ID = 1;
-    public static final int TIMER0_ID = 2;
-    public static final int TIMER1_ID = 3;
-    public static final int TIMER2_ID = 4;
+    public static final short CPU_ID = 0;
+    public static final short SIMULATED_TIMER_ID = 1;
+    public static final short TIMER0_ID = 2;
+    public static final short TIMER1_ID = 3;
+    public static final short TIMER2_ID = 4;
+    public static final short ADC_ID = 5;
 //    public static final int MANUAL_CLOCK = 3;
 
     public static String PACKAGE_NAME;
@@ -85,6 +87,9 @@ public class UCModule extends AppCompatActivity {
 
     private Timer2Module timer2;
     private Thread threadTimer2;
+
+    private ADCModule adc;
+    private Thread threadADC;
 
     private uCHandler uCHandler;
 
@@ -226,6 +231,14 @@ public class UCModule extends AppCompatActivity {
                 threadTimer2 = new Thread(timer2);
                 threadTimer2.start();
 
+                //Init ADC
+                Class adcDevice = Class.forName(PACKAGE_NAME + "." + device + ".ADC_" + device);
+                adc = (ADCModule) adcDevice.getDeclaredConstructor(DataMemory.class, Handler.class, Lock.class)
+                        .newInstance(dataMemory, uCHandler, clockLock);
+
+                threadADC = new Thread(adc);
+                threadADC.start();
+
                 resetManager = 0;
                 setUpSuccessful = true;
                 ucView.setStatus(UCModule_View.LED_STATUS.RUNNING);
@@ -290,6 +303,14 @@ public class UCModule extends AppCompatActivity {
         return resources.getInteger(R.integer.defaultSourcePower);
     }
 
+    public static double getMaxVoltageLowState() {
+        return (resources.getInteger(R.integer.maxVoltageLow)/1000f);
+    }
+
+    public static double getMinVoltageHighState() {
+        return (resources.getInteger(R.integer.minVoltageHigh)/1000f);
+    }
+
     public static String[] getPinArrayWithHint() {
         int id = resources.getIdentifier(UCModule.model + "_pins", "array", PACKAGE_NAME);
         String[] pinArrayWithHint = resources.getStringArray(id);
@@ -306,13 +327,13 @@ public class UCModule extends AppCompatActivity {
         );
     }
 
-    public static int[] getDigitalInputMemoryAddress() {
-        int id = resources.getIdentifier(UCModule.model + "_digitalInputMemoryAddress", "array", PACKAGE_NAME);
+    public static int[] getInputMemoryAddress() {
+        int id = resources.getIdentifier(UCModule.model + "_inputMemoryAddress", "array", PACKAGE_NAME);
         return resources.getIntArray(id);
     }
 
-    public static int[] getDigitalInputMemoryBitPosition() {
-        int id = resources.getIdentifier(UCModule.model + "_digitalInputMemoryBitPosition", "array", PACKAGE_NAME);
+    public static int[] getInputMemoryBitPosition() {
+        int id = resources.getIdentifier(UCModule.model + "_inputMemoryBitPosition", "array", PACKAGE_NAME);
         return resources.getIntArray(id);
     }
 
@@ -448,6 +469,19 @@ public class UCModule extends AppCompatActivity {
 
                 resetManager = 5;
             }
+            if (threadADC != null) {
+                Log.i(MY_LOG_TAG, "Waiting ADC thread");
+                while (threadADC.isAlive()) {
+                    adc.clockADC();
+                }
+                threadADC.join();
+
+                clockLock.lock();
+                clockVector[ADC_ID] = true;
+                clockLock.unlock();
+
+                resetManager = 6;
+            }
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -505,11 +539,12 @@ public class UCModule extends AppCompatActivity {
 //                    Log.i("Clock", String.valueOf(getAvgClock(Math.pow(10, 9) / (time2 - time1))));
 //                    time1 = time2;
 
-                    ucView.clockUCView();
                     cpuModule.clockCPU();
+                    ucView.clockUCView();
                     timer0.clockTimer0();
                     timer1.clockTimer1();
                     timer2.clockTimer2();
+                    adc.clockADC();
                     break;
 
                 case RESET_ACTION:

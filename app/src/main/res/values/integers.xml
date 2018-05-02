@@ -6,13 +6,18 @@
     <!--TIMER 0-->
     <!--TIMER 1-->
     <!--TIMER 2-->
-    <integer name="ATmega328P">4</integer>
+    <!--ADC-->
+    <integer name="ATmega328P">5</integer>
 
     <!--Position in array of pins-->
     <integer name="UNO_defaultPinPosition">13</integer>
     <integer name="defaultSourcePower">5</integer>
 
-    <integer-array name="UNO_digitalInputMemoryAddress">
+    <!--mV-->
+    <integer name="maxVoltageLow">1500</integer>
+    <integer name="minVoltageHigh">3000</integer>
+
+    <integer-array name="UNO_inputMemoryAddress">
         <!--PIN 0-->
         <item>0x29</item>
         <!--PIN 1-->
@@ -55,7 +60,7 @@
         <item>0x26</item>
     </integer-array>
 
-    <integer-array name="UNO_digitalInputMemoryBitPosition">
+    <integer-array name="UNO_inputMemoryBitPosition">
         <!--PIN 0-->
         <item>0</item>
         <!--PIN 1-->

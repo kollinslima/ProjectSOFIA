@@ -1,5 +1,7 @@
 package com.example.kollins.androidemulator.ATmega328P.IOModule_ATmega328P.Input;
 
+import android.util.Log;
+
 import com.example.kollins.androidemulator.UCModule;
 import com.example.kollins.androidemulator.uCInterfaces.IOModule;
 
@@ -14,6 +16,12 @@ public class InputPin_ATmega328P {
     public static final boolean DIGITAL_PIN = true;
     public static final boolean ANALOGIC_PIN = !DIGITAL_PIN;
 
+    public static final double MAX_VOLTAGE_LOW_STATE = UCModule.getMaxVoltageLowState();
+    public static final double MIN_VOLTAGE_HIGH_STATE = UCModule.getMinVoltageHighState();
+
+    private static final int[] memoryAddress = UCModule.getInputMemoryAddress();
+    private static final int[] memoryBitPosition = UCModule.getInputMemoryBitPosition();
+
     //All pins
     private String pin;
     private int pinSpinnerPosition;
@@ -23,11 +31,9 @@ public class InputPin_ATmega328P {
     //Digital Pins
     private int pinMode;
     private int pinModePosition;
-    private int[] memoryAddress;
-    private int[] memoryBitPosition;
 
     //Analog Pins
-    private int seekBarProgress;    //%
+    //private int seekBarProgress;    //%
 
     //DIGITAL PINS
     public InputPin_ATmega328P(String pin, int pinMode, boolean pinDescription) {
@@ -38,9 +44,6 @@ public class InputPin_ATmega328P {
         this.pinMode = pinMode;
         this.pinModePosition = -1;
         this.pinState = IOModule.TRI_STATE;
-
-        memoryAddress = UCModule.getDigitalInputMemoryAddress();
-        memoryBitPosition = UCModule.getDigitalInputMemoryBitPosition();
     }
 
     //ANALOGIC PINS
@@ -49,7 +52,9 @@ public class InputPin_ATmega328P {
         this.pinDescription = pinDescription;
         this.pinSpinnerPosition = -1;
 
-        this.seekBarProgress = 0;
+//        memoryAddress = UCModule.getInputMemoryAddress();
+//        memoryBitPosition = UCModule.getInputMemoryBitPosition();
+        //this.seekBarProgress = 0;
     }
 
     public int getPinMode() {
@@ -117,4 +122,13 @@ public class InputPin_ATmega328P {
         return InputPin_ATmega328P.hiZInput[position];
     }
 
+    public int getPinStateFromAnalog(double voltage) {
+        if (voltage <= MAX_VOLTAGE_LOW_STATE){
+            return IOModule.LOW_LEVEL;
+        } else if (voltage >= MIN_VOLTAGE_HIGH_STATE){
+            return IOModule.HIGH_LEVEL;
+        } else {
+            return IOModule.TRI_STATE;
+        }
+    }
 }

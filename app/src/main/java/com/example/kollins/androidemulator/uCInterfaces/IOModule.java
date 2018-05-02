@@ -11,14 +11,14 @@ import android.os.Handler;
 public interface IOModule{
 
     int LOW_LEVEL   = 0;
-    int HIGH_LEVEL  = 5;
+    int HIGH_LEVEL  = 1;
     int TRI_STATE   = 2;
 
-    int PUSH_GND    = 6;
-    int PUSH_VDD    = 7;
-    int PULL_UP     = 8;
-    int PULL_DOWN   = 9;
-    int TOGGLE      = 10;
+    int PUSH_GND    = 3;
+    int PUSH_VDD    = 4;
+    int PULL_UP     = 5;
+    int PULL_DOWN   = 6;
+    int TOGGLE      = 7;
 
     int[] PIN_MODES = {IOModule.PUSH_GND, IOModule.PUSH_VDD, IOModule.PULL_UP, IOModule.PULL_DOWN, IOModule.TOGGLE};
 
@@ -26,7 +26,7 @@ public interface IOModule{
     int PORTC_EVENT = 101;
     int PORTD_EVENT = 102;
 
-    String PORT_IOMESSAGE = "PORT_VALUE";
+    String VALUE_IOMESSAGE = "VALUE";
     String CONFIG_IOMESSAGE = "CONFIG_VALUE";
 
     boolean checkShortCircuit();
