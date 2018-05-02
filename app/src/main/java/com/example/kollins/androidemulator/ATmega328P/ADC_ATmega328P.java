@@ -1,6 +1,7 @@
 package com.example.kollins.androidemulator.ATmega328P;
 
 import android.os.Handler;
+import android.util.Log;
 
 import com.example.kollins.androidemulator.UCModule;
 import com.example.kollins.androidemulator.uCInterfaces.ADCModule;
@@ -9,31 +10,144 @@ import com.example.kollins.androidemulator.uCInterfaces.DataMemory;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 
-public class ADC_ATmega328P implements ADCModule{
+public class ADC_ATmega328P implements ADCModule {
+
+    //mV
+    private static final short BANDGAP_REFERENCE = 1100;
+
+    //Default AREF
+    public static short AREF = 0;
+
+    //Input holds value in mV.
+    public static short ADC_INPUT[] = new short[11];
+    private static final short BANDGAP_INDEX = 9;
 
     private static Handler uCHandler;
     private static Lock clockLock;
     private static Condition adcClockCondition;
     private static DataMemory_ATmega328P dataMemory;
+    private UCModule uCModule;
+    private int inputIndex;
+    private boolean freeRunConversionEnable;
 
 
-    public ADC_ATmega328P(DataMemory dataMemory, Handler uCHandler, Lock clockLock) {
+    public ADC_ATmega328P(DataMemory dataMemory, Handler uCHandler, Lock clockLock, UCModule uCModule) {
         this.dataMemory = (DataMemory_ATmega328P) dataMemory;
         this.uCHandler = uCHandler;
         this.clockLock = clockLock;
+        this.uCModule = uCModule;
 
         adcClockCondition = clockLock.newCondition();
+
+        ADC_INPUT[BANDGAP_INDEX] = BANDGAP_REFERENCE;
+
+        freeRunConversionEnable = true;
     }
 
     @Override
     public void run() {
         Thread.currentThread().setName("ADC");
+        byte admuxRead, adcsraRead;
+        int vRef, prescaler;
+        short conversionADC;
+        double resolution, conversionAux;
+        boolean isFreeRun;
 
-        while (true){
-            waitClock();
+        //13 clock cycles to finish conversion
+        while (!uCModule.getResetFlag()) {
+
+            Log.d("ADC", "ADC Enable: " + dataMemory.readBit(DataMemory_ATmega328P.ADCSRA_ADDR, 7));
+            Log.d("ADC", "ADC Start: " + dataMemory.readBit(DataMemory_ATmega328P.ADCSRA_ADDR, 6));
+
+            if (dataMemory.readBit(DataMemory_ATmega328P.ADCSRA_ADDR, 7)
+                    && dataMemory.readBit(DataMemory_ATmega328P.ADCSRA_ADDR, 6)) {
+
+                if (!dataMemory.readBit(DataMemory_ATmega328P.ADCSRA_ADDR, 5) ||
+                        (0x07 & dataMemory.readByte(DataMemory_ATmega328P.ADCSRB_ADDR)) > 0) {
+                    isFreeRun = false;
+                    freeRunConversionEnable = false;
+                    Log.d("ADC", "Not Free Run");
+                } else {
+                    isFreeRun = true;
+                    Log.d("ADC", "Free Run");
+                    if (!freeRunConversionEnable) {
+                        if (dataMemory.readBit(DataMemory_ATmega328P.ADCSRA_ADDR,4)) {
+                            waitClock();
+                            continue;
+                        } else {
+                            freeRunConversionEnable = true;
+                        }
+                    }
+                }
+
+                admuxRead = dataMemory.readByte(DataMemory_ATmega328P.ADMUX_ADDR);
+                adcsraRead = dataMemory.readByte(DataMemory_ATmega328P.ADCSRA_ADDR);
+
+                prescaler = (0x0007 & adcsraRead);
+
+                ClockSource.values()[prescaler].work();
+                inputIndex = (0x000F & admuxRead);
+
+                ClockSource.values()[prescaler].work();
+                switch (0x00C0 & admuxRead) {
+                    case 0x0000:
+                        vRef = AREF * 1000;
+                        break;
+                    case 0x0040:
+                        vRef = UCModule.getSourcePower() * 1000;
+                        break;
+                    case 0x00C0:
+                        vRef = BANDGAP_REFERENCE;
+                        break;
+                    default:
+                        vRef = 0;
+                }
+
+                resolution = vRef / 1024f;
+
+                conversionAux = 0;
+                for (int conversionIncrease = 0x0200;
+                     conversionIncrease > 0;
+                     conversionIncrease = conversionIncrease >> 1, ClockSource.values()[prescaler].work()) {
+
+                    conversionAux += conversionIncrease * resolution;
+                    if (conversionAux > ADC_INPUT[inputIndex]) {
+                        conversionAux -= conversionIncrease * resolution;
+                    }
+
+                }
+                ClockSource.values()[prescaler].work();
+                conversionADC = (short) conversionAux;
+                Log.v("ADC", "Conversion: " + conversionAux);
+
+                if (dataMemory.readBit(DataMemory_ATmega328P.ADMUX_ADDR, 5)) {
+                    //Left Ajust
+                    dataMemory.writeByte(DataMemory_ATmega328P.ADCH_ADDR, (byte) (0x000F & (conversionADC >> 2)));
+                    dataMemory.writeByte(DataMemory_ATmega328P.ADCL_ADDR, (byte) (0x000F & (conversionADC << 6)));
+                } else {
+                    //Right Ajust
+                    dataMemory.writeByte(DataMemory_ATmega328P.ADCH_ADDR, (byte) (0x000F & (conversionADC >> 8)));
+                    dataMemory.writeByte(DataMemory_ATmega328P.ADCL_ADDR, (byte) (0x000F & conversionADC));
+                }
+
+
+                if (!isFreeRun) {
+                    //Not Free Run mode, end of conversion, clear ADSC
+                    dataMemory.writeIOBit(DataMemory_ATmega328P.ADCSRA_ADDR, 6, false);
+                } else {
+                    freeRunConversionEnable = false;
+                }
+
+                //Set Interruption Flag
+                UCModule.interruptionModule.conversionCompleteADC();
+
+            } else {
+                waitClock();
+            }
         }
 
     }
+
     private static void waitClock() {
 
         clockLock.lock();
@@ -67,5 +181,74 @@ public class ADC_ATmega328P implements ADCModule{
         } finally {
             clockLock.unlock();
         }
+    }
+
+    public enum ClockSource {
+        CLOCK_PRESCALER_2_1 {
+            @Override
+            public void work() {
+                for (int i = 0; i < 2; i++) {
+                    waitClock();
+                }
+            }
+        },
+        CLOCK_PRESCALER_2_2 {
+            @Override
+            public void work() {
+                for (int i = 0; i < 2; i++) {
+                    waitClock();
+                }
+            }
+        },
+        CLOCK_PRESCALER_4 {
+            @Override
+            public void work() {
+                for (int i = 0; i < 4; i++) {
+                    waitClock();
+                }
+            }
+        },
+        CLOCK_PRESCALER_8 {
+            @Override
+            public void work() {
+                for (int i = 0; i < 8; i++) {
+                    waitClock();
+                }
+            }
+        },
+        CLOCK_PRESCALER_16 {
+            @Override
+            public void work() {
+                for (int i = 0; i < 16; i++) {
+                    waitClock();
+                }
+            }
+        },
+        CLOCK_PRESCALER_32 {
+            @Override
+            public void work() {
+                for (int i = 0; i < 32; i++) {
+                    waitClock();
+                }
+            }
+        },
+        CLOCK_PRESCALER_64 {
+            @Override
+            public void work() {
+                for (int i = 0; i < 64; i++) {
+                    waitClock();
+                }
+            }
+        },
+        CLOCK_PRESCALER_128 {
+            @Override
+            public void work() {
+                for (int i = 0; i < 128; i++) {
+                    waitClock();
+                }
+            }
+        };
+
+        public abstract void work();
     }
 }

@@ -233,8 +233,8 @@ public class UCModule extends AppCompatActivity {
 
                 //Init ADC
                 Class adcDevice = Class.forName(PACKAGE_NAME + "." + device + ".ADC_" + device);
-                adc = (ADCModule) adcDevice.getDeclaredConstructor(DataMemory.class, Handler.class, Lock.class)
-                        .newInstance(dataMemory, uCHandler, clockLock);
+                adc = (ADCModule) adcDevice.getDeclaredConstructor(DataMemory.class, Handler.class, Lock.class,UCModule.class)
+                        .newInstance(dataMemory, uCHandler, clockLock,this);
 
                 threadADC = new Thread(adc);
                 threadADC.start();

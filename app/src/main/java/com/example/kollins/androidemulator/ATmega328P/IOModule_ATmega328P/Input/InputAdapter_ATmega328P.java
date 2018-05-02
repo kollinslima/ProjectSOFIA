@@ -17,6 +17,7 @@ import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import com.example.kollins.androidemulator.ATmega328P.ADC_ATmega328P;
 import com.example.kollins.androidemulator.R;
 import com.example.kollins.androidemulator.UCModule;
 import com.example.kollins.androidemulator.uCInterfaces.IOModule;
@@ -378,6 +379,12 @@ public class InputAdapter_ATmega328P extends BaseAdapter {
                     pin.setPinSpinnerPosition(positionSpinner);
 
                     double voltage = sourcePower * (holder.voltageLevel.getProgress() / 100.0);
+                    holder.voltageDisplay.setText(decimalFormat.format(voltage));
+
+                    //It's an analog pin
+                    if (pin.getPinSpinnerPosition() >= 14){
+                        ADC_ATmega328P.ADC_INPUT[pin.getPinSpinnerPosition() - 14] = (short) (voltage*1000);
+                    }
 
                     int state = pin.getPinStateFromAnalog(voltage);
                     pin.setPinState(state);
@@ -419,6 +426,11 @@ public class InputAdapter_ATmega328P extends BaseAdapter {
                 public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                     double voltage = sourcePower * (progress / 100.0);
                     holder.voltageDisplay.setText(decimalFormat.format(voltage));
+
+                    //It's an analog pin
+                    if (pin.getPinSpinnerPosition() >= 14){
+                        ADC_ATmega328P.ADC_INPUT[pin.getPinSpinnerPosition() - 14] = (short) (voltage*1000);
+                    }
 
                     int state = pin.getPinStateFromAnalog(voltage);
                     pin.setPinState(state);

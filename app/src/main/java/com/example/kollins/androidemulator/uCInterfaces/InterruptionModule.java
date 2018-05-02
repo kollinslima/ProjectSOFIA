@@ -32,4 +32,6 @@ public interface InterruptionModule {
     void timer2MatchA();
 
     void timer2MatchB();
+
+    void conversionCompleteADC();
 }
