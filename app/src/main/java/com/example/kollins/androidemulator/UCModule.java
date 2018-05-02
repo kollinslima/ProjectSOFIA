@@ -37,7 +37,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class UCModule extends AppCompatActivity {
 
-    //To calculate efective clock average
+    //To calculate efective clock
     private static int sum, n = 0;
 
     public static final int CPU_ID = 0;
