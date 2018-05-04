@@ -158,9 +158,10 @@ public class Timer2_ATmega328P implements Timer2Module {
             @Override
             public boolean work() {
                 Log.i("Timer2", "Prescaler 8");
-                for (int i = 0; i < 8; i++) {
-                    waitClock();
-                }
+                waitClock();
+//                for (int i = 0; i < 8; i++) {
+//                    waitClock();
+//                }
                 return true;
             }
         },
@@ -168,9 +169,10 @@ public class Timer2_ATmega328P implements Timer2Module {
             @Override
             public boolean work() {
                 Log.i("Timer2", "Prescaler 32");
-                for (int i = 0; i < 32; i++) {
-                    waitClock();
-                }
+                waitClock();
+//                for (int i = 0; i < 32; i++) {
+//                    waitClock();
+//                }
                 return true;
             }
         },
@@ -178,9 +180,10 @@ public class Timer2_ATmega328P implements Timer2Module {
             @Override
             public boolean work() {
                 Log.i("Timer2", "Prescaler 64");
-                for (int i = 0; i < 64; i++) {
-                    waitClock();
-                }
+                waitClock();
+//                for (int i = 0; i < 64; i++) {
+//                    waitClock();
+//                }
                 return false;
             }
         },
@@ -188,9 +191,10 @@ public class Timer2_ATmega328P implements Timer2Module {
             @Override
             public boolean work() {
                 Log.i("Timer2", "Prescaler 128");
-                for (int i = 0; i < 128; i++) {
-                    waitClock();
-                }
+                waitClock();
+//                for (int i = 0; i < 128; i++) {
+//                    waitClock();
+//                }
                 return true;
             }
         },
@@ -198,9 +202,10 @@ public class Timer2_ATmega328P implements Timer2Module {
             @Override
             public boolean work() {
                 Log.i("Timer2", "Prescaler 256");
-                for (int i = 0; i < 256; i++) {
-                    waitClock();
-                }
+                waitClock();
+//                for (int i = 0; i < 256; i++) {
+//                    waitClock();
+//                }
                 return true;
             }
         },
@@ -208,9 +213,10 @@ public class Timer2_ATmega328P implements Timer2Module {
             @Override
             public boolean work() {
                 Log.i("Timer2", "Prescaler 1024");
-                for (int i = 0; i < 1024; i++) {
-                    waitClock();
-                }
+                waitClock();
+//                for (int i = 0; i < 1024; i++) {
+//                    waitClock();
+//                }
                 return true;
             }
         };

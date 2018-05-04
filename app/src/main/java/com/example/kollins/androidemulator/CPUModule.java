@@ -1372,7 +1372,28 @@ public class CPUModule implements Runnable, CPUInstructions {
         INSTRUCTION_SBIC {
             @Override
             public void executeInstruction() {
-                Log.w(UCModule.MY_LOG_TAG, "Not implemented instruction: SBIC");
+                /*************************SBIC***********************/
+                Log.d(UCModule.MY_LOG_TAG, "Instruction SBIC");
+
+                if (!dataMemory.readBit(((0x00F8 & instruction) >> 3) + 0x20, (0x0007 & instruction))) {
+
+                    waitClock();
+                    instruction = programMemory.loadInstruction();
+
+                    //Test 2 word instructions
+                    //JMP
+                    int testJMP_CALL = (0xFE0E & instruction);
+                    int testLDS_STS = (0xFE0F & instruction);
+
+                    if (testJMP_CALL == 0x940C ||       //JMP
+                            testJMP_CALL == 0x940E ||   //CALL
+                            testLDS_STS == 0x9000 ||    //LDS
+                            testLDS_STS == 0x9200)      //STS
+                    {
+                        waitClock();
+                        programMemory.addToPC(1);
+                    }
+                }
             }
         },
         INSTRUCTION_SBIS {
@@ -1444,13 +1465,55 @@ public class CPUModule implements Runnable, CPUInstructions {
         INSTRUCTION_SBRC {
             @Override
             public void executeInstruction() {
-                Log.w(UCModule.MY_LOG_TAG, "Not implemented instruction: SBRC");
+                /*************************SBRC***********************/
+                Log.d(UCModule.MY_LOG_TAG, "Instruction SBRC");
+
+                if (!dataMemory.readBit(((0x01F0 & instruction) >> 4), (0x0007 & instruction))) {
+
+                    waitClock();
+                    instruction = programMemory.loadInstruction();
+
+                    //Test 2 word instructions
+                    //JMP
+                    int testJMP_CALL = (0xFE0E & instruction);
+                    int testLDS_STS = (0xFE0F & instruction);
+
+                    if (testJMP_CALL == 0x940C ||       //JMP
+                            testJMP_CALL == 0x940E ||   //CALL
+                            testLDS_STS == 0x9000 ||    //LDS
+                            testLDS_STS == 0x9200)      //STS
+                    {
+                        waitClock();
+                        programMemory.addToPC(1);
+                    }
+                }
             }
         },
         INSTRUCTION_SBRS {
             @Override
             public void executeInstruction() {
-                Log.w(UCModule.MY_LOG_TAG, "Not implemented instruction: SBRS");
+                /*************************SBRS***********************/
+                Log.d(UCModule.MY_LOG_TAG, "Instruction SBRS");
+
+                if (dataMemory.readBit(((0x01F0 & instruction) >> 4), (0x0007 & instruction))) {
+
+                    waitClock();
+                    instruction = programMemory.loadInstruction();
+
+                    //Test 2 word instructions
+                    //JMP
+                    int testJMP_CALL = (0xFE0E & instruction);
+                    int testLDS_STS = (0xFE0F & instruction);
+
+                    if (testJMP_CALL == 0x940C ||       //JMP
+                            testJMP_CALL == 0x940E ||   //CALL
+                            testLDS_STS == 0x9000 ||    //LDS
+                            testLDS_STS == 0x9200)      //STS
+                    {
+                        waitClock();
+                        programMemory.addToPC(1);
+                    }
+                }
             }
         },
         INSTRUCTION_SLEEP {

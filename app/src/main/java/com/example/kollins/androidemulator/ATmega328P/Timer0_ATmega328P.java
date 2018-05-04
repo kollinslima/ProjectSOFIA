@@ -159,9 +159,10 @@ public class Timer0_ATmega328P implements Timer0Module {
             @Override
             public boolean work() {
                 Log.i("Timer0", "Prescaler 8");
-                for (int i = 0; i < 8; i++) {
-                    waitClock();
-                }
+                waitClock();
+//                for (int i = 0; i < 8; i++) {
+//                    waitClock();
+//                }
                 return true;
             }
         },
@@ -169,9 +170,10 @@ public class Timer0_ATmega328P implements Timer0Module {
             @Override
             public boolean work() {
                 Log.i("Timer0", "Prescaler 64");
-                for (int i = 0; i < 64; i++) {
-                    waitClock();
-                }
+                waitClock();
+//                for (int i = 0; i < 64; i++) {
+//                    waitClock();
+//                }
                 return false;
             }
         },
@@ -179,9 +181,10 @@ public class Timer0_ATmega328P implements Timer0Module {
             @Override
             public boolean work() {
                 Log.i("Timer0", "Prescaler 256");
-                for (int i = 0; i < 256; i++) {
-                    waitClock();
-                }
+                waitClock();
+//                for (int i = 0; i < 256; i++) {
+//                    waitClock();
+//                }
                 return true;
             }
         },
@@ -189,9 +192,10 @@ public class Timer0_ATmega328P implements Timer0Module {
             @Override
             public boolean work() {
                 Log.i("Timer0", "Prescaler 1024");
-                for (int i = 0; i < 1024; i++) {
-                    waitClock();
-                }
+                waitClock();
+//                for (int i = 0; i < 1024; i++) {
+//                    waitClock();
+//                }
                 return true;
             }
         },
