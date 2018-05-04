@@ -147,7 +147,7 @@ public class CPUModule implements Runnable, CPUInstructions {
                     result += 1;
                 }
 
-                dataMemory.writeByte((0x01F0 & instruction) >> 4, result);
+                dataMemory.writeByte(((0x01F0 & instruction) >> 4), result);
 
                 //Flag H
                 dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 5,
