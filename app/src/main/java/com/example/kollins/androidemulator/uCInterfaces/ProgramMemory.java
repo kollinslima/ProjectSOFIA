@@ -16,4 +16,5 @@ public interface ProgramMemory {
     void addToPC(int offset);
 
     byte readByte(int address);
+    void writeWord(int address, int data);
 }

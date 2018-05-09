@@ -328,7 +328,27 @@ public class CPUModule implements Runnable, CPUInstructions {
         INSTRUCTION_ASR {
             @Override
             public void executeInstruction() {
-                Log.w(UCModule.MY_LOG_TAG, "Not implemented instruction: ASR");
+                /*************************ASR***********************/
+                Log.d(UCModule.MY_LOG_TAG, "Instruction ASR");
+
+                byte regD = dataMemory.readByte((0x01F0 & instruction) >> 4);
+                byte outASR = (byte) (regD >> 1);
+                dataMemory.writeByte((0x01F0 & instruction) >> 4, outASR);
+
+                //Update Status Register
+                //Flag C
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 0, !((0x01 & regD) == 0));
+                //Flag Z
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 1, outASR == 0);
+                //Flag N
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 2, !((0x80 & outASR) == 0));
+                //Flag V
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 3,
+                        dataMemory.readBit(DataMemory_ATmega328P.SREG_ADDR, 2) ^ dataMemory.readBit(DataMemory_ATmega328P.SREG_ADDR, 0));
+                //Flag S
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 4,
+                        dataMemory.readBit(DataMemory_ATmega328P.SREG_ADDR, 2) ^ dataMemory.readBit(DataMemory_ATmega328P.SREG_ADDR, 3));
+
             }
         },
         INSTRUCTION_BCLR {
@@ -343,7 +363,11 @@ public class CPUModule implements Runnable, CPUInstructions {
         INSTRUCTION_BLD {
             @Override
             public void executeInstruction() {
-                Log.w(UCModule.MY_LOG_TAG, "Not implemented instruction: BLD");
+                /*********************BLD*********************/
+                Log.d(UCModule.MY_LOG_TAG, "Instruction BLD");
+
+                dataMemory.writeBit((0x01F0 & instruction) >> 4,(0x07 & instruction),
+                        dataMemory.readBit(DataMemory_ATmega328P.SREG_ADDR, 6));
             }
         },
         INSTRUCTION_BRBC {
@@ -386,7 +410,11 @@ public class CPUModule implements Runnable, CPUInstructions {
         INSTRUCTION_BST {
             @Override
             public void executeInstruction() {
-                Log.w(UCModule.MY_LOG_TAG, "Not implemented instruction: BST");
+                /*************************BST***********************/
+                Log.d(UCModule.MY_LOG_TAG, "Instruction BST");
+
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR,6,
+                        dataMemory.readBit((0x01F0 & instruction) >> 4, (0x07 & instruction)));
             }
         },
         INSTRUCTION_CALL {
@@ -401,6 +429,7 @@ public class CPUModule implements Runnable, CPUInstructions {
                 waitClock();
 
                 int callOut = (0x0001 & instruction) | ((0x01F0 & instruction) >> 3);
+
                 instruction = programMemory.loadInstruction();
                 callOut = (callOut << 16) | instruction;
 
@@ -515,7 +544,6 @@ public class CPUModule implements Runnable, CPUInstructions {
                 byte regR = dataMemory.readByte(((0x0200 & instruction) >> 5) | (0x000F & instruction));
 
                 int result = regD - regR;
-
                 //If carry is set
                 if (dataMemory.readBit(DataMemory_ATmega328P.SREG_ADDR, 0)) {
                     result -= 1;
@@ -694,19 +722,67 @@ public class CPUModule implements Runnable, CPUInstructions {
         INSTRUCTION_FMUL {
             @Override
             public void executeInstruction() {
-                Log.w(UCModule.MY_LOG_TAG, "Not implemented instruction: FMUL");
+                /*************************FMUL***********************/
+                Log.d(UCModule.MY_LOG_TAG, "Instruction FMUL");
+
+                waitClock();
+
+                byte regD = dataMemory.readByte(0x10 + ((0x0070 & instruction)>>4));
+                byte regR = dataMemory.readByte(0x10 + (0x0007 & instruction));
+
+                int outFMUL = ((0x00FF & regD)*(0x00FF & regR))<<1;
+
+                dataMemory.writeByte(0x01, (byte) ((0x00FF00 & outFMUL)>>8));
+                dataMemory.writeByte(0x00, (byte) (0x00FF & outFMUL));
+
+                //C
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 0, !((0x8000 & outFMUL) == 0));
+                //Z
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 1, outFMUL == 0);
             }
         },
         INSTRUCTION_FMULS {
             @Override
             public void executeInstruction() {
-                Log.w(UCModule.MY_LOG_TAG, "Not implemented instruction: FMULS");
+                /*************************FMULS***********************/
+                Log.d(UCModule.MY_LOG_TAG, "Instruction FMULS");
+
+                waitClock();
+
+                byte regD = dataMemory.readByte(0x10 + ((0x0070 & instruction)>>4));
+                byte regR = dataMemory.readByte(0x10 + (0x0007 & instruction));
+
+                int outFMULS = (regD*regR)<<1;
+
+                dataMemory.writeByte(0x01, (byte) ((0x00FF00 & outFMULS)>>8));
+                dataMemory.writeByte(0x00, (byte) (0x00FF & outFMULS));
+
+                //C
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 0, !((0x8000 & outFMULS) == 0));
+                //Z
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 1, outFMULS == 0);
             }
         },
         INSTRUCTION_FMULSU {
             @Override
             public void executeInstruction() {
-                Log.w(UCModule.MY_LOG_TAG, "Not implemented instruction: FMULSU");
+                /*************************FMULSU***********************/
+                Log.d(UCModule.MY_LOG_TAG, "Instruction FMULSU");
+
+                waitClock();
+
+                byte regD = dataMemory.readByte(0x10 + ((0x0070 & instruction)>>4));
+                byte regR = dataMemory.readByte(0x10 + (0x0007 & instruction));
+
+                int outFMULSU = (regD*(0x00FF & regR))<<1;
+
+                dataMemory.writeByte(0x01, (byte) ((0x00FF00 & outFMULSU)>>8));
+                dataMemory.writeByte(0x00, (byte) (0x00FF & outFMULSU));
+
+                //C
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 0, !((0x8000 & outFMULSU) == 0));
+                //Z
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 1, outFMULSU == 0);
             }
         },
         INSTRUCTION_ICALL {
@@ -746,7 +822,18 @@ public class CPUModule implements Runnable, CPUInstructions {
         INSTRUCTION_IJMP {
             @Override
             public void executeInstruction() {
-                Log.w(UCModule.MY_LOG_TAG, "Not implemented instruction: IJMP");
+                /*************************IJMP***********************/
+                Log.d(UCModule.MY_LOG_TAG, "Instruction IJMP");
+
+                //3 clockCycles
+                waitClock();
+                waitClock();
+
+                byte zRegL = dataMemory.readByte(0x1E);
+                byte zRegH = dataMemory.readByte(0x1F);
+                int jumpOut = (0x0000FF00 & (zRegH << 8)) | (0x000000FF & zRegL);
+
+                programMemory.setPC(jumpOut);
             }
         },
         INSTRUCTION_IN {
