@@ -397,7 +397,7 @@ public class DataMemory_ATmega328P implements DataMemory {
             sdramMemory[byteAddress] = 0x00;
         } else if (byteAddress == ADCSRA_ADDR) {
             //Clear Flag
-            byteData = (byte) (0xFFEF & byteData);
+            byteData = (byte) (0x00FE & byteData);
             sdramMemory[byteAddress] = byteData;
         } else if (byteAddress == GTCCR_ADDR) {
             //Synchronization Mode
