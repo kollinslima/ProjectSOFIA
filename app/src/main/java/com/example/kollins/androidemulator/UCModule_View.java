@@ -75,7 +75,6 @@ public class UCModule_View extends Fragment implements Runnable {
     private long simulatedTime;
     private String simulatedText, memoryUsageText;
     private long nanoSeconds;
-//    private long microSeconds;
     private long seconds;
 
     private Resources resources;
@@ -122,7 +121,6 @@ public class UCModule_View extends Fragment implements Runnable {
         toolbar.inflateMenu(R.menu.menu_layout);
         toolbar.setOnMenuItemClickListener(new ToolBarMenuItemClick());
         toolbar.setTitle("Arduino " + UCModule.model);
-//        ((AppCompatActivity)getActivity()).setSupportActionBar((Toolbar) view.findViewById(R.id.mainToolbar));
 
         statusInfo = (TextView) view.findViewById(R.id.statusInfo);
         simulatedTimeDisplay = (TextView) view.findViewById(R.id.simulatedTime);
@@ -147,9 +145,7 @@ public class UCModule_View extends Fragment implements Runnable {
             simulatedTime += clockPeriod;
 
             nanoSeconds = simulatedTime / 10;
-//            microSeconds = (simulatedTime/10)/1000;
             seconds = TimeUnit.NANOSECONDS.toSeconds(nanoSeconds);
-//            seconds = TimeUnit.MICROSECONDS.toSeconds(microSeconds);
 
             simulatedText = resources.getString(R.string.simulated_time_format, seconds, nanoSeconds);
             memoryUsageText = resources.getString(R.string.memory_usage_format, ucModule.getMemoryUsage());
@@ -187,7 +183,7 @@ public class UCModule_View extends Fragment implements Runnable {
             uCHandler.sendEmptyMessage(UCModule.CLOCK_ACTION);
 
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            Log.e(UCModule.MY_LOG_TAG, "ERROR: waitClock UCModule_View", e);
         } finally {
             clockLock.unlock();
         }
@@ -260,7 +256,6 @@ public class UCModule_View extends Fragment implements Runnable {
         public boolean onMenuItemClick(MenuItem item) {
             switch (item.getItemId()) {
                 case R.id.action_reset:
-//                    outputFragment.resetOuputs();
                     uCHandler.sendEmptyMessage(UCModule.RESET_ACTION);
                     break;
 

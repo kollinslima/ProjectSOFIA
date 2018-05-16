@@ -126,7 +126,7 @@ public class Timer2_ATmega328P implements Timer2Module {
             uCHandler.sendEmptyMessage(UCModule.CLOCK_ACTION);
 
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            Log.e(UCModule.MY_LOG_TAG, "ERROR: waitClock Timer2", e);
         } finally {
             clockLock.unlock();
         }

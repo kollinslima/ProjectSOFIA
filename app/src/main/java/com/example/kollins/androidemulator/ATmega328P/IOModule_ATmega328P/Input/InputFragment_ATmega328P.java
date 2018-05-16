@@ -43,7 +43,6 @@ public class InputFragment_ATmega328P extends Fragment implements InputFragment,
     private DataMemory_ATmega328P dataMemory;
 
     private boolean haveInput;
-//    private boolean pullUpEnabled;
 
     private Handler screenUpdater;
 
@@ -107,7 +106,6 @@ public class InputFragment_ATmega328P extends Fragment implements InputFragment,
         if (inputPins == null) {
             return;
         }
-//        haveInput = false;
 
         for (InputPin_ATmega328P p : inputPins) {
             requestHiZ(true, p);
@@ -217,11 +215,6 @@ public class InputFragment_ATmega328P extends Fragment implements InputFragment,
             return;
         }
 
-//        Log.d("Analog", "Analog Request state: " + signalState);
-//        Log.d("Analog", "Analog Request memoryPosition: " + memoryPosition);
-//        Log.d("Analog", "Analog Request bitPosition: " + bitPosition);
-//        Log.d("Analog", "Analog Request pin: " + request.getPin());
-
         new InputRequest_InputChanel(request).execute(signalState, memoryPosition, bitPosition);
 
 
@@ -304,7 +297,6 @@ public class InputFragment_ATmega328P extends Fragment implements InputFragment,
                     if (dataMemory.readBit(memoryParams[1] + 2, memoryParams[2]) ^ boolSignalState) {
                         //Output and requested input are different
                         if (!request.getHiZ(request.getPinSpinnerPosition())) {
-//                        if (!InputPin_ATmega328P.hiZInput[request.getPinSpinnerPosition()]) {
                             //Input is not HiZ, so it's a short circuit!
                             return true;
                         }
@@ -420,7 +412,6 @@ public class InputFragment_ATmega328P extends Fragment implements InputFragment,
             try {
                 if (inputPins.size() == 0) {
                     //No restrictions, write requested data.
-//                    dataMemory.writeIOBit(memoryParams[1], memoryParams[2], memoryParams[0] == IOModule.HIGH_LEVEL);
                     UCModule.interruptionModule.checkIOInterruption(memoryParams[1], memoryParams[2],dataMemory.readBit(memoryParams[1],memoryParams[2]),memoryParams[0] == IOModule.HIGH_LEVEL);
                     dataMemory.writeFeedback(memoryParams[1], memoryParams[2], memoryParams[0] == IOModule.HIGH_LEVEL);
                     return false;

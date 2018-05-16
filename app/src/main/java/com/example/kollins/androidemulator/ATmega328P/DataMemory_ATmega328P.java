@@ -125,7 +125,7 @@ public class DataMemory_ATmega328P implements DataMemory {
     public static final int UBRR0H_ADDR = 0xC5;
     public static final int UDR0_ADDR = 0xC6;
 
-    private final int RAMEND = 0x08FF;
+    private static final int RAMEND = 0x08FF;
     private final int SDRAM_EXTERNAL_SIZE = (2 * ((int) Math.pow(2, 10)));
 
     //2kBytes external SDRAM + 32 Registers + 64 I/O Registers + 160 Ext I/O Registers
@@ -281,9 +281,9 @@ public class DataMemory_ATmega328P implements DataMemory {
 
     @Override
     public synchronized byte readByte(int byteAddress) {
-        Log.d(UCModule.MY_LOG_TAG,
-                String.format("Read byte SDRAM\nAddress: 0x%s, Data read: 0x%02X",
-                        Integer.toHexString((int) byteAddress), sdramMemory[byteAddress]));
+//        Log.d(UCModule.MY_LOG_TAG,
+//                String.format("Read byte SDRAM\nAddress: 0x%s, Data read: 0x%02X",
+//                        Integer.toHexString((int) byteAddress), sdramMemory[byteAddress]));
 
         if (byteAddress == TCCR0B_ADDR) {
             return (byte) (0x0F & sdramMemory[byteAddress]);    //Force math always read as 0
@@ -361,9 +361,9 @@ public class DataMemory_ATmega328P implements DataMemory {
 
     @Override
     public synchronized void writeByte(int byteAddress, byte byteData) {
-        Log.d(UCModule.MY_LOG_TAG,
-                String.format("Write byte SDRAM\nAddress: 0x%s, Data: 0x%02X",
-                        Integer.toHexString((int) byteAddress), byteData));
+//        Log.d(UCModule.MY_LOG_TAG,
+//                String.format("Write byte SDRAM\nAddress: 0x%s, Data: 0x%02X",
+//                        Integer.toHexString((int) byteAddress), byteData));
 
         if (byteAddress == PINB_ADDR || byteAddress == PINC_ADDR || byteAddress == PIND_ADDR) {
             //Toggle bits in PORTx
@@ -383,11 +383,7 @@ public class DataMemory_ATmega328P implements DataMemory {
             }
 
             writeByte(byteAddress + 2, toggleByte);
-//            for (int i = 0; i < 8; i++) {
-//                if ((0x01 & (byteData >> i)) == 1) {
-//                    writeBit(byteAddress+2, i, !readBit(byteAddress+2, i));
-//                }
-//            }
+
         } else if (byteAddress == EIFR_ADDR
                 || byteAddress == PCIFR_ADDR
                 || byteAddress == TIFR0_ADDR
@@ -503,17 +499,6 @@ public class DataMemory_ATmega328P implements DataMemory {
         new NotifyIO().execute(byteAddress);
 
     }
-
-//    public synchronized void writeIOByte(int byteAddress, byte byteData) {
-//        if (byteAddress == ICR1H_ADDR) {
-//            timer1_TEMP = byteData;
-//        } else if (byteAddress == ICR1L_ADDR) {
-//            sdramMemory[byteAddress] = byteData;
-//            sdramMemory[ICR1H_ADDR] = timer1_TEMP;
-//        }
-//        sdramMemory[byteAddress] = byteData;
-//        updateMemoryUsage(byteAddress);
-//    }
 
     @Override
     public synchronized boolean readBit(int byteAddress, int bitPosition) {

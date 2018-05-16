@@ -39,7 +39,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class UCModule extends AppCompatActivity {
 
     //To calculate efective clock
-    private static int sum, n = 0;
+//    private static int sum, n = 0;
 
     public static final short CPU_ID = 0;
     public static final short SIMULATED_TIMER_ID = 1;
@@ -47,7 +47,6 @@ public class UCModule extends AppCompatActivity {
     public static final short TIMER1_ID = 3;
     public static final short TIMER2_ID = 4;
     public static final short ADC_ID = 5;
-//    public static final int MANUAL_CLOCK = 3;
 
     public static String PACKAGE_NAME;
 
@@ -247,7 +246,6 @@ public class UCModule extends AppCompatActivity {
             } else {
                 setUpSuccessful = false;
                 ucView.setStatus(UCModule_View.LED_STATUS.HEX_FILE_ERROR);
-//                toast(getResources().getString(R.string.hex_file_read_fail));
             }
 
         } catch (ClassNotFoundException |
@@ -269,7 +267,6 @@ public class UCModule extends AppCompatActivity {
 
     public static int getDeviceModules() {
         int id = resources.getIdentifier(device, "integer", PACKAGE_NAME);
-//        Log.d(MY_LOG_TAG, "getDeviceModules: " + res.getInteger(id));
         return resources.getInteger(id);
     }
 
@@ -447,10 +444,6 @@ public class UCModule extends AppCompatActivity {
         for (int i = resetManager; i < clockVector.length; i++) {
             clockVector[i] = false;
         }
-    }
-
-    private void toast(String message) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 
     public void changeFileLocation(String newHexFileLocation) {

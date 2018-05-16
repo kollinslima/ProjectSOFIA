@@ -19,6 +19,9 @@ Modifications by Kollins Gabriel Lima
  */
 
 public class PathUtil {
+
+    private PathUtil(){}
+
     /*
      * Gets the file path of the given Uri.
      */
@@ -62,6 +65,7 @@ public class PathUtil {
                     return cursor.getString(column_index);
                 }
             } catch (Exception e) {
+
             }
         } else if ("file".equalsIgnoreCase(uri.getScheme())) {
             return uri.getPath();

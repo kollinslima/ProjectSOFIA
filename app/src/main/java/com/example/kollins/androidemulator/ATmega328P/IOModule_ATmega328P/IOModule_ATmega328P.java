@@ -64,24 +64,18 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
         switch (msg.what) {
             case PORTB_EVENT:
 
-//                Log.i(UCModule.MY_LOG_TAG, "PortB: " + Integer.toBinaryString(portRead));
-//                Log.i(UCModule.MY_LOG_TAG, "DDRB: " + Integer.toBinaryString(configRead));
                 new PortBUpdateView().execute(outputPins);
 
                 break;
 
             case PORTC_EVENT:
 
-//                Log.i(UCModule.MY_LOG_TAG, "PortC: " + Integer.toBinaryString(portRead));
-//                Log.i(UCModule.MY_LOG_TAG, "DDRC: " + Integer.toBinaryString(configRead));
                 new PortCUpdateView().execute(outputPins);
 
                 break;
 
             case PORTD_EVENT:
 
-                Log.i(UCModule.MY_LOG_TAG, "PortD: " + Integer.toBinaryString(valueRead));
-                Log.i(UCModule.MY_LOG_TAG, "DDRD: " + Integer.toBinaryString(configRead));
                 new PortDUpdateView().execute(outputPins);
 
                 break;
@@ -203,7 +197,7 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
                 sendShortCircuit();
             }
         } catch (NullPointerException e) {
-            //Output list is null;
+            Log.e(UCModule.MY_LOG_TAG, "ERROR: setOC0A (IOModule) -> output list is null", e);
         }
 
     }
@@ -231,7 +225,7 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
                 sendShortCircuit();
             }
         } catch (NullPointerException e) {
-            //Output list is null;
+            Log.e(UCModule.MY_LOG_TAG, "ERROR: setOC0B (IOModule) -> output list is null", e);
         }
 
     }
@@ -258,7 +252,7 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
                 sendShortCircuit();
             }
         } catch (NullPointerException e) {
-            //Output list is null;
+            Log.e(UCModule.MY_LOG_TAG, "ERROR: setOC1A (IOModule) -> output list is null", e);
         }
     }
 
@@ -284,7 +278,7 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
                 sendShortCircuit();
             }
         } catch (NullPointerException e) {
-            //Output list is null;
+            Log.e(UCModule.MY_LOG_TAG, "ERROR: setOC1B (IOModule) -> output list is null", e);
         }
     }
 
@@ -310,7 +304,7 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
                 sendShortCircuit();
             }
         } catch (NullPointerException e) {
-            //Output list is null;
+            Log.e(UCModule.MY_LOG_TAG, "ERROR: setOC2A (IOModule) -> output list is null", e);
         }
     }
 
@@ -336,7 +330,7 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
                 sendShortCircuit();
             }
         } catch (NullPointerException e) {
-            //Output list is null;
+            Log.e(UCModule.MY_LOG_TAG, "ERROR: setOC2B (IOModule) -> output list is null", e);
         }
     }
 
@@ -344,7 +338,6 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
 
         private int index;
         private boolean digitalPINState;
-        private int bitPosition;
 
         @Override
         protected void onPreExecute() {
@@ -359,22 +352,15 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
             //Pin8 - Pin13
             for (int i = 8, bitPosition = 0; i <= 13; i++, bitPosition++) {
 
-//                Log.i(UCModule.MY_LOG_TAG, "PORTB UPDATE " + i);
-
                 //Is input?
                 if ((0x01 & (configRead >> bitPosition)) == 0) {
-//                    Log.i(UCModule.MY_LOG_TAG, "Input: " + i);
 
                     digitalPINState = inputFragment.getPINState(DataMemory_ATmega328P.PINB_ADDR, bitPosition);
 
                     if (((0x01 & (valueRead >> bitPosition)) == 1) && outputFragment.isPullUpEnabled()) {
 
-//                        Log.i(UCModule.MY_LOG_TAG, "Port == 1 && pull-Up enabled");
-
                         if (!digitalPINState && inputFragment.isPinHiZ(i)) {
-//                            Log.i(UCModule.MY_LOG_TAG, "Requesting pull up");
                             inputFragment.inputRequest_outputChanel(IOModule.HIGH_LEVEL, DataMemory_ATmega328P.PINB_ADDR, bitPosition, "Pin" + i);
-
 //                            return null;
                         }
 
@@ -393,7 +379,6 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
                 }
                 //Is output!
                 else {
-//                    Log.i(UCModule.MY_LOG_TAG, "Output: " + i);
                     //Check MUX Timer1 and Timer 2
                     if ((i < 9 || i > 11)
                             || (i == 9 && !Timer1_ATmega328P.timerOutputControl_OC1A)
@@ -403,9 +388,6 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
                     }
                     outputFragment.writeFeedback(DataMemory_ATmega328P.PINB_ADDR, bitPosition, outputFragment.pinbuffer[i] != 0);
                 }
-
-//                portRead = (byte) (portRead >> 1);
-//                configRead = (byte) (configRead >> 1);
             }
 
             if (pins[0] != null) {
@@ -421,7 +403,7 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
                     sendShortCircuit();
                 }
             } catch (NullPointerException e) {
-                //Output list is null;
+                Log.e(UCModule.MY_LOG_TAG, "ERROR: PortBUpdateView (doInBackground) -> output list is null", e);
             }
 
             return null;
@@ -438,7 +420,6 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
 
         private int index;
         private boolean digitalPINState;
-        private int bitPosition;
 
         @Override
         protected void onPreExecute() {
@@ -450,7 +431,6 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
         protected Void doInBackground(List<OutputPin_ATmega328P>... pins) {
             Thread.currentThread().setName("ASYNC_PORTC_UPDATE");
 
-
             //AN0 - AN5 (Pin14 - Pin19)
             for (int i = 14, bitPosition = 0; i <= 19; i++, bitPosition++) {
                 //Is input?
@@ -458,15 +438,10 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
 
                     digitalPINState = inputFragment.getPINState(DataMemory_ATmega328P.PINC_ADDR, bitPosition);
 
-                    Log.d("Analog", "Digital State: " + digitalPINState);
                     if (((0x01 & (valueRead >> bitPosition)) == 1) && outputFragment.isPullUpEnabled()) {
 
-//                        Log.i(UCModule.MY_LOG_TAG, "Port == 1 && pull-Up enabled");
-
                         if (!digitalPINState && inputFragment.isPinHiZ(i)) {
-//                            Log.i(UCModule.MY_LOG_TAG, "Requesting pull up");
                             inputFragment.inputRequest_outputChanel(IOModule.HIGH_LEVEL, DataMemory_ATmega328P.PINC_ADDR, bitPosition, "AN" + bitPosition);
-
 //                            return null;
                         }
 
@@ -487,13 +462,10 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
                 }
                 //Is output!
                 else {
-//                    Log.i(UCModule.MY_LOG_TAG, "Output");
                     outputFragment.pinbuffer[i] = (0x01 & (valueRead >> bitPosition));
                     outputFragment.writeFeedback(DataMemory_ATmega328P.PINC_ADDR, bitPosition, outputFragment.pinbuffer[i] != 0);
                 }
 
-//                portRead = (byte) (portRead >> 1);
-//                configRead = (byte) (configRead >> 1);
             }
             if (pins[0] != null) {
                 for (OutputPin_ATmega328P p : pins[0]) {
@@ -507,7 +479,7 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
                     sendShortCircuit();
                 }
             } catch (NullPointerException e) {
-                //Output list is null;
+                Log.e(UCModule.MY_LOG_TAG, "ERROR: PortCUpdateView (doInBackground) -> output list is null", e);
             }
 
             return null;
@@ -523,7 +495,6 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
 
         private int index;
         private boolean digitalPINState;
-        private int bitPosition;
 
         @Override
         protected void onPreExecute() {
@@ -539,20 +510,13 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
             for (int i = 0, bitPosition = 0; i <= 7; i++, bitPosition++) {
                 //Is input?
                 if ((0x01 & (configRead >> bitPosition)) == 0) {
-//                    Log.i(UCModule.MY_LOG_TAG, "Input pullUP: " + outputFragment.isPullUpEnabled());
 
                     digitalPINState = inputFragment.getPINState(DataMemory_ATmega328P.PIND_ADDR, bitPosition);
 
                     if (((0x01 & (valueRead >> bitPosition)) == 1) && outputFragment.isPullUpEnabled()) {
 
-//                        Log.i(UCModule.MY_LOG_TAG, "Port == 1 && pull-Up enabled");
-//                        Log.i(UCModule.MY_LOG_TAG, "Pin HiZ: " + inputFragment.isPinHiZ(i));
-
                         if (!digitalPINState && inputFragment.isPinHiZ(i)) {
-//                            Log.i(UCModule.MY_LOG_TAG, "Requesting pull up");
-//                            Log.i(UCModule.MY_LOG_TAG, "HiZ[" + i + "]: " + inputFragment.isPinHiZ(i));
                             inputFragment.inputRequest_outputChanel(IOModule.HIGH_LEVEL, DataMemory_ATmega328P.PIND_ADDR, bitPosition, "Pin" + i);
-
 //                            return null;
                         }
 
@@ -571,7 +535,6 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
                 }
                 //Is output!
                 else {
-//                    Log.i(UCModule.MY_LOG_TAG, "Output");
                     //Check MUX Timer0 and Timer 2
                     if (((i < 5 && i != 3) || i > 6)
                             || (i == 5 && !Timer0_ATmega328P.timerOutputControl_OC0B)
@@ -587,7 +550,6 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
             if (pins[0] != null) {
 
                 for (OutputPin_ATmega328P p : pins[0]) {
-//                    p.setPinState(outputFragment.pinbuffer[p.getPinPositionSpinner()], p.getPinPositionSpinner());
                     publishProgress(index);
                     index += 1;
                 }
@@ -598,7 +560,7 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
                     sendShortCircuit();
                 }
             } catch (NullPointerException e) {
-                //Output list is null;
+                Log.e(UCModule.MY_LOG_TAG, "ERROR: PortDUpdateView (doInBackground) -> output list is null", e);
             }
 
             return null;

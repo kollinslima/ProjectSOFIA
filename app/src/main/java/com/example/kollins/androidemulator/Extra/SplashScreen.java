@@ -8,6 +8,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 
 import com.example.kollins.androidemulator.CPUModule;
 import com.example.kollins.androidemulator.Database.DataBaseHelper;
@@ -47,7 +48,7 @@ public class SplashScreen extends AppCompatActivity {
                     do {
 
                         CPUModule.INSTRUCTION_ID[cursor.getInt(cursor.getColumnIndex("opcode"))] =
-                                cursor.getInt(cursor.getColumnIndex("instruction_id"));
+                                cursor.getShort(cursor.getColumnIndex("instruction_id"));
 
 //                    Log.v(UCModule.MY_LOG_TAG, "DBLoad[" +
 //                            cursor.getInt(cursor.getColumnIndex("opcode")) +
@@ -56,10 +57,12 @@ public class SplashScreen extends AppCompatActivity {
                     } while (cursor.moveToNext());
                 }
 
-            } catch (IOException mSQLException) {
-                throw new Error("UnableToLoadDataBase");
+            } catch (IOException e) {
+                Log.e(UCModule.MY_LOG_TAG,"UnableToLoadDataBase",e);
             } finally {
-                mDb.close();
+                if (mDb != null) {
+                    mDb.close();
+                }
             }
             return null;
         }

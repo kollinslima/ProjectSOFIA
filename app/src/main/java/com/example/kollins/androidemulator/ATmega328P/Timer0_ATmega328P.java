@@ -130,7 +130,7 @@ public class Timer0_ATmega328P implements Timer0Module {
             uCHandler.sendEmptyMessage(UCModule.CLOCK_ACTION);
 
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            Log.e(UCModule.MY_LOG_TAG, "ERROR: waitClock Timer0", e);
         } finally {
             clockLock.unlock();
         }

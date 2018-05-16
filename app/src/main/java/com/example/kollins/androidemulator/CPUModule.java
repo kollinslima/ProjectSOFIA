@@ -17,7 +17,7 @@ import java.util.concurrent.locks.Lock;
 
 public class CPUModule implements Runnable, CPUInstructions {
 
-    public static int[] INSTRUCTION_ID = new int[(int) (Math.pow(2, 16) + 1)];
+    public static short[] INSTRUCTION_ID = new short[(int) (Math.pow(2, 16) + 1)];
 
     private static int instruction;
 
@@ -80,7 +80,7 @@ public class CPUModule implements Runnable, CPUInstructions {
                 dataMemory.writeByte(stackPointer, (byte) (0x000000FF & programMemory.getPC()));
                 stackPointer -= 1;
                 //Write PC high
-                dataMemory.writeByte(stackPointer, (byte) ((0x000000FF & (programMemory.getPC() >> 8))));
+                dataMemory.writeByte(stackPointer, (byte) (0x000000FF & (programMemory.getPC() >> 8)));
 
                 //Update SPL
                 dataMemory.writeByte(DataMemory_ATmega328P.SPL_ADDR, (byte) (0x000000FF & stackPointer));
@@ -118,7 +118,7 @@ public class CPUModule implements Runnable, CPUInstructions {
             uCHandler.sendEmptyMessage(UCModule.CLOCK_ACTION);
 
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            Log.e(UCModule.MY_LOG_TAG, "ERROR: waitClock CPU", e);
         } finally {
             clockLock.unlock();
         }

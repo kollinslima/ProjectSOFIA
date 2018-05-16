@@ -45,7 +45,6 @@ public class OutputFragment_ATmega328P extends Fragment implements OutputFragmen
     private DataMemory_ATmega328P dataMemory;
 
     private boolean haveOutput;
-//    private boolean pullUpEnabled;
 
     private Handler screenUpdater;
 

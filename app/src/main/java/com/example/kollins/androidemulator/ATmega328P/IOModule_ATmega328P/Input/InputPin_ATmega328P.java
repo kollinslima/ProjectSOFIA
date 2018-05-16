@@ -51,10 +51,6 @@ public class InputPin_ATmega328P {
         this.pin = pin;
         this.pinDescription = pinDescription;
         this.pinSpinnerPosition = -1;
-
-//        memoryAddress = UCModule.getInputMemoryAddress();
-//        memoryBitPosition = UCModule.getInputMemoryBitPosition();
-        //this.seekBarProgress = 0;
     }
 
     public int getPinMode() {

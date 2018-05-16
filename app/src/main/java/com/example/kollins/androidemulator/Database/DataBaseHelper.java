@@ -4,6 +4,9 @@ import android.content.Context;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
+
+import com.example.kollins.androidemulator.UCModule;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -60,8 +63,8 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             this.close();
             try {
                 copyDBFile();
-            } catch (IOException mIOException) {
-                throw new Error("ErrorCopyingDataBase");
+            } catch (IOException e) {
+                Log.e(UCModule.MY_LOG_TAG,"ErrorCopyingDataBase",e);
             }
         }
     }
@@ -79,8 +82,12 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             }
             mOutput.flush();
         } finally {
-            mInput.close();
-            mOutput.close();
+            if (mInput != null) {
+                mInput.close();
+            }
+            if (mOutput != null) {
+                mOutput.close();
+            }
         }
     }
 

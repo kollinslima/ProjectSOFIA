@@ -27,7 +27,6 @@ public class ProgramMemory_ATmega328P implements ProgramMemory {
 
     //32kBytes, each instruction is 16bits wide
     private final int FLASH_SIZE = 32 * ((int) Math.pow(2, 10));
-    private final int WORD_SIZE = 16;
     private byte[] flashMemory = null;
 
     private final int INTEL_DATA_SIZE = 0;
@@ -178,9 +177,9 @@ public class ProgramMemory_ATmega328P implements ProgramMemory {
     public byte readByte(int address) {
         //address is a byte address
 
-        Log.d(UCModule.MY_LOG_TAG,
-                String.format("Read byte FLASH\nAddress: 0x%s, Data read: 0x%02X",
-                        Integer.toHexString((int) address), flashMemory[address]));
+//        Log.d(UCModule.MY_LOG_TAG,
+//                String.format("Read byte FLASH\nAddress: 0x%s, Data read: 0x%02X",
+//                        Integer.toHexString((int) address), flashMemory[address]));
         return flashMemory[address];
     }
 
@@ -258,7 +257,7 @@ public class ProgramMemory_ATmega328P implements ProgramMemory {
                         extendedSegmentAddress = false;
                         extendedLinearAddress = true;
 
-                        extendedAddress = (readBytes[INTEL_DATA] << 8) | readBytes[INTEL_DATA];
+                        extendedAddress = (0x0000FFFF & ((readBytes[INTEL_DATA] << 8) | readBytes[INTEL_DATA]));
                         Log.v(UCModule.MY_LOG_TAG, "Extended by: " + extendedAddress);
                         break;
 
