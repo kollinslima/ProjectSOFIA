@@ -292,9 +292,6 @@ public class InputFragment_ATmega328P extends Fragment implements InputFragment,
                 if (inputPins.size() == 0) {
                     //No restrictions, write requested data.
                     UCModule.interruptionModule.checkIOInterruption(memoryParams[1], memoryParams[2],dataMemory.readBit(memoryParams[1],memoryParams[2]),memoryParams[0] == IOModule.HIGH_LEVEL);
-                    Log.d("Analog", "Analog Write position: " + memoryParams[1]);
-                    Log.d("Analog", "Analog Write adress: " + memoryParams[2]);
-                    Log.d("Analog", "Analog Write state: " + (memoryParams[0] == IOModule.HIGH_LEVEL));
                     dataMemory.writeIOBit(memoryParams[1], memoryParams[2], memoryParams[0] == IOModule.HIGH_LEVEL);
                     return false;
                 }
@@ -325,45 +322,29 @@ public class InputFragment_ATmega328P extends Fragment implements InputFragment,
 
                     //No duplicated itens
                     if (duplicatedInputs.size() == 1) {
-                        Log.i("Short", "No dupliated pins - InputFragment");
                         UCModule.interruptionModule.checkIOInterruption(memoryParams[1], memoryParams[2],dataMemory.readBit(memoryParams[1],memoryParams[2]),memoryParams[0] == IOModule.HIGH_LEVEL);
-                        Log.d("Analog", "Analog Write position: " + memoryParams[1]);
-                        Log.d("Analog", "Analog Write adress: " + memoryParams[2]);
-                        Log.d("Analog", "Analog Write state: " + (memoryParams[0] == IOModule.HIGH_LEVEL));
                         dataMemory.writeIOBit(memoryParams[1], memoryParams[2], memoryParams[0] == IOModule.HIGH_LEVEL);
                         return false;
                     }
-                    Log.i("Short", "Dupliated pins");
-                    Log.i("Short", "Request input: " + memoryParams[0]);
 
                     for (InputPin_ATmega328P p : duplicatedInputs) {
 
-                        Log.i("Short", "Pin: " + p.getPin() + "\nState: " + p.getPinState());
-
                         if (p.getHiZ(p.getPinSpinnerPosition()) ||
                                 p.getPinState() == IOModule.TRI_STATE) {
-                            Log.i("Short", "All good");
                             continue;
                         }
                         if (p.getPinState() != memoryParams[0]) {
                             //Short Circuit!
-                            Log.i("Short", "Send short circuit - InputChanel");
                             return true;
                         }
                     }
                     UCModule.interruptionModule.checkIOInterruption(memoryParams[1], memoryParams[2],dataMemory.readBit(memoryParams[1],memoryParams[2]),memoryParams[0] == IOModule.HIGH_LEVEL);
-                    Log.d("Analog", "Analog Write position: " + memoryParams[1]);
-                    Log.d("Analog", "Analog Write adress: " + memoryParams[2]);
-                    Log.d("Analog", "Analog Write state: " + (memoryParams[0] == IOModule.HIGH_LEVEL));
                     dataMemory.writeIOBit(memoryParams[1], memoryParams[2], memoryParams[0] == IOModule.HIGH_LEVEL);
 
                 }
 
             } catch (NullPointerException e) {
                 UCModule.interruptionModule.checkIOInterruption(memoryParams[1], memoryParams[2],dataMemory.readBit(memoryParams[1],memoryParams[2]),memoryParams[0] == IOModule.HIGH_LEVEL);
-                Log.d("Analog", "Analog Write position: " + memoryParams[1]);
-                Log.d("Analog", "Analog Write adress: " + memoryParams[2]);
-                Log.d("Analog", "Analog Write state: " + (memoryParams[0] == IOModule.HIGH_LEVEL));
                 dataMemory.writeIOBit(memoryParams[1], memoryParams[2], memoryParams[0] == IOModule.HIGH_LEVEL);
             }
             return false;
@@ -389,10 +370,8 @@ public class InputFragment_ATmega328P extends Fragment implements InputFragment,
         protected Void doInBackground(Boolean... params) {
             Thread.currentThread().setName("ASYNC_REQUEST_HIZ");
 
-            Log.i("HiZ", "Request: " + params[0]);
             //There is no restriction to remove pin from HiZ
             if (!params[0]) {
-                Log.i("HiZ", "HiZ request acepted");
                 request.setHiZ(params[0], request.getPinSpinnerPosition());
 
             } else {
@@ -407,7 +386,6 @@ public class InputFragment_ATmega328P extends Fragment implements InputFragment,
 
                 //No duplicated itens
                 if (duplicatedInputs.size() == 1) {
-                    Log.i("HiZ", "HiZ request acepted");
                     request.setHiZ(params[0], request.getPinSpinnerPosition());
                     return null;
                 }
@@ -416,11 +394,9 @@ public class InputFragment_ATmega328P extends Fragment implements InputFragment,
                     if (p.getPinState() == IOModule.TRI_STATE) {
                         continue;
                     }
-                    Log.i("HiZ", "HiZ request rejected");
                     request.setHiZ(false, request.getPinSpinnerPosition());
                     return null;
                 }
-                Log.i("HiZ", "HiZ request acepted");
                 request.setHiZ(params[0], request.getPinSpinnerPosition());
 
             }

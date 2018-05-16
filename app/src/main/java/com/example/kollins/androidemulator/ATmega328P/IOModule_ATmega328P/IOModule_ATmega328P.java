@@ -85,6 +85,10 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
                 new PortDUpdateView().execute(outputPins);
 
                 break;
+
+            default:
+                //There are no other events
+                break;
         }
     }
 
@@ -125,9 +129,6 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
                 pi = inputPins.get(i);
                 pj = inputPins.get(j);
 
-                Log.i("Short", "Comparing " + pi.getPin() + " and " + pj.getPin());
-                Log.i("Short", pi.getPin() + ": " + pi.getPinState());
-                Log.i("Short", pj.getPin() + ": " + pj.getPinState());
 
                 if (pi.getPinSpinnerPosition() == pj.getPinSpinnerPosition()) {
                     if (pi.getHiZ(pi.getPinSpinnerPosition())) {
@@ -137,7 +138,6 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
                         continue;
                     }
                     if (pi.getPinState() != pj.getPinState()) {
-                        Log.i("Short", "Send short circuit - CheckInput(IOModule)");
                         return true;
                     }
                 }
@@ -156,9 +156,6 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
                 pk = outputPins.get(k);
                 if (pi.getPinSpinnerPosition() == pk.getPinPositionSpinner()) {
 
-                    Log.i("Short", "Input: " + pi.getPinState());
-                    Log.i("Short", "Output: " + pk.getPinState(pk.getPinPositionSpinner()));
-
                     if (pi.getPinState() == IOModule.TRI_STATE ||
                             pk.getPinState(pk.getPinPositionSpinner()) == IOModule.TRI_STATE) {
                         continue;
@@ -169,7 +166,6 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
                         continue;
                     }
                     if (pi.getPinState() != pk.getPinState(pk.getPinPositionSpinner())) {
-                        Log.i("Short", "Send short circuit - CheckInputOutput(IOModule)");
                         return true;
                     }
                 }
@@ -187,7 +183,7 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
     public void setOC0A(int stateOC0A) {
 
         //Affected only if it is an output.
-        if (outputFragment.isMeasrureOutput(DataMemory_ATmega328P.DDRD_ADDR, 6)){
+        if (outputFragment.isMeasrureOutput(DataMemory_ATmega328P.DDRD_ADDR, 6)) {
             return;
         }
 
@@ -215,7 +211,7 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
     public void setOC0B(int stateOC0B) {
 
         //Affected only if it is an output.
-        if (outputFragment.isMeasrureOutput(DataMemory_ATmega328P.DDRD_ADDR, 5)){
+        if (outputFragment.isMeasrureOutput(DataMemory_ATmega328P.DDRD_ADDR, 5)) {
             return;
         }
 
@@ -242,7 +238,7 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
 
     public void setOC1A(int stateOC1A) {
         //Affected only if it is an output.
-        if (outputFragment.isMeasrureOutput(DataMemory_ATmega328P.DDRB_ADDR, 1)){
+        if (outputFragment.isMeasrureOutput(DataMemory_ATmega328P.DDRB_ADDR, 1)) {
             return;
         }
 
@@ -268,7 +264,7 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
 
     public void setOC1B(int stateOC1B) {
         //Affected only if it is an output.
-        if (outputFragment.isMeasrureOutput(DataMemory_ATmega328P.DDRB_ADDR, 2)){
+        if (outputFragment.isMeasrureOutput(DataMemory_ATmega328P.DDRB_ADDR, 2)) {
             return;
         }
 
@@ -294,7 +290,7 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
 
     public void setOC2A(int stateOC2A) {
         //Affected only if it is an output.
-        if (outputFragment.isMeasrureOutput(DataMemory_ATmega328P.DDRB_ADDR, 3)){
+        if (outputFragment.isMeasrureOutput(DataMemory_ATmega328P.DDRB_ADDR, 3)) {
             return;
         }
 
@@ -320,7 +316,7 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
 
     public void setOC2B(int stateOC2B) {
         //Affected only if it is an output.
-        if (outputFragment.isMeasrureOutput(DataMemory_ATmega328P.DDRD_ADDR, 3)){
+        if (outputFragment.isMeasrureOutput(DataMemory_ATmega328P.DDRD_ADDR, 3)) {
             return;
         }
 

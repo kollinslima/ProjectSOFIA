@@ -88,7 +88,7 @@ public class OutputAdapter_ATmega328P extends BaseAdapter {
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
-
+                //Should never occur
             }
         });
 

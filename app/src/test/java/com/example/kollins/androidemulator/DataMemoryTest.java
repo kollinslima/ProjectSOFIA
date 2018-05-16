@@ -154,13 +154,13 @@ public class DataMemoryTest {
     @Test
     public void writeByte_clearFlag_ADCSRA(){
         int byteAddress = DataMemory_ATmega328P.ADCSRA_ADDR;
-        byte data = 0x0F;
+        byte data = (byte) 0xFF;
 
-        sdramMemoryTest[byteAddress] = (byte) 0xAA;
+        sdramMemoryTest[byteAddress] = (byte) 0xFF;
         dataMemory.writeByte(byteAddress, data);
 
 
-        assertEquals((byte) 0x0E, sdramMemoryTest[byteAddress]);
+        assertEquals((byte) 0xEF, sdramMemoryTest[byteAddress]);
     }
 
     @Test

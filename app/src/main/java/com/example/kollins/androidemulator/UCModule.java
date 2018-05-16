@@ -144,7 +144,7 @@ public class UCModule extends AppCompatActivity {
         try {
             Class interruptionDevice = Class.forName(PACKAGE_NAME + "." + device + ".InterruptionModule_" + device);
             interruptionModule = (InterruptionModule) interruptionDevice.newInstance();
-        } catch (ClassNotFoundException|IllegalAccessException|InstantiationException e) {
+        } catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
             e.printStackTrace();
         }
 
@@ -171,6 +171,7 @@ public class UCModule extends AppCompatActivity {
 
         shortCircuitFlag = false;
         setResetFlag(false);
+        resetClockVector();
 
         try {
             //Init FLASH
@@ -233,8 +234,8 @@ public class UCModule extends AppCompatActivity {
 
                 //Init ADC
                 Class adcDevice = Class.forName(PACKAGE_NAME + "." + device + ".ADC_" + device);
-                adc = (ADCModule) adcDevice.getDeclaredConstructor(DataMemory.class, Handler.class, Lock.class,UCModule.class)
-                        .newInstance(dataMemory, uCHandler, clockLock,this);
+                adc = (ADCModule) adcDevice.getDeclaredConstructor(DataMemory.class, Handler.class, Lock.class, UCModule.class)
+                        .newInstance(dataMemory, uCHandler, clockLock, this);
 
                 threadADC = new Thread(adc);
                 threadADC.start();
@@ -262,7 +263,7 @@ public class UCModule extends AppCompatActivity {
     }
 
     public int getMemoryUsage() {
-        return (int) (dataMemory.getMemoryUsage()*100);
+        return (int) (dataMemory.getMemoryUsage() * 100);
 //        return (int) dataMemory.getMemoryUsage();
     }
 
@@ -304,11 +305,11 @@ public class UCModule extends AppCompatActivity {
     }
 
     public static double getMaxVoltageLowState() {
-        return (resources.getInteger(R.integer.maxVoltageLow)/1000f);
+        return (resources.getInteger(R.integer.maxVoltageLow) / 1000f);
     }
 
     public static double getMinVoltageHighState() {
-        return (resources.getInteger(R.integer.minVoltageHigh)/1000f);
+        return (resources.getInteger(R.integer.minVoltageHigh) / 1000f);
     }
 
     public static String[] getPinArrayWithHint() {
@@ -403,87 +404,31 @@ public class UCModule extends AppCompatActivity {
 
         setResetFlag(true);
 
+        while (threadCPU.isAlive()
+                || threadUCView.isAlive()
+                || threadTimer0.isAlive()
+                || threadTimer1.isAlive()
+                || threadTimer2.isAlive()
+                || threadADC.isAlive()) {
+
+            resetClockVector();
+            cpuModule.clockCPU();
+            ucView.clockUCView();
+            timer0.clockTimer0();
+            timer1.clockTimer1();
+            timer2.clockTimer2();
+            adc.clockADC();
+        }
+
         try {
-            if (threadCPU != null) {
-                Log.i(MY_LOG_TAG, "Waiting CPU thread");
-                while (threadCPU.isAlive()) {
-                    cpuModule.clockCPU();
-                }
-                threadCPU.join();
-
-                clockLock.lock();
-                clockVector[CPU_ID] = true;
-                clockLock.unlock();
-
-                resetManager = 1;
-            }
-            if (threadUCView != null) {
-                Log.i(MY_LOG_TAG, "Waiting UCView Thread");
-                while (threadUCView.isAlive()) {
-                    ucView.clockUCView();
-                }
-                threadUCView.join();
-
-                clockLock.lock();
-                clockVector[SIMULATED_TIMER_ID] = true;
-                clockLock.unlock();
-
-                resetManager = 2;
-            }
-            if (threadTimer0 != null) {
-                Log.i(MY_LOG_TAG, "Waiting Timer0 thread");
-                while (threadTimer0.isAlive()) {
-                    timer0.clockTimer0();
-                }
-                threadTimer0.join();
-
-                clockLock.lock();
-                clockVector[TIMER0_ID] = true;
-                clockLock.unlock();
-
-                resetManager = 3;
-            }
-            if (threadTimer1 != null) {
-                Log.i(MY_LOG_TAG, "Waiting Timer1 thread");
-                while (threadTimer1.isAlive()) {
-                    timer1.clockTimer1();
-                }
-                threadTimer1.join();
-
-                clockLock.lock();
-                clockVector[TIMER1_ID] = true;
-                clockLock.unlock();
-
-                resetManager = 4;
-            }
-            if (threadTimer2 != null) {
-                Log.i(MY_LOG_TAG, "Waiting Timer2 thread");
-                while (threadTimer2.isAlive()) {
-                    timer2.clockTimer2();
-                }
-                threadTimer2.join();
-
-                clockLock.lock();
-                clockVector[TIMER2_ID] = true;
-                clockLock.unlock();
-
-                resetManager = 5;
-            }
-            if (threadADC != null) {
-                Log.i(MY_LOG_TAG, "Waiting ADC thread");
-                while (threadADC.isAlive()) {
-                    adc.clockADC();
-                }
-                threadADC.join();
-
-                clockLock.lock();
-                clockVector[ADC_ID] = true;
-                clockLock.unlock();
-
-                resetManager = 6;
-            }
+            threadCPU.join();
+            threadUCView.join();
+            threadTimer0.join();
+            threadTimer1.join();
+            threadTimer2.join();
+            threadADC.join();
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            Log.e(MY_LOG_TAG, "ERROR: reset -> join error", e);
         }
 
         if (setUpSuccessful) {

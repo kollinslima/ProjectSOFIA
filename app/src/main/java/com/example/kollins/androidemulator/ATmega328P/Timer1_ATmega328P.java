@@ -14,6 +14,8 @@ import java.util.concurrent.locks.Lock;
 
 public class Timer1_ATmega328P implements Timer1Module {
 
+    private static final String TIMER1_TAG = "Timer1";
+
     private static final char MAX = 0xFFFF;
     private static final char MAX_8B = 0x00FF;
     private static final char MAX_9B = 0x01FF;
@@ -127,6 +129,9 @@ public class Timer1_ATmega328P implements Timer1Module {
                     case 0x0F:
                         TimerMode.FAST_PWM_TOP_OCRA.count();
                         break;
+
+                    default:
+                        break;
                 }
 
             }
@@ -143,7 +148,10 @@ public class Timer1_ATmega328P implements Timer1Module {
 
             for (int i = 0; i < UCModule.clockVector.length; i++) {
                 if (!UCModule.clockVector[i]) {
-                    timer1ClockCondition.await();
+
+                    while (UCModule.clockVector[UCModule.TIMER1_ID]) {
+                        timer1ClockCondition.await();
+                    }
                     return;
                 }
             }
@@ -174,7 +182,7 @@ public class Timer1_ATmega328P implements Timer1Module {
         NO_CLOCK_SOURCE {
             @Override
             public boolean work() {
-                Log.i("Timer1", "No Clock Source");
+                Log.i(TIMER1_TAG, "No Clock Source");
                 waitClock();
                 return false;
             }
@@ -182,7 +190,7 @@ public class Timer1_ATmega328P implements Timer1Module {
         CLOCK_PRESCALER_1 {
             @Override
             public boolean work() {
-                Log.i("Timer1", "Prescaler 1");
+                Log.i(TIMER1_TAG, "Prescaler 1");
                 waitClock();
                 return true;
             }
@@ -190,44 +198,40 @@ public class Timer1_ATmega328P implements Timer1Module {
         CLOCK_PRESCALER_8 {
             @Override
             public boolean work() {
-                Log.i("Timer1", "Prescaler 8");
-                waitClock();
-//                for (int i = 0; i < 8; i++) {
-//                    waitClock();
-//                }
+                Log.i(TIMER1_TAG, "Prescaler 8");
+                for (int i = 0; i < 8; i++) {
+                    waitClock();
+                }
                 return true;
             }
         },
         CLOCK_PRESCALER_64 {
             @Override
             public boolean work() {
-                Log.i("Timer1", "Prescaler 64");
-                waitClock();
-//                for (int i = 0; i < 64; i++) {
-//                    waitClock();
-//                }
+                Log.i(TIMER1_TAG, "Prescaler 64");
+                for (int i = 0; i < 64; i++) {
+                    waitClock();
+                }
                 return false;
             }
         },
         CLOCK_PRESCALER_256 {
             @Override
             public boolean work() {
-                Log.i("Timer1", "Prescaler 256");
-                waitClock();
-//                for (int i = 0; i < 256; i++) {
-//                    waitClock();
-//                }
+                Log.i(TIMER1_TAG, "Prescaler 256");
+                for (int i = 0; i < 256; i++) {
+                    waitClock();
+                }
                 return true;
             }
         },
         CLOCK_PRESCALER_1024 {
             @Override
             public boolean work() {
-                Log.i("Timer1", "Prescaler 1024");
-                waitClock();
-//                for (int i = 0; i < 1024; i++) {
-//                    waitClock();
-//                }
+                Log.i(TIMER1_TAG, "Prescaler 1024");
+                for (int i = 0; i < 1024; i++) {
+                    waitClock();
+                }
                 return true;
             }
         },
@@ -333,6 +337,10 @@ public class Timer1_ATmega328P implements Timer1Module {
                             stateOC1A = IOModule.HIGH_LEVEL;
                             ioModule.setOC1A(stateOC1A);
                         }
+                        break;
+
+                    default:
+                        break;
                 }
 
                 //CHANEL B
@@ -364,6 +372,10 @@ public class Timer1_ATmega328P implements Timer1Module {
                             stateOC1B = IOModule.HIGH_LEVEL;
                             ioModule.setOC1B(stateOC1B);
                         }
+                        break;
+
+                    default:
+                        break;
                 }
 
                 //Input Capture Unit
@@ -476,6 +488,10 @@ public class Timer1_ATmega328P implements Timer1Module {
                             stateOC1A = IOModule.HIGH_LEVEL;
                             ioModule.setOC1A(stateOC1A);
                         }
+                        break;
+
+                    default:
+                        break;
                 }
 
                 //CHANEL B
@@ -507,6 +523,10 @@ public class Timer1_ATmega328P implements Timer1Module {
                             stateOC1B = IOModule.HIGH_LEVEL;
                             ioModule.setOC1B(stateOC1B);
                         }
+                        break;
+
+                    default:
+                        break;
                 }
 
                 //Input Capture Unit
@@ -625,6 +645,10 @@ public class Timer1_ATmega328P implements Timer1Module {
                             stateOC1A = IOModule.HIGH_LEVEL;
                             ioModule.setOC1A(stateOC1A);
                         }
+                        break;
+
+                    default:
+                        break;
                 }
 
                 //CHANEL B
@@ -656,6 +680,10 @@ public class Timer1_ATmega328P implements Timer1Module {
                             stateOC1B = IOModule.HIGH_LEVEL;
                             ioModule.setOC1B(stateOC1B);
                         }
+                        break;
+
+                    default:
+                        break;
                 }
 
                 dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR,DataMemory_ATmega328P.TCNT1H_ADDR,
@@ -753,7 +781,10 @@ public class Timer1_ATmega328P implements Timer1Module {
                                 ioModule.setOC1A(stateOC1A);
                             }
                         }
+                        break;
 
+                    default:
+                        break;
                 }
 
                 //CHANEL B
@@ -796,6 +827,10 @@ public class Timer1_ATmega328P implements Timer1Module {
                                 ioModule.setOC1B(stateOC1B);
                             }
                         }
+                        break;
+
+                    default:
+                        break;
                 }
 
                 //Input Capture Unit
@@ -916,6 +951,10 @@ public class Timer1_ATmega328P implements Timer1Module {
                                 ioModule.setOC1A(stateOC1A);
                             }
                         }
+                        break;
+
+                    default:
+                        break;
 
                 }
 
@@ -959,6 +998,10 @@ public class Timer1_ATmega328P implements Timer1Module {
                                 ioModule.setOC1B(stateOC1B);
                             }
                         }
+                        break;
+
+                    default:
+                        break;
                 }
 
                 //Input Capture Unit
@@ -1079,6 +1122,10 @@ public class Timer1_ATmega328P implements Timer1Module {
                                 ioModule.setOC1A(stateOC1A);
                             }
                         }
+                        break;
+
+                    default:
+                        break;
 
                 }
 
@@ -1122,6 +1169,10 @@ public class Timer1_ATmega328P implements Timer1Module {
                                 ioModule.setOC1B(stateOC1B);
                             }
                         }
+                        break;
+
+                    default:
+                        break;
                 }
 
                 //Input Capture Unit
@@ -1253,6 +1304,10 @@ public class Timer1_ATmega328P implements Timer1Module {
                                 ioModule.setOC1A(stateOC1A);
                             }
                         }
+                        break;
+
+                    default:
+                        break;
 
                 }
 
@@ -1296,6 +1351,10 @@ public class Timer1_ATmega328P implements Timer1Module {
                                 ioModule.setOC1B(stateOC1B);
                             }
                         }
+                        break;
+
+                    default:
+                        break;
                 }
 
                 dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR,DataMemory_ATmega328P.TCNT1H_ADDR,
@@ -1396,6 +1455,10 @@ public class Timer1_ATmega328P implements Timer1Module {
                                 ioModule.setOC1A(stateOC1A);
                             }
                         }
+                        break;
+
+                    default:
+                        break;
 
                 }
 
@@ -1439,6 +1502,10 @@ public class Timer1_ATmega328P implements Timer1Module {
                                 ioModule.setOC1B(stateOC1B);
                             }
                         }
+                        break;
+
+                    default:
+                        break;
                 }
 
                 //Input Capture Unit
@@ -1563,6 +1630,10 @@ public class Timer1_ATmega328P implements Timer1Module {
                                 ioModule.setOC1A(stateOC1A);
                             }
                         }
+                        break;
+
+                    default:
+                        break;
                 }
 
                 //CHANEL B
@@ -1611,6 +1682,10 @@ public class Timer1_ATmega328P implements Timer1Module {
                                 ioModule.setOC1B(stateOC1B);
                             }
                         }
+                        break;
+
+                    default:
+                        break;
                 }
 
                 //Input Capture Unit
@@ -1735,6 +1810,10 @@ public class Timer1_ATmega328P implements Timer1Module {
                                 ioModule.setOC1A(stateOC1A);
                             }
                         }
+                        break;
+
+                    default:
+                        break;
                 }
 
                 //CHANEL B
@@ -1783,6 +1862,10 @@ public class Timer1_ATmega328P implements Timer1Module {
                                 ioModule.setOC1B(stateOC1B);
                             }
                         }
+                        break;
+
+                    default:
+                        break;
                 }
 
                 //Input Capture Unit
@@ -1907,6 +1990,10 @@ public class Timer1_ATmega328P implements Timer1Module {
                                 ioModule.setOC1A(stateOC1A);
                             }
                         }
+                        break;
+
+                    default:
+                        break;
                 }
 
                 //CHANEL B
@@ -1955,6 +2042,10 @@ public class Timer1_ATmega328P implements Timer1Module {
                                 ioModule.setOC1B(stateOC1B);
                             }
                         }
+                        break;
+
+                    default:
+                        break;
                 }
 
                 //Input Capture Unit
@@ -2090,6 +2181,10 @@ public class Timer1_ATmega328P implements Timer1Module {
                                 ioModule.setOC1A(stateOC1A);
                             }
                         }
+                        break;
+
+                    default:
+                        break;
                 }
 
                 //CHANEL B
@@ -2138,6 +2233,10 @@ public class Timer1_ATmega328P implements Timer1Module {
                                 ioModule.setOC1B(stateOC1B);
                             }
                         }
+                        break;
+
+                    default:
+                        break;
                 }
 
                 dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR,DataMemory_ATmega328P.TCNT1H_ADDR,
@@ -2245,6 +2344,10 @@ public class Timer1_ATmega328P implements Timer1Module {
                                 ioModule.setOC1A(stateOC1A);
                             }
                         }
+                        break;
+
+                    default:
+                        break;
                 }
 
                 //CHANEL B
@@ -2293,6 +2396,10 @@ public class Timer1_ATmega328P implements Timer1Module {
                                 ioModule.setOC1B(stateOC1B);
                             }
                         }
+                        break;
+
+                    default:
+                        break;
                 }
 
                 //Input Capture Unit
@@ -2428,6 +2535,10 @@ public class Timer1_ATmega328P implements Timer1Module {
                                 ioModule.setOC1A(stateOC1A);
                             }
                         }
+                        break;
+
+                    default:
+                        break;
                 }
 
                 //CHANEL B
@@ -2476,6 +2587,10 @@ public class Timer1_ATmega328P implements Timer1Module {
                                 ioModule.setOC1B(stateOC1B);
                             }
                         }
+                        break;
+
+                    default:
+                        break;
                 }
 
                 dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR,DataMemory_ATmega328P.TCNT1H_ADDR,
@@ -2583,6 +2698,10 @@ public class Timer1_ATmega328P implements Timer1Module {
                                 ioModule.setOC1A(stateOC1A);
                             }
                         }
+                        break;
+
+                    default:
+                        break;
                 }
 
                 //CHANEL B
@@ -2631,6 +2750,10 @@ public class Timer1_ATmega328P implements Timer1Module {
                                 ioModule.setOC1B(stateOC1B);
                             }
                         }
+                        break;
+
+                    default:
+                        break;
                 }
 
                 //Input Capture Unit

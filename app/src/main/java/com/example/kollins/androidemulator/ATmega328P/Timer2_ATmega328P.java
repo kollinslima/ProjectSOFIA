@@ -15,6 +15,8 @@ import java.util.concurrent.locks.Lock;
 
 public class Timer2_ATmega328P implements Timer2Module {
 
+    private static final String TIMER2_TAG = "Timer2";
+
     private static final byte MAX = -1; //0xFF signed
     private static final byte BOTTOM = 0x00;
 
@@ -110,7 +112,10 @@ public class Timer2_ATmega328P implements Timer2Module {
 
             for (int i = 0; i < UCModule.clockVector.length; i++) {
                 if (!UCModule.clockVector[i]) {
-                    timer2ClockCondition.await();
+
+                    while (UCModule.clockVector[UCModule.TIMER2_ID]) {
+                        timer2ClockCondition.await();
+                    }
                     return;
                 }
             }
@@ -141,7 +146,7 @@ public class Timer2_ATmega328P implements Timer2Module {
         NO_CLOCK_SOURCE {
             @Override
             public boolean work() {
-                Log.i("Timer2", "No Clock Source");
+                Log.i(TIMER2_TAG, "No Clock Source");
                 waitClock();
                 return false;
             }
@@ -149,7 +154,7 @@ public class Timer2_ATmega328P implements Timer2Module {
         CLOCK_PRESCALER_1 {
             @Override
             public boolean work() {
-                Log.i("Timer2", "Prescaler 1");
+                Log.i(TIMER2_TAG, "Prescaler 1");
                 waitClock();
                 return true;
             }
@@ -157,66 +162,60 @@ public class Timer2_ATmega328P implements Timer2Module {
         CLOCK_PRESCALER_8 {
             @Override
             public boolean work() {
-                Log.i("Timer2", "Prescaler 8");
-                waitClock();
-//                for (int i = 0; i < 8; i++) {
-//                    waitClock();
-//                }
+                Log.i(TIMER2_TAG, "Prescaler 8");
+                for (int i = 0; i < 8; i++) {
+                    waitClock();
+                }
                 return true;
             }
         },
         CLOCK_PRESCALER_32 {
             @Override
             public boolean work() {
-                Log.i("Timer2", "Prescaler 32");
-                waitClock();
-//                for (int i = 0; i < 32; i++) {
-//                    waitClock();
-//                }
+                Log.i(TIMER2_TAG, "Prescaler 32");
+                for (int i = 0; i < 32; i++) {
+                    waitClock();
+                }
                 return true;
             }
         },
         CLOCK_PRESCALER_64 {
             @Override
             public boolean work() {
-                Log.i("Timer2", "Prescaler 64");
-                waitClock();
-//                for (int i = 0; i < 64; i++) {
-//                    waitClock();
-//                }
+                Log.i(TIMER2_TAG, "Prescaler 64");
+                for (int i = 0; i < 64; i++) {
+                    waitClock();
+                }
                 return false;
             }
         },
         CLOCK_PRESCALER_128 {
             @Override
             public boolean work() {
-                Log.i("Timer2", "Prescaler 128");
-                waitClock();
-//                for (int i = 0; i < 128; i++) {
-//                    waitClock();
-//                }
+                Log.i(TIMER2_TAG, "Prescaler 128");
+                for (int i = 0; i < 128; i++) {
+                    waitClock();
+                }
                 return true;
             }
         },
         CLOCK_PRESCALER_256 {
             @Override
             public boolean work() {
-                Log.i("Timer2", "Prescaler 256");
-                waitClock();
-//                for (int i = 0; i < 256; i++) {
-//                    waitClock();
-//                }
+                Log.i(TIMER2_TAG, "Prescaler 256");
+                for (int i = 0; i < 256; i++) {
+                    waitClock();
+                }
                 return true;
             }
         },
         CLOCK_PRESCALER_1024 {
             @Override
             public boolean work() {
-                Log.i("Timer2", "Prescaler 1024");
-                waitClock();
-//                for (int i = 0; i < 1024; i++) {
-//                    waitClock();
-//                }
+                Log.i(TIMER2_TAG, "Prescaler 1024");
+                for (int i = 0; i < 1024; i++) {
+                    waitClock();
+                }
                 return true;
             }
         };

@@ -171,7 +171,7 @@ public class InputAdapter_ATmega328P extends BaseAdapter {
 
                 @Override
                 public void onNothingSelected(AdapterView<?> parent) {
-
+                    //Should never occur
                 }
             });
 
@@ -209,6 +209,10 @@ public class InputAdapter_ATmega328P extends BaseAdapter {
                             inputFragment.inputRequest_inputChanel(IOModule.LOW_LEVEL, pin.getMemory(), pin.getBitPosition(), pin);
                             break;
 
+                        default:
+                            //There are no other modes
+                            break;
+
                     }
 
                     /************Simulate button release*************/
@@ -231,7 +235,7 @@ public class InputAdapter_ATmega328P extends BaseAdapter {
 
                 @Override
                 public void onNothingSelected(AdapterView<?> parent) {
-
+                    //Should never occur
                 }
             });
 
@@ -284,6 +288,10 @@ public class InputAdapter_ATmega328P extends BaseAdapter {
                                     inputFragment.inputRequest_inputChanel(IOModule.LOW_LEVEL, pin.getMemory(), pin.getBitPosition(), pin);
                                 }
                                 break;
+
+                            default:
+                                //There are no other modes
+                                break;
                         }
 
                     } else if (event.getAction() == MotionEvent.ACTION_UP) {
@@ -330,6 +338,10 @@ public class InputAdapter_ATmega328P extends BaseAdapter {
                                 holder.inputPinState.setBackgroundResource(R.drawable.digital_input_off);
                                 pin.setPinState(IOModule.LOW_LEVEL);
                                 inputFragment.inputRequest_inputChanel(IOModule.LOW_LEVEL, pin.getMemory(), pin.getBitPosition(), pin);
+                                break;
+
+                            default:
+                                //There are no other modes
                                 break;
                         }
                     }
@@ -382,14 +394,14 @@ public class InputAdapter_ATmega328P extends BaseAdapter {
                     holder.voltageDisplay.setText(decimalFormat.format(voltage));
 
                     //It's an analog pin
-                    if (pin.getPinSpinnerPosition() >= 14){
-                        ADC_ATmega328P.ADC_INPUT[pin.getPinSpinnerPosition() - 14] = (short) (voltage*1000);
+                    if (pin.getPinSpinnerPosition() >= 14) {
+                        ADC_ATmega328P.ADC_INPUT[pin.getPinSpinnerPosition() - 14] = (short) (voltage * 1000);
                     }
 
                     int state = pin.getPinStateFromAnalog(voltage);
                     pin.setPinState(state);
 
-                    if (state == IOModule.TRI_STATE){
+                    if (state == IOModule.TRI_STATE) {
                         inputFragment.requestHiZ(true, pin);
 
                         //Wait for pull Up Request
@@ -417,7 +429,7 @@ public class InputAdapter_ATmega328P extends BaseAdapter {
 
                 @Override
                 public void onNothingSelected(AdapterView<?> parent) {
-
+                    //Should never occur
                 }
             });
 
@@ -428,15 +440,15 @@ public class InputAdapter_ATmega328P extends BaseAdapter {
                     holder.voltageDisplay.setText(decimalFormat.format(voltage));
 
                     //It's an analog pin
-                    if (pin.getPinSpinnerPosition() >= 14){
-                        ADC_ATmega328P.ADC_INPUT[pin.getPinSpinnerPosition() - 14] = (short) (voltage*1000);
+                    if (pin.getPinSpinnerPosition() >= 14) {
+                        ADC_ATmega328P.ADC_INPUT[pin.getPinSpinnerPosition() - 14] = (short) (voltage * 1000);
                     }
 
                     int state = pin.getPinStateFromAnalog(voltage);
                     pin.setPinState(state);
 //                    Log.d("Analog", "AnalogState: " + state);
 
-                    if (state == IOModule.TRI_STATE){
+                    if (state == IOModule.TRI_STATE) {
                         Log.d("Analog", "Analog Request HiZ");
                         inputFragment.requestHiZ(true, pin);
 
@@ -466,12 +478,12 @@ public class InputAdapter_ATmega328P extends BaseAdapter {
 
                 @Override
                 public void onStartTrackingTouch(SeekBar seekBar) {
-
+                    //Not needed
                 }
 
                 @Override
                 public void onStopTrackingTouch(SeekBar seekBar) {
-
+                    //Not needed
                 }
             });
         }

@@ -132,7 +132,7 @@ public class DataMemory_ATmega328P implements DataMemory {
     private final int SDRAM_SIZE_TOTAL = SDRAM_EXTERNAL_SIZE + 32 + 64 + 160;
     private byte[] sdramMemory;
 
-    public static int memoryUsageMeasure;
+    public int memoryUsageMeasure;
     private boolean[] memoryUsage;
     private int oldStackPointer;
 
@@ -397,7 +397,7 @@ public class DataMemory_ATmega328P implements DataMemory {
             sdramMemory[byteAddress] = 0x00;
         } else if (byteAddress == ADCSRA_ADDR) {
             //Clear Flag
-            byteData = (byte) (0x00FE & byteData);
+            byteData = (byte) (0x00EF & byteData);
             sdramMemory[byteAddress] = byteData;
         } else if (byteAddress == GTCCR_ADDR) {
             //Synchronization Mode
@@ -550,7 +550,6 @@ public class DataMemory_ATmega328P implements DataMemory {
         return data;
     }
 
-
     public void setPinHandler(Handler pinHandler) {
         this.pinHandler = pinHandler;
     }
@@ -647,6 +646,10 @@ public class DataMemory_ATmega328P implements DataMemory {
                     pinHandler.sendMessage(ioMessage);
 
                     break;
+
+                default:
+                    //It shouldn't get here.
+                    break;
             }
 
             return null;
@@ -708,6 +711,10 @@ public class DataMemory_ATmega328P implements DataMemory {
                     ioMessage.setData(ioBundle);
 
                     pinHandler.dispatchMessage(ioMessage);
+                    break;
+
+                default:
+                    //It shouldn't get here.
                     break;
             }
             return null;

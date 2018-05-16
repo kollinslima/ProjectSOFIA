@@ -173,7 +173,10 @@ public class UCModule_View extends Fragment implements Runnable {
 
             for (int i = 0; i < UCModule.clockVector.length; i++) {
                 if (!UCModule.clockVector[i]) {
-                    ucViewClockCondition.await();
+
+                    while (UCModule.clockVector[UCModule.SIMULATED_TIMER_ID]) {
+                        ucViewClockCondition.await();
+                    }
                     return;
                 }
             }

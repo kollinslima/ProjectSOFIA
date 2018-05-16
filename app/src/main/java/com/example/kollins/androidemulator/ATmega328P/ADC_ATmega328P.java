@@ -55,7 +55,6 @@ public class ADC_ATmega328P implements ADCModule {
 
         //13 clock cycles to finish conversion
         while (!uCModule.getResetFlag()) {
-
             if (dataMemory.readBit(DataMemory_ATmega328P.ADCSRA_ADDR, 7)
                     && dataMemory.readBit(DataMemory_ATmega328P.ADCSRA_ADDR, 6)) {
 
@@ -74,7 +73,6 @@ public class ADC_ATmega328P implements ADCModule {
                         }
                     }
                 }
-
                 admuxRead = dataMemory.readByte(DataMemory_ATmega328P.ADMUX_ADDR);
                 adcsraRead = dataMemory.readByte(DataMemory_ATmega328P.ADCSRA_ADDR);
 
@@ -96,6 +94,7 @@ public class ADC_ATmega328P implements ADCModule {
                         break;
                     default:
                         vRef = 0;
+                        break;
                 }
 
                 resolution = vRef / 1024f;
@@ -114,8 +113,6 @@ public class ADC_ATmega328P implements ADCModule {
                     }
                 }
                 ClockSource.values()[prescaler].work();
-//                conversionADC = (short) conversionAux;
-//                Log.v("ADC", "Conversion Bin: " + Integer.toBinaryString(conversionADC));
 
                 if (dataMemory.readBit(DataMemory_ATmega328P.ADMUX_ADDR, 5)) {
                     //Left Ajust
@@ -143,6 +140,8 @@ public class ADC_ATmega328P implements ADCModule {
             }
         }
 
+        Log.i(UCModule.MY_LOG_TAG, "Finishing ADC");
+
     }
 
     private static void waitClock() {
@@ -151,9 +150,14 @@ public class ADC_ATmega328P implements ADCModule {
         try {
             UCModule.clockVector[UCModule.ADC_ID] = true;
 
+            //Check if this is the last module in this clock cycle.
             for (int i = 0; i < UCModule.clockVector.length; i++) {
                 if (!UCModule.clockVector[i]) {
-                    adcClockCondition.await();
+
+                    while(UCModule.clockVector[UCModule.ADC_ID]) {
+                        adcClockCondition.await();
+                    }
+
                     return;
                 }
             }
@@ -164,7 +168,7 @@ public class ADC_ATmega328P implements ADCModule {
             uCHandler.sendEmptyMessage(UCModule.CLOCK_ACTION);
 
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            Log.e(UCModule.MY_LOG_TAG, "ERROR: waitClock ADC", e);
         } finally {
             clockLock.unlock();
         }

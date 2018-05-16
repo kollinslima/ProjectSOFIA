@@ -14,6 +14,8 @@ import java.util.concurrent.locks.Lock;
 
 public class Timer0_ATmega328P implements Timer0Module {
 
+    private static final String TIMER0_TAG = "Timer0";
+
     private static final byte MAX = -1; //0xFF signed
     private static final byte BOTTOM = 0x00;
 
@@ -96,6 +98,8 @@ public class Timer0_ATmega328P implements Timer0Module {
                             TimerMode.FAST_PWM_TOP_0XFF.count();
                         }
                         break;
+                    default:
+                        break;
                 }
             }
         }
@@ -111,7 +115,11 @@ public class Timer0_ATmega328P implements Timer0Module {
 
             for (int i = 0; i < UCModule.clockVector.length; i++) {
                 if (!UCModule.clockVector[i]) {
-                    timer0ClockCondition.await();
+
+                    while (UCModule.clockVector[UCModule.TIMER0_ID]) {
+                        timer0ClockCondition.await();
+                    }
+
                     return;
                 }
             }
@@ -142,7 +150,7 @@ public class Timer0_ATmega328P implements Timer0Module {
         NO_CLOCK_SOURCE {
             @Override
             public boolean work() {
-                Log.i("Timer0", "No Clock Source");
+                Log.i(TIMER0_TAG, "No Clock Source");
                 waitClock();
                 return false;
             }
@@ -150,7 +158,7 @@ public class Timer0_ATmega328P implements Timer0Module {
         CLOCK_PRESCALER_1 {
             @Override
             public boolean work() {
-                Log.i("Timer0", "Prescaler 1");
+                Log.i(TIMER0_TAG, "Prescaler 1");
                 waitClock();
                 return true;
             }
@@ -158,44 +166,40 @@ public class Timer0_ATmega328P implements Timer0Module {
         CLOCK_PRESCALER_8 {
             @Override
             public boolean work() {
-                Log.i("Timer0", "Prescaler 8");
-                waitClock();
-//                for (int i = 0; i < 8; i++) {
-//                    waitClock();
-//                }
+                Log.i(TIMER0_TAG, "Prescaler 8");
+                for (int i = 0; i < 8; i++) {
+                    waitClock();
+                }
                 return true;
             }
         },
         CLOCK_PRESCALER_64 {
             @Override
             public boolean work() {
-                Log.i("Timer0", "Prescaler 64");
-                waitClock();
-//                for (int i = 0; i < 64; i++) {
-//                    waitClock();
-//                }
+                Log.i(TIMER0_TAG, "Prescaler 64");
+                for (int i = 0; i < 64; i++) {
+                    waitClock();
+                }
                 return false;
             }
         },
         CLOCK_PRESCALER_256 {
             @Override
             public boolean work() {
-                Log.i("Timer0", "Prescaler 256");
-                waitClock();
-//                for (int i = 0; i < 256; i++) {
-//                    waitClock();
-//                }
+                Log.i(TIMER0_TAG, "Prescaler 256");
+                for (int i = 0; i < 256; i++) {
+                    waitClock();
+                }
                 return true;
             }
         },
         CLOCK_PRESCALER_1024 {
             @Override
             public boolean work() {
-                Log.i("Timer0", "Prescaler 1024");
-                waitClock();
-//                for (int i = 0; i < 1024; i++) {
-//                    waitClock();
-//                }
+                Log.i(TIMER0_TAG, "Prescaler 1024");
+                for (int i = 0; i < 1024; i++) {
+                    waitClock();
+                }
                 return true;
             }
         },
@@ -287,6 +291,10 @@ public class Timer0_ATmega328P implements Timer0Module {
                             stateOC0A = IOModule.HIGH_LEVEL;
                             ioModule.setOC0A(stateOC0A);
                         }
+                        break;
+
+                    default:
+                        break;
                 }
 
                 //CHANEL B
@@ -318,6 +326,9 @@ public class Timer0_ATmega328P implements Timer0Module {
                             stateOC0B = IOModule.HIGH_LEVEL;
                             ioModule.setOC0B(stateOC0B);
                         }
+                        break;
+                    default:
+                        break;
                 }
 
                 dataMemory.writeByte(DataMemory_ATmega328P.TCNT0_ADDR, progress);
@@ -342,7 +353,7 @@ public class Timer0_ATmega328P implements Timer0Module {
                 if (progress == BOTTOM) {
                     UCModule.interruptionModule.timer0Overflow();
                     phaseCorrect_UPCount = true;
-                } else if (progress == MAX){
+                } else if (progress == MAX) {
                     phaseCorrect_UPCount = false;
                 }
 
@@ -403,6 +414,10 @@ public class Timer0_ATmega328P implements Timer0Module {
                                 ioModule.setOC0A(stateOC0A);
                             }
                         }
+                        break;
+
+                    default:
+                        break;
                 }
 
                 //CHANEL B
@@ -435,6 +450,10 @@ public class Timer0_ATmega328P implements Timer0Module {
                             }
                             ioModule.setOC0B(stateOC0B);
                         }
+                        break;
+
+                    default:
+                        break;
                 }
 
                 dataMemory.writeByte(DataMemory_ATmega328P.TCNT0_ADDR, progress);
@@ -505,6 +524,10 @@ public class Timer0_ATmega328P implements Timer0Module {
                             stateOC0A = IOModule.HIGH_LEVEL;
                             ioModule.setOC0A(stateOC0A);
                         }
+                        break;
+
+                    default:
+                        break;
                 }
 
                 //CHANEL B
@@ -536,6 +559,10 @@ public class Timer0_ATmega328P implements Timer0Module {
                             stateOC0B = IOModule.HIGH_LEVEL;
                             ioModule.setOC0B(stateOC0B);
                         }
+                        break;
+
+                    default:
+                        break;
                 }
 
                 dataMemory.writeByte(DataMemory_ATmega328P.TCNT0_ADDR, progress);
@@ -608,6 +635,10 @@ public class Timer0_ATmega328P implements Timer0Module {
                                 ioModule.setOC0A(stateOC0A);
                             }
                         }
+                        break;
+
+                    default:
+                        break;
 
                 }
 
@@ -641,6 +672,10 @@ public class Timer0_ATmega328P implements Timer0Module {
                             stateOC0B = IOModule.LOW_LEVEL;
                             ioModule.setOC0B(stateOC0B);
                         }
+                        break;
+
+                    default:
+                        break;
                 }
 
                 dataMemory.writeByte(DataMemory_ATmega328P.TCNT0_ADDR, progress);
@@ -665,7 +700,7 @@ public class Timer0_ATmega328P implements Timer0Module {
                 if (progress == BOTTOM) {
                     UCModule.interruptionModule.timer0Overflow();
                     phaseCorrect_UPCount = true;
-                } else if (progress == doubleBufferOCR0A){
+                } else if (progress == doubleBufferOCR0A) {
                     phaseCorrect_UPCount = false;
                 }
 
@@ -732,6 +767,10 @@ public class Timer0_ATmega328P implements Timer0Module {
                                 ioModule.setOC0A(stateOC0A);
                             }
                         }
+                        break;
+
+                    default:
+                        break;
                 }
 
                 //CHANEL B
@@ -764,6 +803,10 @@ public class Timer0_ATmega328P implements Timer0Module {
                             }
                             ioModule.setOC0B(stateOC0B);
                         }
+                        break;
+
+                    default:
+                        break;
                 }
 
                 dataMemory.writeByte(DataMemory_ATmega328P.TCNT0_ADDR, progress);
@@ -847,7 +890,10 @@ public class Timer0_ATmega328P implements Timer0Module {
                                 ioModule.setOC0A(stateOC0A);
                             }
                         }
+                        break;
 
+                    default:
+                        break;
                 }
 
                 //CHANEL B
@@ -880,6 +926,10 @@ public class Timer0_ATmega328P implements Timer0Module {
                             stateOC0B = IOModule.LOW_LEVEL;
                             ioModule.setOC0B(stateOC0B);
                         }
+                        break;
+
+                    default:
+                        break;
                 }
 
                 dataMemory.writeByte(DataMemory_ATmega328P.TCNT0_ADDR, progress);

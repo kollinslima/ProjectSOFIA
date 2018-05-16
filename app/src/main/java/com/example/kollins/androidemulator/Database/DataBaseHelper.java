@@ -67,16 +67,21 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     }
 
     private void copyDBFile() throws IOException {
-        InputStream mInput = mContext.getAssets().open(DB_NAME);
-        //InputStream mInput = mContext.getResources().openRawResource(R.raw.info);
-        OutputStream mOutput = new FileOutputStream(DB_PATH + DB_NAME);
-        byte[] mBuffer = new byte[1024];
-        int mLength;
-        while ((mLength = mInput.read(mBuffer)) > 0)
-            mOutput.write(mBuffer, 0, mLength);
-        mOutput.flush();
-        mOutput.close();
-        mInput.close();
+        InputStream mInput = null;
+        OutputStream mOutput = null;
+        try {
+            mInput = mContext.getAssets().open(DB_NAME);
+            mOutput = new FileOutputStream(DB_PATH + DB_NAME);
+            byte[] mBuffer = new byte[1024];
+            int mLength;
+            while ((mLength = mInput.read(mBuffer)) > 0) {
+                mOutput.write(mBuffer, 0, mLength);
+            }
+            mOutput.flush();
+        } finally {
+            mInput.close();
+            mOutput.close();
+        }
     }
 
     public boolean openDataBase() throws SQLException {
