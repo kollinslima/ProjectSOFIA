@@ -467,8 +467,8 @@ public class DataMemory_ATmega328P implements DataMemory {
             //Clear Flag
             sdramMemory[byteAddress] = (byte) (sdramMemory[byteAddress] & (0xFF7F >> (7 - bitPosition)));
 
-        } else if (byteAddress == ADCSRA_ADDR && bitPosition == 6) {
-
+        } else if (byteAddress == ADCSRA_ADDR && bitPosition == 6 && !bitState) {
+            //Write 0 to ADSC has no effect
             return;
 
         } else if (byteAddress == GTCCR_ADDR) {
@@ -504,16 +504,16 @@ public class DataMemory_ATmega328P implements DataMemory {
 
     }
 
-    public synchronized void writeIOByte(int byteAddress, byte byteData) {
-        if (byteAddress == ICR1H_ADDR) {
-            timer1_TEMP = byteData;
-        } else if (byteAddress == ICR1L_ADDR) {
-            sdramMemory[byteAddress] = byteData;
-            sdramMemory[ICR1H_ADDR] = timer1_TEMP;
-        }
-        sdramMemory[byteAddress] = byteData;
-        updateMemoryUsage(byteAddress);
-    }
+//    public synchronized void writeIOByte(int byteAddress, byte byteData) {
+//        if (byteAddress == ICR1H_ADDR) {
+//            timer1_TEMP = byteData;
+//        } else if (byteAddress == ICR1L_ADDR) {
+//            sdramMemory[byteAddress] = byteData;
+//            sdramMemory[ICR1H_ADDR] = timer1_TEMP;
+//        }
+//        sdramMemory[byteAddress] = byteData;
+//        updateMemoryUsage(byteAddress);
+//    }
 
     @Override
     public synchronized boolean readBit(int byteAddress, int bitPosition) {

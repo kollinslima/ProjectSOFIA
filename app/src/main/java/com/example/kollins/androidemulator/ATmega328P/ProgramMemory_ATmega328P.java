@@ -168,12 +168,16 @@ public class ProgramMemory_ATmega328P implements ProgramMemory {
 
     @Override
     public void writeWord(int address, int data){
+        //address is a word address
+
         flashMemory[address*2] = (byte) (0x0000FF & data);
         flashMemory[(address*2)+1] = (byte) ((0x00FF00 & data)>>8);
     }
 
     @Override
     public byte readByte(int address) {
+        //address is a byte address
+
         Log.d(UCModule.MY_LOG_TAG,
                 String.format("Read byte FLASH\nAddress: 0x%s, Data read: 0x%02X",
                         Integer.toHexString((int) address), flashMemory[address]));

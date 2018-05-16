@@ -1,4 +1,6 @@
 apply plugin: 'com.android.application'
+apply plugin: 'org.sonarqube'
+
 
 android {
     signingConfigs {
@@ -16,12 +18,15 @@ android {
     buildTypes {
         release {
             minifyEnabled true
+            testCoverageEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+
     }
     testOptions {
         unitTests.returnDefaultValues = true
     }
+
 }
 
 dependencies {
@@ -37,4 +42,12 @@ dependencies {
     testImplementation "org.powermock:powermock-classloading-xstream:1.6.5"
     androidTestImplementation 'com.android.support.test:runner:0.5'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:2.2.2'
+}
+
+sonarqube {
+    properties {
+        property "sonar.projectName", "ArduinoSimulator"
+        property "sonar.projectKey", "com.example.kollins.androidemulator"
+        property "sonar.language","java"
+    }
 }
