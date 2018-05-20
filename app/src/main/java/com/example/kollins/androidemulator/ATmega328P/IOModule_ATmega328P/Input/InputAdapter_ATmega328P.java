@@ -24,9 +24,7 @@ import com.example.kollins.androidemulator.uCInterfaces.IOModule;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
-import java.text.NumberFormat;
 import java.util.List;
-import java.util.Locale;
 import java.util.Random;
 
 /**
@@ -184,20 +182,42 @@ public class InputAdapter_ATmega328P extends BaseAdapter {
                         case IOModule.PUSH_GND:
                         case IOModule.PUSH_VDD:
                             pin.setPinState(IOModule.TRI_STATE);
+
+                            //It's an analog pin
+                            if (pin.getPinSpinnerPosition() >= 14) {
+                                ADC_ATmega328P.adcInput[pin.getPinSpinnerPosition() - 14] = (short) (randomGenerator.nextInt(5 * 1000));
+                            }
+
                             break;
 
                         case IOModule.PULL_UP:
                             pin.setPinState(IOModule.HIGH_LEVEL);
+
+                            //It's an analog pin
+                            if (pin.getPinSpinnerPosition() >= 14) {
+                                ADC_ATmega328P.adcInput[pin.getPinSpinnerPosition() - 14] = (short) (5 * 1000);
+                            }
                             break;
 
                         case IOModule.PULL_DOWN:
                             pin.setPinState(IOModule.LOW_LEVEL);
+
+                            //It's an analog pin
+                            if (pin.getPinSpinnerPosition() >= 14) {
+                                ADC_ATmega328P.adcInput[pin.getPinSpinnerPosition() - 14] = (short) (0);
+                            }
                             break;
                         case IOModule.TOGGLE:
                             if (listView.getChoiceMode() == ListView.CHOICE_MODE_MULTIPLE) {
                                 break;
                             }
                             pin.setPinState(IOModule.LOW_LEVEL);
+
+                            //It's an analog pin
+                            if (pin.getPinSpinnerPosition() >= 14) {
+                                ADC_ATmega328P.adcInput[pin.getPinSpinnerPosition() - 14] = (short) (0);
+                            }
+
                             holder.inputPinState.setBackgroundResource(R.drawable.digital_input_off);
 
                             //No pin selected
@@ -258,12 +278,24 @@ public class InputAdapter_ATmega328P extends BaseAdapter {
                             case IOModule.PULL_UP:
                                 holder.inputPinState.setBackgroundResource(R.drawable.digital_input_off);
                                 pin.setPinState(IOModule.LOW_LEVEL);
+
+                                //It's an analog pin
+                                if (pin.getPinSpinnerPosition() >= 14) {
+                                    ADC_ATmega328P.adcInput[pin.getPinSpinnerPosition() - 14] = (short) (0);
+                                }
+
                                 inputFragment.inputRequest_inputChanel(IOModule.LOW_LEVEL, pin.getMemory(), pin.getBitPosition(), pin);
                                 break;
                             case IOModule.PUSH_VDD:
                             case IOModule.PULL_DOWN:
                                 holder.inputPinState.setBackgroundResource(R.drawable.digital_input_on);
                                 pin.setPinState(IOModule.HIGH_LEVEL);
+
+                                //It's an analog pin
+                                if (pin.getPinSpinnerPosition() >= 14) {
+                                    ADC_ATmega328P.adcInput[pin.getPinSpinnerPosition() - 14] = (short) (5 * 1000);
+                                }
+
                                 inputFragment.inputRequest_inputChanel(IOModule.HIGH_LEVEL, pin.getMemory(), pin.getBitPosition(), pin);
                                 break;
                             case IOModule.TOGGLE:
@@ -271,10 +303,22 @@ public class InputAdapter_ATmega328P extends BaseAdapter {
                                 if (pin.getPinState() == IOModule.LOW_LEVEL) {
                                     holder.inputPinState.setBackgroundResource(R.drawable.digital_input_on);
                                     pin.setPinState(IOModule.HIGH_LEVEL);
+
+                                    //It's an analog pin
+                                    if (pin.getPinSpinnerPosition() >= 14) {
+                                        ADC_ATmega328P.adcInput[pin.getPinSpinnerPosition() - 14] = (short) (5 * 1000);
+                                    }
+
                                     inputFragment.inputRequest_inputChanel(IOModule.HIGH_LEVEL, pin.getMemory(), pin.getBitPosition(), pin);
                                 } else {
                                     holder.inputPinState.setBackgroundResource(R.drawable.digital_input_off);
                                     pin.setPinState(IOModule.LOW_LEVEL);
+
+                                    //It's an analog pin
+                                    if (pin.getPinSpinnerPosition() >= 14) {
+                                        ADC_ATmega328P.adcInput[pin.getPinSpinnerPosition() - 14] = (short) (0);
+                                    }
+
                                     inputFragment.inputRequest_inputChanel(IOModule.LOW_LEVEL, pin.getMemory(), pin.getBitPosition(), pin);
                                 }
                                 break;
@@ -294,6 +338,12 @@ public class InputAdapter_ATmega328P extends BaseAdapter {
 
                                 inputFragment.requestHiZ(true, pin);
                                 pin.setPinState(IOModule.TRI_STATE);
+
+                                //It's an analog pin
+                                if (pin.getPinSpinnerPosition() >= 14) {
+                                    ADC_ATmega328P.adcInput[pin.getPinSpinnerPosition() - 14] = (short) (randomGenerator.nextInt(5 * 1000));
+                                }
+
                                 holder.inputPinState.setBackgroundResource(R.drawable.digital_input_undefined);
 
                                 //Wait for pull Up Request
@@ -317,12 +367,24 @@ public class InputAdapter_ATmega328P extends BaseAdapter {
                                 inputFragment.requestHiZ(false, pin);
                                 holder.inputPinState.setBackgroundResource(R.drawable.digital_input_on);
                                 pin.setPinState(IOModule.HIGH_LEVEL);
+
+                                //It's an analog pin
+                                if (pin.getPinSpinnerPosition() >= 14) {
+                                    ADC_ATmega328P.adcInput[pin.getPinSpinnerPosition() - 14] = (short) (5 * 1000);
+                                }
+
                                 inputFragment.inputRequest_inputChanel(IOModule.HIGH_LEVEL, pin.getMemory(), pin.getBitPosition(), pin);
                                 break;
                             case IOModule.PULL_DOWN:
                                 inputFragment.requestHiZ(false, pin);
                                 holder.inputPinState.setBackgroundResource(R.drawable.digital_input_off);
                                 pin.setPinState(IOModule.LOW_LEVEL);
+
+                                //It's an analog pin
+                                if (pin.getPinSpinnerPosition() >= 14) {
+                                    ADC_ATmega328P.adcInput[pin.getPinSpinnerPosition() - 14] = (short) (0);
+                                }
+
                                 inputFragment.inputRequest_inputChanel(IOModule.LOW_LEVEL, pin.getMemory(), pin.getBitPosition(), pin);
                                 break;
 
@@ -380,7 +442,7 @@ public class InputAdapter_ATmega328P extends BaseAdapter {
 
                     //It's an analog pin
                     if (pin.getPinSpinnerPosition() >= 14) {
-                        ADC_ATmega328P.ADC_INPUT[pin.getPinSpinnerPosition() - 14] = (short) (voltage * 1000);
+                        ADC_ATmega328P.adcInput[pin.getPinSpinnerPosition() - 14] = (short) (voltage * 1000);
                     }
 
                     int state = pin.getPinStateFromAnalog(voltage);
@@ -426,7 +488,7 @@ public class InputAdapter_ATmega328P extends BaseAdapter {
 
                     //It's an analog pin
                     if (pin.getPinSpinnerPosition() >= 14) {
-                        ADC_ATmega328P.ADC_INPUT[pin.getPinSpinnerPosition() - 14] = (short) (voltage * 1000);
+                        ADC_ATmega328P.adcInput[pin.getPinSpinnerPosition() - 14] = (short) (voltage * 1000);
                     }
 
                     int state = pin.getPinStateFromAnalog(voltage);

@@ -2,14 +2,16 @@
     <string name="app_name">ArduinoSimulator</string>
 
     <string name="simulated_time_format">%d.%09d s</string>
-    <string name="memory_usage_format">Memory: %d %%</string>
+    <string name="memory_usage_format">Mem: %d/%d</string>
 
     <string name="hex_file_read_fail">Fail to read program.</string>
-    <string name="hex_file_read_fail_instructions">Load a .hex file and reset system</string>
+    <!--<string name="hex_file_read_fail_instructions">Load a .hex file and reset system</string>-->
+    <string name="hex_file_read_fail_instructions">Load a .hex file</string>
 
     <string name="running">Running.</string>
     <string name="reset">Reset.</string>
-    <string name="short_circuit">SHORT CIRCUIT!!! - Reset system</string>
+    <!--<string name="short_circuit">SHORT CIRCUIT!!! - Reset system</string>-->
+    <string name="short_circuit">SHORT CIRCUIT!</string>
 
     <string name="outputSection_fragment">Output</string>
     <string name="inputSection_fragment">Input</string>

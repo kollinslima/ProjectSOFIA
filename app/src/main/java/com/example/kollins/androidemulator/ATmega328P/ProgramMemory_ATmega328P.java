@@ -131,7 +131,7 @@ public class ProgramMemory_ATmega328P implements ProgramMemory {
     @Override
     public int loadInstruction() {
 
-        Log.d(UCModule.MY_LOG_TAG, "Loading instruction -> PC: " + (int) pcPointer);
+//        Log.d(UCModule.MY_LOG_TAG, "Loading instruction -> PC: " + (int) pcPointer);
 
         byte instPart1 = 0x00, instPart2 = 0x00;
 
@@ -151,7 +151,7 @@ public class ProgramMemory_ATmega328P implements ProgramMemory {
     @Override
     public void setPC(int pc) {
         pcPointer = (char) pc;
-        Log.d(UCModule.MY_LOG_TAG, "Setting PC to " + (int) pcPointer);
+//        Log.d(UCModule.MY_LOG_TAG, "Setting PC to " + (int) pcPointer);
     }
 
     @Override
@@ -162,7 +162,7 @@ public class ProgramMemory_ATmega328P implements ProgramMemory {
     @Override
     public void addToPC(int offset) {
         pcPointer += offset;
-        Log.d(UCModule.MY_LOG_TAG, "Adding " + offset + " to PC. New value: " + (int) pcPointer);
+//        Log.d(UCModule.MY_LOG_TAG, "Adding " + offset + " to PC. New value: " + (int) pcPointer);
     }
 
     @Override

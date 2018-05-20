@@ -132,7 +132,7 @@ public class DataMemory_ATmega328P implements DataMemory {
     private final int SDRAM_SIZE_TOTAL = SDRAM_EXTERNAL_SIZE + 32 + 64 + 160;
     private byte[] sdramMemory;
 
-    public int memoryUsageMeasure;
+    private int memoryUsageMeasure;
     private boolean[] memoryUsage;
     private int oldStackPointer;
 
@@ -276,7 +276,7 @@ public class DataMemory_ATmega328P implements DataMemory {
 
     @Override
     public int getMemorySize() {
-        return SDRAM_SIZE_TOTAL;
+        return SDRAM_EXTERNAL_SIZE;
     }
 
     @Override
@@ -330,7 +330,6 @@ public class DataMemory_ATmega328P implements DataMemory {
         //EXTERNAL SDRAM START FOR UNO
         if (byteAddress >= 0x0100) {
             if (!memoryUsage[memoryUsageAddress]) {
-                Log.d("MemoryMeasure", "More memory...");
                 memoryUsage[memoryUsageAddress] = true;
                 memoryUsageMeasure += 1;
             }
@@ -354,9 +353,9 @@ public class DataMemory_ATmega328P implements DataMemory {
     }
 
     @Override
-    public double getMemoryUsage() {
-        return ((double) memoryUsageMeasure / SDRAM_EXTERNAL_SIZE);
-//        return memoryUsageMeasure;
+    public int getMemoryUsage() {
+//        return ((double) memoryUsageMeasure / SDRAM_EXTERNAL_SIZE);
+        return memoryUsageMeasure;
     }
 
     @Override

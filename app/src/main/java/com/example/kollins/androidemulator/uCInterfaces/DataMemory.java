@@ -20,5 +20,5 @@ public interface DataMemory {
 
     void setPinHandler(Handler pinHandler);
 
-    double getMemoryUsage();
+    int getMemoryUsage();
 }

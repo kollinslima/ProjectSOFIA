@@ -40,7 +40,7 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
     private byte valueRead;
     private byte configRead;
 
-    private static UCModule.uCHandler uCHandler;
+    private static UCModule.UCHandler uCHandler;
     private OutputFragment_ATmega328P outputFragment;
     private InputFragment_ATmega328P inputFragment;
 

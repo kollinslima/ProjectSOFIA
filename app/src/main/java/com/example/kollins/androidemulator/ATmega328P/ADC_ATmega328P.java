@@ -19,7 +19,7 @@ public class ADC_ATmega328P implements ADCModule {
     public static short AREF = 0;
 
     //Input holds value in mV.
-    public static short ADC_INPUT[] = new short[11];
+    public static short[] adcInput = new short[11];
     private static final short BANDGAP_INDEX = 9;
 
     private static Handler uCHandler;
@@ -39,7 +39,7 @@ public class ADC_ATmega328P implements ADCModule {
 
         adcClockCondition = clockLock.newCondition();
 
-        ADC_INPUT[BANDGAP_INDEX] = BANDGAP_REFERENCE;
+        adcInput[BANDGAP_INDEX] = BANDGAP_REFERENCE;
 
         freeRunConversionEnable = true;
     }
@@ -106,7 +106,7 @@ public class ADC_ATmega328P implements ADCModule {
                      conversionIncrease = conversionIncrease >> 1, ClockSource.values()[prescaler].work()) {
 
                     conversionAux += conversionIncrease * resolution;
-                    if (conversionAux > ADC_INPUT[inputIndex]) {
+                    if (conversionAux > adcInput[inputIndex]) {
                         conversionAux -= conversionIncrease * resolution;
                     } else {
                         conversionADC |= conversionIncrease;

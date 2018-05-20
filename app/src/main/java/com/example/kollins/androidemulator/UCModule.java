@@ -5,7 +5,6 @@ import android.content.res.Resources;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.os.SystemClock;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -50,15 +49,15 @@ public class UCModule extends AppCompatActivity {
 
     public static String PACKAGE_NAME;
 
+    //Default location
+    public static final String DEFAULT_HEX_LOCATION = "ArduinoSimulator/code.hex";
+    private String hexFileLocation = DEFAULT_HEX_LOCATION;
+
     //Default device
     public static String device;
     public static String model;
 
     public static Resources resources;
-
-    //Default location
-    public static final String DEFAULT_HEX_LOCATION = "ArduinoSimulator/code.hex";
-    private String hexFileLocation = DEFAULT_HEX_LOCATION;
 
     public static final int RESET_ACTION = 0;
     public static final int CLOCK_ACTION = 1;
@@ -90,7 +89,7 @@ public class UCModule extends AppCompatActivity {
     private ADCModule adc;
     private Thread threadADC;
 
-    private uCHandler uCHandler;
+    private UCHandler uCHandler;
 
     private boolean resetFlag;
     private boolean shortCircuitFlag;
@@ -110,7 +109,7 @@ public class UCModule extends AppCompatActivity {
         PACKAGE_NAME = getApplicationContext().getPackageName();
         resources = getResources();
 
-        uCHandler = new uCHandler();
+        uCHandler = new UCHandler();
         clockLock = new ReentrantLock();
 
         //Load device
@@ -261,8 +260,8 @@ public class UCModule extends AppCompatActivity {
     }
 
     public int getMemoryUsage() {
-        return (int) (dataMemory.getMemoryUsage() * 100);
-//        return (int) dataMemory.getMemoryUsage();
+//        return (int) (dataMemory.getMemoryUsage() * 100);
+        return dataMemory.getMemoryUsage();
     }
 
     public static int getDeviceModules() {
@@ -455,7 +454,7 @@ public class UCModule extends AppCompatActivity {
         }
     }
 
-    public class uCHandler extends Handler {
+    public class UCHandler extends Handler {
 
 //        private long time1 = 0, time2 = 0;
 //

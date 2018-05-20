@@ -19,21 +19,21 @@ import java.io.OutputStream;
  */
 
 public class DataBaseHelper extends SQLiteOpenHelper {
-    private static String DB_NAME = "instruction_db";
-    private static String DB_PATH = "";
+    private static String dbName = "instruction_db";
+    private static String dbPath = "";
     private static final int DB_VERSION = 1;
 
     private SQLiteDatabase mDataBase;
-    private final Context mContext;
+    private final Context MY_CONTEXT;
     private boolean mNeedUpdate = false;
 
     public DataBaseHelper(Context context) {
-        super(context, DB_NAME, null, DB_VERSION);
+        super(context, dbName, null, DB_VERSION);
         if (android.os.Build.VERSION.SDK_INT >= 17)
-            DB_PATH = context.getApplicationInfo().dataDir + "/databases/";
+            dbPath = context.getApplicationInfo().dataDir + "/databases/";
         else
-            DB_PATH = "/data/data/" + context.getPackageName() + "/databases/";
-        this.mContext = context;
+            dbPath = "/data/data/" + context.getPackageName() + "/databases/";
+        this.MY_CONTEXT = context;
 
         copyDataBase();
 
@@ -42,7 +42,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
     public void updateDataBase() throws IOException {
         if (mNeedUpdate) {
-            File dbFile = new File(DB_PATH + DB_NAME);
+            File dbFile = new File(dbPath + dbName);
             if (dbFile.exists())
                 dbFile.delete();
 
@@ -53,7 +53,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     }
 
     private boolean checkDataBase() {
-        File dbFile = new File(DB_PATH + DB_NAME);
+        File dbFile = new File(dbPath + dbName);
         return dbFile.exists();
     }
 
@@ -73,8 +73,8 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         InputStream mInput = null;
         OutputStream mOutput = null;
         try {
-            mInput = mContext.getAssets().open(DB_NAME);
-            mOutput = new FileOutputStream(DB_PATH + DB_NAME);
+            mInput = MY_CONTEXT.getAssets().open(dbName);
+            mOutput = new FileOutputStream(dbPath + dbName);
             byte[] mBuffer = new byte[1024];
             int mLength;
             while ((mLength = mInput.read(mBuffer)) > 0) {
@@ -92,7 +92,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     }
 
     public boolean openDataBase() throws SQLException {
-        mDataBase = SQLiteDatabase.openDatabase(DB_PATH + DB_NAME, null, SQLiteDatabase.CREATE_IF_NECESSARY);
+        mDataBase = SQLiteDatabase.openDatabase(dbPath + dbName, null, SQLiteDatabase.CREATE_IF_NECESSARY);
         return mDataBase != null;
     }
 

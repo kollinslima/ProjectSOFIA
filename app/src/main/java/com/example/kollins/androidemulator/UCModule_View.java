@@ -66,13 +66,14 @@ public class UCModule_View extends Fragment implements Runnable {
     private InputFragment inputFragment;
     private IOModule ioModule;
 
-    private static UCModule.uCHandler uCHandler;
+    private static UCModule.UCHandler uCHandler;
     private UCModule ucModule;
 
     private Toolbar toolbar;
 
     private TextView simulatedTimeDisplay, startInstructions, statusInfo, memoryUsage, hexFileErrorInstructions;
     private long simulatedTime;
+    private int memorySize;
     private String simulatedText, memoryUsageText;
     private long nanoSeconds;
     private long seconds;
@@ -148,7 +149,7 @@ public class UCModule_View extends Fragment implements Runnable {
             seconds = TimeUnit.NANOSECONDS.toSeconds(nanoSeconds);
 
             simulatedText = resources.getString(R.string.simulated_time_format, seconds, nanoSeconds);
-            memoryUsageText = resources.getString(R.string.memory_usage_format, ucModule.getMemoryUsage());
+            memoryUsageText = resources.getString(R.string.memory_usage_format, ucModule.getMemoryUsage(),memorySize);
 
             screenUpdater.post(new Runnable() {
                 @Override
@@ -201,6 +202,7 @@ public class UCModule_View extends Fragment implements Runnable {
     public void setMemoryIO(DataMemory dataMemory) {
         outputFragment.setDataMemory(dataMemory);
         inputFragment.setDataMemory(dataMemory);
+        memorySize = dataMemory.getMemorySize();
     }
 
     public IOModule getIOModule() {
@@ -216,7 +218,7 @@ public class UCModule_View extends Fragment implements Runnable {
         outputFragment.resetOuputs();
     }
 
-    public void setUCHandler(UCModule.uCHandler uCHandler) {
+    public void setUCHandler(UCModule.UCHandler uCHandler) {
         this.uCHandler = uCHandler;
     }
 
