@@ -367,14 +367,14 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
                         outputFragment.pinbuffer[i] = digitalPINState ? 1 : 0;
 
                     } else {
-                        outputFragment.pinbuffer[i] = digitalPINState ? 1 : 0;
-//                        if (!inputFragment.isPinHiZ(i)) {
-////                            Log.i(UCModule.MY_LOG_TAG, "Button pressed");
-//                            outputFragment.pinbuffer[i] = digitalPINState ? 1 : 0;
-//                        } else {
-////                            Log.i(UCModule.MY_LOG_TAG, "Button not pressed");
-//                            outputFragment.pinbuffer[i] = IOModule.TRI_STATE;
-//                        }
+//                        outputFragment.pinbuffer[i] = digitalPINState ? 1 : 0;
+                        if (!inputFragment.isPinHiZ(i)) {
+//                            Log.i(UCModule.MY_LOG_TAG, "Button pressed");
+                            outputFragment.pinbuffer[i] = digitalPINState ? 1 : 0;
+                        } else {
+//                            Log.i(UCModule.MY_LOG_TAG, "Button not pressed");
+                            outputFragment.pinbuffer[i] = IOModule.TRI_STATE;
+                        }
                     }
                 }
                 //Is output!
@@ -448,16 +448,16 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
                         outputFragment.pinbuffer[i] = digitalPINState ? 1 : 0;
 
                     } else {
-                        outputFragment.pinbuffer[i] = digitalPINState ? 1 : 0;
+//                        outputFragment.pinbuffer[i] = digitalPINState ? 1 : 0;
 //                        Log.d("Analog", "No Pull-UP");
 //                        Log.d("Analog", "HiZ: " + inputFragment.isPinHiZ(i));
-//                        if (!inputFragment.isPinHiZ(i)) {
-////                            Log.i(UCModule.MY_LOG_TAG, "Button pressed");
-//                            outputFragment.pinbuffer[i] = digitalPINState ? 1 : 0;
-//                        } else {
-////                            Log.i(UCModule.MY_LOG_TAG, "Button not pressed");
-//                            outputFragment.pinbuffer[i] = IOModule.TRI_STATE;
-//                        }
+                        if (!inputFragment.isPinHiZ(i)) {
+//                            Log.i(UCModule.MY_LOG_TAG, "Button pressed");
+                            outputFragment.pinbuffer[i] = digitalPINState ? 1 : 0;
+                        } else {
+//                            Log.i(UCModule.MY_LOG_TAG, "Button not pressed");
+                            outputFragment.pinbuffer[i] = IOModule.TRI_STATE;
+                        }
                     }
                 }
                 //Is output!
@@ -523,14 +523,14 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
                         outputFragment.pinbuffer[i] = digitalPINState ? 1 : 0;
 
                     } else {
-                        outputFragment.pinbuffer[i] = digitalPINState ? 1 : 0;
-//                        if (!inputFragment.isPinHiZ(i)) {
-////                            Log.i(UCModule.MY_LOG_TAG, "Button pressed");
-//                            outputFragment.pinbuffer[i] = digitalPINState ? 1 : 0;
-//                        } else {
-////                            Log.i(UCModule.MY_LOG_TAG, "Button not pressed");
-//                            outputFragment.pinbuffer[i] = IOModule.TRI_STATE;
-//                        }
+//                        outputFragment.pinbuffer[i] = digitalPINState ? 1 : 0;
+                        if (!inputFragment.isPinHiZ(i)) {
+//                            Log.i(UCModule.MY_LOG_TAG, "Button pressed");
+                            outputFragment.pinbuffer[i] = digitalPINState ? 1 : 0;
+                        } else {
+//                            Log.i(UCModule.MY_LOG_TAG, "Button not pressed");
+                            outputFragment.pinbuffer[i] = IOModule.TRI_STATE;
+                        }
                     }
                 }
                 //Is output!

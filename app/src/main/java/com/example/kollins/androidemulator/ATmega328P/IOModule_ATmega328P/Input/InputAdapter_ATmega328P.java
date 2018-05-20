@@ -184,7 +184,7 @@ public class InputAdapter_ATmega328P extends BaseAdapter {
                             pin.setPinState(IOModule.TRI_STATE);
 
                             //It's an analog pin
-                            if (pin.getPinSpinnerPosition() >= 14) {
+                            if (pin.getPinSpinnerPosition() >= 14 && pin.getPinSpinnerPosition() <= 19) {
                                 ADC_ATmega328P.adcInput[pin.getPinSpinnerPosition() - 14] = (short) (randomGenerator.nextInt(5 * 1000));
                             }
 
@@ -194,7 +194,7 @@ public class InputAdapter_ATmega328P extends BaseAdapter {
                             pin.setPinState(IOModule.HIGH_LEVEL);
 
                             //It's an analog pin
-                            if (pin.getPinSpinnerPosition() >= 14) {
+                            if (pin.getPinSpinnerPosition() >= 14 && pin.getPinSpinnerPosition() <= 19) {
                                 ADC_ATmega328P.adcInput[pin.getPinSpinnerPosition() - 14] = (short) (5 * 1000);
                             }
                             break;
@@ -203,7 +203,7 @@ public class InputAdapter_ATmega328P extends BaseAdapter {
                             pin.setPinState(IOModule.LOW_LEVEL);
 
                             //It's an analog pin
-                            if (pin.getPinSpinnerPosition() >= 14) {
+                            if (pin.getPinSpinnerPosition() >= 14 && pin.getPinSpinnerPosition() <= 19) {
                                 ADC_ATmega328P.adcInput[pin.getPinSpinnerPosition() - 14] = (short) (0);
                             }
                             break;
@@ -214,7 +214,7 @@ public class InputAdapter_ATmega328P extends BaseAdapter {
                             pin.setPinState(IOModule.LOW_LEVEL);
 
                             //It's an analog pin
-                            if (pin.getPinSpinnerPosition() >= 14) {
+                            if (pin.getPinSpinnerPosition() >= 14 && pin.getPinSpinnerPosition() <= 19) {
                                 ADC_ATmega328P.adcInput[pin.getPinSpinnerPosition() - 14] = (short) (0);
                             }
 
@@ -280,7 +280,7 @@ public class InputAdapter_ATmega328P extends BaseAdapter {
                                 pin.setPinState(IOModule.LOW_LEVEL);
 
                                 //It's an analog pin
-                                if (pin.getPinSpinnerPosition() >= 14) {
+                                if (pin.getPinSpinnerPosition() >= 14 && pin.getPinSpinnerPosition() <= 19) {
                                     ADC_ATmega328P.adcInput[pin.getPinSpinnerPosition() - 14] = (short) (0);
                                 }
 
@@ -292,7 +292,7 @@ public class InputAdapter_ATmega328P extends BaseAdapter {
                                 pin.setPinState(IOModule.HIGH_LEVEL);
 
                                 //It's an analog pin
-                                if (pin.getPinSpinnerPosition() >= 14) {
+                                if (pin.getPinSpinnerPosition() >= 14 && pin.getPinSpinnerPosition() <= 19) {
                                     ADC_ATmega328P.adcInput[pin.getPinSpinnerPosition() - 14] = (short) (5 * 1000);
                                 }
 
@@ -305,7 +305,7 @@ public class InputAdapter_ATmega328P extends BaseAdapter {
                                     pin.setPinState(IOModule.HIGH_LEVEL);
 
                                     //It's an analog pin
-                                    if (pin.getPinSpinnerPosition() >= 14) {
+                                    if (pin.getPinSpinnerPosition() >= 14 && pin.getPinSpinnerPosition() <= 19) {
                                         ADC_ATmega328P.adcInput[pin.getPinSpinnerPosition() - 14] = (short) (5 * 1000);
                                     }
 
@@ -315,7 +315,7 @@ public class InputAdapter_ATmega328P extends BaseAdapter {
                                     pin.setPinState(IOModule.LOW_LEVEL);
 
                                     //It's an analog pin
-                                    if (pin.getPinSpinnerPosition() >= 14) {
+                                    if (pin.getPinSpinnerPosition() >= 14 && pin.getPinSpinnerPosition() <= 19) {
                                         ADC_ATmega328P.adcInput[pin.getPinSpinnerPosition() - 14] = (short) (0);
                                     }
 
@@ -340,7 +340,7 @@ public class InputAdapter_ATmega328P extends BaseAdapter {
                                 pin.setPinState(IOModule.TRI_STATE);
 
                                 //It's an analog pin
-                                if (pin.getPinSpinnerPosition() >= 14) {
+                                if (pin.getPinSpinnerPosition() >= 14 && pin.getPinSpinnerPosition() <= 19) {
                                     ADC_ATmega328P.adcInput[pin.getPinSpinnerPosition() - 14] = (short) (randomGenerator.nextInt(5 * 1000));
                                 }
 
@@ -369,7 +369,7 @@ public class InputAdapter_ATmega328P extends BaseAdapter {
                                 pin.setPinState(IOModule.HIGH_LEVEL);
 
                                 //It's an analog pin
-                                if (pin.getPinSpinnerPosition() >= 14) {
+                                if (pin.getPinSpinnerPosition() >= 14 && pin.getPinSpinnerPosition() <= 19) {
                                     ADC_ATmega328P.adcInput[pin.getPinSpinnerPosition() - 14] = (short) (5 * 1000);
                                 }
 
@@ -381,7 +381,7 @@ public class InputAdapter_ATmega328P extends BaseAdapter {
                                 pin.setPinState(IOModule.LOW_LEVEL);
 
                                 //It's an analog pin
-                                if (pin.getPinSpinnerPosition() >= 14) {
+                                if (pin.getPinSpinnerPosition() >= 14 && pin.getPinSpinnerPosition() <= 19) {
                                     ADC_ATmega328P.adcInput[pin.getPinSpinnerPosition() - 14] = (short) (0);
                                 }
 
@@ -441,7 +441,7 @@ public class InputAdapter_ATmega328P extends BaseAdapter {
                     holder.voltageDisplay.setText(decimalFormat.format(voltage));
 
                     //It's an analog pin
-                    if (pin.getPinSpinnerPosition() >= 14) {
+                    if (pin.getPinSpinnerPosition() >= 14 && pin.getPinSpinnerPosition() <= 19) {
                         ADC_ATmega328P.adcInput[pin.getPinSpinnerPosition() - 14] = (short) (voltage * 1000);
                     }
 
@@ -486,39 +486,41 @@ public class InputAdapter_ATmega328P extends BaseAdapter {
                     double voltage = sourcePower * (progress / 100.0);
                     holder.voltageDisplay.setText(decimalFormat.format(voltage));
 
-                    //It's an analog pin
-                    if (pin.getPinSpinnerPosition() >= 14) {
-                        ADC_ATmega328P.adcInput[pin.getPinSpinnerPosition() - 14] = (short) (voltage * 1000);
-                    }
+                    if (pin.getPinSpinnerPosition() >= 0) {
 
-                    int state = pin.getPinStateFromAnalog(voltage);
-                    pin.setPinState(state);
-
-                    if (state == IOModule.TRI_STATE) {
-                        Log.d("Analog", "Analog Request HiZ");
-                        inputFragment.requestHiZ(true, pin);
-
-                        //Wait for pull Up Request
-                        try {
-                            Thread.sleep(10);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
+                        //It's an analog pin
+                        if (pin.getPinSpinnerPosition() >= 14 && pin.getPinSpinnerPosition() <= 19) {
+                            ADC_ATmega328P.adcInput[pin.getPinSpinnerPosition() - 14] = (short) (voltage * 1000);
                         }
 
-                        //Check if request HiZ was acepted
-                        if (pin.getHiZ(pin.getPinSpinnerPosition())) {
-                            if (inputFragment.isPullUpEnabled() && inputFragment.isPinPullUPEnabled(pin.getMemory(), pin.getBitPosition())) {
-                                inputFragment.inputRequest_inputChanel(IOModule.HIGH_LEVEL, pin.getMemory(), pin.getBitPosition(), pin);
+                        int state = pin.getPinStateFromAnalog(voltage);
+                        pin.setPinState(state);
 
-                            } else {
-                                inputFragment.inputRequest_inputChanel(randomGenerator.nextInt(2), pin.getMemory(), pin.getBitPosition(), pin);
+                        if (state == IOModule.TRI_STATE) {
+                            Log.d("Analog", "Analog Request HiZ");
+                            inputFragment.requestHiZ(true, pin);
+
+                            //Wait for pull Up Request
+                            try {
+                                Thread.sleep(10);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
                             }
-                        }
 
-                    } else {
-                        Log.d("Analog", "Analog Request State");
-                        inputFragment.requestHiZ(false, pin);
-                        inputFragment.inputRequest_inputChanel(state, pin.getMemory(), pin.getBitPosition(), pin);
+                            //Check if request HiZ was acepted
+                            if (pin.getHiZ(pin.getPinSpinnerPosition())) {
+                                if (inputFragment.isPullUpEnabled() && inputFragment.isPinPullUPEnabled(pin.getMemory(), pin.getBitPosition())) {
+                                    inputFragment.inputRequest_inputChanel(IOModule.HIGH_LEVEL, pin.getMemory(), pin.getBitPosition(), pin);
+
+                                } else {
+                                    inputFragment.inputRequest_inputChanel(randomGenerator.nextInt(2), pin.getMemory(), pin.getBitPosition(), pin);
+                                }
+                            }
+
+                        } else {
+                            inputFragment.requestHiZ(false, pin);
+                            inputFragment.inputRequest_inputChanel(state, pin.getMemory(), pin.getBitPosition(), pin);
+                        }
                     }
                 }
 
