@@ -400,31 +400,32 @@ public class UCModule extends AppCompatActivity {
 
         setResetFlag(true);
 
-        while (threadCPU.isAlive()
-                || threadUCView.isAlive()
-                || threadTimer0.isAlive()
-                || threadTimer1.isAlive()
-                || threadTimer2.isAlive()
-                || threadADC.isAlive()) {
-
-            resetClockVector();
-            cpuModule.clockCPU();
-            ucView.clockUCView();
-            timer0.clockTimer0();
-            timer1.clockTimer1();
-            timer2.clockTimer2();
-            adc.clockADC();
-        }
-
         try {
+            while (threadCPU.isAlive()
+                    || threadUCView.isAlive()
+                    || threadTimer0.isAlive()
+                    || threadTimer1.isAlive()
+                    || threadTimer2.isAlive()
+                    || threadADC.isAlive()) {
+
+                resetClockVector();
+                cpuModule.clockCPU();
+                ucView.clockUCView();
+                timer0.clockTimer0();
+                timer1.clockTimer1();
+                timer2.clockTimer2();
+                adc.clockADC();
+            }
+
+
             threadCPU.join();
             threadUCView.join();
             threadTimer0.join();
             threadTimer1.join();
             threadTimer2.join();
             threadADC.join();
-        } catch (InterruptedException e) {
-            Log.e(MY_LOG_TAG, "ERROR: reset -> join error", e);
+        } catch (InterruptedException|NullPointerException e) {
+            Log.e(MY_LOG_TAG, "ERROR: stopSystem", e);
         }
 
         if (setUpSuccessful) {
