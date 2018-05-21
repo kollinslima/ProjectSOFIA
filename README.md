@@ -1,5 +1,7 @@
 # ArduinoEmulator
 
+[Read the Documentation](https://project-sofia.gitbook.io/project/)
+
 This is an Arduino Simulator for Android devices.
 
 Check https://github.com/kollinslima/Arduino/tree/android to get a compatible Arduino IDE.
