@@ -1,31 +1,22 @@
 package com.example.kollins.sofia;
 
-import android.os.Handler;
-
-import com.example.kollins.sofia.ATmega328P.DataMemory_ATmega328P;
-import com.example.kollins.sofia.ATmega328P.ProgramMemory_ATmega328P;
-import com.example.kollins.sofia.ATmega328P.Timer1_ATmega328P;
-import com.example.kollins.sofia.uCInterfaces.DataMemory;
-import com.example.kollins.sofia.uCInterfaces.IOModule;
-import com.example.kollins.sofia.uCInterfaces.ProgramMemory;
+import com.example.kollins.sofia.atmega328p.DataMemory_ATmega328P;
+import com.example.kollins.sofia.atmega328p.Timer1_ATmega328P;
+import com.example.kollins.sofia.ucinterfaces.DataMemory;
+import com.example.kollins.sofia.ucinterfaces.IOModule;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
-
-import java.lang.reflect.Field;
-import java.util.concurrent.locks.Lock;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.booleanThat;
 import static org.mockito.Mockito.mock;
 
 

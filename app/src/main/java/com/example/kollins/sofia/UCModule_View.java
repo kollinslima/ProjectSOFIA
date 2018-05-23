@@ -24,11 +24,11 @@ import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.kollins.sofia.Extra.PathUtil;
-import com.example.kollins.sofia.uCInterfaces.DataMemory;
-import com.example.kollins.sofia.uCInterfaces.InputFragment;
-import com.example.kollins.sofia.uCInterfaces.IOModule;
-import com.example.kollins.sofia.uCInterfaces.OutputFragment;
+import com.example.kollins.sofia.extra.PathUtil;
+import com.example.kollins.sofia.ucinterfaces.DataMemory;
+import com.example.kollins.sofia.ucinterfaces.InputFragment;
+import com.example.kollins.sofia.ucinterfaces.IOModule;
+import com.example.kollins.sofia.ucinterfaces.OutputFragment;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.TimeUnit;

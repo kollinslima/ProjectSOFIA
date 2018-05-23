@@ -2,11 +2,11 @@ package com.example.kollins.sofia;
 
 import android.os.Handler;
 
-import com.example.kollins.sofia.ATmega328P.DataMemory_ATmega328P;
-import com.example.kollins.sofia.ATmega328P.ProgramMemory_ATmega328P;
-import com.example.kollins.sofia.uCInterfaces.DataMemory;
-import com.example.kollins.sofia.uCInterfaces.IOModule;
-import com.example.kollins.sofia.uCInterfaces.ProgramMemory;
+import com.example.kollins.sofia.atmega328p.DataMemory_ATmega328P;
+import com.example.kollins.sofia.atmega328p.ProgramMemory_ATmega328P;
+import com.example.kollins.sofia.ucinterfaces.DataMemory;
+import com.example.kollins.sofia.ucinterfaces.IOModule;
+import com.example.kollins.sofia.ucinterfaces.ProgramMemory;
 
 import org.junit.Before;
 import org.junit.Test;

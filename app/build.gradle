@@ -1,5 +1,6 @@
 apply plugin: 'com.android.application'
 apply plugin: 'org.sonarqube'
+apply plugin: 'jacoco'
 
 
 android {
@@ -44,10 +45,40 @@ dependencies {
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:2.2.2'
 }
 
+jacoco {
+    version "0.7.1.201405082137"
+}
+
+task jacocoTestReport(type: JacocoReport, dependsOn: "testDebugUnitTest") {
+    group = "Reporting"
+    description = "Generate Jacoco coverage reports after running tests."
+    reports {
+        xml.enabled = true
+        html.enabled = true
+    }
+    classDirectories = fileTree(
+            dir: 'build/intermediates/classes/debug/com/example/kollins/sofia',
+            excludes: ['**/R.class',
+                       '**/R$*.class',
+                       '**/BuildConfig.*',
+                       '**/Manifest*.*'])
+    sourceDirectories = files('src/main/java')
+    executionData = files('build/jacoco/testDebugUnitTest.exec')
+    doFirst {
+        files('build/intermediates/classes/debug').getFiles().each { file ->
+            if (file.name.contains('$$')) {
+                file.renameTo(file.path.replace('$$', '$'))
+            }
+        }
+    }
+}
+
 sonarqube {
     properties {
         property "sonar.projectName", "SOFIA"
         property "sonar.projectKey", "com.example.kollins.sofia"
         property "sonar.language","java"
+        property "sonar.jacoco.reportPaths", "build/jacoco/testDebugUnitTest.exec"
+        property "sonar.junit.reportsPath", "build/test-results/debug"
     }
 }

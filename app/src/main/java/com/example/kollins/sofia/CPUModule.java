@@ -3,10 +3,10 @@ package com.example.kollins.sofia;
 import android.os.Handler;
 import android.util.Log;
 
-import com.example.kollins.sofia.ATmega328P.DataMemory_ATmega328P;
-import com.example.kollins.sofia.uCInterfaces.CPUInstructions;
-import com.example.kollins.sofia.uCInterfaces.DataMemory;
-import com.example.kollins.sofia.uCInterfaces.ProgramMemory;
+import com.example.kollins.sofia.atmega328p.DataMemory_ATmega328P;
+import com.example.kollins.sofia.ucinterfaces.CPUInstructions;
+import com.example.kollins.sofia.ucinterfaces.DataMemory;
+import com.example.kollins.sofia.ucinterfaces.ProgramMemory;
 
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;

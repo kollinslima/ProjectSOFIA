@@ -15,15 +15,15 @@ import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.kollins.sofia.uCInterfaces.ADCModule;
-import com.example.kollins.sofia.uCInterfaces.DataMemory;
-import com.example.kollins.sofia.uCInterfaces.IOModule;
-import com.example.kollins.sofia.uCInterfaces.InterruptionModule;
-import com.example.kollins.sofia.uCInterfaces.OutputFragment;
-import com.example.kollins.sofia.uCInterfaces.ProgramMemory;
-import com.example.kollins.sofia.uCInterfaces.Timer0Module;
-import com.example.kollins.sofia.uCInterfaces.Timer1Module;
-import com.example.kollins.sofia.uCInterfaces.Timer2Module;
+import com.example.kollins.sofia.ucinterfaces.ADCModule;
+import com.example.kollins.sofia.ucinterfaces.DataMemory;
+import com.example.kollins.sofia.ucinterfaces.IOModule;
+import com.example.kollins.sofia.ucinterfaces.InterruptionModule;
+import com.example.kollins.sofia.ucinterfaces.OutputFragment;
+import com.example.kollins.sofia.ucinterfaces.ProgramMemory;
+import com.example.kollins.sofia.ucinterfaces.Timer0Module;
+import com.example.kollins.sofia.ucinterfaces.Timer1Module;
+import com.example.kollins.sofia.ucinterfaces.Timer2Module;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
