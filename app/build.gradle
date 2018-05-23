@@ -8,7 +8,7 @@ android {
     }
     compileSdkVersion 26
     defaultConfig {
-        applicationId "com.example.kollins.androidemulator"
+        applicationId "com.example.kollins.sofia"
         minSdkVersion 21
         targetSdkVersion 26
         versionCode 1
@@ -46,8 +46,8 @@ dependencies {
 
 sonarqube {
     properties {
-        property "sonar.projectName", "ArduinoSimulator"
-        property "sonar.projectKey", "com.example.kollins.androidemulator"
+        property "sonar.projectName", "SOFIA"
+        property "sonar.projectKey", "com.example.kollins.sofia"
         property "sonar.language","java"
     }
 }
