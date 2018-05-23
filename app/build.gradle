@@ -79,6 +79,5 @@ sonarqube {
         property "sonar.projectKey", "com.example.kollins.sofia"
         property "sonar.language","java"
         property "sonar.jacoco.reportPaths", "build/jacoco/testDebugUnitTest.exec"
-        property "sonar.junit.reportsPath", "build/test-results/debug"
     }
 }
