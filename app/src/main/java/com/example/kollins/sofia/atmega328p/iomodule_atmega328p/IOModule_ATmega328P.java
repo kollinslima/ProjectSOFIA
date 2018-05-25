@@ -37,8 +37,12 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
     private final int OC2B_PIN_POSITION = 3;
     private final int OC2A_PIN_POSITION = 11;
 
-    private byte valueRead;
-    private byte configRead;
+    private byte valueRead_B;
+    private byte configRead_B;
+    private byte valueRead_C;
+    private byte configRead_C;
+    private byte valueRead_D;
+    private byte configRead_D;
 
     private static UCModule.UCHandler uCHandler;
     private OutputFragment_ATmega328P outputFragment;
@@ -56,27 +60,32 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
     @Override
     public void handleMessage(Message msg) {
 
-        valueRead = msg.getData().getByte(IOModule.VALUE_IOMESSAGE);
-        configRead = msg.getData().getByte(IOModule.CONFIG_IOMESSAGE);
-
         List<OutputPin_ATmega328P> outputPins = outputFragment.getOutputPins();
 
         switch (msg.what) {
             case PORTB_EVENT:
 
+                valueRead_B = msg.getData().getByte(IOModule.VALUE_IOMESSAGE);
+                configRead_B = msg.getData().getByte(IOModule.CONFIG_IOMESSAGE);
                 new PortBUpdateView().execute(outputPins);
 
                 break;
 
             case PORTC_EVENT:
 
+                valueRead_C = msg.getData().getByte(IOModule.VALUE_IOMESSAGE);
+                configRead_C = msg.getData().getByte(IOModule.CONFIG_IOMESSAGE);
                 new PortCUpdateView().execute(outputPins);
 
                 break;
 
             case PORTD_EVENT:
 
+                valueRead_D = msg.getData().getByte(IOModule.VALUE_IOMESSAGE);
+                configRead_D = msg.getData().getByte(IOModule.CONFIG_IOMESSAGE);
+
                 new PortDUpdateView().execute(outputPins);
+
 
                 break;
 
@@ -353,11 +362,11 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
             for (int i = 8, bitPosition = 0; i <= 13; i++, bitPosition++) {
 
                 //Is input?
-                if ((0x01 & (configRead >> bitPosition)) == 0) {
+                if ((0x01 & (configRead_B >> bitPosition)) == 0) {
 
                     digitalPINState = inputFragment.getPINState(DataMemory_ATmega328P.PINB_ADDR, bitPosition);
 
-                    if (((0x01 & (valueRead >> bitPosition)) == 1) && outputFragment.isPullUpEnabled()) {
+                    if (((0x01 & (valueRead_B >> bitPosition)) == 1) && outputFragment.isPullUpEnabled()) {
 
                         if (!digitalPINState && inputFragment.isPinHiZ(i)) {
                             inputFragment.inputRequest_outputChanel(IOModule.HIGH_LEVEL, DataMemory_ATmega328P.PINB_ADDR, bitPosition, "Pin" + i);
@@ -384,7 +393,7 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
                             || (i == 9 && !Timer1_ATmega328P.timerOutputControl_OC1A)
                             || (i == 10 && !Timer1_ATmega328P.timerOutputControl_OC1B)
                             || (i == 11 && !Timer2_ATmega328P.timerOutputControl_OC2A)) {
-                        outputFragment.pinbuffer[i] = (0x01 & (valueRead >> bitPosition));
+                        outputFragment.pinbuffer[i] = (0x01 & (valueRead_B >> bitPosition));
                     }
                     outputFragment.writeFeedback(DataMemory_ATmega328P.PINB_ADDR, bitPosition, outputFragment.pinbuffer[i] != 0);
                 }
@@ -434,11 +443,11 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
             //AN0 - AN5 (Pin14 - Pin19)
             for (int i = 14, bitPosition = 0; i <= 19; i++, bitPosition++) {
                 //Is input?
-                if ((0x01 & (configRead >> bitPosition)) == 0) {
+                if ((0x01 & (configRead_C >> bitPosition)) == 0) {
 
                     digitalPINState = inputFragment.getPINState(DataMemory_ATmega328P.PINC_ADDR, bitPosition);
 
-                    if (((0x01 & (valueRead >> bitPosition)) == 1) && outputFragment.isPullUpEnabled()) {
+                    if (((0x01 & (valueRead_C >> bitPosition)) == 1) && outputFragment.isPullUpEnabled()) {
 
                         if (!digitalPINState && inputFragment.isPinHiZ(i)) {
                             inputFragment.inputRequest_outputChanel(IOModule.HIGH_LEVEL, DataMemory_ATmega328P.PINC_ADDR, bitPosition, "AN" + bitPosition);
@@ -449,20 +458,16 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
 
                     } else {
 //                        outputFragment.pinbuffer[i] = digitalPINState ? 1 : 0;
-//                        Log.d("Analog", "No Pull-UP");
-//                        Log.d("Analog", "HiZ: " + inputFragment.isPinHiZ(i));
                         if (!inputFragment.isPinHiZ(i)) {
-//                            Log.i(UCModule.MY_LOG_TAG, "Button pressed");
                             outputFragment.pinbuffer[i] = digitalPINState ? 1 : 0;
                         } else {
-//                            Log.i(UCModule.MY_LOG_TAG, "Button not pressed");
                             outputFragment.pinbuffer[i] = IOModule.TRI_STATE;
                         }
                     }
                 }
                 //Is output!
                 else {
-                    outputFragment.pinbuffer[i] = (0x01 & (valueRead >> bitPosition));
+                    outputFragment.pinbuffer[i] = (0x01 & (valueRead_C >> bitPosition));
                     outputFragment.writeFeedback(DataMemory_ATmega328P.PINC_ADDR, bitPosition, outputFragment.pinbuffer[i] != 0);
                 }
 
@@ -509,11 +514,11 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
             //Pin0 - Pin7
             for (int i = 0, bitPosition = 0; i <= 7; i++, bitPosition++) {
                 //Is input?
-                if ((0x01 & (configRead >> bitPosition)) == 0) {
+                if ((0x01 & (configRead_D >> bitPosition)) == 0) {
 
                     digitalPINState = inputFragment.getPINState(DataMemory_ATmega328P.PIND_ADDR, bitPosition);
 
-                    if (((0x01 & (valueRead >> bitPosition)) == 1) && outputFragment.isPullUpEnabled()) {
+                    if (((0x01 & (valueRead_D >> bitPosition)) == 1) && outputFragment.isPullUpEnabled()) {
 
                         if (!digitalPINState && inputFragment.isPinHiZ(i)) {
                             inputFragment.inputRequest_outputChanel(IOModule.HIGH_LEVEL, DataMemory_ATmega328P.PIND_ADDR, bitPosition, "Pin" + i);
@@ -525,10 +530,8 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
                     } else {
 //                        outputFragment.pinbuffer[i] = digitalPINState ? 1 : 0;
                         if (!inputFragment.isPinHiZ(i)) {
-//                            Log.i(UCModule.MY_LOG_TAG, "Button pressed");
                             outputFragment.pinbuffer[i] = digitalPINState ? 1 : 0;
                         } else {
-//                            Log.i(UCModule.MY_LOG_TAG, "Button not pressed");
                             outputFragment.pinbuffer[i] = IOModule.TRI_STATE;
                         }
                     }
@@ -540,7 +543,7 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
                             || (i == 5 && !Timer0_ATmega328P.timerOutputControl_OC0B)
                             || (i == 6 && !Timer0_ATmega328P.timerOutputControl_OC0A)
                             || (i == 3 && !Timer2_ATmega328P.timerOutputControl_OC2B)) {
-                        outputFragment.pinbuffer[i] = (0x01 & (valueRead >> bitPosition));
+                        outputFragment.pinbuffer[i] = (0x01 & (valueRead_D >> bitPosition));
                     }
                     outputFragment.writeFeedback(DataMemory_ATmega328P.PIND_ADDR, bitPosition, outputFragment.pinbuffer[i] != 0);
                 }

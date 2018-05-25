@@ -63,10 +63,12 @@ public class ProgramMemory_ATmega328P implements ProgramMemory {
 
     public boolean loadProgramMemory(String hexFileLocation) {
 
+        Log.d("HEX", "Loading from " + hexFileLocation);
         String state = Environment.getExternalStorageState();
 
         //All set to read and write data in SDCard
         if (Environment.MEDIA_MOUNTED.equals(state) || Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)) {
+
 
             File fileDir = null;
             if (hexFileLocation.equals(UCModule.DEFAULT_HEX_LOCATION)) {
@@ -94,6 +96,7 @@ public class ProgramMemory_ATmega328P implements ProgramMemory {
                     }
 
                 }
+                Log.d("HEX", "Hex loaded");
 
                 //Watch for changes in hexFile
                 codeObserver = new FileObserver(hexFile.getPath().toString()) {

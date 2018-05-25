@@ -90,25 +90,25 @@ public class UCModule_View extends Fragment implements Runnable {
         resources = getResources();
 
         try {
-            Class outputFragmentDevice = Class.forName(UCModule.PACKAGE_NAME + "." + UCModule.device + ".IOModule_" +
-                    UCModule.device + ".Output.OutputFragment_" + UCModule.device);
+            Class outputFragmentDevice = Class.forName(UCModule.PACKAGE_NAME + "." + UCModule.device.toLowerCase() + ".iomodule_" +
+                    UCModule.device.toLowerCase() + ".output.OutputFragment_" + UCModule.device);
             outputFragment = (OutputFragment) outputFragmentDevice.newInstance();
             outputFragment.setScreenUpdater(screenUpdater);
 
-            Class inputFragmentDevice = Class.forName(UCModule.PACKAGE_NAME + "." + UCModule.device + ".IOModule_" +
-                    UCModule.device + ".Input.InputFragment_" + UCModule.device);
+            Class inputFragmentDevice = Class.forName(UCModule.PACKAGE_NAME + "." + UCModule.device.toLowerCase() + ".iomodule_" +
+                    UCModule.device.toLowerCase() + ".input.InputFragment_" + UCModule.device);
             inputFragment = (InputFragment) inputFragmentDevice.newInstance();
             inputFragment.setScreenUpdater(screenUpdater);
 
-            Class ioModuleDevice = Class.forName(UCModule.PACKAGE_NAME + "." + UCModule.device + ".IOModule_" +
-                    UCModule.device + ".IOModule_" + UCModule.device);
+            Class ioModuleDevice = Class.forName(UCModule.PACKAGE_NAME + "." + UCModule.device.toLowerCase() + ".iomodule_" +
+                    UCModule.device.toLowerCase() + ".IOModule_" + UCModule.device);
             ioModule = (IOModule) ioModuleDevice
                     .getDeclaredConstructor(OutputFragment.class, InputFragment.class)
                     .newInstance(outputFragment, inputFragment);
 
         } catch (ClassNotFoundException | IllegalAccessException | java.lang.InstantiationException
                 | NoSuchMethodException | InvocationTargetException e) {
-            e.printStackTrace();
+            Log.e(UCModule.MY_LOG_TAG, "Error Starting UCModule_View", e);
         }
     }
 
@@ -215,7 +215,9 @@ public class UCModule_View extends Fragment implements Runnable {
     }
 
     public void resetIO() {
-        outputFragment.resetOuputs();
+        if (outputFragment != null) {
+            outputFragment.resetOuputs();
+        }
     }
 
     public void setUCHandler(UCModule.UCHandler uCHandler) {

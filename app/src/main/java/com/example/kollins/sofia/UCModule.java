@@ -140,7 +140,7 @@ public class UCModule extends AppCompatActivity {
 
 
         try {
-            Class interruptionDevice = Class.forName(PACKAGE_NAME + "." + device + ".InterruptionModule_" + device);
+            Class interruptionDevice = Class.forName(PACKAGE_NAME + "." + device.toLowerCase() + ".InterruptionModule_" + device);
             interruptionModule = (InterruptionModule) interruptionDevice.newInstance();
         } catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
             e.printStackTrace();
@@ -173,7 +173,7 @@ public class UCModule extends AppCompatActivity {
 
         try {
             //Init FLASH
-            Class programMemoryDevice = Class.forName(PACKAGE_NAME + "." + device + ".ProgramMemory_" + device);
+            Class programMemoryDevice = Class.forName(PACKAGE_NAME + "." + device.toLowerCase() + ".ProgramMemory_" + device);
             programMemory = (ProgramMemory) programMemoryDevice
                     .getDeclaredConstructor(Handler.class)
                     .newInstance(uCHandler);
@@ -187,7 +187,7 @@ public class UCModule extends AppCompatActivity {
                 ((TextView) findViewById(R.id.hexFileErrorInstructions)).setVisibility(View.GONE);
 
                 //Init RAM
-                Class dataMemoryDevice = Class.forName(PACKAGE_NAME + "." + device + ".DataMemory_" + device);
+                Class dataMemoryDevice = Class.forName(PACKAGE_NAME + "." + device.toLowerCase() + ".DataMemory_" + device);
                 dataMemory = (DataMemory) dataMemoryDevice.getDeclaredConstructor(IOModule.class)
                         .newInstance(ucView.getIOModule());
 
@@ -207,7 +207,7 @@ public class UCModule extends AppCompatActivity {
                 threadCPU.start();
 
                 //Init Timer0
-                Class timer0Device = Class.forName(PACKAGE_NAME + "." + device + ".Timer0_" + device);
+                Class timer0Device = Class.forName(PACKAGE_NAME + "." + device.toLowerCase() + ".Timer0_" + device);
                 timer0 = (Timer0Module) timer0Device.getDeclaredConstructor(DataMemory.class, Handler.class, Lock.class, UCModule.class, IOModule.class)
                         .newInstance(dataMemory, uCHandler, clockLock, this, ucView.getIOModule());
 
@@ -215,7 +215,7 @@ public class UCModule extends AppCompatActivity {
                 threadTimer0.start();
 
                 //Init Timer1
-                Class timer1Device = Class.forName(PACKAGE_NAME + "." + device + ".Timer1_" + device);
+                Class timer1Device = Class.forName(PACKAGE_NAME + "." + device.toLowerCase() + ".Timer1_" + device);
                 timer1 = (Timer1Module) timer1Device.getDeclaredConstructor(DataMemory.class, Handler.class, Lock.class, UCModule.class, IOModule.class)
                         .newInstance(dataMemory, uCHandler, clockLock, this, ucView.getIOModule());
 
@@ -223,7 +223,7 @@ public class UCModule extends AppCompatActivity {
                 threadTimer1.start();
 
                 //Init Timer2
-                Class timer2Device = Class.forName(PACKAGE_NAME + "." + device + ".Timer2_" + device);
+                Class timer2Device = Class.forName(PACKAGE_NAME + "." + device.toLowerCase() + ".Timer2_" + device);
                 timer2 = (Timer2Module) timer2Device.getDeclaredConstructor(DataMemory.class, Handler.class, Lock.class, UCModule.class, IOModule.class)
                         .newInstance(dataMemory, uCHandler, clockLock, this, ucView.getIOModule());
 
@@ -231,7 +231,7 @@ public class UCModule extends AppCompatActivity {
                 threadTimer2.start();
 
                 //Init ADC
-                Class adcDevice = Class.forName(PACKAGE_NAME + "." + device + ".ADC_" + device);
+                Class adcDevice = Class.forName(PACKAGE_NAME + "." + device.toLowerCase() + ".ADC_" + device);
                 adc = (ADCModule) adcDevice.getDeclaredConstructor(DataMemory.class, Handler.class, Lock.class, UCModule.class)
                         .newInstance(dataMemory, uCHandler, clockLock, this);
 
@@ -254,7 +254,7 @@ public class UCModule extends AppCompatActivity {
                 InvocationTargetException e) {
             setUpSuccessful = false;
             ucView.setStatus(UCModule_View.LED_STATUS.HEX_FILE_ERROR);
-            e.printStackTrace();
+            Log.e(MY_LOG_TAG, "Error Set-up", e);
         }
 
     }

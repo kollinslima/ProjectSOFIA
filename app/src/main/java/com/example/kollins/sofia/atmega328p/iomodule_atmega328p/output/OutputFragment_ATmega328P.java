@@ -225,13 +225,12 @@ public class OutputFragment_ATmega328P extends Fragment implements OutputFragmen
                 }
 
                 TextView led = (TextView) view.findViewById(R.id.ledState);
-
                 try {
                     OutputPin_ATmega328P pin = outputPins.get(index);
                     led.setText(UCModule.resources.getStringArray(R.array.ledText)[pin.getPinState(pin.getPinPositionSpinner())]);
                     led.setBackgroundResource(BACKGROUND_PIN[pin.getPinState(pin.getPinPositionSpinner())]);
                 } catch (IndexOutOfBoundsException e){
-                    //AsyncTask may be still running and cause this error.
+                    Log.e(UCModule.MY_LOG_TAG, "ERROR: updateView", e);
                 }
             }
         });

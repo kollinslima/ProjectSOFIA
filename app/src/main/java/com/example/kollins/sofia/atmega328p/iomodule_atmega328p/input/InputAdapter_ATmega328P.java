@@ -447,29 +447,30 @@ public class InputAdapter_ATmega328P extends BaseAdapter {
 
                     int state = pin.getPinStateFromAnalog(voltage);
                     pin.setPinState(state);
+                    inputFragment.requestHiZ(false, pin);
 
                     if (state == IOModule.TRI_STATE) {
-                        inputFragment.requestHiZ(true, pin);
-
-                        //Wait for pull Up Request
-                        try {
-                            Thread.sleep(10);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
+//                        inputFragment.requestHiZ(true, pin);
+//
+//                        //Wait for pull Up Request
+//                        try {
+//                            Thread.sleep(10);
+//                        } catch (InterruptedException e) {
+//                            e.printStackTrace();
+//                        }
 
                         //Check if request HiZ was acepted
-                        if (pin.getHiZ(pin.getPinSpinnerPosition())) {
+//                        if (pin.getHiZ(pin.getPinSpinnerPosition())) {
                             if (inputFragment.isPullUpEnabled() && inputFragment.isPinPullUPEnabled(pin.getMemory(), pin.getBitPosition())) {
                                 inputFragment.inputRequest_inputChanel(IOModule.HIGH_LEVEL, pin.getMemory(), pin.getBitPosition(), pin);
 
                             } else {
                                 inputFragment.inputRequest_inputChanel(randomGenerator.nextInt(2), pin.getMemory(), pin.getBitPosition(), pin);
                             }
-                        }
+//                        }
 
                     } else {
-                        inputFragment.requestHiZ(false, pin);
+//                        inputFragment.requestHiZ(false, pin);
                         inputFragment.inputRequest_inputChanel(state, pin.getMemory(), pin.getBitPosition(), pin);
                     }
                 }
@@ -495,30 +496,30 @@ public class InputAdapter_ATmega328P extends BaseAdapter {
 
                         int state = pin.getPinStateFromAnalog(voltage);
                         pin.setPinState(state);
+//                        inputFragment.requestHiZ(false, pin);
 
                         if (state == IOModule.TRI_STATE) {
-                            Log.d("Analog", "Analog Request HiZ");
-                            inputFragment.requestHiZ(true, pin);
-
-                            //Wait for pull Up Request
-                            try {
-                                Thread.sleep(10);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
+//                            inputFragment.requestHiZ(true, pin);
+//
+//                            //Wait for pull Up Request
+//                            try {
+//                                Thread.sleep(10);
+//                            } catch (InterruptedException e) {
+//                                e.printStackTrace();
+//                            }
 
                             //Check if request HiZ was acepted
-                            if (pin.getHiZ(pin.getPinSpinnerPosition())) {
+//                            if (pin.getHiZ(pin.getPinSpinnerPosition())) {
                                 if (inputFragment.isPullUpEnabled() && inputFragment.isPinPullUPEnabled(pin.getMemory(), pin.getBitPosition())) {
                                     inputFragment.inputRequest_inputChanel(IOModule.HIGH_LEVEL, pin.getMemory(), pin.getBitPosition(), pin);
 
                                 } else {
                                     inputFragment.inputRequest_inputChanel(randomGenerator.nextInt(2), pin.getMemory(), pin.getBitPosition(), pin);
                                 }
-                            }
+//                            }
 
                         } else {
-                            inputFragment.requestHiZ(false, pin);
+//                            inputFragment.requestHiZ(false, pin);
                             inputFragment.inputRequest_inputChanel(state, pin.getMemory(), pin.getBitPosition(), pin);
                         }
                     }

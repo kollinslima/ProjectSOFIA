@@ -595,7 +595,7 @@ public class DataMemory_ATmega328P implements DataMemory {
 
                     ioMessage.setData(ioBundle);
 
-                    pinHandler.sendMessage(ioMessage);
+                    pinHandler.dispatchMessage(ioMessage);
 
                     break;
 
@@ -611,7 +611,7 @@ public class DataMemory_ATmega328P implements DataMemory {
                     ioMessage.what = IOModule.PORTC_EVENT;
                     ioMessage.setData(ioBundle);
 
-                    pinHandler.sendMessage(ioMessage);
+                    pinHandler.dispatchMessage(ioMessage);
 
                     break;
 
@@ -627,7 +627,7 @@ public class DataMemory_ATmega328P implements DataMemory {
                     ioMessage.what = IOModule.PORTD_EVENT;
                     ioMessage.setData(ioBundle);
 
-                    pinHandler.sendMessage(ioMessage);
+                    pinHandler.dispatchMessage(ioMessage);
 
                     break;
 
@@ -674,7 +674,7 @@ public class DataMemory_ATmega328P implements DataMemory {
                     ioBundle.putByte(IOModule.CONFIG_IOMESSAGE, readIOByte(DDRC_ADDR));
                     ioBundle.putByte(IOModule.VALUE_IOMESSAGE, readIOByte(PINC_ADDR));
 
-                    Log.d("Analog", "Analog Notify: " + Integer.toHexString(readIOByte(PINC_ADDR)));
+//                    Log.d("Analog", "Analog Notify: " + Integer.toHexString(readIOByte(PINC_ADDR)));
 
                     ioMessage.what = IOModule.PORTC_EVENT;
                     ioMessage.setData(ioBundle);
