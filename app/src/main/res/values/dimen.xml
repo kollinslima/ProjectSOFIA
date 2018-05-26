@@ -18,4 +18,5 @@
 
 <resources>
     <dimen name="statusLedDimen">15dp</dimen>
+    <dimen name="about_space">20dp</dimen>
 </resources>

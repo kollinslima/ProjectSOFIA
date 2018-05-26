@@ -18,6 +18,7 @@
 
 <resources>
     <string name="app_name">SOFIA</string>
+    <string name="project_name">Projeto SOFIA</string>
 
     <string name="simulated_time_format">%d.%09d s</string>
     <string name="memory_usage_format">Mem: %d/%d</string>
@@ -96,7 +97,11 @@
     <string name="action_input">Entrada Digital</string>
     <string name="action_clear_io">Limpar E/S</string>
     <string name="action_import">Importar código</string>
+    <string name="action_about">Sobre</string>
     <string name="start_instructions">Pressione \'+\' para começar</string>
 
-    <string name="developer">Desenvolvido por Kollins Gabriel Lima</string>
+    <string name="developer">Desenvolvido por:</string>
+    <string name="developer_name">Kollins Gabriel Lima</string>
+    <string name="project_info">Saiba mais na página do projeto</string>
+    <string name="project_page"> <a href="https://project-sofia.gitbook.io/project/">https://project-sofia.gitbook.io/project/</a></string>
 </resources>

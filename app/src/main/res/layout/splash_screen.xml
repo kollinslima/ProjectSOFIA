@@ -18,7 +18,8 @@
 
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/colorPrimary">
 
     <LinearLayout
         android:layout_width="wrap_content"
@@ -26,27 +27,32 @@
         android:orientation="vertical"
         android:layout_centerInParent="true">
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:text="@string/app_name"
-            android:textAppearance="?android:attr/textAppearanceLarge"
-            android:textColor="@color/colorPrimary"
-            android:textStyle="bold"/>
+
+        <ImageView
+            android:id="@+id/logo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="invisible"
+            android:src="@drawable/logo_splash_screen"/>
 
         <ProgressBar
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:visibility="visible" />
+            android:visibility="visible"
+            android:indeterminate="true"
+            android:indeterminateTintMode="src_atop"
+            android:indeterminateTint="@android:color/white"/>
+
     </LinearLayout>
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/developer"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-        android:textColor="@android:color/black"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"/>
+    <!--<TextView-->
+        <!--android:id="@+id/developer"-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:text="@string/developer"-->
+        <!--android:textAppearance="?android:attr/textAppearanceSmall"-->
+        <!--android:textColor="@android:color/white"-->
+        <!--android:layout_alignParentBottom="true"-->
+        <!--android:layout_centerHorizontal="true" />-->
 
 </RelativeLayout>

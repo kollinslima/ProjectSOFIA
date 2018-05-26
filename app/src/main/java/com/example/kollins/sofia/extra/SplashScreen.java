@@ -26,6 +26,11 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.View;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.example.kollins.sofia.CPUModule;
 import com.example.kollins.sofia.database.DataBaseHelper;
@@ -36,10 +41,36 @@ import java.io.IOException;
 
 public class SplashScreen extends AppCompatActivity {
 
+    private static final int ANIMATION_DURATION = 3000;
+    private ImageView logo;
+    private AlphaAnimation fadeInAnimation;
+
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.splash_screen);
+
+        logo = (ImageView) findViewById(R.id.logo);
+
+        fadeInAnimation = new AlphaAnimation(0, 1);
+        fadeInAnimation.setDuration(ANIMATION_DURATION);
+        fadeInAnimation.setFillAfter(true);
+        fadeInAnimation.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationEnd(Animation animation) {
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) { }
+
+            @Override
+            public void onAnimationStart(Animation animation) {
+                logo.setVisibility(View.VISIBLE);
+            }
+        });
+
+        logo.startAnimation(fadeInAnimation);
 
         new LoadDBTask().execute();
     }
@@ -81,6 +112,9 @@ public class SplashScreen extends AppCompatActivity {
                     mDb.close();
                 }
             }
+
+            //Wait for animation to stop
+            while (!fadeInAnimation.hasEnded());
             return null;
         }
 

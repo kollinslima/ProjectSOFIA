@@ -41,6 +41,7 @@ import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.kollins.sofia.extra.AboutPage;
 import com.example.kollins.sofia.extra.PathUtil;
 import com.example.kollins.sofia.ucinterfaces.DataMemory;
 import com.example.kollins.sofia.ucinterfaces.InputFragment;
@@ -166,7 +167,7 @@ public class UCModule_View extends Fragment implements Runnable {
             seconds = TimeUnit.NANOSECONDS.toSeconds(nanoSeconds);
 
             simulatedText = resources.getString(R.string.simulated_time_format, seconds, nanoSeconds);
-            memoryUsageText = resources.getString(R.string.memory_usage_format, ucModule.getMemoryUsage(),memorySize);
+            memoryUsageText = resources.getString(R.string.memory_usage_format, ucModule.getMemoryUsage(), memorySize);
 
             screenUpdater.post(new Runnable() {
                 @Override
@@ -318,6 +319,14 @@ public class UCModule_View extends Fragment implements Runnable {
                     inputFrame.setVisibility(View.GONE);
                     startInstructions.setVisibility(View.VISIBLE);
                     break;
+
+                case R.id.action_about:
+                    startActivity(new Intent(getActivity().getBaseContext(), AboutPage.class));
+                    break;
+
+                default:
+                    //This shouldn't happen...
+                    break;
             }
             return true;
         }
@@ -330,8 +339,8 @@ public class UCModule_View extends Fragment implements Runnable {
             case FILE_IMPORT_CODE:
                 if (resultCode == RESULT_OK) {
                     Uri uri = data.getData();
-                    Log.d("FileImporter", "Path: " + PathUtil.getPath(getContext(),uri));
-                    ucModule.changeFileLocation(PathUtil.getPath(getContext(),uri));
+                    Log.d("FileImporter", "Path: " + PathUtil.getPath(getContext(), uri));
+                    ucModule.changeFileLocation(PathUtil.getPath(getContext(), uri));
                     uCHandler.sendEmptyMessage(UCModule.RESET_ACTION);
                 }
                 break;
