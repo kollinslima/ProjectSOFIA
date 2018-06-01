@@ -24,6 +24,9 @@ import android.os.Message;
 import android.util.Log;
 
 import com.example.kollins.sofia.UCModule;
+import com.example.kollins.sofia.UCModule_View;
+import com.example.kollins.sofia.extra.memory_map.MemoryAdapter;
+import com.example.kollins.sofia.extra.memory_map.MemoryFragment;
 import com.example.kollins.sofia.ucinterfaces.DataMemory;
 import com.example.kollins.sofia.ucinterfaces.IOModule;
 
@@ -143,10 +146,10 @@ public class DataMemory_ATmega328P implements DataMemory {
     public static final int UDR0_ADDR = 0xC6;
 
     private static final int RAMEND = 0x08FF;
-    private final int SDRAM_EXTERNAL_SIZE = (2 * ((int) Math.pow(2, 10)));
+    public static final int SDRAM_EXTERNAL_SIZE = (2 * ((int) Math.pow(2, 10)));
 
     //2kBytes external SDRAM + 32 Registers + 64 I/O Registers + 160 Ext I/O Registers
-    private final int SDRAM_SIZE_TOTAL = SDRAM_EXTERNAL_SIZE + 32 + 64 + 160;
+    public static final int SDRAM_SIZE_TOTAL = SDRAM_EXTERNAL_SIZE + 32 + 64 + 160;
     private byte[] sdramMemory;
 
     private int memoryUsageMeasure;
@@ -454,6 +457,18 @@ public class DataMemory_ATmega328P implements DataMemory {
 
         updateMemoryUsage(byteAddress);
 
+        if (!MemoryAdapter.isFiltering) {
+            UCModule_View.screenUpdater.post(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        MemoryFragment.mAdapter.notifyDataSetChanged();
+                    } catch (IllegalStateException | NullPointerException e) {
+                        Log.e(UCModule.MY_LOG_TAG, "ERROR: update memory map", e);
+                    }
+                }
+            });
+        }
     }
 
     @Override
@@ -501,6 +516,19 @@ public class DataMemory_ATmega328P implements DataMemory {
             }
             new Notify().execute(byteAddress);
         }
+
+        if (!MemoryAdapter.isFiltering) {
+            UCModule_View.screenUpdater.post(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        MemoryFragment.mAdapter.notifyDataSetChanged();
+                    } catch (IllegalStateException | NullPointerException e) {
+                        Log.e(UCModule.MY_LOG_TAG, "ERROR: update memory map", e);
+                    }
+                }
+            });
+        }
     }
 
     public synchronized void writeIOBit(int byteAddress, int bitPosition, boolean bitState) {
@@ -514,6 +542,18 @@ public class DataMemory_ATmega328P implements DataMemory {
         }
         new NotifyIO().execute(byteAddress);
 
+        if (!MemoryAdapter.isFiltering) {
+            UCModule_View.screenUpdater.post(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        MemoryFragment.mAdapter.notifyDataSetChanged();
+                    } catch (IllegalStateException | NullPointerException e) {
+                        Log.e(UCModule.MY_LOG_TAG, "ERROR: update memory map", e);
+                    }
+                }
+            });
+        }
     }
 
     @Override
@@ -537,6 +577,19 @@ public class DataMemory_ATmega328P implements DataMemory {
         }
         sdramMemory[byteAddressLow] = byteLow;
         sdramMemory[byteAddressHigh] = byteHigh;
+
+        if (!MemoryAdapter.isFiltering) {
+            UCModule_View.screenUpdater.post(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        MemoryFragment.mAdapter.notifyDataSetChanged();
+                    } catch (IllegalStateException | NullPointerException e) {
+                        Log.e(UCModule.MY_LOG_TAG, "ERROR: update memory map", e);
+                    }
+                }
+            });
+        }
     }
 
     public synchronized char read16bits(int byteAddressLow, int byteAddressHigh) {
@@ -560,6 +613,19 @@ public class DataMemory_ATmega328P implements DataMemory {
         sdramMemory[byteAddress] = (byte) (sdramMemory[byteAddress] & (0xFF7F >> (7 - bitPosition)));   //Clear
         if (bitState) {
             sdramMemory[byteAddress] = (byte) (sdramMemory[byteAddress] | (0x01 << bitPosition));     //Set
+        }
+
+        if (!MemoryAdapter.isFiltering) {
+            UCModule_View.screenUpdater.post(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        MemoryFragment.mAdapter.notifyDataSetChanged();
+                    } catch (IllegalStateException | NullPointerException e) {
+                        Log.e(UCModule.MY_LOG_TAG, "ERROR: update memory map", e);
+                    }
+                }
+            });
         }
     }
 

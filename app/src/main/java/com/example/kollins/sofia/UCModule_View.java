@@ -42,6 +42,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.kollins.sofia.extra.AboutPage;
+import com.example.kollins.sofia.extra.memory_map.MemoryFragment;
 import com.example.kollins.sofia.extra.PathUtil;
 import com.example.kollins.sofia.ucinterfaces.DataMemory;
 import com.example.kollins.sofia.ucinterfaces.InputFragment;
@@ -83,6 +84,7 @@ public class UCModule_View extends Fragment implements Runnable {
     private OutputFragment outputFragment;
     private InputFragment inputFragment;
     private IOModule ioModule;
+    private MemoryFragment memoryFragment;
 
     private static UCModule.UCHandler uCHandler;
     private UCModule ucModule;
@@ -98,7 +100,7 @@ public class UCModule_View extends Fragment implements Runnable {
 
     private Resources resources;
 
-    private ScreenUpdater screenUpdater;
+    public static ScreenUpdater screenUpdater;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -123,6 +125,8 @@ public class UCModule_View extends Fragment implements Runnable {
             ioModule = (IOModule) ioModuleDevice
                     .getDeclaredConstructor(OutputFragment.class, InputFragment.class)
                     .newInstance(outputFragment, inputFragment);
+
+            memoryFragment = new MemoryFragment();
 
         } catch (ClassNotFoundException | IllegalAccessException | java.lang.InstantiationException
                 | NoSuchMethodException | InvocationTargetException e) {
@@ -220,6 +224,7 @@ public class UCModule_View extends Fragment implements Runnable {
     public void setMemoryIO(DataMemory dataMemory) {
         outputFragment.setDataMemory(dataMemory);
         inputFragment.setDataMemory(dataMemory);
+        memoryFragment.setDataMemory(dataMemory);
         memorySize = dataMemory.getMemorySize();
     }
 
@@ -310,6 +315,15 @@ public class UCModule_View extends Fragment implements Runnable {
                         Toast.makeText(getContext(), "Please install a File Manager.",
                                 Toast.LENGTH_SHORT).show();
                     }
+                    break;
+
+                case R.id.action_memory_map:
+                    mFragmentManager = (getActivity().getSupportFragmentManager());
+                    mFragmentTransaction = mFragmentManager.beginTransaction();
+
+                    mFragmentTransaction.addToBackStack(null);
+                    mFragmentTransaction.add(R.id.fragment_memory, memoryFragment, MemoryFragment.TAG_MEM_FRAGMENT);
+                    mFragmentTransaction.commit();
                     break;
 
                 case R.id.action_clear_io:

@@ -104,4 +104,18 @@
     <string name="developer_name">Kollins Gabriel Lima</string>
     <string name="project_info">Saiba mais na página do projeto</string>
     <string name="project_page"> <a href="https://project-sofia.gitbook.io/project/">https://project-sofia.gitbook.io/project/</a></string>
+
+    <string name="address">Adr.</string>
+    <string name="bit7">7</string>
+    <string name="bit6">6</string>
+    <string name="bit5">5</string>
+    <string name="bit4">4</string>
+    <string name="bit3">3</string>
+    <string name="bit2">2</string>
+    <string name="bit1">1</string>
+    <string name="bit0">0</string>
+
+    <string name="action_memory_map">Memória</string>
+
+    <string name="seach_mem_map">Buscar</string>
 </resources>

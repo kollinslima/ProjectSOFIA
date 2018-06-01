@@ -22,17 +22,21 @@
     <item android:id="@+id/action_reset"
         android:icon="@drawable/ic_action_reset"
         android:title="@string/action_reset"
-        app:showAsAction="ifRoom"/>
+        app:showAsAction="always"/>
 
     <item android:id="@+id/action_add"
         android:icon="@drawable/ic_action_add"
         android:title="@string/action_add"
-        app:showAsAction="ifRoom"/>
+        app:showAsAction="always"/>
 
     <item android:id="@+id/action_import"
         android:icon="@drawable/ic_action_import"
         android:title="@string/action_import"
         app:showAsAction="ifRoom"/>
+
+    <item android:id="@+id/action_memory_map"
+        android:title="@string/action_memory_map"
+        app:showAsAction="never"/>
 
     <item android:id="@+id/action_clear_io"
         android:title="@string/action_clear_io"
