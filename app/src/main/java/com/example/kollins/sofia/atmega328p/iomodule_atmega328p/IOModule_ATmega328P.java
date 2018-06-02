@@ -61,6 +61,8 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
     private byte valueRead_D;
     private byte configRead_D;
 
+    private long time_B, time_C, time_D;
+
     private static UCModule.UCHandler uCHandler;
     private OutputFragment_ATmega328P outputFragment;
     private InputFragment_ATmega328P inputFragment;
@@ -71,7 +73,6 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
         this.uCHandler = uCHandler;
         this.outputFragment = (OutputFragment_ATmega328P) outputFragment;
         this.inputFragment = (InputFragment_ATmega328P) inputFragment;
-
     }
 
     @Override
@@ -84,6 +85,7 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
 
                 valueRead_B = msg.getData().getByte(IOModule.VALUE_IOMESSAGE);
                 configRead_B = msg.getData().getByte(IOModule.CONFIG_IOMESSAGE);
+                time_B = msg.getData().getLong(IOModule.TIME);
                 new PortBUpdateView().execute(outputPins);
 
                 break;
@@ -92,6 +94,7 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
 
                 valueRead_C = msg.getData().getByte(IOModule.VALUE_IOMESSAGE);
                 configRead_C = msg.getData().getByte(IOModule.CONFIG_IOMESSAGE);
+                time_C = msg.getData().getLong(IOModule.TIME);
                 new PortCUpdateView().execute(outputPins);
 
                 break;
@@ -100,7 +103,7 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
 
                 valueRead_D = msg.getData().getByte(IOModule.VALUE_IOMESSAGE);
                 configRead_D = msg.getData().getByte(IOModule.CONFIG_IOMESSAGE);
-
+                time_D = msg.getData().getLong(IOModule.TIME);
                 new PortDUpdateView().execute(outputPins);
 
 
@@ -410,7 +413,18 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
                             || (i == 9 && !Timer1_ATmega328P.timerOutputControl_OC1A)
                             || (i == 10 && !Timer1_ATmega328P.timerOutputControl_OC1B)
                             || (i == 11 && !Timer2_ATmega328P.timerOutputControl_OC2A)) {
-                        outputFragment.pinbuffer[i] = (0x01 & (valueRead_B >> bitPosition));
+
+                        if (outputFragment.pinbuffer[i] != (0x01 & (valueRead_B >> bitPosition))) {
+                            outputFragment.pinbuffer[i] = (0x01 & (valueRead_B >> bitPosition));
+
+                            if (outputFragment.evalFreq[i]) {
+                                Log.d("Freq", "Frequency: " + (Math.pow(10, 10) / (time_B - outputFragment.oldTime[i])));
+                                outputFragment.oldTime[i] = time_B;
+                                outputFragment.evalFreq[i] = false;
+                            } else {
+                                outputFragment.evalFreq[i] = true;
+                            }
+                        }
                     }
                     outputFragment.writeFeedback(DataMemory_ATmega328P.PINB_ADDR, bitPosition, outputFragment.pinbuffer[i] != 0);
                 }
@@ -484,7 +498,17 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
                 }
                 //Is output!
                 else {
-                    outputFragment.pinbuffer[i] = (0x01 & (valueRead_C >> bitPosition));
+                    if (outputFragment.pinbuffer[i] != (0x01 & (valueRead_C >> bitPosition))) {
+                        outputFragment.pinbuffer[i] = (0x01 & (valueRead_C >> bitPosition));
+
+                        if (outputFragment.evalFreq[i]) {
+                            Log.d("Freq", "Frequency: " + (Math.pow(10, 10) / (time_C - outputFragment.oldTime[i])));
+                            outputFragment.oldTime[i] = time_C;
+                            outputFragment.evalFreq[i] = false;
+                        } else {
+                            outputFragment.evalFreq[i] = true;
+                        }
+                    }
                     outputFragment.writeFeedback(DataMemory_ATmega328P.PINC_ADDR, bitPosition, outputFragment.pinbuffer[i] != 0);
                 }
 
@@ -560,7 +584,18 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
                             || (i == 5 && !Timer0_ATmega328P.timerOutputControl_OC0B)
                             || (i == 6 && !Timer0_ATmega328P.timerOutputControl_OC0A)
                             || (i == 3 && !Timer2_ATmega328P.timerOutputControl_OC2B)) {
-                        outputFragment.pinbuffer[i] = (0x01 & (valueRead_D >> bitPosition));
+
+                        if (outputFragment.pinbuffer[i] != (0x01 & (valueRead_D >> bitPosition))) {
+                            outputFragment.pinbuffer[i] = (0x01 & (valueRead_D >> bitPosition));
+
+                            if (outputFragment.evalFreq[i]) {
+                                Log.d("Freq", "Frequency: " + (Math.pow(10, 10) / (time_D - outputFragment.oldTime[i])));
+                                outputFragment.oldTime[i] = time_D;
+                                outputFragment.evalFreq[i] = false;
+                            } else {
+                                outputFragment.evalFreq[i] = true;
+                            }
+                        }
                     }
                     outputFragment.writeFeedback(DataMemory_ATmega328P.PIND_ADDR, bitPosition, outputFragment.pinbuffer[i] != 0);
                 }

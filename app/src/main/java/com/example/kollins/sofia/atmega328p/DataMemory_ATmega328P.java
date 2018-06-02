@@ -452,7 +452,7 @@ public class DataMemory_ATmega328P implements DataMemory {
             }
         } else {
             sdramMemory[byteAddress] = byteData;
-            new Notify().execute(byteAddress);
+            new Notify(UCModule_View.simulatedTime).execute(byteAddress);
         }
 
         updateMemoryUsage(byteAddress);
@@ -514,7 +514,7 @@ public class DataMemory_ATmega328P implements DataMemory {
             if (bitState) {
                 sdramMemory[byteAddress] = (byte) (sdramMemory[byteAddress] | (0x01 << bitPosition));     //Set
             }
-            new Notify().execute(byteAddress);
+            new Notify(UCModule_View.simulatedTime).execute(byteAddress);
         }
 
         if (!MemoryAdapter.isFiltering) {
@@ -659,6 +659,15 @@ public class DataMemory_ATmega328P implements DataMemory {
 
     private class Notify extends AsyncTask<Integer, Void, Void> {
 
+        private long simulatedTime;
+
+        public Notify() {
+        }
+
+        public Notify(long simulatedTime) {
+            this.simulatedTime = simulatedTime;
+        }
+
         @Override
         protected Void doInBackground(Integer... byteAddress) {
             Log.i(UCModule.MY_LOG_TAG, String.format("Notify Address: 0x%s",
@@ -673,6 +682,7 @@ public class DataMemory_ATmega328P implements DataMemory {
 
                     ioBundle.putByte(IOModule.CONFIG_IOMESSAGE, readIOByte(DDRB_ADDR));
                     ioBundle.putByte(IOModule.VALUE_IOMESSAGE, readIOByte(PORTB_ADDR));
+                    ioBundle.putLong(IOModule.TIME, simulatedTime);
 
                     ioMessage.what = IOModule.PORTB_EVENT;
 
@@ -690,6 +700,7 @@ public class DataMemory_ATmega328P implements DataMemory {
 
                     ioBundle.putByte(IOModule.CONFIG_IOMESSAGE, readIOByte(DDRC_ADDR));
                     ioBundle.putByte(IOModule.VALUE_IOMESSAGE, readIOByte(PORTC_ADDR));
+                    ioBundle.putLong(IOModule.TIME, simulatedTime);
 
                     ioMessage.what = IOModule.PORTC_EVENT;
                     ioMessage.setData(ioBundle);
@@ -706,6 +717,7 @@ public class DataMemory_ATmega328P implements DataMemory {
 
                     ioBundle.putByte(IOModule.CONFIG_IOMESSAGE, readIOByte(DDRD_ADDR));
                     ioBundle.putByte(IOModule.VALUE_IOMESSAGE, readIOByte(PORTD_ADDR));
+                    ioBundle.putLong(IOModule.TIME, simulatedTime);
 
                     ioMessage.what = IOModule.PORTD_EVENT;
                     ioMessage.setData(ioBundle);

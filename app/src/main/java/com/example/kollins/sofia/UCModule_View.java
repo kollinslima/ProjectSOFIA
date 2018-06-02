@@ -69,8 +69,8 @@ public class UCModule_View extends Fragment implements Runnable {
     public static final int REMOVE_OUTPUT_FRAGMENT = 0;
     public static final int REMOVE_INPUT_FRAGMENT = 1;
 
-    private int oscilator = 16 * ((int) Math.pow(10, 6));
-    private long clockPeriod = (long) ((1 / (double) oscilator) * Math.pow(10, 10));
+    public static final int OSCILATOR = 16 * ((int) Math.pow(10, 6));
+    public static final long CLOCK_PERIOD = (long) ((1 / (double) OSCILATOR) * Math.pow(10, 10));
 
     private Lock clockLock;
     private Condition ucViewClockCondition;
@@ -92,7 +92,7 @@ public class UCModule_View extends Fragment implements Runnable {
     private Toolbar toolbar;
 
     private TextView simulatedTimeDisplay, startInstructions, statusInfo, memoryUsage, hexFileErrorInstructions;
-    private long simulatedTime;
+    public static long simulatedTime;
     private int memorySize;
     private String simulatedText, memoryUsageText;
     private long nanoSeconds;
@@ -165,7 +165,7 @@ public class UCModule_View extends Fragment implements Runnable {
         simulatedTime = 0;
         while (!ucModule.getResetFlag()) {
             waitClock();
-            simulatedTime += clockPeriod;
+            simulatedTime += CLOCK_PERIOD;
 
             nanoSeconds = simulatedTime / 10;
             seconds = TimeUnit.NANOSECONDS.toSeconds(nanoSeconds);

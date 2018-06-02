@@ -26,7 +26,6 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-
         <include layout="@layout/include_main_toolbar" />
 
         <RelativeLayout

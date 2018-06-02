@@ -55,6 +55,10 @@ public class OutputFragment_ATmega328P extends Fragment implements OutputFragmen
     //Virtual Pin to hold states until first output
     public static int[] pinbuffer = new int[UCModule.getPinArray().length];
 
+    public static long[] oldTime = new long[UCModule.getPinArray().length];
+    public static boolean[] evalFreq = new boolean[UCModule.getPinArray().length];
+    public static int[] frequency = new int[UCModule.getPinArray().length];
+
     private ListView outputPinsList;
     private OutputAdapter_ATmega328P outputAdapter;
     private List<OutputPin_ATmega328P> outputPins;

@@ -41,6 +41,7 @@ public interface IOModule{
 
     String VALUE_IOMESSAGE = "VALUE";
     String CONFIG_IOMESSAGE = "CONFIG_VALUE";
+    String TIME = "TIME";
 
     boolean checkShortCircuit();
 
