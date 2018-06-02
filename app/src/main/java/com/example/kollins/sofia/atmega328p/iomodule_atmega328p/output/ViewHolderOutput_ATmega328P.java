@@ -18,6 +18,7 @@
 package com.example.kollins.sofia.atmega328p.iomodule_atmega328p.output;
 
 import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 
@@ -31,8 +32,14 @@ public class ViewHolderOutput_ATmega328P {
     final Spinner pinSpinner;
     final TextView led;
 
+    final LinearLayout meter;
+    final TextView freqMeter;
+
     public ViewHolderOutput_ATmega328P(View view){
         pinSpinner = (Spinner) view.findViewById(R.id.pinSelectorOutput);
         led = (TextView) view.findViewById(R.id.ledState);
+
+        meter = (LinearLayout) view.findViewById(R.id.meter);
+        freqMeter = (TextView) view.findViewById(R.id.frequency);
     }
 }

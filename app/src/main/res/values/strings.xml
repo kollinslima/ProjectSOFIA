@@ -115,5 +115,6 @@
     <string name="action_memory_map">Memory</string>
 
     <string name="seach_mem_map">Search</string>
+    <string name="action_meter">Meter</string>
 
 </resources>

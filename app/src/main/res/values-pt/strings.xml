@@ -118,4 +118,5 @@
     <string name="action_memory_map">Memória</string>
 
     <string name="seach_mem_map">Buscar</string>
+    <string name="action_meter">Medidor</string>
 </resources>

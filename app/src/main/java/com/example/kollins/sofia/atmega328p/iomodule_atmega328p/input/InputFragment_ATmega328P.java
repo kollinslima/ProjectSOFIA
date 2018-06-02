@@ -134,7 +134,7 @@ public class InputFragment_ATmega328P extends Fragment implements InputFragment,
 
     @Override
     public boolean onCreateActionMode(ActionMode actionMode, Menu menu) {
-        getActivity().getMenuInflater().inflate(R.menu.menu_delete_item, menu);
+        getActivity().getMenuInflater().inflate(R.menu.menu_option_item_input, menu);
         return true;
     }
 

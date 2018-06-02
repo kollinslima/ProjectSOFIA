@@ -109,6 +109,10 @@ public class OutputAdapter_ATmega328P extends BaseAdapter {
             }
         });
 
+        if (pin.getMeter()){
+            holder.meter.setVisibility(View.VISIBLE);
+        }
+
         view.setBackgroundColor(listView.isItemChecked(position) ?
                 UCModule.getSelectedColor() :
                 Color.TRANSPARENT);

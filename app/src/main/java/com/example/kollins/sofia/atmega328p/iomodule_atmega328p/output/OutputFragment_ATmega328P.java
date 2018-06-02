@@ -57,7 +57,7 @@ public class OutputFragment_ATmega328P extends Fragment implements OutputFragmen
 
     public static long[] oldTime = new long[UCModule.getPinArray().length];
     public static boolean[] evalFreq = new boolean[UCModule.getPinArray().length];
-    public static int[] frequency = new int[UCModule.getPinArray().length];
+    public static double[] frequencyBuffer = new double[UCModule.getPinArray().length];
 
     private ListView outputPinsList;
     private OutputAdapter_ATmega328P outputAdapter;
@@ -147,7 +147,7 @@ public class OutputFragment_ATmega328P extends Fragment implements OutputFragmen
 
     @Override
     public boolean onCreateActionMode(ActionMode actionMode, Menu menu) {
-        getActivity().getMenuInflater().inflate(R.menu.menu_delete_item, menu);
+        getActivity().getMenuInflater().inflate(R.menu.menu_option_item_output, menu);
         return true;
     }
 
@@ -164,6 +164,18 @@ public class OutputFragment_ATmega328P extends Fragment implements OutputFragmen
             for (int i = checked.size() - 1; i >= 0; i--) {
                 if (checked.valueAt(i)) {
                     outputPins.remove(checked.keyAt(i));
+                }
+            }
+
+            actionMode.finish();
+            return true;
+        }
+        if (menuItem.getItemId() == R.id.action_meter){
+            SparseBooleanArray checked = outputPinsList.getCheckedItemPositions();
+
+            for (int i = checked.size() - 1; i >= 0; i--) {
+                if (checked.valueAt(i)) {
+                    outputPins.get(checked.keyAt(i)).showMeter();
                 }
             }
 
@@ -246,10 +258,12 @@ public class OutputFragment_ATmega328P extends Fragment implements OutputFragmen
                 }
 
                 TextView led = (TextView) view.findViewById(R.id.ledState);
+                TextView freq = (TextView) view.findViewById(R.id.frequency);
                 try {
                     OutputPin_ATmega328P pin = outputPins.get(index);
                     led.setText(UCModule.resources.getStringArray(R.array.ledText)[pin.getPinState(pin.getPinPositionSpinner())]);
                     led.setBackgroundResource(BACKGROUND_PIN[pin.getPinState(pin.getPinPositionSpinner())]);
+                    freq.setText(String.format("%.0f Hz", frequencyBuffer[pin.getPinPositionSpinner()]));
                 } catch (IndexOutOfBoundsException e){
                     Log.e(UCModule.MY_LOG_TAG, "ERROR: updateView", e);
                 }

@@ -29,11 +29,12 @@ public class OutputPin_ATmega328P {
     private String pin;
     private int[] pinState = new int[UCModule.getPinArray().length];
     private int pinPositionSpinner;
+    private boolean meter;
 
     public OutputPin_ATmega328P(String pin, int pinPositionSpinner){
         this.pin = pin;
         this.pinPositionSpinner = pinPositionSpinner;
-
+        meter = false;
         resetPinState();
     }
 
@@ -41,6 +42,7 @@ public class OutputPin_ATmega328P {
         this.pin = pin;
         this.pinPositionSpinner = pinPositionSpinner;
         this.pinState = pinState;
+        meter = false;
     }
 
     public String getPin() {
@@ -75,5 +77,13 @@ public class OutputPin_ATmega328P {
 
     public int[] getStates() {
         return pinState;
+    }
+
+    public void showMeter(){
+        meter = true;
+    }
+
+    public boolean getMeter(){
+        return meter;
     }
 }

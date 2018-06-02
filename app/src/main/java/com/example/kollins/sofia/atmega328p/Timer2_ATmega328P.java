@@ -20,6 +20,7 @@ package com.example.kollins.sofia.atmega328p;
 import android.os.Handler;
 import android.util.Log;
 
+import com.example.kollins.sofia.UCModule_View;
 import com.example.kollins.sofia.atmega328p.iomodule_atmega328p.IOModule_ATmega328P;
 import com.example.kollins.sofia.UCModule;
 import com.example.kollins.sofia.ucinterfaces.DataMemory;
@@ -277,7 +278,7 @@ public class Timer2_ATmega328P implements Timer2Module {
                         timerOutputControl_OC2A = true;
                         if (match_A) {
                             stateOC2A = (stateOC2A + 1) % 2;
-                            ioModule.setOC2A(stateOC2A);
+                            ioModule.setOC2A(stateOC2A, UCModule_View.simulatedTime);
                         }
                         break;
                     case 0x80:
@@ -285,7 +286,7 @@ public class Timer2_ATmega328P implements Timer2Module {
                         timerOutputControl_OC2A = true;
                         if (match_A) {
                             stateOC2A = IOModule.LOW_LEVEL;
-                            ioModule.setOC2A(stateOC2A);
+                            ioModule.setOC2A(stateOC2A, UCModule_View.simulatedTime);
                         }
                         break;
                     case 0xC0:
@@ -293,7 +294,7 @@ public class Timer2_ATmega328P implements Timer2Module {
                         timerOutputControl_OC2A = true;
                         if (match_A) {
                             stateOC2A = IOModule.HIGH_LEVEL;
-                            ioModule.setOC2A(stateOC2A);
+                            ioModule.setOC2A(stateOC2A, UCModule_View.simulatedTime);
                         }
                 }
 
@@ -308,7 +309,7 @@ public class Timer2_ATmega328P implements Timer2Module {
                         timerOutputControl_OC2B = true;
                         if (match_B) {
                             stateOC2B = (stateOC2B + 1) % 2;
-                            ioModule.setOC2B(stateOC2B);
+                            ioModule.setOC2B(stateOC2B, UCModule_View.simulatedTime);
                         }
                         break;
                     case 0x20:
@@ -316,7 +317,7 @@ public class Timer2_ATmega328P implements Timer2Module {
                         timerOutputControl_OC2B = true;
                         if (match_B) {
                             stateOC2B = IOModule.LOW_LEVEL;
-                            ioModule.setOC2B(stateOC2B);
+                            ioModule.setOC2B(stateOC2B, UCModule_View.simulatedTime);
                         }
                         break;
                     case 0x30:
@@ -324,7 +325,7 @@ public class Timer2_ATmega328P implements Timer2Module {
                         timerOutputControl_OC2B = true;
                         if (match_B) {
                             stateOC2B = IOModule.HIGH_LEVEL;
-                            ioModule.setOC2B(stateOC2B);
+                            ioModule.setOC2B(stateOC2B, UCModule_View.simulatedTime);
                         }
                 }
 
@@ -377,10 +378,10 @@ public class Timer2_ATmega328P implements Timer2Module {
                         timerOutputControl_OC2A = true;
                         if (doubleBufferOCR2A == MAX) {
                             stateOC2A = IOModule.HIGH_LEVEL;
-                            ioModule.setOC2A(stateOC2A);
+                            ioModule.setOC2A(stateOC2A, UCModule_View.simulatedTime);
                         } else if (doubleBufferOCR2A == BOTTOM) {
                             stateOC2A = IOModule.LOW_LEVEL;
-                            ioModule.setOC2A(stateOC2A);
+                            ioModule.setOC2A(stateOC2A, UCModule_View.simulatedTime);
                         } else {
                             if (match_A) {
                                 if (phaseCorrect_UPCount) {
@@ -388,7 +389,7 @@ public class Timer2_ATmega328P implements Timer2Module {
                                 } else {
                                     stateOC2A = IOModule.HIGH_LEVEL;
                                 }
-                                ioModule.setOC2A(stateOC2A);
+                                ioModule.setOC2A(stateOC2A, UCModule_View.simulatedTime);
                             }
                         }
                         break;
@@ -397,10 +398,10 @@ public class Timer2_ATmega328P implements Timer2Module {
                         timerOutputControl_OC2A = true;
                         if (doubleBufferOCR2A == MAX) {
                             stateOC2A = IOModule.LOW_LEVEL;
-                            ioModule.setOC2A(stateOC2A);
+                            ioModule.setOC2A(stateOC2A, UCModule_View.simulatedTime);
                         } else if (doubleBufferOCR2A == BOTTOM) {
                             stateOC2A = IOModule.HIGH_LEVEL;
-                            ioModule.setOC2A(stateOC2A);
+                            ioModule.setOC2A(stateOC2A, UCModule_View.simulatedTime);
                         } else {
                             if (match_A) {
                                 if (phaseCorrect_UPCount) {
@@ -408,7 +409,7 @@ public class Timer2_ATmega328P implements Timer2Module {
                                 } else {
                                     stateOC2A = IOModule.LOW_LEVEL;
                                 }
-                                ioModule.setOC2A(stateOC2A);
+                                ioModule.setOC2A(stateOC2A, UCModule_View.simulatedTime);
                             }
                         }
                 }
@@ -429,7 +430,7 @@ public class Timer2_ATmega328P implements Timer2Module {
                             } else {
                                 stateOC2B = IOModule.HIGH_LEVEL;
                             }
-                            ioModule.setOC2B(stateOC2B);
+                            ioModule.setOC2B(stateOC2B, UCModule_View.simulatedTime);
                         }
                         break;
                     case 0x30:
@@ -441,7 +442,7 @@ public class Timer2_ATmega328P implements Timer2Module {
                             } else {
                                 stateOC2B = IOModule.LOW_LEVEL;
                             }
-                            ioModule.setOC2B(stateOC2B);
+                            ioModule.setOC2B(stateOC2B, UCModule_View.simulatedTime);
                         }
                 }
 
@@ -495,7 +496,7 @@ public class Timer2_ATmega328P implements Timer2Module {
                         timerOutputControl_OC2A = true;
                         if (match_A) {
                             stateOC2A = (stateOC2A + 1) % 2;
-                            ioModule.setOC2A(stateOC2A);
+                            ioModule.setOC2A(stateOC2A, UCModule_View.simulatedTime);
                         }
                         break;
                     case 0x80:
@@ -503,7 +504,7 @@ public class Timer2_ATmega328P implements Timer2Module {
                         timerOutputControl_OC2A = true;
                         if (match_A) {
                             stateOC2A = IOModule.LOW_LEVEL;
-                            ioModule.setOC2A(stateOC2A);
+                            ioModule.setOC2A(stateOC2A, UCModule_View.simulatedTime);
                         }
                         break;
                     case 0xC0:
@@ -511,7 +512,7 @@ public class Timer2_ATmega328P implements Timer2Module {
                         timerOutputControl_OC2A = true;
                         if (match_A) {
                             stateOC2A = IOModule.HIGH_LEVEL;
-                            ioModule.setOC2A(stateOC2A);
+                            ioModule.setOC2A(stateOC2A, UCModule_View.simulatedTime);
                         }
                 }
 
@@ -526,7 +527,7 @@ public class Timer2_ATmega328P implements Timer2Module {
                         timerOutputControl_OC2B = true;
                         if (match_B) {
                             stateOC2B = (stateOC2B + 1) % 2;
-                            ioModule.setOC2B(stateOC2B);
+                            ioModule.setOC2B(stateOC2B, UCModule_View.simulatedTime);
                         }
                         break;
                     case 0x20:
@@ -534,7 +535,7 @@ public class Timer2_ATmega328P implements Timer2Module {
                         timerOutputControl_OC2B = true;
                         if (match_B) {
                             stateOC2B = IOModule.LOW_LEVEL;
-                            ioModule.setOC2B(stateOC2B);
+                            ioModule.setOC2B(stateOC2B, UCModule_View.simulatedTime);
                         }
                         break;
                     case 0x30:
@@ -542,7 +543,7 @@ public class Timer2_ATmega328P implements Timer2Module {
                         timerOutputControl_OC2B = true;
                         if (match_B) {
                             stateOC2B = IOModule.HIGH_LEVEL;
-                            ioModule.setOC2B(stateOC2B);
+                            ioModule.setOC2B(stateOC2B, UCModule_View.simulatedTime);
                         }
                 }
 
@@ -587,15 +588,15 @@ public class Timer2_ATmega328P implements Timer2Module {
                         timerOutputControl_OC2A = true;
                         if (doubleBufferOCR2A == MAX) {
                             stateOC2A = IOModule.HIGH_LEVEL;
-                            ioModule.setOC2A(stateOC2A);
+                            ioModule.setOC2A(stateOC2A, UCModule_View.simulatedTime);
                         } else {
                             if (match_A) {
                                 stateOC2A = IOModule.LOW_LEVEL;
-                                ioModule.setOC2A(stateOC2A);
+                                ioModule.setOC2A(stateOC2A, UCModule_View.simulatedTime);
                             }
                             if (progress == BOTTOM) {
                                 stateOC2A = IOModule.HIGH_LEVEL;
-                                ioModule.setOC2A(stateOC2A);
+                                ioModule.setOC2A(stateOC2A, UCModule_View.simulatedTime);
                             }
                         }
                         break;
@@ -604,16 +605,16 @@ public class Timer2_ATmega328P implements Timer2Module {
                         timerOutputControl_OC2A = true;
                         if (doubleBufferOCR2A == MAX) {
                             stateOC2A = IOModule.LOW_LEVEL;
-                            ioModule.setOC2A(stateOC2A);
+                            ioModule.setOC2A(stateOC2A, UCModule_View.simulatedTime);
                         } else {
                             if (match_A) {
                                 stateOC2A = IOModule.HIGH_LEVEL;
-                                ioModule.setOC2A(stateOC2A);
+                                ioModule.setOC2A(stateOC2A, UCModule_View.simulatedTime);
                             }
 
                             if (progress == BOTTOM) {
                                 stateOC2A = IOModule.LOW_LEVEL;
-                                ioModule.setOC2A(stateOC2A);
+                                ioModule.setOC2A(stateOC2A, UCModule_View.simulatedTime);
                             }
                         }
 
@@ -631,11 +632,11 @@ public class Timer2_ATmega328P implements Timer2Module {
                         timerOutputControl_OC2B = true;
                         if (match_B) {
                             stateOC2B = IOModule.LOW_LEVEL;
-                            ioModule.setOC2B(stateOC2B);
+                            ioModule.setOC2B(stateOC2B, UCModule_View.simulatedTime);
                         }
                         if (progress == BOTTOM) {
                             stateOC2B = IOModule.HIGH_LEVEL;
-                            ioModule.setOC2B(stateOC2B);
+                            ioModule.setOC2B(stateOC2B, UCModule_View.simulatedTime);
                         }
                         break;
                     case 0x30:
@@ -643,11 +644,11 @@ public class Timer2_ATmega328P implements Timer2Module {
                         timerOutputControl_OC2B = true;
                         if (match_B) {
                             stateOC2B = IOModule.HIGH_LEVEL;
-                            ioModule.setOC2B(stateOC2B);
+                            ioModule.setOC2B(stateOC2B, UCModule_View.simulatedTime);
                         }
                         if (progress == BOTTOM) {
                             stateOC2B = IOModule.LOW_LEVEL;
-                            ioModule.setOC2B(stateOC2B);
+                            ioModule.setOC2B(stateOC2B, UCModule_View.simulatedTime);
                         }
                 }
 
@@ -698,7 +699,7 @@ public class Timer2_ATmega328P implements Timer2Module {
                         timerOutputControl_OC2A = true;
                         if (match_A) {
                             stateOC2A = (stateOC2A + 1) % 2;
-                            ioModule.setOC2A(stateOC2A);
+                            ioModule.setOC2A(stateOC2A, UCModule_View.simulatedTime);
                         }
                         break;
                     case 0x80:
@@ -706,10 +707,10 @@ public class Timer2_ATmega328P implements Timer2Module {
                         timerOutputControl_OC2A = true;
                         if (doubleBufferOCR2A == MAX) {
                             stateOC2A = IOModule.HIGH_LEVEL;
-                            ioModule.setOC2A(stateOC2A);
+                            ioModule.setOC2A(stateOC2A, UCModule_View.simulatedTime);
                         } else if (doubleBufferOCR2A == BOTTOM) {
                             stateOC2A = IOModule.LOW_LEVEL;
-                            ioModule.setOC2A(stateOC2A);
+                            ioModule.setOC2A(stateOC2A, UCModule_View.simulatedTime);
                         } else {
                             if (match_A) {
                                 if (phaseCorrect_UPCount) {
@@ -717,7 +718,7 @@ public class Timer2_ATmega328P implements Timer2Module {
                                 } else {
                                     stateOC2A = IOModule.HIGH_LEVEL;
                                 }
-                                ioModule.setOC2A(stateOC2A);
+                                ioModule.setOC2A(stateOC2A, UCModule_View.simulatedTime);
                             }
                         }
                         break;
@@ -726,10 +727,10 @@ public class Timer2_ATmega328P implements Timer2Module {
                         timerOutputControl_OC2A = true;
                         if (doubleBufferOCR2A == MAX) {
                             stateOC2A = IOModule.LOW_LEVEL;
-                            ioModule.setOC2A(stateOC2A);
+                            ioModule.setOC2A(stateOC2A, UCModule_View.simulatedTime);
                         } else if (doubleBufferOCR2A == BOTTOM) {
                             stateOC2A = IOModule.HIGH_LEVEL;
-                            ioModule.setOC2A(stateOC2A);
+                            ioModule.setOC2A(stateOC2A, UCModule_View.simulatedTime);
                         } else {
                             if (match_A) {
                                 if (phaseCorrect_UPCount) {
@@ -737,7 +738,7 @@ public class Timer2_ATmega328P implements Timer2Module {
                                 } else {
                                     stateOC2A = IOModule.LOW_LEVEL;
                                 }
-                                ioModule.setOC2A(stateOC2A);
+                                ioModule.setOC2A(stateOC2A, UCModule_View.simulatedTime);
                             }
                         }
                 }
@@ -758,7 +759,7 @@ public class Timer2_ATmega328P implements Timer2Module {
                             } else {
                                 stateOC2B = IOModule.HIGH_LEVEL;
                             }
-                            ioModule.setOC2B(stateOC2B);
+                            ioModule.setOC2B(stateOC2B, UCModule_View.simulatedTime);
                         }
                         break;
                     case 0x30:
@@ -770,7 +771,7 @@ public class Timer2_ATmega328P implements Timer2Module {
                             } else {
                                 stateOC2B = IOModule.LOW_LEVEL;
                             }
-                            ioModule.setOC2B(stateOC2B);
+                            ioModule.setOC2B(stateOC2B, UCModule_View.simulatedTime);
                         }
                 }
 
@@ -818,7 +819,7 @@ public class Timer2_ATmega328P implements Timer2Module {
                         timerOutputControl_OC2A = true;
                         if (match_A) {
                             stateOC2A = (stateOC2A + 1) % 2;  //Toggle
-                            ioModule.setOC2A(stateOC2A);
+                            ioModule.setOC2A(stateOC2A, UCModule_View.simulatedTime);
                         }
                         break;
                     case 0x80:
@@ -826,15 +827,15 @@ public class Timer2_ATmega328P implements Timer2Module {
                         timerOutputControl_OC2A = true;
                         if (doubleBufferOCR2A == MAX) {
                             stateOC2A = IOModule.LOW_LEVEL;
-                            ioModule.setOC2A(stateOC2A);
+                            ioModule.setOC2A(stateOC2A, UCModule_View.simulatedTime);
                         } else {
                             if (match_A) {
                                 stateOC2A = IOModule.LOW_LEVEL;
-                                ioModule.setOC2A(stateOC2A);
+                                ioModule.setOC2A(stateOC2A, UCModule_View.simulatedTime);
                             }
                             if (progress == BOTTOM) {
                                 stateOC2A = IOModule.HIGH_LEVEL;
-                                ioModule.setOC2A(stateOC2A);
+                                ioModule.setOC2A(stateOC2A, UCModule_View.simulatedTime);
                             }
                         }
                         break;
@@ -843,16 +844,16 @@ public class Timer2_ATmega328P implements Timer2Module {
                         timerOutputControl_OC2A = true;
                         if (doubleBufferOCR2A == MAX) {
                             stateOC2A = IOModule.HIGH_LEVEL;
-                            ioModule.setOC2A(stateOC2A);
+                            ioModule.setOC2A(stateOC2A, UCModule_View.simulatedTime);
                         } else {
                             if (match_A) {
                                 stateOC2A = IOModule.HIGH_LEVEL;
-                                ioModule.setOC2A(stateOC2A);
+                                ioModule.setOC2A(stateOC2A, UCModule_View.simulatedTime);
                             }
 
                             if (progress == BOTTOM) {
                                 stateOC2A = IOModule.LOW_LEVEL;
-                                ioModule.setOC2A(stateOC2A);
+                                ioModule.setOC2A(stateOC2A, UCModule_View.simulatedTime);
                             }
                         }
 
@@ -870,11 +871,11 @@ public class Timer2_ATmega328P implements Timer2Module {
                         timerOutputControl_OC2B = true;
                         if (match_B) {
                             stateOC2B = IOModule.LOW_LEVEL;
-                            ioModule.setOC2B(stateOC2B);
+                            ioModule.setOC2B(stateOC2B, UCModule_View.simulatedTime);
                         }
                         if (progress == BOTTOM) {
                             stateOC2B = IOModule.HIGH_LEVEL;
-                            ioModule.setOC2B(stateOC2B);
+                            ioModule.setOC2B(stateOC2B, UCModule_View.simulatedTime);
                         }
                         break;
                     case 0x30:
@@ -882,11 +883,11 @@ public class Timer2_ATmega328P implements Timer2Module {
                         timerOutputControl_OC2B = true;
                         if (match_B) {
                             stateOC2B = IOModule.HIGH_LEVEL;
-                            ioModule.setOC2B(stateOC2B);
+                            ioModule.setOC2B(stateOC2B, UCModule_View.simulatedTime);
                         }
                         if (progress == BOTTOM) {
                             stateOC2B = IOModule.LOW_LEVEL;
-                            ioModule.setOC2B(stateOC2B);
+                            ioModule.setOC2B(stateOC2B, UCModule_View.simulatedTime);
                         }
                 }
 
