@@ -22,6 +22,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import com.example.kollins.sofia.UCModule;
 import com.example.kollins.sofia.UCModule_View;
@@ -152,6 +154,10 @@ public class DataMemory_ATmega328P implements DataMemory {
     public static final int SDRAM_SIZE_TOTAL = SDRAM_EXTERNAL_SIZE + 32 + 64 + 160;
     private byte[] sdramMemory;
 
+    private static final short MEM_MAP_TIMEOUT = 800;  //ms
+    private Timer timerMemMap;
+    private boolean updateMemMapFlag;
+
     private int memoryUsageMeasure;
     private boolean[] memoryUsage;
     private int oldStackPointer;
@@ -180,7 +186,19 @@ public class DataMemory_ATmega328P implements DataMemory {
         timer1WriteEnable = false;
         adcWriteEnable = true;
 
+        updateMemMapFlag = false;
+        timerMemMap = new Timer();
+        timerMemMap.scheduleAtFixedRate(new TimerMemoryMap(), MEM_MAP_TIMEOUT, MEM_MAP_TIMEOUT);
+
         initDefaultContent();
+    }
+
+    public void stopTimer(){
+        try{
+            timerMemMap.cancel();
+        } catch (NullPointerException e){
+            Log.e(UCModule.MY_LOG_TAG, "ERROR: Timer not running", e);
+        }
     }
 
     private void initDefaultContent() {
@@ -457,7 +475,8 @@ public class DataMemory_ATmega328P implements DataMemory {
 
         updateMemoryUsage(byteAddress);
 
-        if (!MemoryAdapter.isFiltering) {
+        if (updateMemMapFlag && !MemoryAdapter.isFiltering) {
+            updateMemMapFlag = false;
             UCModule_View.screenUpdater.post(new Runnable() {
                 @Override
                 public void run() {
@@ -517,7 +536,8 @@ public class DataMemory_ATmega328P implements DataMemory {
             new Notify(UCModule_View.simulatedTime).execute(byteAddress);
         }
 
-        if (!MemoryAdapter.isFiltering) {
+        if (updateMemMapFlag && !MemoryAdapter.isFiltering) {
+            updateMemMapFlag = false;
             UCModule_View.screenUpdater.post(new Runnable() {
                 @Override
                 public void run() {
@@ -542,7 +562,8 @@ public class DataMemory_ATmega328P implements DataMemory {
         }
         new NotifyIO().execute(byteAddress);
 
-        if (!MemoryAdapter.isFiltering) {
+        if (updateMemMapFlag && !MemoryAdapter.isFiltering) {
+            updateMemMapFlag = false;
             UCModule_View.screenUpdater.post(new Runnable() {
                 @Override
                 public void run() {
@@ -578,7 +599,8 @@ public class DataMemory_ATmega328P implements DataMemory {
         sdramMemory[byteAddressLow] = byteLow;
         sdramMemory[byteAddressHigh] = byteHigh;
 
-        if (!MemoryAdapter.isFiltering) {
+        if (updateMemMapFlag && !MemoryAdapter.isFiltering) {
+            updateMemMapFlag = false;
             UCModule_View.screenUpdater.post(new Runnable() {
                 @Override
                 public void run() {
@@ -615,7 +637,8 @@ public class DataMemory_ATmega328P implements DataMemory {
             sdramMemory[byteAddress] = (byte) (sdramMemory[byteAddress] | (0x01 << bitPosition));     //Set
         }
 
-        if (!MemoryAdapter.isFiltering) {
+        if (updateMemMapFlag && !MemoryAdapter.isFiltering) {
+            updateMemMapFlag = false;
             UCModule_View.screenUpdater.post(new Runnable() {
                 @Override
                 public void run() {
@@ -797,6 +820,14 @@ public class DataMemory_ATmega328P implements DataMemory {
                     break;
             }
             return null;
+        }
+    }
+
+    private class TimerMemoryMap extends TimerTask{
+
+        @Override
+        public void run() {
+            updateMemMapFlag = true;
         }
     }
 }

@@ -19,4 +19,5 @@
 <resources>
     <dimen name="statusLedDimen">15dp</dimen>
     <dimen name="about_space">20dp</dimen>
+    <dimen name="row_mem_map">50dp</dimen>
 </resources>

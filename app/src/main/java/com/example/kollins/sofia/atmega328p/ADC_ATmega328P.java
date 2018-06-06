@@ -26,6 +26,7 @@ import com.example.kollins.sofia.ucinterfaces.DataMemory;
 
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class ADC_ATmega328P implements ADCModule {
 
@@ -41,6 +42,7 @@ public class ADC_ATmega328P implements ADCModule {
 
     private static Handler uCHandler;
     private static Lock clockLock;
+    private static Lock adcLock;
     private static Condition adcClockCondition;
     private static DataMemory_ATmega328P dataMemory;
     private UCModule uCModule;
@@ -54,7 +56,8 @@ public class ADC_ATmega328P implements ADCModule {
         this.clockLock = clockLock;
         this.uCModule = uCModule;
 
-        adcClockCondition = clockLock.newCondition();
+        adcLock = new ReentrantLock();
+        adcClockCondition = adcLock.newCondition();
 
         adcInput[BANDGAP_INDEX] = BANDGAP_REFERENCE;
 
@@ -82,7 +85,7 @@ public class ADC_ATmega328P implements ADCModule {
                 } else {
                     isFreeRun = true;
                     if (!freeRunConversionEnable) {
-                        if (dataMemory.readBit(DataMemory_ATmega328P.ADCSRA_ADDR,4)) {
+                        if (dataMemory.readBit(DataMemory_ATmega328P.ADCSRA_ADDR, 4)) {
                             waitClock();
                             continue;
                         } else {
@@ -163,42 +166,65 @@ public class ADC_ATmega328P implements ADCModule {
 
     private static void waitClock() {
 
-        clockLock.lock();
-        try {
-            UCModule.clockVector[UCModule.ADC_ID] = true;
+        UCModule.clockVector.set(UCModule.ADC_ID, Boolean.TRUE);
 
-            //Check if this is the last module in this clock cycle.
-            for (int i = 0; i < UCModule.clockVector.length; i++) {
-                if (!UCModule.clockVector[i]) {
-
-                    while(UCModule.clockVector[UCModule.ADC_ID]) {
-                        adcClockCondition.await();
-                    }
-
-                    return;
-                }
+        if (UCModule.clockVector.contains(Boolean.FALSE)) {
+            while (UCModule.clockVector.get(UCModule.ADC_ID)) {
+                Thread.yield();
+//                adcLock.lock();
+//                try {
+//                    adcClockCondition.await();
+//                } catch (InterruptedException e) {
+//                    Log.e(UCModule.MY_LOG_TAG, "ERROR: waitClock ADC", e);
+//                } finally {
+//                    adcLock.unlock();
+//                }
             }
-
-            UCModule.resetClockVector();
-
-            //Send Broadcast
-            uCHandler.sendEmptyMessage(UCModule.CLOCK_ACTION);
-
-        } catch (InterruptedException e) {
-            Log.e(UCModule.MY_LOG_TAG, "ERROR: waitClock ADC", e);
-        } finally {
-            clockLock.unlock();
+            return;
         }
+
+        UCModule.resetClockVector();
+
+        //Send Broadcast
+        uCHandler.sendEmptyMessage(UCModule.CLOCK_ACTION);
+
+//        clockLock.lock();
+//        try {
+//            UCModule.clockVector[UCModule.ADC_ID] = true;
+//
+//            //Check if this is the last module in this clock cycle.
+//            for (int i = 0; i < UCModule.clockVector.length; i++) {
+//                if (!UCModule.clockVector[i]) {
+//
+//                    while(UCModule.clockVector[UCModule.ADC_ID]) {
+//                        adcClockCondition.await();
+//                    }
+//
+//                    return;
+//                }
+//            }
+//
+//            UCModule.resetClockVector();
+//
+//            //Send Broadcast
+//            Log.v("ClockAction", "ADC Sending CLOCK_ACTION");
+//            uCHandler.sendEmptyMessage(UCModule.CLOCK_ACTION);
+//
+//        } catch (InterruptedException e) {
+//            Log.e(UCModule.MY_LOG_TAG, "ERROR: waitClock ADC", e);
+//        } finally {
+//            clockLock.unlock();
+//        }
     }
 
     @Override
     public void clockADC() {
-        clockLock.lock();
-        try {
-            adcClockCondition.signal();
-        } finally {
-            clockLock.unlock();
-        }
+//        adcLock.lock();
+//        try {
+//            adcClockCondition.signal();
+//        } finally {
+//            adcLock.unlock();
+//        }
     }
 
     public enum ClockSource {

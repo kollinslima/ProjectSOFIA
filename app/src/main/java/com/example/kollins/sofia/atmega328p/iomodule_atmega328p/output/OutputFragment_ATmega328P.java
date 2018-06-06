@@ -263,7 +263,7 @@ public class OutputFragment_ATmega328P extends Fragment implements OutputFragmen
                     OutputPin_ATmega328P pin = outputPins.get(index);
                     led.setText(UCModule.resources.getStringArray(R.array.ledText)[pin.getPinState(pin.getPinPositionSpinner())]);
                     led.setBackgroundResource(BACKGROUND_PIN[pin.getPinState(pin.getPinPositionSpinner())]);
-                    freq.setText(String.format("%.0f Hz", frequencyBuffer[pin.getPinPositionSpinner()]));
+                    freq.setText(String.format("%.0f Hz", frequencyBuffer[pin.getPinPositionSpinner()]>=0?frequencyBuffer[pin.getPinPositionSpinner()]:0));
                 } catch (IndexOutOfBoundsException e){
                     Log.e(UCModule.MY_LOG_TAG, "ERROR: updateView", e);
                 }

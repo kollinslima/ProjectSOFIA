@@ -29,6 +29,7 @@ import com.example.kollins.sofia.ucinterfaces.Timer0Module;
 
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class Timer0_ATmega328P implements Timer0Module {
 
@@ -46,6 +47,7 @@ public class Timer0_ATmega328P implements Timer0Module {
     private UCModule uCModule;
 
     private static Lock clockLock;
+    private static Lock timer0Lock;
     private static Condition timer0ClockCondition;
 
     private static boolean oldExternalT0, newExternalT0;
@@ -62,7 +64,9 @@ public class Timer0_ATmega328P implements Timer0Module {
         this.uCModule = uCModule;
         this.ioModule = (IOModule_ATmega328P) ioModule;
 
-        timer0ClockCondition = clockLock.newCondition();
+        timer0Lock = new ReentrantLock();
+        timer0ClockCondition = timer0Lock.newCondition();
+
         oldExternalT0 = dataMemory.readBit(DataMemory_ATmega328P.PIND_ADDR, 4);
 
         timerOutputControl_OC0A = false;
@@ -127,41 +131,64 @@ public class Timer0_ATmega328P implements Timer0Module {
 
     private static void waitClock() {
 
-        clockLock.lock();
-        try {
-            UCModule.clockVector[UCModule.TIMER0_ID] = true;
+        UCModule.clockVector.set(UCModule.TIMER0_ID, Boolean.TRUE);
 
-            for (int i = 0; i < UCModule.clockVector.length; i++) {
-                if (!UCModule.clockVector[i]) {
-
-                    while (UCModule.clockVector[UCModule.TIMER0_ID]) {
-                        timer0ClockCondition.await();
-                    }
-
-                    return;
-                }
+        if (UCModule.clockVector.contains(Boolean.FALSE)) {
+            while (UCModule.clockVector.get(UCModule.TIMER0_ID)) {
+                Thread.yield();
+//                timer0Lock.lock();
+//                try {
+//                    timer0ClockCondition.await();
+//                } catch (InterruptedException e) {
+//                    Log.e(UCModule.MY_LOG_TAG, "ERROR: waitClock Timer0", e);
+//                } finally {
+//                    timer0Lock.unlock();
+//                }
             }
-
-            UCModule.resetClockVector();
-
-            //Send Broadcast
-            uCHandler.sendEmptyMessage(UCModule.CLOCK_ACTION);
-
-        } catch (InterruptedException e) {
-            Log.e(UCModule.MY_LOG_TAG, "ERROR: waitClock Timer0", e);
-        } finally {
-            clockLock.unlock();
+            return;
         }
+
+        UCModule.resetClockVector();
+
+        //Send Broadcast
+        uCHandler.sendEmptyMessage(UCModule.CLOCK_ACTION);
+
+//        clockLock.lock();
+//        try {
+//            UCModule.clockVector[UCModule.TIMER0_ID] = true;
+//
+//            for (int i = 0; i < UCModule.clockVector.length; i++) {
+//                if (!UCModule.clockVector[i]) {
+//
+//                    while (UCModule.clockVector[UCModule.TIMER0_ID]) {
+//                        timer0ClockCondition.await();
+//                    }
+//
+//                    return;
+//                }
+//            }
+//
+//            UCModule.resetClockVector();
+//
+//            //Send Broadcast
+//            Log.v("ClockAction", "TIMER0 Sending CLOCK_ACTION");
+//            uCHandler.sendEmptyMessage(UCModule.CLOCK_ACTION);
+//
+//        } catch (InterruptedException e) {
+//            Log.e(UCModule.MY_LOG_TAG, "ERROR: waitClock Timer0", e);
+//        } finally {
+//            clockLock.unlock();
+//        }
     }
 
     @Override
     public void clockTimer0() {
-        clockLock.lock();
-        try {
-            timer0ClockCondition.signal();
-        } finally {
-            clockLock.unlock();
-        }
+//        timer0Lock.lock();
+//        try {
+//            timer0ClockCondition.signal();
+//        } finally {
+//            timer0Lock.unlock();
+//        }
     }
 
     public enum ClockSource {

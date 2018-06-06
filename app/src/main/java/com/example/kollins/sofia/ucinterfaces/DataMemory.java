@@ -36,4 +36,6 @@ public interface DataMemory {
     void setPinHandler(Handler pinHandler);
 
     int getMemoryUsage();
+
+    void stopTimer();
 }

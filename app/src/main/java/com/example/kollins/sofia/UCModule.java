@@ -45,6 +45,8 @@ import com.example.kollins.sofia.ucinterfaces.Timer2Module;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
+import java.util.Vector;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -74,6 +76,7 @@ public class UCModule extends AppCompatActivity {
     //Default device
     public static String device;
     public static String model;
+    private static int numberOfModules;
 
     public static Resources resources;
 
@@ -84,7 +87,8 @@ public class UCModule extends AppCompatActivity {
 
     public static final String MY_LOG_TAG = "LOG_SIMULATOR";
 
-    public static boolean[] clockVector;
+//    public static boolean[] clockVector;
+    public static CopyOnWriteArrayList<Boolean> clockVector;
     private Lock clockLock;
 
     public static InterruptionModule interruptionModule;
@@ -111,7 +115,6 @@ public class UCModule extends AppCompatActivity {
 
     private boolean resetFlag;
     private boolean shortCircuitFlag;
-    private static int resetManager;
 
     public static boolean setUpSuccessful;
 
@@ -136,7 +139,11 @@ public class UCModule extends AppCompatActivity {
         device = getDevice(model);
         setTitle("Arduino " + model);
 
-        clockVector = new boolean[getDeviceModules() + 1];    //+1 for SIMULATED_TIMER;
+        numberOfModules = getDeviceModules() + 1;
+
+//        clockVector = new boolean[getDeviceModules() + 1];    //+1 for SIMULATED_TIMER;
+//        clockVector.setSize(getDeviceModules() + 1);
+
         resetClockVector();
 
         setUpSuccessful = false;
@@ -256,7 +263,6 @@ public class UCModule extends AppCompatActivity {
                 threadADC = new Thread(adc);
                 threadADC.start();
 
-                resetManager = 0;
                 setUpSuccessful = true;
                 ucView.setStatus(UCModule_View.LED_STATUS.RUNNING);
 
@@ -446,6 +452,8 @@ public class UCModule extends AppCompatActivity {
             Log.e(MY_LOG_TAG, "ERROR: stopSystem", e);
         }
 
+        dataMemory.stopTimer();
+
         if (setUpSuccessful) {
             programMemory.stopCodeObserver();
         }
@@ -459,9 +467,9 @@ public class UCModule extends AppCompatActivity {
     }
 
     public static void resetClockVector() {
-        for (int i = resetManager; i < clockVector.length; i++) {
-            clockVector[i] = false;
-        }
+        Boolean[] array = new Boolean[numberOfModules];
+        Arrays.fill(array, Boolean.FALSE);
+        clockVector = new CopyOnWriteArrayList<Boolean>(array);
     }
 
     public void changeFileLocation(String newHexFileLocation) {

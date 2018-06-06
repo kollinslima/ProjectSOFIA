@@ -27,6 +27,7 @@ import com.example.kollins.sofia.ucinterfaces.ProgramMemory;
 
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created by kollins on 3/9/18.
@@ -36,9 +37,13 @@ public class CPUModule implements Runnable, CPUInstructions {
 
     public static short[] INSTRUCTION_ID = new short[(int) (Math.pow(2, 16) + 1)];
 
+    public static final short CPU_FACTOR = 10;
+    public static short clockCount;
+
     private static int instruction;
 
     private static Lock clockLock;
+    private static Lock cpuLock;
     private static Condition cpuClockCondition;
 
     private static ProgramMemory programMemory;
@@ -56,7 +61,10 @@ public class CPUModule implements Runnable, CPUInstructions {
         this.uCModule = uCModule;
 
         this.clockLock = clockLock;
-        cpuClockCondition = clockLock.newCondition();
+        cpuLock = new ReentrantLock();
+        cpuClockCondition = cpuLock.newCondition();
+
+        clockCount = 0;
     }
 
     @Override
@@ -77,7 +85,7 @@ public class CPUModule implements Runnable, CPUInstructions {
             /*************************Decode and execute*******************/
             Executor.values()[INSTRUCTION_ID[instruction]].executeInstruction();
 
-            if (UCModule.interruptionModule.haveInterruption()){
+            if (UCModule.interruptionModule.haveInterruption()) {
 
                 Log.i("Interruption", "Handle Interruption");
 
@@ -115,39 +123,62 @@ public class CPUModule implements Runnable, CPUInstructions {
 
     private static void waitClock() {
 
-        clockLock.lock();
-        try {
-            UCModule.clockVector[UCModule.CPU_ID] = true;
+        UCModule.clockVector.set(UCModule.CPU_ID, Boolean.TRUE);
 
-            for (int i = 0; i < UCModule.clockVector.length; i++) {
-                if (!UCModule.clockVector[i]) {
-
-                    while (UCModule.clockVector[UCModule.CPU_ID]) {
-                        cpuClockCondition.await();
-                    }
-                    return;
-                }
+        if (UCModule.clockVector.contains(Boolean.FALSE)) {
+            while (UCModule.clockVector.get(UCModule.CPU_ID)) {
+                Thread.yield();
+//                cpuLock.lock();
+//                try {
+//                    cpuClockCondition.await();
+//                } catch (InterruptedException e) {
+//                    Log.e(UCModule.MY_LOG_TAG, "ERROR: waitClock CPU", e);
+//                } finally {
+//                    cpuLock.unlock();
+//                }
             }
-
-            UCModule.resetClockVector();
-
-            //Send Broadcast
-            uCHandler.sendEmptyMessage(UCModule.CLOCK_ACTION);
-
-        } catch (InterruptedException e) {
-            Log.e(UCModule.MY_LOG_TAG, "ERROR: waitClock CPU", e);
-        } finally {
-            clockLock.unlock();
+            return;
         }
+
+        UCModule.resetClockVector();
+
+        //Send Broadcast
+        uCHandler.sendEmptyMessage(UCModule.CLOCK_ACTION);
+
+//        clockLock.lock();
+//        try {
+//            UCModule.clockVector[UCModule.CPU_ID] = true;
+//
+//            for (int i = 0; i < UCModule.clockVector.length; i++) {
+//                if (!UCModule.clockVector[i]) {
+//
+//                    while (UCModule.clockVector[UCModule.CPU_ID]) {
+//                        cpuClockCondition.await();
+//                    }
+//                    return;
+//                }
+//            }
+//
+//            UCModule.resetClockVector();
+//
+//            //Send Broadcast
+//            Log.v("ClockAction", "CPU Sending CLOCK_ACTION");
+//            uCHandler.sendEmptyMessage(UCModule.CLOCK_ACTION);
+//
+//        } catch (InterruptedException e) {
+//            Log.e(UCModule.MY_LOG_TAG, "ERROR: waitClock CPU", e);
+//        } finally {
+//            clockLock.unlock();
+//        }
     }
 
     public void clockCPU() {
-        clockLock.lock();
-        try {
-            cpuClockCondition.signal();
-        } finally {
-            clockLock.unlock();
-        }
+//        cpuLock.lock();
+//        try {
+//            cpuClockCondition.signal();
+//        } finally {
+//            cpuLock.unlock();
+//        }
     }
 
     public enum Executor {
@@ -298,6 +329,7 @@ public class CPUModule implements Runnable, CPUInstructions {
             }
         },
         INSTRUCTION_AND {//AND - TST
+
             @Override
             public void executeInstruction() {
                 /*************************AND/TST***********************/
@@ -386,7 +418,7 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*********************BLD*********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction BLD");
 
-                dataMemory.writeBit((0x01F0 & instruction) >> 4,(0x07 & instruction),
+                dataMemory.writeBit((0x01F0 & instruction) >> 4, (0x07 & instruction),
                         dataMemory.readBit(DataMemory_ATmega328P.SREG_ADDR, 6));
             }
         },
@@ -433,7 +465,7 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************BST***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction BST");
 
-                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR,6,
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 6,
                         dataMemory.readBit((0x01F0 & instruction) >> 4, (0x07 & instruction)));
             }
         },
@@ -747,12 +779,12 @@ public class CPUModule implements Runnable, CPUInstructions {
 
                 waitClock();
 
-                byte regD = dataMemory.readByte(0x10 + ((0x0070 & instruction)>>4));
+                byte regD = dataMemory.readByte(0x10 + ((0x0070 & instruction) >> 4));
                 byte regR = dataMemory.readByte(0x10 + (0x0007 & instruction));
 
-                int outFMUL = ((0x00FF & regD)*(0x00FF & regR))<<1;
+                int outFMUL = ((0x00FF & regD) * (0x00FF & regR)) << 1;
 
-                dataMemory.writeByte(0x01, (byte) ((0x00FF00 & outFMUL)>>8));
+                dataMemory.writeByte(0x01, (byte) ((0x00FF00 & outFMUL) >> 8));
                 dataMemory.writeByte(0x00, (byte) (0x00FF & outFMUL));
 
                 //C
@@ -769,12 +801,12 @@ public class CPUModule implements Runnable, CPUInstructions {
 
                 waitClock();
 
-                byte regD = dataMemory.readByte(0x10 + ((0x0070 & instruction)>>4));
+                byte regD = dataMemory.readByte(0x10 + ((0x0070 & instruction) >> 4));
                 byte regR = dataMemory.readByte(0x10 + (0x0007 & instruction));
 
-                int outFMULS = (regD*regR)<<1;
+                int outFMULS = (regD * regR) << 1;
 
-                dataMemory.writeByte(0x01, (byte) ((0x00FF00 & outFMULS)>>8));
+                dataMemory.writeByte(0x01, (byte) ((0x00FF00 & outFMULS) >> 8));
                 dataMemory.writeByte(0x00, (byte) (0x00FF & outFMULS));
 
                 //C
@@ -791,12 +823,12 @@ public class CPUModule implements Runnable, CPUInstructions {
 
                 waitClock();
 
-                byte regD = dataMemory.readByte(0x10 + ((0x0070 & instruction)>>4));
+                byte regD = dataMemory.readByte(0x10 + ((0x0070 & instruction) >> 4));
                 byte regR = dataMemory.readByte(0x10 + (0x0007 & instruction));
 
-                int outFMULSU = (regD*(0x00FF & regR))<<1;
+                int outFMULSU = (regD * (0x00FF & regR)) << 1;
 
-                dataMemory.writeByte(0x01, (byte) ((0x00FF00 & outFMULSU)>>8));
+                dataMemory.writeByte(0x01, (byte) ((0x00FF00 & outFMULSU) >> 8));
                 dataMemory.writeByte(0x00, (byte) (0x00FF & outFMULSU));
 
                 //C
@@ -1084,7 +1116,7 @@ public class CPUModule implements Runnable, CPUInstructions {
                 byte yRegH = dataMemory.readByte(0x1D);
                 int destAddress = (0x0000FF00 & (yRegH << 8)) | (0x000000FF & yRegL);
 
-                destAddress += (((0x2000 & instruction)>>8) | ((0x0C00 & instruction)>>7) | (0x0007 & instruction));
+                destAddress += (((0x2000 & instruction) >> 8) | ((0x0C00 & instruction) >> 7) | (0x0007 & instruction));
 
                 dataMemory.writeByte((0x01F0 & instruction) >> 4, dataMemory.readByte(destAddress));
             }
@@ -1101,12 +1133,13 @@ public class CPUModule implements Runnable, CPUInstructions {
                 byte zRegH = dataMemory.readByte(0x1F);
                 int destAddress = (0x0000FF00 & (zRegH << 8)) | (0x000000FF & zRegL);
 
-                destAddress += (((0x2000 & instruction)>>8) | ((0x0C00 & instruction)>>7) | (0x0007 & instruction));
+                destAddress += (((0x2000 & instruction) >> 8) | ((0x0C00 & instruction) >> 7) | (0x0007 & instruction));
 
                 dataMemory.writeByte((0x01F0 & instruction) >> 4, dataMemory.readByte(destAddress));
             }
         },
         INSTRUCTION_LDI {//LDI - SER
+
             @Override
             public void executeInstruction() {
                 /*************************LDI/SER***********************/
@@ -1191,7 +1224,7 @@ public class CPUModule implements Runnable, CPUInstructions {
 
                 byte regD = dataMemory.readByte((0x01F0 & instruction) >> 4);
 
-                byte result = (byte)(0x007F & (regD>>1));
+                byte result = (byte) (0x007F & (regD >> 1));
 
                 dataMemory.writeByte((0x01F0 & instruction) >> 4, result);
 
@@ -1232,8 +1265,8 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************MOVW***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction MOVW");
 
-                dataMemory.writeByte((((0x00F0 & instruction) >> 4)<<1), dataMemory.readByte(((0x000F & instruction)<<1)));
-                dataMemory.writeByte(((((0x00F0 & instruction) >> 4)<<1) + 1), dataMemory.readByte((((0x000F & instruction)<<1) + 1)));
+                dataMemory.writeByte((((0x00F0 & instruction) >> 4) << 1), dataMemory.readByte(((0x000F & instruction) << 1)));
+                dataMemory.writeByte(((((0x00F0 & instruction) >> 4) << 1) + 1), dataMemory.readByte((((0x000F & instruction) << 1) + 1)));
             }
         },
         INSTRUCTION_MUL {
@@ -1247,9 +1280,9 @@ public class CPUModule implements Runnable, CPUInstructions {
                 byte regD = dataMemory.readByte((0x01F0 & instruction) >> 4);
                 byte regR = dataMemory.readByte(((0x0200 & instruction) >> 5) | (0x000F & instruction));
 
-                int outMUL = ((0x00FF & regD)*(0x00FF & regR));
+                int outMUL = ((0x00FF & regD) * (0x00FF & regR));
 
-                dataMemory.writeByte(0x01, (byte) ((0x00FF00 & outMUL)>>8));
+                dataMemory.writeByte(0x01, (byte) ((0x00FF00 & outMUL) >> 8));
                 dataMemory.writeByte(0x00, (byte) (0x00FF & outMUL));
 
                 //C
@@ -1269,9 +1302,9 @@ public class CPUModule implements Runnable, CPUInstructions {
                 byte regD = dataMemory.readByte((0x01F0 & instruction) >> 4);
                 byte regR = dataMemory.readByte(((0x0200 & instruction) >> 5) | (0x000F & instruction));
 
-                int outMUL = (regD*regR);
+                int outMUL = (regD * regR);
 
-                dataMemory.writeByte(0x01, (byte) ((0x00FF00 & outMUL)>>8));
+                dataMemory.writeByte(0x01, (byte) ((0x00FF00 & outMUL) >> 8));
                 dataMemory.writeByte(0x00, (byte) (0x00FF & outMUL));
 
                 //C
@@ -1291,9 +1324,9 @@ public class CPUModule implements Runnable, CPUInstructions {
                 byte regD = dataMemory.readByte((0x01F0 & instruction) >> 4);
                 byte regR = dataMemory.readByte(((0x0200 & instruction) >> 5) | (0x000F & instruction));
 
-                int outMUL = (regD*(0x00FF & regR));
+                int outMUL = (regD * (0x00FF & regR));
 
-                dataMemory.writeByte(0x01, (byte) ((0x00FF00 & outMUL)>>8));
+                dataMemory.writeByte(0x01, (byte) ((0x00FF00 & outMUL) >> 8));
                 dataMemory.writeByte(0x00, (byte) (0x00FF & outMUL));
 
                 //C
@@ -1362,6 +1395,7 @@ public class CPUModule implements Runnable, CPUInstructions {
             }
         },
         INSTRUCTION_ORI {//ORI - SBR
+
             @Override
             public void executeInstruction() {
                 /*************************ORI/SBR***********************/
@@ -1543,9 +1577,9 @@ public class CPUModule implements Runnable, CPUInstructions {
 
                 byte regD = dataMemory.readByte((0x01F0 & instruction) >> 4);
 
-                byte result = (byte)(0x007F & (regD>>1));
+                byte result = (byte) (0x007F & (regD >> 1));
 
-                if (dataMemory.readBit(DataMemory_ATmega328P.SREG_ADDR, 0)){
+                if (dataMemory.readBit(DataMemory_ATmega328P.SREG_ADDR, 0)) {
                     result = (byte) (result | 0x0080);
                 }
 
@@ -1632,7 +1666,7 @@ public class CPUModule implements Runnable, CPUInstructions {
                 Log.d(UCModule.MY_LOG_TAG, "Instruction SBCI");
 
                 byte regD = dataMemory.readByte(0x10 | (0x00F0 & instruction) >> 4);
-                int imediateValue = ((0x0F00 & instruction)>>4) | (0x000F & instruction);
+                int imediateValue = ((0x0F00 & instruction) >> 4) | (0x000F & instruction);
                 byte result = (byte) (regD - imediateValue);
 
                 //If carry is set
@@ -2050,7 +2084,7 @@ public class CPUModule implements Runnable, CPUInstructions {
                 byte yRegH = dataMemory.readByte(0x1D);
                 int destAddress = (0x0000FF00 & (yRegH << 8)) | (0x000000FF & yRegL);
 
-                destAddress += (((0x2000 & instruction)>>8) | ((0x0C00 & instruction)>>7) | (0x0007 & instruction));
+                destAddress += (((0x2000 & instruction) >> 8) | ((0x0C00 & instruction) >> 7) | (0x0007 & instruction));
 
                 dataMemory.writeByte(destAddress, dataMemory.readByte((0x01F0 & instruction) >> 4));
             }
@@ -2067,7 +2101,7 @@ public class CPUModule implements Runnable, CPUInstructions {
                 byte zRegH = dataMemory.readByte(0x1F);
                 int destAddress = (0x0000FF00 & (zRegH << 8)) | (0x000000FF & zRegL);
 
-                destAddress += (((0x2000 & instruction)>>8) | ((0x0C00 & instruction)>>7) | (0x0007 & instruction));
+                destAddress += (((0x2000 & instruction) >> 8) | ((0x0C00 & instruction) >> 7) | (0x0007 & instruction));
 
                 dataMemory.writeByte(destAddress, dataMemory.readByte((0x01F0 & instruction) >> 4));
             }
@@ -2141,7 +2175,7 @@ public class CPUModule implements Runnable, CPUInstructions {
                 Log.d(UCModule.MY_LOG_TAG, "Instruction SUBI");
 
                 byte regD = dataMemory.readByte(0x10 | (0x00F0 & instruction) >> 4);
-                int imediateValue = ((0x0F00 & instruction)>>4) | (0x000F & instruction);
+                int imediateValue = ((0x0F00 & instruction) >> 4) | (0x000F & instruction);
                 byte result = (byte) (regD - imediateValue);
 
                 dataMemory.writeByte((0x10 | (0x00F0 & instruction) >> 4), result);
@@ -2191,7 +2225,7 @@ public class CPUModule implements Runnable, CPUInstructions {
 
                 byte regD = dataMemory.readByte((0x01F0 & instruction) >> 4);
 
-                dataMemory.writeByte((0x01F0 & instruction) >> 4, (byte)((regD << 4) | (0x0F & (regD>>4))));
+                dataMemory.writeByte((0x01F0 & instruction) >> 4, (byte) ((regD << 4) | (0x0F & (regD >> 4))));
             }
         },
         INSTRUCTION_WDR {

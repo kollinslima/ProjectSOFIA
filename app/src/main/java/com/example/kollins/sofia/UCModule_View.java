@@ -53,6 +53,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static android.app.Activity.RESULT_OK;
 
@@ -73,6 +74,7 @@ public class UCModule_View extends Fragment implements Runnable {
     public static final long CLOCK_PERIOD = (long) ((1 / (double) OSCILATOR) * Math.pow(10, 10));
 
     private Lock clockLock;
+    private Lock ucViewLock;
     private Condition ucViewClockCondition;
 
     private FragmentManager mFragmentManager;
@@ -108,6 +110,9 @@ public class UCModule_View extends Fragment implements Runnable {
         setRetainInstance(true);
         screenUpdater = new ScreenUpdater();
         resources = getResources();
+
+        ucViewLock = new ReentrantLock();
+        ucViewClockCondition = ucViewLock.newCondition();
 
         try {
             Class outputFragmentDevice = Class.forName(UCModule.PACKAGE_NAME + "." + UCModule.device.toLowerCase() + ".iomodule_" +
@@ -186,39 +191,62 @@ public class UCModule_View extends Fragment implements Runnable {
     }
 
     private void waitClock() {
-        clockLock.lock();
-        try {
-            UCModule.clockVector[UCModule.SIMULATED_TIMER_ID] = true;
 
-            for (int i = 0; i < UCModule.clockVector.length; i++) {
-                if (!UCModule.clockVector[i]) {
+        UCModule.clockVector.set(UCModule.SIMULATED_TIMER_ID, Boolean.TRUE);
 
-                    while (UCModule.clockVector[UCModule.SIMULATED_TIMER_ID]) {
-                        ucViewClockCondition.await();
-                    }
-                    return;
-                }
+        if (UCModule.clockVector.contains(Boolean.FALSE)) {
+            while (UCModule.clockVector.get(UCModule.SIMULATED_TIMER_ID)) {
+                Thread.yield();
+//                ucViewLock.lock();
+//                try {
+//                    ucViewClockCondition.await();
+//                } catch (InterruptedException e) {
+//                    Log.e(UCModule.MY_LOG_TAG, "ERROR: waitClock UCModule_View", e);
+//                } finally {
+//                    ucViewLock.unlock();
+//                }
             }
-
-            UCModule.resetClockVector();
-
-            //Send Broadcast
-            uCHandler.sendEmptyMessage(UCModule.CLOCK_ACTION);
-
-        } catch (InterruptedException e) {
-            Log.e(UCModule.MY_LOG_TAG, "ERROR: waitClock UCModule_View", e);
-        } finally {
-            clockLock.unlock();
+            return;
         }
+
+        UCModule.resetClockVector();
+
+        //Send Broadcast
+        uCHandler.sendEmptyMessage(UCModule.CLOCK_ACTION);
+
+//        clockLock.lock();
+//        try {
+//            UCModule.clockVector[UCModule.SIMULATED_TIMER_ID] = true;
+//
+//            for (int i = 0; i < UCModule.clockVector.length; i++) {
+//                if (!UCModule.clockVector[i]) {
+//
+//                    while (UCModule.clockVector[UCModule.SIMULATED_TIMER_ID]) {
+//                        ucViewClockCondition.await();
+//                    }
+//                    return;
+//                }
+//            }
+//
+//            UCModule.resetClockVector();
+//
+//            //Send Broadcast
+//            uCHandler.sendEmptyMessage(UCModule.CLOCK_ACTION);
+//
+//        } catch (InterruptedException e) {
+//            Log.e(UCModule.MY_LOG_TAG, "ERROR: waitClock UCModule_View", e);
+//        } finally {
+//            clockLock.unlock();
+//        }
     }
 
     public void clockUCView() {
-        clockLock.lock();
-        try {
-            ucViewClockCondition.signal();
-        } finally {
-            clockLock.unlock();
-        }
+//        ucViewLock.lock();
+//        try {
+//            ucViewClockCondition.signal();
+//        } finally {
+//            ucViewLock.unlock();
+//        }
     }
 
     public void setMemoryIO(DataMemory dataMemory) {
@@ -234,7 +262,7 @@ public class UCModule_View extends Fragment implements Runnable {
 
     public void setClockLock(Lock clockLock) {
         this.clockLock = clockLock;
-        ucViewClockCondition = clockLock.newCondition();
+//        ucViewClockCondition = clockLock.newCondition();
     }
 
     public void resetIO() {

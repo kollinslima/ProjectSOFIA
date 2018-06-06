@@ -29,6 +29,7 @@ import com.example.kollins.sofia.ucinterfaces.Timer2Module;
 
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class Timer2_ATmega328P implements Timer2Module {
 
@@ -46,6 +47,7 @@ public class Timer2_ATmega328P implements Timer2Module {
     private UCModule uCModule;
 
     private static Lock clockLock;
+    private static Lock timer2Lock;
     private static Condition timer2ClockCondition;
 
     private boolean buffer_WGM22;
@@ -61,7 +63,8 @@ public class Timer2_ATmega328P implements Timer2Module {
         this.uCModule = uCModule;
         this.ioModule = (IOModule_ATmega328P) ioModule;
 
-        timer2ClockCondition = clockLock.newCondition();
+        timer2Lock = new ReentrantLock();
+        timer2ClockCondition = timer2Lock.newCondition();
 
         timerOutputControl_OC2A = false;
         timerOutputControl_OC2B = false;
@@ -123,40 +126,63 @@ public class Timer2_ATmega328P implements Timer2Module {
 
     private static void waitClock() {
 
-        clockLock.lock();
-        try {
-            UCModule.clockVector[UCModule.TIMER2_ID] = true;
+        UCModule.clockVector.set(UCModule.TIMER2_ID, Boolean.TRUE);
 
-            for (int i = 0; i < UCModule.clockVector.length; i++) {
-                if (!UCModule.clockVector[i]) {
-
-                    while (UCModule.clockVector[UCModule.TIMER2_ID]) {
-                        timer2ClockCondition.await();
-                    }
-                    return;
-                }
+        if (UCModule.clockVector.contains(Boolean.FALSE)) {
+            while (UCModule.clockVector.get(UCModule.TIMER2_ID)) {
+                Thread.yield();
+//                timer2Lock.lock();
+//                try {
+//                    timer2ClockCondition.await();
+//                } catch (InterruptedException e) {
+//                    Log.e(UCModule.MY_LOG_TAG, "ERROR: waitClock Timer2", e);
+//                } finally {
+//                    timer2Lock.unlock();
+//                }
             }
-
-            UCModule.resetClockVector();
-
-            //Send Broadcast
-            uCHandler.sendEmptyMessage(UCModule.CLOCK_ACTION);
-
-        } catch (InterruptedException e) {
-            Log.e(UCModule.MY_LOG_TAG, "ERROR: waitClock Timer2", e);
-        } finally {
-            clockLock.unlock();
+            return;
         }
+
+        UCModule.resetClockVector();
+
+        //Send Broadcast
+        uCHandler.sendEmptyMessage(UCModule.CLOCK_ACTION);
+
+//        clockLock.lock();
+//        try {
+//            UCModule.clockVector[UCModule.TIMER2_ID] = true;
+//
+//            for (int i = 0; i < UCModule.clockVector.length; i++) {
+//                if (!UCModule.clockVector[i]) {
+//
+//                    while (UCModule.clockVector[UCModule.TIMER2_ID]) {
+//                        timer2ClockCondition.await();
+//                    }
+//                    return;
+//                }
+//            }
+//
+//            UCModule.resetClockVector();
+//
+//            //Send Broadcast
+//            Log.v("ClockAction", "TIMER2 Sending CLOCK_ACTION");
+//            uCHandler.sendEmptyMessage(UCModule.CLOCK_ACTION);
+//
+//        } catch (InterruptedException e) {
+//            Log.e(UCModule.MY_LOG_TAG, "ERROR: waitClock Timer2", e);
+//        } finally {
+//            clockLock.unlock();
+//        }
     }
 
     @Override
     public void clockTimer2() {
-        clockLock.lock();
-        try {
-            timer2ClockCondition.signal();
-        } finally {
-            clockLock.unlock();
-        }
+//        timer2Lock.lock();
+//        try {
+//            timer2ClockCondition.signal();
+//        } finally {
+//            timer2Lock.unlock();
+//        }
     }
 
     public enum ClockSource {
@@ -351,7 +377,7 @@ public class Timer2_ATmega328P implements Timer2Module {
                 if (progress == BOTTOM) {
                     UCModule.interruptionModule.timer2Overflow();
                     phaseCorrect_UPCount = true;
-                } else if (progress == MAX){
+                } else if (progress == MAX) {
                     phaseCorrect_UPCount = false;
                 }
 
@@ -674,7 +700,7 @@ public class Timer2_ATmega328P implements Timer2Module {
                 if (progress == BOTTOM) {
                     UCModule.interruptionModule.timer2Overflow();
                     phaseCorrect_UPCount = true;
-                } else if (progress == doubleBufferOCR2A){
+                } else if (progress == doubleBufferOCR2A) {
                     phaseCorrect_UPCount = false;
                 }
 
