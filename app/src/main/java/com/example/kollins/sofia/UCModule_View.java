@@ -73,9 +73,8 @@ public class UCModule_View extends Fragment implements Runnable {
     public static final int OSCILATOR = 16 * ((int) Math.pow(10, 6));
     public static final long CLOCK_PERIOD = (long) ((1 / (double) OSCILATOR) * Math.pow(10, 10));
 
-    private Lock clockLock;
-    private Lock ucViewLock;
-    private Condition ucViewClockCondition;
+    private static final short DELAY_SCREEN_UPDATE = 16;
+    private short delayScreenUpdateCount;
 
     private FragmentManager mFragmentManager;
     private FragmentTransaction mFragmentTransaction;
@@ -97,10 +96,9 @@ public class UCModule_View extends Fragment implements Runnable {
     public static long simulatedTime;
     private int memorySize;
     private String simulatedText, memoryUsageText;
-    private long nanoSeconds;
+//    private long nanoSeconds;
+    private long microSeconds;
     private long seconds;
-
-    private Resources resources;
 
     public static ScreenUpdater screenUpdater;
 
@@ -109,10 +107,8 @@ public class UCModule_View extends Fragment implements Runnable {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
         screenUpdater = new ScreenUpdater();
-        resources = getResources();
 
-        ucViewLock = new ReentrantLock();
-        ucViewClockCondition = ucViewLock.newCondition();
+        delayScreenUpdateCount = 0;
 
         try {
             Class outputFragmentDevice = Class.forName(UCModule.PACKAGE_NAME + "." + UCModule.device.toLowerCase() + ".iomodule_" +
@@ -172,19 +168,24 @@ public class UCModule_View extends Fragment implements Runnable {
             waitClock();
             simulatedTime += CLOCK_PERIOD;
 
-            nanoSeconds = simulatedTime / 10;
-            seconds = TimeUnit.NANOSECONDS.toSeconds(nanoSeconds);
+            if (++delayScreenUpdateCount >= DELAY_SCREEN_UPDATE) {
 
-            simulatedText = resources.getString(R.string.simulated_time_format, seconds, nanoSeconds);
-            memoryUsageText = resources.getString(R.string.memory_usage_format, ucModule.getMemoryUsage(), memorySize);
+                delayScreenUpdateCount = 0;
 
-            screenUpdater.post(new Runnable() {
-                @Override
-                public void run() {
-                    simulatedTimeDisplay.setText(simulatedText);
-                    memoryUsage.setText(memoryUsageText);
-                }
-            });
+                microSeconds = simulatedTime / (10000);
+                seconds = TimeUnit.MICROSECONDS.toSeconds(microSeconds);
+
+                simulatedText = UCModule.resources.getString(R.string.simulated_time_format, seconds, microSeconds);
+                memoryUsageText = UCModule.resources.getString(R.string.memory_usage_format, ucModule.getMemoryUsage(), memorySize);
+
+                screenUpdater.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        simulatedTimeDisplay.setText(simulatedText);
+                        memoryUsage.setText(memoryUsageText);
+                    }
+                });
+            }
         }
 
         Log.i(UCModule.MY_LOG_TAG, "Finishing UCView");
@@ -196,15 +197,11 @@ public class UCModule_View extends Fragment implements Runnable {
 
         if (UCModule.clockVector.contains(Boolean.FALSE)) {
             while (UCModule.clockVector.get(UCModule.SIMULATED_TIMER_ID)) {
-                Thread.yield();
-//                ucViewLock.lock();
-//                try {
-//                    ucViewClockCondition.await();
-//                } catch (InterruptedException e) {
-//                    Log.e(UCModule.MY_LOG_TAG, "ERROR: waitClock UCModule_View", e);
-//                } finally {
-//                    ucViewLock.unlock();
-//                }
+                try {
+                    Thread.sleep(1);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
             return;
         }
@@ -212,41 +209,7 @@ public class UCModule_View extends Fragment implements Runnable {
         UCModule.resetClockVector();
 
         //Send Broadcast
-        uCHandler.sendEmptyMessage(UCModule.CLOCK_ACTION);
-
-//        clockLock.lock();
-//        try {
-//            UCModule.clockVector[UCModule.SIMULATED_TIMER_ID] = true;
-//
-//            for (int i = 0; i < UCModule.clockVector.length; i++) {
-//                if (!UCModule.clockVector[i]) {
-//
-//                    while (UCModule.clockVector[UCModule.SIMULATED_TIMER_ID]) {
-//                        ucViewClockCondition.await();
-//                    }
-//                    return;
-//                }
-//            }
-//
-//            UCModule.resetClockVector();
-//
-//            //Send Broadcast
-//            uCHandler.sendEmptyMessage(UCModule.CLOCK_ACTION);
-//
-//        } catch (InterruptedException e) {
-//            Log.e(UCModule.MY_LOG_TAG, "ERROR: waitClock UCModule_View", e);
-//        } finally {
-//            clockLock.unlock();
-//        }
-    }
-
-    public void clockUCView() {
-//        ucViewLock.lock();
-//        try {
-//            ucViewClockCondition.signal();
-//        } finally {
-//            ucViewLock.unlock();
-//        }
+//        uCHandler.sendEmptyMessage(UCModule.CLOCK_ACTION);
     }
 
     public void setMemoryIO(DataMemory dataMemory) {
@@ -258,11 +221,6 @@ public class UCModule_View extends Fragment implements Runnable {
 
     public IOModule getIOModule() {
         return ioModule;
-    }
-
-    public void setClockLock(Lock clockLock) {
-        this.clockLock = clockLock;
-//        ucViewClockCondition = clockLock.newCondition();
     }
 
     public void resetIO() {

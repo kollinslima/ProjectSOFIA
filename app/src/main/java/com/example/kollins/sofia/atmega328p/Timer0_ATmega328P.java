@@ -46,10 +46,6 @@ public class Timer0_ATmega328P implements Timer0Module {
     private static IOModule_ATmega328P ioModule;
     private UCModule uCModule;
 
-    private static Lock clockLock;
-    private static Lock timer0Lock;
-    private static Condition timer0ClockCondition;
-
     private static boolean oldExternalT0, newExternalT0;
     private boolean buffer_WGM02;
 
@@ -57,15 +53,11 @@ public class Timer0_ATmega328P implements Timer0Module {
     private static boolean nextOverflow, nextClear, phaseCorrect_UPCount;
     private static byte doubleBufferOCR0A, doubleBufferOCR0B;
 
-    public Timer0_ATmega328P(DataMemory dataMemory, Handler uCHandler, Lock clockLock, UCModule uCModule, IOModule ioModule) {
+    public Timer0_ATmega328P(DataMemory dataMemory, Handler uCHandler, UCModule uCModule, IOModule ioModule) {
         this.dataMemory = (DataMemory_ATmega328P) dataMemory;
         this.uCHandler = uCHandler;
-        this.clockLock = clockLock;
         this.uCModule = uCModule;
         this.ioModule = (IOModule_ATmega328P) ioModule;
-
-        timer0Lock = new ReentrantLock();
-        timer0ClockCondition = timer0Lock.newCondition();
 
         oldExternalT0 = dataMemory.readBit(DataMemory_ATmega328P.PIND_ADDR, 4);
 
@@ -135,15 +127,12 @@ public class Timer0_ATmega328P implements Timer0Module {
 
         if (UCModule.clockVector.contains(Boolean.FALSE)) {
             while (UCModule.clockVector.get(UCModule.TIMER0_ID)) {
-                Thread.yield();
-//                timer0Lock.lock();
-//                try {
-//                    timer0ClockCondition.await();
-//                } catch (InterruptedException e) {
-//                    Log.e(UCModule.MY_LOG_TAG, "ERROR: waitClock Timer0", e);
-//                } finally {
-//                    timer0Lock.unlock();
-//                }
+                try {
+                    Thread.sleep(1);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
             }
             return;
         }
@@ -151,44 +140,8 @@ public class Timer0_ATmega328P implements Timer0Module {
         UCModule.resetClockVector();
 
         //Send Broadcast
-        uCHandler.sendEmptyMessage(UCModule.CLOCK_ACTION);
+//        uCHandler.sendEmptyMessage(UCModule.CLOCK_ACTION);
 
-//        clockLock.lock();
-//        try {
-//            UCModule.clockVector[UCModule.TIMER0_ID] = true;
-//
-//            for (int i = 0; i < UCModule.clockVector.length; i++) {
-//                if (!UCModule.clockVector[i]) {
-//
-//                    while (UCModule.clockVector[UCModule.TIMER0_ID]) {
-//                        timer0ClockCondition.await();
-//                    }
-//
-//                    return;
-//                }
-//            }
-//
-//            UCModule.resetClockVector();
-//
-//            //Send Broadcast
-//            Log.v("ClockAction", "TIMER0 Sending CLOCK_ACTION");
-//            uCHandler.sendEmptyMessage(UCModule.CLOCK_ACTION);
-//
-//        } catch (InterruptedException e) {
-//            Log.e(UCModule.MY_LOG_TAG, "ERROR: waitClock Timer0", e);
-//        } finally {
-//            clockLock.unlock();
-//        }
-    }
-
-    @Override
-    public void clockTimer0() {
-//        timer0Lock.lock();
-//        try {
-//            timer0ClockCondition.signal();
-//        } finally {
-//            timer0Lock.unlock();
-//        }
     }
 
     public enum ClockSource {

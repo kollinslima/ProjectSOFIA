@@ -46,25 +46,17 @@ public class Timer2_ATmega328P implements Timer2Module {
     private static IOModule_ATmega328P ioModule;
     private UCModule uCModule;
 
-    private static Lock clockLock;
-    private static Lock timer2Lock;
-    private static Condition timer2ClockCondition;
-
     private boolean buffer_WGM22;
 
     private static int stateOC2A, stateOC2B;
     private static boolean nextOverflow, nextClear, phaseCorrect_UPCount;
     private static byte doubleBufferOCR2A, doubleBufferOCR2B;
 
-    public Timer2_ATmega328P(DataMemory dataMemory, Handler uCHandler, Lock clockLock, UCModule uCModule, IOModule ioModule) {
+    public Timer2_ATmega328P(DataMemory dataMemory, Handler uCHandler, UCModule uCModule, IOModule ioModule) {
         this.dataMemory = (DataMemory_ATmega328P) dataMemory;
         this.uCHandler = uCHandler;
-        this.clockLock = clockLock;
         this.uCModule = uCModule;
         this.ioModule = (IOModule_ATmega328P) ioModule;
-
-        timer2Lock = new ReentrantLock();
-        timer2ClockCondition = timer2Lock.newCondition();
 
         timerOutputControl_OC2A = false;
         timerOutputControl_OC2B = false;
@@ -130,15 +122,11 @@ public class Timer2_ATmega328P implements Timer2Module {
 
         if (UCModule.clockVector.contains(Boolean.FALSE)) {
             while (UCModule.clockVector.get(UCModule.TIMER2_ID)) {
-                Thread.yield();
-//                timer2Lock.lock();
-//                try {
-//                    timer2ClockCondition.await();
-//                } catch (InterruptedException e) {
-//                    Log.e(UCModule.MY_LOG_TAG, "ERROR: waitClock Timer2", e);
-//                } finally {
-//                    timer2Lock.unlock();
-//                }
+                try {
+                    Thread.sleep(1);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
             return;
         }
@@ -146,43 +134,7 @@ public class Timer2_ATmega328P implements Timer2Module {
         UCModule.resetClockVector();
 
         //Send Broadcast
-        uCHandler.sendEmptyMessage(UCModule.CLOCK_ACTION);
-
-//        clockLock.lock();
-//        try {
-//            UCModule.clockVector[UCModule.TIMER2_ID] = true;
-//
-//            for (int i = 0; i < UCModule.clockVector.length; i++) {
-//                if (!UCModule.clockVector[i]) {
-//
-//                    while (UCModule.clockVector[UCModule.TIMER2_ID]) {
-//                        timer2ClockCondition.await();
-//                    }
-//                    return;
-//                }
-//            }
-//
-//            UCModule.resetClockVector();
-//
-//            //Send Broadcast
-//            Log.v("ClockAction", "TIMER2 Sending CLOCK_ACTION");
-//            uCHandler.sendEmptyMessage(UCModule.CLOCK_ACTION);
-//
-//        } catch (InterruptedException e) {
-//            Log.e(UCModule.MY_LOG_TAG, "ERROR: waitClock Timer2", e);
-//        } finally {
-//            clockLock.unlock();
-//        }
-    }
-
-    @Override
-    public void clockTimer2() {
-//        timer2Lock.lock();
-//        try {
-//            timer2ClockCondition.signal();
-//        } finally {
-//            timer2Lock.unlock();
-//        }
+//        uCHandler.sendEmptyMessage(UCModule.CLOCK_ACTION);
     }
 
     public enum ClockSource {

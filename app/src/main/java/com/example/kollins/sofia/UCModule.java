@@ -17,6 +17,7 @@
 
 package com.example.kollins.sofia;
 
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.os.Bundle;
@@ -26,6 +27,7 @@ import android.os.SystemClock;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -33,6 +35,7 @@ import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.kollins.sofia.atmega328p.iomodule_atmega328p.output.OutputFragment_ATmega328P;
 import com.example.kollins.sofia.ucinterfaces.ADCModule;
 import com.example.kollins.sofia.ucinterfaces.DataMemory;
 import com.example.kollins.sofia.ucinterfaces.IOModule;
@@ -47,6 +50,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Vector;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -59,6 +63,9 @@ public class UCModule extends AppCompatActivity {
 
     //To calculate efective clock
 //    private static int sum, n = 0;
+//    private static long time1 = 0, time2 = 0;
+
+    private static Context context;
 
     public static final short CPU_ID = 0;
     public static final short SIMULATED_TIMER_ID = 1;
@@ -87,9 +94,7 @@ public class UCModule extends AppCompatActivity {
 
     public static final String MY_LOG_TAG = "LOG_SIMULATOR";
 
-//    public static boolean[] clockVector;
     public static CopyOnWriteArrayList<Boolean> clockVector;
-    private Lock clockLock;
 
     public static InterruptionModule interruptionModule;
 
@@ -127,11 +132,12 @@ public class UCModule extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_view);
 
+        context = getApplicationContext();
+
         PACKAGE_NAME = getApplicationContext().getPackageName();
         resources = getResources();
 
         uCHandler = new UCHandler();
-        clockLock = new ReentrantLock();
 
         //Load device
         SharedPreferences prefDevice = getSharedPreferences("deviceConfig", MODE_PRIVATE);
@@ -159,7 +165,6 @@ public class UCModule extends AppCompatActivity {
         ft.add(R.id.fragmentIO, ucView, OutputFragment.TAG_OUTPUT_FRAGMENT);
         ft.commit();
 
-        ucView.setClockLock(clockLock);
         ucView.setUCHandler(uCHandler);
         ucView.setUCDevice(this);
 
@@ -227,38 +232,38 @@ public class UCModule extends AppCompatActivity {
                 threadUCView.start();
 
                 //Init CPU
-                cpuModule = new CPUModule(programMemory, dataMemory, this, uCHandler, clockLock);
+                cpuModule = new CPUModule(programMemory, dataMemory, this, uCHandler);
                 threadCPU = new Thread(cpuModule);
                 threadCPU.start();
 
                 //Init Timer0
                 Class timer0Device = Class.forName(PACKAGE_NAME + "." + device.toLowerCase() + ".Timer0_" + device);
-                timer0 = (Timer0Module) timer0Device.getDeclaredConstructor(DataMemory.class, Handler.class, Lock.class, UCModule.class, IOModule.class)
-                        .newInstance(dataMemory, uCHandler, clockLock, this, ucView.getIOModule());
+                timer0 = (Timer0Module) timer0Device.getDeclaredConstructor(DataMemory.class, Handler.class, UCModule.class, IOModule.class)
+                        .newInstance(dataMemory, uCHandler, this, ucView.getIOModule());
 
                 threadTimer0 = new Thread(timer0);
                 threadTimer0.start();
 
                 //Init Timer1
                 Class timer1Device = Class.forName(PACKAGE_NAME + "." + device.toLowerCase() + ".Timer1_" + device);
-                timer1 = (Timer1Module) timer1Device.getDeclaredConstructor(DataMemory.class, Handler.class, Lock.class, UCModule.class, IOModule.class)
-                        .newInstance(dataMemory, uCHandler, clockLock, this, ucView.getIOModule());
+                timer1 = (Timer1Module) timer1Device.getDeclaredConstructor(DataMemory.class, Handler.class, UCModule.class, IOModule.class)
+                        .newInstance(dataMemory, uCHandler, this, ucView.getIOModule());
 
                 threadTimer1 = new Thread(timer1);
                 threadTimer1.start();
 
                 //Init Timer2
                 Class timer2Device = Class.forName(PACKAGE_NAME + "." + device.toLowerCase() + ".Timer2_" + device);
-                timer2 = (Timer2Module) timer2Device.getDeclaredConstructor(DataMemory.class, Handler.class, Lock.class, UCModule.class, IOModule.class)
-                        .newInstance(dataMemory, uCHandler, clockLock, this, ucView.getIOModule());
+                timer2 = (Timer2Module) timer2Device.getDeclaredConstructor(DataMemory.class, Handler.class, UCModule.class, IOModule.class)
+                        .newInstance(dataMemory, uCHandler, this, ucView.getIOModule());
 
                 threadTimer2 = new Thread(timer2);
                 threadTimer2.start();
 
                 //Init ADC
                 Class adcDevice = Class.forName(PACKAGE_NAME + "." + device.toLowerCase() + ".ADC_" + device);
-                adc = (ADCModule) adcDevice.getDeclaredConstructor(DataMemory.class, Handler.class, Lock.class, UCModule.class)
-                        .newInstance(dataMemory, uCHandler, clockLock, this);
+                adc = (ADCModule) adcDevice.getDeclaredConstructor(DataMemory.class, Handler.class, UCModule.class)
+                        .newInstance(dataMemory, uCHandler, this);
 
                 threadADC = new Thread(adc);
                 threadADC.start();
@@ -359,15 +364,15 @@ public class UCModule extends AppCompatActivity {
     }
 
     public static int getSelectedColor() {
-        return resources.getColor(R.color.selectedItem);
+        return ContextCompat.getColor(context, R.color.selectedItem);
     }
 
     public static int getButonOnCollor() {
-        return resources.getColor(R.color.on_button);
+        return ContextCompat.getColor(context, R.color.on_button);
     }
 
     public static int getButonOffCollor() {
-        return resources.getColor(R.color.off_button);
+        return ContextCompat.getColor(context, R.color.off_button);
     }
 
     public static String getButtonTextOn() {
@@ -383,7 +388,7 @@ public class UCModule extends AppCompatActivity {
     }
 
     public static int getStatusRunningColor() {
-        return resources.getColor(R.color.running);
+        return ContextCompat.getColor(context, R.color.running);
     }
 
     public static String getStatusShortCircuit() {
@@ -391,7 +396,7 @@ public class UCModule extends AppCompatActivity {
     }
 
     public static int getStatusShortCircuitColor() {
-        return resources.getColor(R.color.short_circuit);
+        return ContextCompat.getColor(context, R.color.short_circuit);
     }
 
     public static String getStatusHexFileError() {
@@ -399,7 +404,7 @@ public class UCModule extends AppCompatActivity {
     }
 
     public static int getStatusHexFileErrorColor() {
-        return resources.getColor(R.color.hex_file_error);
+        return ContextCompat.getColor(context, R.color.hex_file_error);
     }
 
     public synchronized boolean getResetFlag() {
@@ -433,12 +438,12 @@ public class UCModule extends AppCompatActivity {
                     || threadADC.isAlive()) {
 
                 resetClockVector();
-                cpuModule.clockCPU();
-                ucView.clockUCView();
-                timer0.clockTimer0();
-                timer1.clockTimer1();
-                timer2.clockTimer2();
-                adc.clockADC();
+//                cpuModule.clockCPU();
+//                ucView.clockUCView();
+//                timer0.clockTimer0();
+//                timer1.clockTimer1();
+//                timer2.clockTimer2();
+//                adc.clockADC();
             }
 
 
@@ -448,11 +453,13 @@ public class UCModule extends AppCompatActivity {
             threadTimer1.join();
             threadTimer2.join();
             threadADC.join();
-        } catch (InterruptedException|NullPointerException e) {
+        } catch (InterruptedException | NullPointerException e) {
             Log.e(MY_LOG_TAG, "ERROR: stopSystem", e);
         }
 
-        dataMemory.stopTimer();
+        for (int i = 0; i < OutputFragment_ATmega328P.evalFreq.length; i++) {
+            OutputFragment_ATmega328P.evalFreq[i] = false;
+        }
 
         if (setUpSuccessful) {
             programMemory.stopCodeObserver();
@@ -469,8 +476,18 @@ public class UCModule extends AppCompatActivity {
     public static void resetClockVector() {
         Boolean[] array = new Boolean[numberOfModules];
         Arrays.fill(array, Boolean.FALSE);
-        clockVector = new CopyOnWriteArrayList<Boolean>(array);
+        clockVector = new CopyOnWriteArrayList<>(array);
+
+        //Measure efective clock
+//        time2 = SystemClock.elapsedRealtimeNanos();
+//        Log.i("Clock", String.valueOf(getAvgClock(Math.pow(10, 9) / (time2 - time1))));
+//        time1 = time2;
     }
+
+//    private static double getAvgClock(double newClock) {
+//        sum += newClock;
+//        return (sum / ++n);
+//    }
 
     public void changeFileLocation(String newHexFileLocation) {
         if (newHexFileLocation.substring(newHexFileLocation.length() - 3).equals("hex")) {
@@ -483,33 +500,20 @@ public class UCModule extends AppCompatActivity {
 
     public class UCHandler extends Handler {
 
-//        private long time1 = 0, time2 = 0;
-//
-//        private double getAvgClock(double newClock) {
-//            sum += newClock;
-//            return (sum / ++n);
-//        }
-
-
         @Override
         public void handleMessage(Message msg) {
             int action = msg.what;
 
             switch (action) {
-                case CLOCK_ACTION:
+//                case CLOCK_ACTION:
 
-//                    Measure efective clock
-//                    time2 = SystemClock.elapsedRealtimeNanos();
-//                    Log.i("Clock", String.valueOf(getAvgClock(Math.pow(10, 9) / (time2 - time1))));
-//                    time1 = time2;
-
-                    cpuModule.clockCPU();
-                    ucView.clockUCView();
-                    timer0.clockTimer0();
-                    timer1.clockTimer1();
-                    timer2.clockTimer2();
-                    adc.clockADC();
-                    break;
+//                    cpuModule.clockCPU();
+//                    ucView.clockUCView();
+//                    timer0.clockTimer0();
+//                    timer1.clockTimer1();
+//                    timer2.clockTimer2();
+//                    adc.clockADC();
+//                    break;
 
                 case RESET_ACTION:
                     reset();
@@ -521,6 +525,10 @@ public class UCModule extends AppCompatActivity {
 
                 case STOP_ACTION:
                     stopSystem();
+                    break;
+
+                default:
+                    Log.e(MY_LOG_TAG, "ERROR: Action not found UCModule");
                     break;
             }
         }

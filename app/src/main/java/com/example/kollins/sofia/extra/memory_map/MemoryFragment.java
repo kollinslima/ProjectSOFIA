@@ -66,7 +66,15 @@ public class MemoryFragment extends Fragment {
         mAdapter = new MemoryAdapter(dataMemory);
         mRecyclerView.setAdapter(mAdapter);
 
+        dataMemory.startTimer();
+
         return layout;
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        dataMemory.stopTimer();
     }
 
     public void setDataMemory(DataMemory dataMemory) {

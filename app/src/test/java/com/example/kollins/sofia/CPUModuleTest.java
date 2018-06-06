@@ -25,6 +25,7 @@ import com.example.kollins.sofia.ucinterfaces.DataMemory;
 import com.example.kollins.sofia.ucinterfaces.IOModule;
 import com.example.kollins.sofia.ucinterfaces.ProgramMemory;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,6 +33,7 @@ import org.mockito.Mock;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.powermock.reflect.Whitebox;
 
 import java.lang.reflect.Field;
 import java.util.concurrent.locks.Lock;
@@ -61,6 +63,7 @@ public class CPUModuleTest {
         PowerMockito.doNothing().when(CPUModule.class, "waitClock");
 
         dataMemory = new DataMemory_ATmega328P(ioModule);
+        dataMemory.stopTimer();
 
         UCModule uCModule = mock(UCModule.class);
         Handler uCHandler = mock(Handler.class);
@@ -71,6 +74,8 @@ public class CPUModuleTest {
 
         cpuField = CPUModule.class.getDeclaredField("instruction");
         cpuField.setAccessible(true);
+
+        Whitebox.setInternalState(dataMemory,"updateMemMapFlag", false);
     }
 
     @Test

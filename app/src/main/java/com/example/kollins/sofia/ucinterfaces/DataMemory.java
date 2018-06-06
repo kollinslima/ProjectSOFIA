@@ -37,5 +37,6 @@ public interface DataMemory {
 
     int getMemoryUsage();
 
+    void startTimer();
     void stopTimer();
 }

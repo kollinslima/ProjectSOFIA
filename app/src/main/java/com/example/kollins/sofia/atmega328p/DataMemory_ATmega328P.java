@@ -187,14 +187,18 @@ public class DataMemory_ATmega328P implements DataMemory {
         adcWriteEnable = true;
 
         updateMemMapFlag = false;
-        timerMemMap = new Timer();
-        timerMemMap.scheduleAtFixedRate(new TimerMemoryMap(), MEM_MAP_TIMEOUT, MEM_MAP_TIMEOUT);
 
         initDefaultContent();
     }
 
+    public void startTimer(){
+        timerMemMap = new Timer();
+        timerMemMap.scheduleAtFixedRate(new TimerMemoryMap(), MEM_MAP_TIMEOUT, MEM_MAP_TIMEOUT);
+    }
+
     public void stopTimer(){
         try{
+            updateMemMapFlag = false;
             timerMemMap.cancel();
         } catch (NullPointerException e){
             Log.e(UCModule.MY_LOG_TAG, "ERROR: Timer not running", e);
@@ -456,14 +460,14 @@ public class DataMemory_ATmega328P implements DataMemory {
             sdramMemory[byteAddress] = byteData;
             sdramMemory[OCR1BH_ADDR] = timer1_TEMP;
         } else if (byteAddress == ICR1H_ADDR) {
-            if (Timer1_ATmega328P.enableICRWrite) {
+//            if (Timer1_ATmega328P.enableICRWrite) {
                 timer1_TEMP = byteData;
-            }
+//            }
         } else if (byteAddress == ICR1L_ADDR) {
-            if (Timer1_ATmega328P.enableICRWrite) {
+//            if (Timer1_ATmega328P.enableICRWrite) {
                 sdramMemory[byteAddress] = byteData;
                 sdramMemory[ICR1H_ADDR] = timer1_TEMP;
-            }
+//            }
         } else if (byteAddress == ADCL_ADDR || byteAddress == ADCH_ADDR) {
             if (adcWriteEnable) {
                 sdramMemory[byteAddress] = byteData;
@@ -693,8 +697,8 @@ public class DataMemory_ATmega328P implements DataMemory {
 
         @Override
         protected Void doInBackground(Integer... byteAddress) {
-            Log.i(UCModule.MY_LOG_TAG, String.format("Notify Address: 0x%s",
-                    Integer.toHexString((int) byteAddress[0])));
+//            Log.i(UCModule.MY_LOG_TAG, String.format("Notify Address: 0x%s",
+//                    Integer.toHexString((int) byteAddress[0])));
             Message ioMessage;
 
             switch (byteAddress[0]) {

@@ -37,34 +37,28 @@ public class CPUModule implements Runnable, CPUInstructions {
 
     public static short[] INSTRUCTION_ID = new short[(int) (Math.pow(2, 16) + 1)];
 
-    public static final short CPU_FACTOR = 10;
-    public static short clockCount;
-
     private static int instruction;
-
-    private static Lock clockLock;
-    private static Lock cpuLock;
-    private static Condition cpuClockCondition;
 
     private static ProgramMemory programMemory;
     private static DataMemory dataMemory;
     private static Handler uCHandler;
     private UCModule uCModule;
 
+    //Auxiliary Variables for Instruction Processing
+    private static byte regD, regR, result;
+    private static byte dataL, dataH;
+    private static int offset, outData, outAddress, constValue;
+    private static int stackPointer;
+    private static int testJMP_CALL, testLDS_STS;
+
 
     public CPUModule(ProgramMemory programMemory, DataMemory dataMemory, UCModule uCModule,
-                     Handler uCHandler, Lock clockLock) {
+                     Handler uCHandler) {
 
         this.programMemory = programMemory;
         this.dataMemory = dataMemory;
         this.uCHandler = uCHandler;
         this.uCModule = uCModule;
-
-        this.clockLock = clockLock;
-        cpuLock = new ReentrantLock();
-        cpuClockCondition = cpuLock.newCondition();
-
-        clockCount = 0;
     }
 
     @Override
@@ -127,15 +121,11 @@ public class CPUModule implements Runnable, CPUInstructions {
 
         if (UCModule.clockVector.contains(Boolean.FALSE)) {
             while (UCModule.clockVector.get(UCModule.CPU_ID)) {
-                Thread.yield();
-//                cpuLock.lock();
-//                try {
-//                    cpuClockCondition.await();
-//                } catch (InterruptedException e) {
-//                    Log.e(UCModule.MY_LOG_TAG, "ERROR: waitClock CPU", e);
-//                } finally {
-//                    cpuLock.unlock();
-//                }
+                try {
+                    Thread.sleep(1);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
             return;
         }
@@ -143,42 +133,7 @@ public class CPUModule implements Runnable, CPUInstructions {
         UCModule.resetClockVector();
 
         //Send Broadcast
-        uCHandler.sendEmptyMessage(UCModule.CLOCK_ACTION);
-
-//        clockLock.lock();
-//        try {
-//            UCModule.clockVector[UCModule.CPU_ID] = true;
-//
-//            for (int i = 0; i < UCModule.clockVector.length; i++) {
-//                if (!UCModule.clockVector[i]) {
-//
-//                    while (UCModule.clockVector[UCModule.CPU_ID]) {
-//                        cpuClockCondition.await();
-//                    }
-//                    return;
-//                }
-//            }
-//
-//            UCModule.resetClockVector();
-//
-//            //Send Broadcast
-//            Log.v("ClockAction", "CPU Sending CLOCK_ACTION");
-//            uCHandler.sendEmptyMessage(UCModule.CLOCK_ACTION);
-//
-//        } catch (InterruptedException e) {
-//            Log.e(UCModule.MY_LOG_TAG, "ERROR: waitClock CPU", e);
-//        } finally {
-//            clockLock.unlock();
-//        }
-    }
-
-    public void clockCPU() {
-//        cpuLock.lock();
-//        try {
-//            cpuClockCondition.signal();
-//        } finally {
-//            cpuLock.unlock();
-//        }
+//        uCHandler.sendEmptyMessage(UCModule.CLOCK_ACTION);
     }
 
     public enum Executor {
@@ -188,10 +143,10 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************ADC***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction ADC");
 
-                byte regD = dataMemory.readByte((0x01F0 & instruction) >> 4);
-                byte regR = dataMemory.readByte(((0x0200 & instruction) >> 5) | (0x000F & instruction));
+                regD = dataMemory.readByte((0x01F0 & instruction) >> 4);
+                regR = dataMemory.readByte(((0x0200 & instruction) >> 5) | (0x000F & instruction));
 
-                byte result = (byte) (regD + regR);
+                result = (byte) (regD + regR);
 
                 //If carry is set
                 if (dataMemory.readBit(DataMemory_ATmega328P.SREG_ADDR, 0)) {
@@ -242,10 +197,10 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************ADD***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction ADD");
 
-                byte regD = dataMemory.readByte((0x01F0 & instruction) >> 4);
-                byte regR = dataMemory.readByte(((0x0200 & instruction) >> 5) | (0x000F & instruction));
+                regD = dataMemory.readByte((0x01F0 & instruction) >> 4);
+                regR = dataMemory.readByte(((0x0200 & instruction) >> 5) | (0x000F & instruction));
 
-                byte result = (byte) (regD + regR);
+                result = (byte) (regD + regR);
 
                 dataMemory.writeByte((0x01F0 & instruction) >> 4, result);
 
@@ -295,32 +250,32 @@ public class CPUModule implements Runnable, CPUInstructions {
                 //2 clockCycles
                 waitClock();
 
-                int offset_ADIW = (((0x0030 & instruction) >> 4) * 2);
-                byte inDataL_ADIW = dataMemory.readByte(0x18 + offset_ADIW);
-                byte inDataH_ADIW = dataMemory.readByte(0x19 + offset_ADIW);
+                offset = (((0x0030 & instruction) >> 4) * 2);
+                dataL = dataMemory.readByte(0x18 + offset);
+                dataH = dataMemory.readByte(0x19 + offset);
 
-                int outData_ADIW = (((0x00FF & inDataH_ADIW) << 8) | (0x00FF & inDataL_ADIW)) +
+                outData = (((0x00FF & dataH) << 8) | (0x00FF & dataL)) +
                         (((0x00C0 & instruction) >> 2) | (0x000F & instruction));
 
-                dataMemory.writeByte(0x18 + offset_ADIW, (byte) (0x000000FF & outData_ADIW));
-                dataMemory.writeByte(0x19 + offset_ADIW, (byte) ((0x0000FF00 & outData_ADIW) >> 8));
+                dataMemory.writeByte(0x18 + offset, (byte) (0x000000FF & outData));
+                dataMemory.writeByte(0x19 + offset, (byte) ((0x0000FF00 & outData) >> 8));
 
                 //Update status register
                 //Flag C
                 dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 0,
-                        !(((inDataH_ADIW & 0x80) & ((~(outData_ADIW & 0x00008000)) >> 8)) == 0));
+                        !(((dataH & 0x80) & ((~(outData & 0x00008000)) >> 8)) == 0));
 
                 //Flag Z
                 dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 1,
-                        (outData_ADIW & 0x0000FFFF) == 0);
+                        (outData & 0x0000FFFF) == 0);
 
                 //Flag N
                 dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 2,
-                        !((outData_ADIW & 0x00008000) == 0));
+                        !((outData & 0x00008000) == 0));
 
                 //Flag V
                 dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 3,
-                        !(((~(inDataH_ADIW & 0x80)) & ((outData_ADIW & 0x00008000) >> 8)) == 0));
+                        !(((~(dataH & 0x80)) & ((outData & 0x00008000) >> 8)) == 0));
 
                 //Flag S
                 dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 4,
@@ -335,17 +290,17 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************AND/TST***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction AND/TST");
 
-                int outAddressAND = (0x01F0 & instruction) >> 4;
-                byte outDataAND = (byte) (dataMemory.readByte(outAddressAND) &
+                outAddress = (0x01F0 & instruction) >> 4;
+                result = (byte) (dataMemory.readByte(outAddress) &
                         dataMemory.readByte(((0x0200 & instruction) >> 5) | (0x000F & instruction)));
 
-                dataMemory.writeByte(outAddressAND, outDataAND);
+                dataMemory.writeByte(outAddress, result);
 
                 //Update Status Register
                 //Flag Z
-                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 1, outDataAND == 0);
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 1, result == 0);
                 //Flag N
-                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 2, !((0x80 & outDataAND) == 0));
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 2, !((0x80 & result) == 0));
                 //Flag V
                 dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 3, false);
                 //Flag S
@@ -360,16 +315,16 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************ANDI***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction ANDI");
 
-                int Rd = (0x10 | (0x00F0 & instruction) >> 4);
-                byte outData = (byte) (dataMemory.readByte(Rd) & (((0x0F00 & instruction) >> 4) | (0x000F & instruction)));
+                outAddress = (0x10 | (0x00F0 & instruction) >> 4);
+                result = (byte) (dataMemory.readByte(outAddress) & (((0x0F00 & instruction) >> 4) | (0x000F & instruction)));
 
-                dataMemory.writeByte(Rd, outData);
+                dataMemory.writeByte(outAddress, result);
 
                 //Update Flags
                 //Flag Z
-                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 1, outData == 0);
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 1, result == 0);
                 //Flag N
-                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 2, !((0x80 & outData) == 0));
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 2, !((0x80 & result) == 0));
                 //Flag V
                 dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 3, false);
                 //Flag S
@@ -383,17 +338,17 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************ASR***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction ASR");
 
-                byte regD = dataMemory.readByte((0x01F0 & instruction) >> 4);
-                byte outASR = (byte) (regD >> 1);
-                dataMemory.writeByte((0x01F0 & instruction) >> 4, outASR);
+                regD = dataMemory.readByte((0x01F0 & instruction) >> 4);
+                result = (byte) (regD >> 1);
+                dataMemory.writeByte((0x01F0 & instruction) >> 4, result);
 
                 //Update Status Register
                 //Flag C
                 dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 0, !((0x01 & regD) == 0));
                 //Flag Z
-                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 1, outASR == 0);
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 1, result == 0);
                 //Flag N
-                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 2, !((0x80 & outASR) == 0));
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 2, !((0x80 & result) == 0));
                 //Flag V
                 dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 3,
                         dataMemory.readBit(DataMemory_ATmega328P.SREG_ADDR, 2) ^ dataMemory.readBit(DataMemory_ATmega328P.SREG_ADDR, 0));
@@ -480,14 +435,14 @@ public class CPUModule implements Runnable, CPUInstructions {
                 waitClock();
                 waitClock();
 
-                int callOut = (0x0001 & instruction) | ((0x01F0 & instruction) >> 3);
+                outData = (0x0001 & instruction) | ((0x01F0 & instruction) >> 3);
 
                 instruction = programMemory.loadInstruction();
-                callOut = (callOut << 16) | instruction;
+                outData = (outData << 16) | instruction;
 
                 //PC is already in position to go to stack (write little-endian)
 
-                int stackPointer = (dataMemory.readByte(DataMemory_ATmega328P.SPH_ADDR) << 8) |
+                stackPointer = (dataMemory.readByte(DataMemory_ATmega328P.SPH_ADDR) << 8) |
                         (0x000000FF & dataMemory.readByte(DataMemory_ATmega328P.SPL_ADDR));
 
                 //Write PC low
@@ -502,7 +457,7 @@ public class CPUModule implements Runnable, CPUInstructions {
                 //Update SPH
                 dataMemory.writeByte(DataMemory_ATmega328P.SPH_ADDR, (byte) ((0x0000FF00 & stackPointer) >> 8));
 
-                programMemory.setPC(callOut);
+                programMemory.setPC(outData);
 
             }
         },
@@ -521,16 +476,16 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************COM***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction COM");
 
-                byte regValue = dataMemory.readByte((0x01F0 & instruction) >> 4);
-                regValue = (byte) (0xFF - regValue);
-                dataMemory.writeByte((0x01F0 & instruction) >> 4, regValue);
+                regD = dataMemory.readByte((0x01F0 & instruction) >> 4);
+                regD = (byte) (0xFF - regD);
+                dataMemory.writeByte((0x01F0 & instruction) >> 4, regD);
 
                 //Flag C
                 dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 0, true);
                 //Flag Z
-                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 1, regValue == 0);
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 1, regD == 0);
                 //Flag N
-                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 2, !((0x0080 & regValue) == 0));
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 2, !((0x0080 & regD) == 0));
                 //Flag V
                 dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 3, false);
                 //Flag S
@@ -545,29 +500,29 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************CP***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction CP");
 
-                byte regD = dataMemory.readByte((0x01F0 & instruction) >> 4);
-                byte regR = dataMemory.readByte(((0x0200 & instruction) >> 5) | (0x000F & instruction));
+                regD = dataMemory.readByte((0x01F0 & instruction) >> 4);
+                regR = dataMemory.readByte(((0x0200 & instruction) >> 5) | (0x000F & instruction));
 
-                int result = regD - regR;
+                outData = regD - regR;
 
                 //Flag H
                 dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 5,
                         (0x00000001 &
                                 ((((~(0x08 & regD) & (0x08 & regR)) |
-                                        ((0x08 & result) & (0x08 & regR)) |
-                                        (~(0x08 & regD) & (0x08 & result)))
+                                        ((0x08 & outData) & (0x08 & regR)) |
+                                        (~(0x08 & regD) & (0x08 & outData)))
                                         >> 3))) != 0);
 
                 //Flag V
                 dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 3,
                         (0x00000001 &
-                                (((0x80 & regD) & (~(0x80 & regR)) & (~(0x80 & result)) |
-                                        (~(0x80 & regD)) & (0x80 & regR) & (0x80 & result))
+                                (((0x80 & regD) & (~(0x80 & regR)) & (~(0x80 & outData)) |
+                                        (~(0x80 & regD)) & (0x80 & regR) & (0x80 & outData))
                                         >> 7)) != 0);
 
                 //Flag N
                 dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 2,
-                        !((result & 0x00000080) == 0));
+                        !((outData & 0x00000080) == 0));
 
                 //Flag S
                 dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 4,
@@ -575,14 +530,14 @@ public class CPUModule implements Runnable, CPUInstructions {
 
                 //Flag Z
                 dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 1,
-                        (result & 0x000000FF) == 0);
+                        (outData & 0x000000FF) == 0);
 
                 //Flag C
                 dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 0,
                         (0x00000001 &
                                 ((((~(0x80 & regD) & (0x80 & regR)) |
-                                        ((0x80 & result) & (0x80 & regR)) |
-                                        (~(0x80 & regD) & (0x80 & result)))
+                                        ((0x80 & outData) & (0x80 & regR)) |
+                                        (~(0x80 & regD) & (0x80 & outData)))
                                         >> 7))) != 0);
             }
         },
@@ -592,33 +547,33 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************CPC***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction CPC");
 
-                byte regD = dataMemory.readByte((0x01F0 & instruction) >> 4);
-                byte regR = dataMemory.readByte(((0x0200 & instruction) >> 5) | (0x000F & instruction));
+                regD = dataMemory.readByte((0x01F0 & instruction) >> 4);
+                regR = dataMemory.readByte(((0x0200 & instruction) >> 5) | (0x000F & instruction));
 
-                int result = regD - regR;
+                outData = regD - regR;
                 //If carry is set
                 if (dataMemory.readBit(DataMemory_ATmega328P.SREG_ADDR, 0)) {
-                    result -= 1;
+                    outData -= 1;
                 }
 
                 //Flag H
                 dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 5,
                         (0x00000001 &
                                 ((((~(0x08 & regD) & (0x08 & regR)) |
-                                        ((0x08 & result) & (0x08 & regR)) |
-                                        (~(0x08 & regD) & (0x08 & result)))
+                                        ((0x08 & outData) & (0x08 & regR)) |
+                                        (~(0x08 & regD) & (0x08 & outData)))
                                         >> 3))) != 0);
 
                 //Flag V
                 dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 3,
                         (0x00000001 &
-                                (((0x80 & regD) & (~(0x80 & regR)) & (~(0x80 & result)) |
-                                        (~(0x80 & regD)) & (0x80 & regR) & (0x80 & result))
+                                (((0x80 & regD) & (~(0x80 & regR)) & (~(0x80 & outData)) |
+                                        (~(0x80 & regD)) & (0x80 & regR) & (0x80 & outData))
                                         >> 7)) != 0);
 
                 //Flag N
                 dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 2,
-                        !((result & 0x00000080) == 0));
+                        !((outData & 0x00000080) == 0));
 
                 //Flag S
                 dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 4,
@@ -626,14 +581,14 @@ public class CPUModule implements Runnable, CPUInstructions {
 
                 //Flag Z
                 dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 1,
-                        ((result & 0x000000FF) == 0) & dataMemory.readBit(DataMemory_ATmega328P.SREG_ADDR, 1));
+                        ((outData & 0x000000FF) == 0) & dataMemory.readBit(DataMemory_ATmega328P.SREG_ADDR, 1));
 
                 //Flag C
                 dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 0,
                         (0x00000001 &
                                 ((((~(0x80 & regD) & (0x80 & regR)) |
-                                        ((0x80 & result) & (0x80 & regR)) |
-                                        (~(0x80 & regD) & (0x80 & result)))
+                                        ((0x80 & outData) & (0x80 & regR)) |
+                                        (~(0x80 & regD) & (0x80 & outData)))
                                         >> 7))) != 0);
             }
         },
@@ -643,29 +598,29 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************CPI***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction CPI");
 
-                int constValue = (((0x00000F00 & instruction) >> 4) | (0x0000000F & instruction));
-                byte regRead = dataMemory.readByte(0x10 | (0x000000F0 & instruction) >> 4);
+                constValue = (((0x00000F00 & instruction) >> 4) | (0x0000000F & instruction));
+                regD = dataMemory.readByte(0x10 | (0x000000F0 & instruction) >> 4);
 
-                int result = (regRead - constValue);
+                outData = (regD - constValue);
 
                 //Flag H
                 dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 5,
                         (0x00000001 &
-                                ((((~(0x08 & regRead) & (0x08 & constValue)) |
-                                        ((0x08 & result) & (0x08 & constValue)) |
-                                        (~(0x08 & regRead) & (0x08 & result)))
+                                ((((~(0x08 & regD) & (0x08 & constValue)) |
+                                        ((0x08 & outData) & (0x08 & constValue)) |
+                                        (~(0x08 & regD) & (0x08 & outData)))
                                         >> 3))) != 0);
 
                 //Flag V
                 dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 3,
                         (0x00000001 &
-                                (((0x80 & regRead) & (~(0x80 & constValue)) & (~(0x80 & result)) |
-                                        (~(0x80 & regRead)) & (0x80 & constValue) & (0x80 & result))
+                                (((0x80 & regD) & (~(0x80 & constValue)) & (~(0x80 & outData)) |
+                                        (~(0x80 & regD)) & (0x80 & constValue) & (0x80 & outData))
                                         >> 7)) != 0);
 
                 //Flag N
                 dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 2,
-                        !((result & 0x00000080) == 0));
+                        !((outData & 0x00000080) == 0));
 
                 //Flag S
                 dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 4,
@@ -673,14 +628,14 @@ public class CPUModule implements Runnable, CPUInstructions {
 
                 //Flag Z
                 dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 1,
-                        (result & 0x000000FF) == 0);
+                        (outData & 0x000000FF) == 0);
 
                 //Flag C
                 dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 0,
                         (0x00000001 &
-                                ((((~(0x80 & regRead) & (0x80 & constValue)) |
-                                        ((0x80 & result) & (0x80 & constValue)) |
-                                        (~(0x80 & regRead) & (0x80 & result)))
+                                ((((~(0x80 & regD) & (0x80 & constValue)) |
+                                        ((0x80 & outData) & (0x80 & constValue)) |
+                                        (~(0x80 & regD) & (0x80 & outData)))
                                         >> 7))) != 0);
 
             }
@@ -691,8 +646,8 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************CPSE***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction CPSE");
 
-                byte regD = dataMemory.readByte((0x01F0 & instruction) >> 4);
-                byte regR = dataMemory.readByte(((0x0200 & instruction) >> 5) | (0x000F & instruction));
+                regD = dataMemory.readByte((0x01F0 & instruction) >> 4);
+                regR = dataMemory.readByte(((0x0200 & instruction) >> 5) | (0x000F & instruction));
 
                 if (regD == regR) {
 
@@ -721,8 +676,8 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************DEC***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction DEC");
 
-                byte regD = dataMemory.readByte((0x01F0 & instruction) >> 4);
-                byte result = (byte) (regD - 1);
+                regD = dataMemory.readByte((0x01F0 & instruction) >> 4);
+                result = (byte) (regD - 1);
 
                 dataMemory.writeByte((0x01F0 & instruction) >> 4, result);
 
@@ -752,17 +707,17 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************EOR/CLR***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction EOR/CLR");
 
-                int outAddressEOR = (0x01F0 & instruction) >> 4;
-                byte outDataEOR = (byte) (dataMemory.readByte(outAddressEOR) ^
+                outAddress = (0x01F0 & instruction) >> 4;
+                result = (byte) (dataMemory.readByte(outAddress) ^
                         dataMemory.readByte(((0x0200 & instruction) >> 5) | (0x000F & instruction)));
 
-                dataMemory.writeByte(outAddressEOR, outDataEOR);
+                dataMemory.writeByte(outAddress, result);
 
                 //Update Status Register
                 //Flag Z
-                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 1, outDataEOR == 0);
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 1, result == 0);
                 //Flag N
-                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 2, !((0x80 & outDataEOR) == 0));
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 2, !((0x80 & result) == 0));
                 //Flag V
                 dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 3, false);
                 //Flag S
@@ -779,18 +734,18 @@ public class CPUModule implements Runnable, CPUInstructions {
 
                 waitClock();
 
-                byte regD = dataMemory.readByte(0x10 + ((0x0070 & instruction) >> 4));
-                byte regR = dataMemory.readByte(0x10 + (0x0007 & instruction));
+                regD = dataMemory.readByte(0x10 + ((0x0070 & instruction) >> 4));
+                regR = dataMemory.readByte(0x10 + (0x0007 & instruction));
 
-                int outFMUL = ((0x00FF & regD) * (0x00FF & regR)) << 1;
+                outData = ((0x00FF & regD) * (0x00FF & regR)) << 1;
 
-                dataMemory.writeByte(0x01, (byte) ((0x00FF00 & outFMUL) >> 8));
-                dataMemory.writeByte(0x00, (byte) (0x00FF & outFMUL));
+                dataMemory.writeByte(0x01, (byte) ((0x00FF00 & outData) >> 8));
+                dataMemory.writeByte(0x00, (byte) (0x00FF & outData));
 
                 //C
-                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 0, !((0x8000 & outFMUL) == 0));
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 0, !((0x8000 & outData) == 0));
                 //Z
-                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 1, outFMUL == 0);
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 1, outData == 0);
             }
         },
         INSTRUCTION_FMULS {
@@ -801,18 +756,18 @@ public class CPUModule implements Runnable, CPUInstructions {
 
                 waitClock();
 
-                byte regD = dataMemory.readByte(0x10 + ((0x0070 & instruction) >> 4));
-                byte regR = dataMemory.readByte(0x10 + (0x0007 & instruction));
+                regD = dataMemory.readByte(0x10 + ((0x0070 & instruction) >> 4));
+                regR = dataMemory.readByte(0x10 + (0x0007 & instruction));
 
-                int outFMULS = (regD * regR) << 1;
+                outData = (regD * regR) << 1;
 
-                dataMemory.writeByte(0x01, (byte) ((0x00FF00 & outFMULS) >> 8));
-                dataMemory.writeByte(0x00, (byte) (0x00FF & outFMULS));
+                dataMemory.writeByte(0x01, (byte) ((0x00FF00 & outData) >> 8));
+                dataMemory.writeByte(0x00, (byte) (0x00FF & outData));
 
                 //C
-                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 0, !((0x8000 & outFMULS) == 0));
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 0, !((0x8000 & outData) == 0));
                 //Z
-                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 1, outFMULS == 0);
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 1, outData == 0);
             }
         },
         INSTRUCTION_FMULSU {
@@ -823,18 +778,18 @@ public class CPUModule implements Runnable, CPUInstructions {
 
                 waitClock();
 
-                byte regD = dataMemory.readByte(0x10 + ((0x0070 & instruction) >> 4));
-                byte regR = dataMemory.readByte(0x10 + (0x0007 & instruction));
+                regD = dataMemory.readByte(0x10 + ((0x0070 & instruction) >> 4));
+                regR = dataMemory.readByte(0x10 + (0x0007 & instruction));
 
-                int outFMULSU = (regD * (0x00FF & regR)) << 1;
+                outData = (regD * (0x00FF & regR)) << 1;
 
-                dataMemory.writeByte(0x01, (byte) ((0x00FF00 & outFMULSU) >> 8));
-                dataMemory.writeByte(0x00, (byte) (0x00FF & outFMULSU));
+                dataMemory.writeByte(0x01, (byte) ((0x00FF00 & outData) >> 8));
+                dataMemory.writeByte(0x00, (byte) (0x00FF & outData));
 
                 //C
-                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 0, !((0x8000 & outFMULSU) == 0));
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 0, !((0x8000 & outData) == 0));
                 //Z
-                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 1, outFMULSU == 0);
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 1, outData == 0);
             }
         },
         INSTRUCTION_ICALL {
@@ -847,13 +802,13 @@ public class CPUModule implements Runnable, CPUInstructions {
                 waitClock();
                 waitClock();
 
-                byte zRegL = dataMemory.readByte(0x1E);
-                byte zRegH = dataMemory.readByte(0x1F);
-                int callOut = (0x0000FF00 & (zRegH << 8)) | (0x000000FF & zRegL);
+                dataL = dataMemory.readByte(0x1E);
+                dataH = dataMemory.readByte(0x1F);
+                outData = (0x0000FF00 & (dataH << 8)) | (0x000000FF & dataL);
 
                 //PC is already in position to go to stack (write little-endian)
 
-                int stackPointer = (dataMemory.readByte(DataMemory_ATmega328P.SPH_ADDR) << 8) |
+                stackPointer = (dataMemory.readByte(DataMemory_ATmega328P.SPH_ADDR) << 8) |
                         (0x000000FF & dataMemory.readByte(DataMemory_ATmega328P.SPL_ADDR));
 
                 //Write PC low
@@ -868,7 +823,7 @@ public class CPUModule implements Runnable, CPUInstructions {
                 //Update SPH
                 dataMemory.writeByte(DataMemory_ATmega328P.SPH_ADDR, (byte) ((0x0000FF00 & stackPointer) >> 8));
 
-                programMemory.setPC(callOut);
+                programMemory.setPC(outData);
             }
         },
         INSTRUCTION_IJMP {
@@ -881,11 +836,11 @@ public class CPUModule implements Runnable, CPUInstructions {
                 waitClock();
                 waitClock();
 
-                byte zRegL = dataMemory.readByte(0x1E);
-                byte zRegH = dataMemory.readByte(0x1F);
-                int jumpOut = (0x0000FF00 & (zRegH << 8)) | (0x000000FF & zRegL);
+                dataL = dataMemory.readByte(0x1E);
+                dataH = dataMemory.readByte(0x1F);
+                outData = (0x0000FF00 & (dataH << 8)) | (0x000000FF & dataL);
 
-                programMemory.setPC(jumpOut);
+                programMemory.setPC(outData);
             }
         },
         INSTRUCTION_IN {
@@ -903,8 +858,8 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************INC***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction INC");
 
-                byte regD = dataMemory.readByte((0x01F0 & instruction) >> 4);
-                byte result = (byte) (regD + 1);
+                regD = dataMemory.readByte((0x01F0 & instruction) >> 4);
+                result = (byte) (regD + 1);
 
                 dataMemory.writeByte((0x01F0 & instruction) >> 4, result);
 
@@ -937,10 +892,10 @@ public class CPUModule implements Runnable, CPUInstructions {
                 waitClock();
                 waitClock();
 
-                int jumpOut = (0x0001 & instruction) | ((0x01F0 & instruction) >> 3);
+                outData = (0x0001 & instruction) | ((0x01F0 & instruction) >> 3);
                 instruction = programMemory.loadInstruction();
-                jumpOut = (jumpOut << 16) | instruction;
-                programMemory.setPC(jumpOut);
+                outData = (outData << 16) | instruction;
+                programMemory.setPC(outData);
             }
         },
         INSTRUCTION_LD_X_POST_INCREMENT {
@@ -951,15 +906,15 @@ public class CPUModule implements Runnable, CPUInstructions {
 
                 waitClock();
 
-                byte xRegL = dataMemory.readByte(0x1A);
-                byte xRegH = dataMemory.readByte(0x1B);
-                int destAddress = (0x0000FF00 & (xRegH << 8)) | (0x000000FF & xRegL);
+                dataL = dataMemory.readByte(0x1A);
+                dataH = dataMemory.readByte(0x1B);
+                outAddress = (0x0000FF00 & (dataH << 8)) | (0x000000FF & dataL);
 
-                dataMemory.writeByte((0x01F0 & instruction) >> 4, dataMemory.readByte(destAddress));
+                dataMemory.writeByte((0x01F0 & instruction) >> 4, dataMemory.readByte(outAddress));
 
-                destAddress += 1;
-                dataMemory.writeByte(0x1A, (byte) (0x000000FF & destAddress));
-                dataMemory.writeByte(0x1B, (byte) ((0x0000FF00 & destAddress) >> 8));
+                outAddress += 1;
+                dataMemory.writeByte(0x1A, (byte) (0x000000FF & outAddress));
+                dataMemory.writeByte(0x1B, (byte) ((0x0000FF00 & outAddress) >> 8));
             }
         },
         INSTRUCTION_LD_X_PRE_DECREMENT {
@@ -970,16 +925,16 @@ public class CPUModule implements Runnable, CPUInstructions {
 
                 waitClock();
 
-                byte xRegL = dataMemory.readByte(0x1A);
-                byte xRegH = dataMemory.readByte(0x1B);
-                int destAddress = (0x0000FF00 & (xRegH << 8)) | (0x000000FF & xRegL);
+                dataL = dataMemory.readByte(0x1A);
+                dataH = dataMemory.readByte(0x1B);
+                outAddress = (0x0000FF00 & (dataH << 8)) | (0x000000FF & dataL);
 
-                destAddress -= 1;
+                outAddress -= 1;
 
-                dataMemory.writeByte((0x01F0 & instruction) >> 4, dataMemory.readByte(destAddress));
+                dataMemory.writeByte((0x01F0 & instruction) >> 4, dataMemory.readByte(outAddress));
 
-                dataMemory.writeByte(0x1A, (byte) (0x000000FF & destAddress));
-                dataMemory.writeByte(0x1B, (byte) ((0x0000FF00 & destAddress) >> 8));
+                dataMemory.writeByte(0x1A, (byte) (0x000000FF & outAddress));
+                dataMemory.writeByte(0x1B, (byte) ((0x0000FF00 & outAddress) >> 8));
             }
         },
         INSTRUCTION_LD_X_UNCHANGED {
@@ -990,11 +945,11 @@ public class CPUModule implements Runnable, CPUInstructions {
 
                 waitClock();
 
-                byte xRegL = dataMemory.readByte(0x1A);
-                byte xRegH = dataMemory.readByte(0x1B);
-                int destAddress = (0x0000FF00 & (xRegH << 8)) | (0x000000FF & xRegL);
+                dataL = dataMemory.readByte(0x1A);
+                dataH = dataMemory.readByte(0x1B);
+                outAddress = (0x0000FF00 & (dataH << 8)) | (0x000000FF & dataL);
 
-                dataMemory.writeByte((0x01F0 & instruction) >> 4, dataMemory.readByte(destAddress));
+                dataMemory.writeByte((0x01F0 & instruction) >> 4, dataMemory.readByte(outAddress));
             }
         },
         INSTRUCTION_LD_Y_POST_INCREMENT {
@@ -1005,15 +960,15 @@ public class CPUModule implements Runnable, CPUInstructions {
 
                 waitClock();
 
-                byte yRegL = dataMemory.readByte(0x1C);
-                byte yRegH = dataMemory.readByte(0x1D);
-                int destAddress = (0x0000FF00 & (yRegH << 8)) | (0x000000FF & yRegL);
+                dataL = dataMemory.readByte(0x1C);
+                dataH = dataMemory.readByte(0x1D);
+                outAddress = (0x0000FF00 & (dataH << 8)) | (0x000000FF & dataL);
 
-                dataMemory.writeByte((0x01F0 & instruction) >> 4, dataMemory.readByte(destAddress));
+                dataMemory.writeByte((0x01F0 & instruction) >> 4, dataMemory.readByte(outAddress));
 
-                destAddress += 1;
-                dataMemory.writeByte(0x1C, (byte) (0x000000FF & destAddress));
-                dataMemory.writeByte(0x1D, (byte) ((0x0000FF00 & destAddress) >> 8));
+                outAddress += 1;
+                dataMemory.writeByte(0x1C, (byte) (0x000000FF & outAddress));
+                dataMemory.writeByte(0x1D, (byte) ((0x0000FF00 & outAddress) >> 8));
             }
         },
         INSTRUCTION_LD_Y_PRE_DECREMENT {
@@ -1024,16 +979,16 @@ public class CPUModule implements Runnable, CPUInstructions {
 
                 waitClock();
 
-                byte yRegL = dataMemory.readByte(0x1C);
-                byte yRegH = dataMemory.readByte(0x1D);
-                int destAddress = (0x0000FF00 & (yRegH << 8)) | (0x000000FF & yRegL);
+                dataL = dataMemory.readByte(0x1C);
+                dataH = dataMemory.readByte(0x1D);
+                outAddress = (0x0000FF00 & (dataH << 8)) | (0x000000FF & dataL);
 
-                destAddress -= 1;
+                outAddress -= 1;
 
-                dataMemory.writeByte((0x01F0 & instruction) >> 4, dataMemory.readByte(destAddress));
+                dataMemory.writeByte((0x01F0 & instruction) >> 4, dataMemory.readByte(outAddress));
 
-                dataMemory.writeByte(0x1C, (byte) (0x000000FF & destAddress));
-                dataMemory.writeByte(0x1D, (byte) ((0x0000FF00 & destAddress) >> 8));
+                dataMemory.writeByte(0x1C, (byte) (0x000000FF & outAddress));
+                dataMemory.writeByte(0x1D, (byte) ((0x0000FF00 & outAddress) >> 8));
             }
         },
         INSTRUCTION_LD_Y_UNCHANGED {
@@ -1044,11 +999,11 @@ public class CPUModule implements Runnable, CPUInstructions {
 
                 waitClock();
 
-                byte yRegL = dataMemory.readByte(0x1C);
-                byte yRegH = dataMemory.readByte(0x1D);
-                int destAddress = (0x0000FF00 & (yRegH << 8)) | (0x000000FF & yRegL);
+                dataL = dataMemory.readByte(0x1C);
+                dataH = dataMemory.readByte(0x1D);
+                outAddress = (0x0000FF00 & (dataH << 8)) | (0x000000FF & dataL);
 
-                dataMemory.writeByte((0x01F0 & instruction) >> 4, dataMemory.readByte(destAddress));
+                dataMemory.writeByte((0x01F0 & instruction) >> 4, dataMemory.readByte(outAddress));
             }
         },
         INSTRUCTION_LD_Z_POST_INCREMENT {
@@ -1059,15 +1014,15 @@ public class CPUModule implements Runnable, CPUInstructions {
 
                 waitClock();
 
-                byte zRegL = dataMemory.readByte(0x1E);
-                byte zRegH = dataMemory.readByte(0x1F);
-                int destAddress = (0x0000FF00 & (zRegH << 8)) | (0x000000FF & zRegL);
+                dataL = dataMemory.readByte(0x1E);
+                dataH = dataMemory.readByte(0x1F);
+                outAddress = (0x0000FF00 & (dataH << 8)) | (0x000000FF & dataL);
 
-                dataMemory.writeByte((0x01F0 & instruction) >> 4, dataMemory.readByte(destAddress));
+                dataMemory.writeByte((0x01F0 & instruction) >> 4, dataMemory.readByte(outAddress));
 
-                destAddress += 1;
-                dataMemory.writeByte(0x1E, (byte) (0x000000FF & destAddress));
-                dataMemory.writeByte(0x1F, (byte) ((0x0000FF00 & destAddress) >> 8));
+                outAddress += 1;
+                dataMemory.writeByte(0x1E, (byte) (0x000000FF & outAddress));
+                dataMemory.writeByte(0x1F, (byte) ((0x0000FF00 & outAddress) >> 8));
             }
         },
         INSTRUCTION_LD_Z_PRE_DECREMENT {
@@ -1078,15 +1033,15 @@ public class CPUModule implements Runnable, CPUInstructions {
 
                 waitClock();
 
-                byte zRegL = dataMemory.readByte(0x1E);
-                byte zRegH = dataMemory.readByte(0x1F);
-                int destAddress = (0x0000FF00 & (zRegH << 8)) | (0x000000FF & zRegL);
+                dataL = dataMemory.readByte(0x1E);
+                dataH = dataMemory.readByte(0x1F);
+                outAddress = (0x0000FF00 & (dataH << 8)) | (0x000000FF & dataL);
 
-                destAddress -= 1;
-                dataMemory.writeByte((0x01F0 & instruction) >> 4, dataMemory.readByte(destAddress));
+                outAddress -= 1;
+                dataMemory.writeByte((0x01F0 & instruction) >> 4, dataMemory.readByte(outAddress));
 
-                dataMemory.writeByte(0x1E, (byte) (0x000000FF & destAddress));
-                dataMemory.writeByte(0x1F, (byte) ((0x0000FF00 & destAddress) >> 8));
+                dataMemory.writeByte(0x1E, (byte) (0x000000FF & outAddress));
+                dataMemory.writeByte(0x1F, (byte) ((0x0000FF00 & outAddress) >> 8));
             }
         },
         INSTRUCTION_LD_Z_UNCHANGED {
@@ -1097,11 +1052,11 @@ public class CPUModule implements Runnable, CPUInstructions {
 
                 waitClock();
 
-                byte zRegL = dataMemory.readByte(0x1E);
-                byte zRegH = dataMemory.readByte(0x1F);
-                int destAddress = (0x0000FF00 & (zRegH << 8)) | (0x000000FF & zRegL);
+                dataL = dataMemory.readByte(0x1E);
+                dataH = dataMemory.readByte(0x1F);
+                outAddress = (0x0000FF00 & (dataH << 8)) | (0x000000FF & dataL);
 
-                dataMemory.writeByte((0x01F0 & instruction) >> 4, dataMemory.readByte(destAddress));
+                dataMemory.writeByte((0x01F0 & instruction) >> 4, dataMemory.readByte(outAddress));
             }
         },
         INSTRUCTION_LDD_Y {
@@ -1112,13 +1067,13 @@ public class CPUModule implements Runnable, CPUInstructions {
 
                 waitClock();
 
-                byte yRegL = dataMemory.readByte(0x1C);
-                byte yRegH = dataMemory.readByte(0x1D);
-                int destAddress = (0x0000FF00 & (yRegH << 8)) | (0x000000FF & yRegL);
+                dataL = dataMemory.readByte(0x1C);
+                dataH = dataMemory.readByte(0x1D);
+                outAddress = (0x0000FF00 & (dataH << 8)) | (0x000000FF & dataL);
 
-                destAddress += (((0x2000 & instruction) >> 8) | ((0x0C00 & instruction) >> 7) | (0x0007 & instruction));
+                outAddress += (((0x2000 & instruction) >> 8) | ((0x0C00 & instruction) >> 7) | (0x0007 & instruction));
 
-                dataMemory.writeByte((0x01F0 & instruction) >> 4, dataMemory.readByte(destAddress));
+                dataMemory.writeByte((0x01F0 & instruction) >> 4, dataMemory.readByte(outAddress));
             }
         },
         INSTRUCTION_LDD_Z {
@@ -1129,13 +1084,13 @@ public class CPUModule implements Runnable, CPUInstructions {
 
                 waitClock();
 
-                byte zRegL = dataMemory.readByte(0x1E);
-                byte zRegH = dataMemory.readByte(0x1F);
-                int destAddress = (0x0000FF00 & (zRegH << 8)) | (0x000000FF & zRegL);
+                dataL = dataMemory.readByte(0x1E);
+                dataH = dataMemory.readByte(0x1F);
+                outAddress = (0x0000FF00 & (dataH << 8)) | (0x000000FF & dataL);
 
-                destAddress += (((0x2000 & instruction) >> 8) | ((0x0C00 & instruction) >> 7) | (0x0007 & instruction));
+                outAddress += (((0x2000 & instruction) >> 8) | ((0x0C00 & instruction) >> 7) | (0x0007 & instruction));
 
-                dataMemory.writeByte((0x01F0 & instruction) >> 4, dataMemory.readByte(destAddress));
+                dataMemory.writeByte((0x01F0 & instruction) >> 4, dataMemory.readByte(outAddress));
             }
         },
         INSTRUCTION_LDI {//LDI - SER
@@ -1158,10 +1113,10 @@ public class CPUModule implements Runnable, CPUInstructions {
 
                 waitClock();
 
-                int sdramDataAddress = (0x0000FFFF & programMemory.loadInstruction());
+                outAddress = (0x0000FFFF & programMemory.loadInstruction());
 
                 dataMemory.writeByte(((0x01F0 & instruction) >> 4),
-                        dataMemory.readByte(sdramDataAddress));
+                        dataMemory.readByte(outAddress));
             }
         },
         INSTRUCTION_LPM_Z_POST_INCREMENT {
@@ -1173,15 +1128,15 @@ public class CPUModule implements Runnable, CPUInstructions {
                 waitClock();
                 waitClock();
 
-                byte zRegL = dataMemory.readByte(0x1E);
-                byte zRegH = dataMemory.readByte(0x1F);
-                int destAddress = (0x0000FF00 & (zRegH << 8)) | (0x000000FF & zRegL);
+                dataL = dataMemory.readByte(0x1E);
+                dataH = dataMemory.readByte(0x1F);
+                outAddress = (0x0000FF00 & (dataH << 8)) | (0x000000FF & dataL);
 
-                dataMemory.writeByte((0x01F0 & instruction) >> 4, programMemory.readByte(destAddress));
+                dataMemory.writeByte((0x01F0 & instruction) >> 4, programMemory.readByte(outAddress));
 
-                destAddress += 1;
-                dataMemory.writeByte(0x1E, (byte) (0x000000FF & destAddress));
-                dataMemory.writeByte(0x1F, (byte) ((0x0000FF00 & destAddress) >> 8));
+                outAddress += 1;
+                dataMemory.writeByte(0x1E, (byte) (0x000000FF & outAddress));
+                dataMemory.writeByte(0x1F, (byte) ((0x0000FF00 & outAddress) >> 8));
             }
         },
         INSTRUCTION_LPM_Z_UNCHANGED_DEST_R0 {
@@ -1193,11 +1148,11 @@ public class CPUModule implements Runnable, CPUInstructions {
                 waitClock();
                 waitClock();
 
-                byte zRegL = dataMemory.readByte(0x1E);
-                byte zRegH = dataMemory.readByte(0x1F);
-                int destAddress = (0x0000FF00 & (zRegH << 8)) | (0x000000FF & zRegL);
+                dataL = dataMemory.readByte(0x1E);
+                dataH = dataMemory.readByte(0x1F);
+                outAddress = (0x0000FF00 & (dataH << 8)) | (0x000000FF & dataL);
 
-                dataMemory.writeByte(0, programMemory.readByte(destAddress));
+                dataMemory.writeByte(0, programMemory.readByte(outAddress));
             }
         },
         INSTRUCTION_LPM_Z_UNCHANGED {
@@ -1209,11 +1164,11 @@ public class CPUModule implements Runnable, CPUInstructions {
                 waitClock();
                 waitClock();
 
-                byte zRegL = dataMemory.readByte(0x1E);
-                byte zRegH = dataMemory.readByte(0x1F);
-                int destAddress = (0x0000FF00 & (zRegH << 8)) | (0x000000FF & zRegL);
+                dataL = dataMemory.readByte(0x1E);
+                dataH = dataMemory.readByte(0x1F);
+                outAddress = (0x0000FF00 & (dataH << 8)) | (0x000000FF & dataL);
 
-                dataMemory.writeByte((0x01F0 & instruction) >> 4, programMemory.readByte(destAddress));
+                dataMemory.writeByte((0x01F0 & instruction) >> 4, programMemory.readByte(outAddress));
             }
         },
         INSTRUCTION_LSR {
@@ -1222,9 +1177,9 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************LSR***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction LSR");
 
-                byte regD = dataMemory.readByte((0x01F0 & instruction) >> 4);
+                regD = dataMemory.readByte((0x01F0 & instruction) >> 4);
 
-                byte result = (byte) (0x007F & (regD >> 1));
+                result = (byte) (0x007F & (regD >> 1));
 
                 dataMemory.writeByte((0x01F0 & instruction) >> 4, result);
 
@@ -1277,18 +1232,18 @@ public class CPUModule implements Runnable, CPUInstructions {
 
                 waitClock();
 
-                byte regD = dataMemory.readByte((0x01F0 & instruction) >> 4);
-                byte regR = dataMemory.readByte(((0x0200 & instruction) >> 5) | (0x000F & instruction));
+                regD = dataMemory.readByte((0x01F0 & instruction) >> 4);
+                regR = dataMemory.readByte(((0x0200 & instruction) >> 5) | (0x000F & instruction));
 
-                int outMUL = ((0x00FF & regD) * (0x00FF & regR));
+                outData = ((0x00FF & regD) * (0x00FF & regR));
 
-                dataMemory.writeByte(0x01, (byte) ((0x00FF00 & outMUL) >> 8));
-                dataMemory.writeByte(0x00, (byte) (0x00FF & outMUL));
+                dataMemory.writeByte(0x01, (byte) ((0x00FF00 & outData) >> 8));
+                dataMemory.writeByte(0x00, (byte) (0x00FF & outData));
 
                 //C
-                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 0, !((0x8000 & outMUL) == 0));
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 0, !((0x8000 & outData) == 0));
                 //Z
-                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 1, outMUL == 0);
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 1, outData == 0);
             }
         },
         INSTRUCTION_MULS {
@@ -1299,18 +1254,18 @@ public class CPUModule implements Runnable, CPUInstructions {
 
                 waitClock();
 
-                byte regD = dataMemory.readByte((0x01F0 & instruction) >> 4);
-                byte regR = dataMemory.readByte(((0x0200 & instruction) >> 5) | (0x000F & instruction));
+                regD = dataMemory.readByte((0x01F0 & instruction) >> 4);
+                regR = dataMemory.readByte(((0x0200 & instruction) >> 5) | (0x000F & instruction));
 
-                int outMUL = (regD * regR);
+                outData = (regD * regR);
 
-                dataMemory.writeByte(0x01, (byte) ((0x00FF00 & outMUL) >> 8));
-                dataMemory.writeByte(0x00, (byte) (0x00FF & outMUL));
+                dataMemory.writeByte(0x01, (byte) ((0x00FF00 & outData) >> 8));
+                dataMemory.writeByte(0x00, (byte) (0x00FF & outData));
 
                 //C
-                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 0, !((0x8000 & outMUL) == 0));
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 0, !((0x8000 & outData) == 0));
                 //Z
-                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 1, outMUL == 0);
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 1, outData == 0);
             }
         },
         INSTRUCTION_MULSU {
@@ -1321,18 +1276,18 @@ public class CPUModule implements Runnable, CPUInstructions {
 
                 waitClock();
 
-                byte regD = dataMemory.readByte((0x01F0 & instruction) >> 4);
-                byte regR = dataMemory.readByte(((0x0200 & instruction) >> 5) | (0x000F & instruction));
+                regD = dataMemory.readByte((0x01F0 & instruction) >> 4);
+                regR = dataMemory.readByte(((0x0200 & instruction) >> 5) | (0x000F & instruction));
 
-                int outMUL = (regD * (0x00FF & regR));
+                outData = (regD * (0x00FF & regR));
 
-                dataMemory.writeByte(0x01, (byte) ((0x00FF00 & outMUL) >> 8));
-                dataMemory.writeByte(0x00, (byte) (0x00FF & outMUL));
+                dataMemory.writeByte(0x01, (byte) ((0x00FF00 & outData) >> 8));
+                dataMemory.writeByte(0x00, (byte) (0x00FF & outData));
 
                 //C
-                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 0, !((0x8000 & outMUL) == 0));
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 0, !((0x8000 & outData) == 0));
                 //Z
-                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 1, outMUL == 0);
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 1, outData == 0);
             }
         },
         INSTRUCTION_NEG {
@@ -1341,24 +1296,24 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************NEG***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction NEG");
 
-                byte regValue = dataMemory.readByte((0x01F0 & instruction) >> 4);
-                byte outValue = (byte) (0x00 - regValue);
-                dataMemory.writeByte((0x01F0 & instruction) >> 4, outValue);
+                regD = dataMemory.readByte((0x01F0 & instruction) >> 4);
+                result = (byte) (0x00 - regD);
+                dataMemory.writeByte((0x01F0 & instruction) >> 4, result);
 
                 //Flag C
-                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 0, outValue != 0);
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 0, result != 0);
                 //Flag Z
-                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 1, outValue == 0);
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 1, result == 0);
                 //Flag N
-                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 2, !((0x80 & outValue) == 0));
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 2, !((0x80 & result) == 0));
                 //Flag V
-                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 3, outValue == -128);
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 3, result == -128);
                 //Flag S
                 dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 4,
                         dataMemory.readBit(DataMemory_ATmega328P.SREG_ADDR, 2) ^ dataMemory.readBit(DataMemory_ATmega328P.SREG_ADDR, 3));
 
                 //Flag H
-                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 5, (((0x08 & outValue) != 0) | ((0x08 & regValue) != 0)));
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 5, (((0x08 & result) != 0) | ((0x08 & result) != 0)));
 
 
             }
@@ -1376,17 +1331,17 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************OR***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction OR");
 
-                int outAddressOR = (0x01F0 & instruction) >> 4;
-                byte outDataOR = (byte) (dataMemory.readByte(outAddressOR) |
+                outAddress = (0x01F0 & instruction) >> 4;
+                result = (byte) (dataMemory.readByte(outAddress) |
                         dataMemory.readByte(((0x0200 & instruction) >> 5) | (0x000F & instruction)));
 
-                dataMemory.writeByte(outAddressOR, outDataOR);
+                dataMemory.writeByte(outAddress, result);
 
                 //Update Status Register
                 //Flag Z
-                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 1, outDataOR == 0);
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 1, result == 0);
                 //Flag N
-                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 2, !((0x80 & outDataOR) == 0));
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 2, !((0x80 & result) == 0));
                 //Flag V
                 dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 3, false);
                 //Flag S
@@ -1401,16 +1356,16 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************ORI/SBR***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction ORI/SBR");
 
-                int Rd = (0x10 | (0x00F0 & instruction) >> 4);
-                byte outData = (byte) (dataMemory.readByte(Rd) | (((0x0F00 & instruction) >> 4) | (0x000F & instruction)));
+                outAddress = (0x10 | (0x00F0 & instruction) >> 4);
+                result = (byte) (dataMemory.readByte(outAddress) | (((0x0F00 & instruction) >> 4) | (0x000F & instruction)));
 
-                dataMemory.writeByte(Rd, outData);
+                dataMemory.writeByte(outAddress, result);
 
                 //Update Flags
                 //Flag Z
-                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 1, outData == 0);
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 1, result == 0);
                 //Flag N
-                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 2, !((0x80 & outData) == 0));
+                dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 2, !((0x80 & result) == 0));
                 //Flag V
                 dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 3, false);
                 //Flag S
@@ -1438,13 +1393,13 @@ public class CPUModule implements Runnable, CPUInstructions {
 
                 waitClock();
 
-                int stackPointer = (dataMemory.readByte(DataMemory_ATmega328P.SPH_ADDR) << 8) |
+                stackPointer = (dataMemory.readByte(DataMemory_ATmega328P.SPH_ADDR) << 8) |
                         (0x000000FF & dataMemory.readByte(DataMemory_ATmega328P.SPL_ADDR));
 
-                byte value = dataMemory.readByte(stackPointer);
+                result = dataMemory.readByte(stackPointer);
                 stackPointer += 1;
 
-                dataMemory.writeByte((0x01F0 & instruction) >> 4, value);
+                dataMemory.writeByte((0x01F0 & instruction) >> 4, result);
 
                 //Update SPL
                 dataMemory.writeByte(DataMemory_ATmega328P.SPL_ADDR, (byte) (0x000000FF & stackPointer));
@@ -1460,13 +1415,13 @@ public class CPUModule implements Runnable, CPUInstructions {
 
                 waitClock();
 
-                byte value = dataMemory.readByte((0x01F0 & instruction) >> 4);
+                result = dataMemory.readByte((0x01F0 & instruction) >> 4);
 
-                int stackPointer = (dataMemory.readByte(DataMemory_ATmega328P.SPH_ADDR) << 8) |
+                stackPointer = (dataMemory.readByte(DataMemory_ATmega328P.SPH_ADDR) << 8) |
                         (0x000000FF & dataMemory.readByte(DataMemory_ATmega328P.SPL_ADDR));
 
                 stackPointer -= 1;
-                dataMemory.writeByte(stackPointer, value);
+                dataMemory.writeByte(stackPointer, result);
 
                 //Update SPL
                 dataMemory.writeByte(DataMemory_ATmega328P.SPL_ADDR, (byte) (0x000000FF & stackPointer));
@@ -1482,9 +1437,9 @@ public class CPUModule implements Runnable, CPUInstructions {
                 waitClock();
                 waitClock();
 
-                int callOut = ((0x0FFF & instruction) << 20) >> 20;
+                outData = ((0x0FFF & instruction) << 20) >> 20;
 
-                int stackPointer = (dataMemory.readByte(DataMemory_ATmega328P.SPH_ADDR) << 8) |
+                stackPointer = (dataMemory.readByte(DataMemory_ATmega328P.SPH_ADDR) << 8) |
                         (0x000000FF & dataMemory.readByte(DataMemory_ATmega328P.SPL_ADDR));
 
                 //Write PC low
@@ -1499,7 +1454,7 @@ public class CPUModule implements Runnable, CPUInstructions {
                 //Update SPH
                 dataMemory.writeByte(DataMemory_ATmega328P.SPH_ADDR, (byte) ((0x0000FF00 & stackPointer) >> 8));
 
-                programMemory.addToPC(callOut);          //Make sign extension to get correct two complement
+                programMemory.addToPC(outData);          //Make sign extension to get correct two complement
             }
         },
         INSTRUCTION_RET {
@@ -1513,16 +1468,16 @@ public class CPUModule implements Runnable, CPUInstructions {
                 waitClock();
                 waitClock();
 
-                int stackPointer = (dataMemory.readByte(DataMemory_ATmega328P.SPH_ADDR) << 8) |
+                stackPointer = (dataMemory.readByte(DataMemory_ATmega328P.SPH_ADDR) << 8) |
                         (0x000000FF & dataMemory.readByte(DataMemory_ATmega328P.SPL_ADDR));
 
                 //PC little endian read
-                byte pcHigh = dataMemory.readByte(stackPointer);
+                dataH = dataMemory.readByte(stackPointer);
                 stackPointer += 1;
-                byte pcLow = dataMemory.readByte(stackPointer);
+                dataL = dataMemory.readByte(stackPointer);
                 stackPointer += 1;
 
-                programMemory.setPC(((0x000000FF & pcHigh) << 8) | (0x000000FF & pcLow));
+                programMemory.setPC(((0x000000FF & dataH) << 8) | (0x000000FF & dataL));
 
                 //Update SPL
                 dataMemory.writeByte(DataMemory_ATmega328P.SPL_ADDR, (byte) (0x000000FF & stackPointer));
@@ -1541,16 +1496,16 @@ public class CPUModule implements Runnable, CPUInstructions {
                 waitClock();
                 waitClock();
 
-                int stackPointer = (dataMemory.readByte(DataMemory_ATmega328P.SPH_ADDR) << 8) |
+                stackPointer = (dataMemory.readByte(DataMemory_ATmega328P.SPH_ADDR) << 8) |
                         (0x000000FF & dataMemory.readByte(DataMemory_ATmega328P.SPL_ADDR));
 
                 //PC little endian read
-                byte pcHigh = dataMemory.readByte(stackPointer);
+                dataH = dataMemory.readByte(stackPointer);
                 stackPointer += 1;
-                byte pcLow = dataMemory.readByte(stackPointer);
+                dataL = dataMemory.readByte(stackPointer);
                 stackPointer += 1;
 
-                programMemory.setPC(((0x000000FF & pcHigh) << 8) | (0x000000FF & pcLow));
+                programMemory.setPC(((0x000000FF & dataH) << 8) | (0x000000FF & dataL));
 
                 //Update SPL
                 dataMemory.writeByte(DataMemory_ATmega328P.SPL_ADDR, (byte) (0x000000FF & stackPointer));
@@ -1575,9 +1530,9 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************ROR***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction ROR");
 
-                byte regD = dataMemory.readByte((0x01F0 & instruction) >> 4);
+                regD = dataMemory.readByte((0x01F0 & instruction) >> 4);
 
-                byte result = (byte) (0x007F & (regD >> 1));
+                result = (byte) (0x007F & (regD >> 1));
 
                 if (dataMemory.readBit(DataMemory_ATmega328P.SREG_ADDR, 0)) {
                     result = (byte) (result | 0x0080);
@@ -1612,9 +1567,9 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************SBC***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction SBC");
 
-                byte regD = dataMemory.readByte((0x01F0 & instruction) >> 4);
-                byte regR = dataMemory.readByte(((0x0200 & instruction) >> 5) | (0x000F & instruction));
-                byte result = (byte) (regD - regR);
+                regD = dataMemory.readByte((0x01F0 & instruction) >> 4);
+                regR = dataMemory.readByte(((0x0200 & instruction) >> 5) | (0x000F & instruction));
+                result = (byte) (regD - regR);
 
                 //If carry is set
                 if (dataMemory.readBit(DataMemory_ATmega328P.SREG_ADDR, 0)) {
@@ -1665,9 +1620,9 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************SBCI***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction SBCI");
 
-                byte regD = dataMemory.readByte(0x10 | (0x00F0 & instruction) >> 4);
-                int imediateValue = ((0x0F00 & instruction) >> 4) | (0x000F & instruction);
-                byte result = (byte) (regD - imediateValue);
+                regD = dataMemory.readByte(0x10 | (0x00F0 & instruction) >> 4);
+                constValue = ((0x0F00 & instruction) >> 4) | (0x000F & instruction);
+                result = (byte) (regD - constValue);
 
                 //If carry is set
                 if (dataMemory.readBit(DataMemory_ATmega328P.SREG_ADDR, 0)) {
@@ -1679,16 +1634,16 @@ public class CPUModule implements Runnable, CPUInstructions {
                 //Flag H
                 dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 5,
                         (0x00000001 &
-                                (((((~(0x08 & regD)) & (0x08 & imediateValue)) |
-                                        ((0x08 & result) & (0x08 & imediateValue)) |
+                                (((((~(0x08 & regD)) & (0x08 & constValue)) |
+                                        ((0x08 & result) & (0x08 & constValue)) |
                                         ((~(0x08 & regD)) & (0x08 & result)))
                                         >> 3))) != 0);
 
                 //Flag V
                 dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 3,
                         (0x00000001 &
-                                (((0x80 & regD) & (~(0x80 & imediateValue)) & (~(0x80 & result)) |
-                                        (~(0x80 & regD)) & (0x80 & imediateValue) & (0x80 & result))
+                                (((0x80 & regD) & (~(0x80 & constValue)) & (~(0x80 & result)) |
+                                        (~(0x80 & regD)) & (0x80 & constValue) & (0x80 & result))
                                         >> 7)) != 0);
 
                 //Flag N
@@ -1706,8 +1661,8 @@ public class CPUModule implements Runnable, CPUInstructions {
                 //Flag C
                 dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 0,
                         (0x00000001 &
-                                (((((~(0x80 & regD)) & (0x80 & imediateValue)) |
-                                        ((0x80 & result) & (0x80 & imediateValue)) |
+                                (((((~(0x80 & regD)) & (0x80 & constValue)) |
+                                        ((0x80 & result) & (0x80 & constValue)) |
                                         ((~(0x80 & regD)) & (0x80 & result)))
                                         >> 7))) != 0);
             }
@@ -1734,8 +1689,8 @@ public class CPUModule implements Runnable, CPUInstructions {
 
                     //Test 2 word instructions
                     //JMP
-                    int testJMP_CALL = (0xFE0E & instruction);
-                    int testLDS_STS = (0xFE0F & instruction);
+                    testJMP_CALL = (0xFE0E & instruction);
+                    testLDS_STS = (0xFE0F & instruction);
 
                     if (testJMP_CALL == 0x940C ||       //JMP
                             testJMP_CALL == 0x940E ||   //CALL
@@ -1761,8 +1716,8 @@ public class CPUModule implements Runnable, CPUInstructions {
 
                     //Test 2 word instructions
                     //JMP
-                    int testJMP_CALL = (0xFE0E & instruction);
-                    int testLDS_STS = (0xFE0F & instruction);
+                    testJMP_CALL = (0xFE0E & instruction);
+                    testLDS_STS = (0xFE0F & instruction);
 
                     if (testJMP_CALL == 0x940C ||       //JMP
                             testJMP_CALL == 0x940E ||   //CALL
@@ -1782,31 +1737,31 @@ public class CPUModule implements Runnable, CPUInstructions {
                 Log.d(UCModule.MY_LOG_TAG, "Instruction SBIW");
                 waitClock();
 
-                int offset_SBIW = (((0x0030 & instruction) >> 4) * 2);
-                byte inDataL_SBIW = dataMemory.readByte(0x18 + offset_SBIW);
-                byte inDataH_SBIW = dataMemory.readByte(0x19 + offset_SBIW);
+                offset = (((0x0030 & instruction) >> 4) * 2);
+                dataL = dataMemory.readByte(0x18 + offset);
+                dataH = dataMemory.readByte(0x19 + offset);
 
-                int outData_SBIW = (((0x00FF & inDataH_SBIW) << 8) | (0x00FF & inDataL_SBIW)) -
+                outData = (((0x00FF & dataH) << 8) | (0x00FF & dataL)) -
                         (((0x00C0 & instruction) >> 2) | (0x000F & instruction));
 
-                dataMemory.writeByte(0x18 + offset_SBIW, (byte) (0x000000FF & outData_SBIW));
-                dataMemory.writeByte(0x19 + offset_SBIW, (byte) ((0x0000FF00 & outData_SBIW) >> 8));
+                dataMemory.writeByte(0x18 + offset, (byte) (0x000000FF & outData));
+                dataMemory.writeByte(0x19 + offset, (byte) ((0x0000FF00 & outData) >> 8));
 
                 //Flag C
                 dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 0,
-                        !(((~(inDataH_SBIW & 0x80)) & ((outData_SBIW & 0x00008000) >> 8)) == 0));
+                        !(((~(dataH & 0x80)) & ((outData & 0x00008000) >> 8)) == 0));
 
                 //Flag Z
                 dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 1,
-                        (outData_SBIW & 0x0000FFFF) == 0);
+                        (outData & 0x0000FFFF) == 0);
 
                 //Flag N
                 dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 2,
-                        !((outData_SBIW & 0x00008000) == 0));
+                        !((outData & 0x00008000) == 0));
 
                 //Flag V
                 dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 3,
-                        !(((inDataH_SBIW & 0x80) & ((~(outData_SBIW & 0x00008000)) >> 8)) == 0));
+                        !(((dataH & 0x80) & ((~(outData & 0x00008000)) >> 8)) == 0));
 
                 //Flag S
                 dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 4,
@@ -1827,8 +1782,8 @@ public class CPUModule implements Runnable, CPUInstructions {
 
                     //Test 2 word instructions
                     //JMP
-                    int testJMP_CALL = (0xFE0E & instruction);
-                    int testLDS_STS = (0xFE0F & instruction);
+                    testJMP_CALL = (0xFE0E & instruction);
+                    testLDS_STS = (0xFE0F & instruction);
 
                     if (testJMP_CALL == 0x940C ||       //JMP
                             testJMP_CALL == 0x940E ||   //CALL
@@ -1854,8 +1809,8 @@ public class CPUModule implements Runnable, CPUInstructions {
 
                     //Test 2 word instructions
                     //JMP
-                    int testJMP_CALL = (0xFE0E & instruction);
-                    int testLDS_STS = (0xFE0F & instruction);
+                    testJMP_CALL = (0xFE0E & instruction);
+                    testLDS_STS = (0xFE0F & instruction);
 
                     if (testJMP_CALL == 0x940C ||       //JMP
                             testJMP_CALL == 0x940E ||   //CALL
@@ -1883,15 +1838,15 @@ public class CPUModule implements Runnable, CPUInstructions {
                 waitClock();
                 waitClock();
 
-                byte zRegL = dataMemory.readByte(0x1E);
-                byte zRegH = dataMemory.readByte(0x1F);
-                int destAddress = (0x0000FF00 & (zRegH << 8)) | (0x000000FF & zRegL);
+                dataL = dataMemory.readByte(0x1E);
+                dataH = dataMemory.readByte(0x1F);
+                outAddress = (0x0000FF00 & (dataH << 8)) | (0x000000FF & dataL);
 
-                byte reg1 = dataMemory.readByte(0x01);
-                byte reg0 = dataMemory.readByte(0x00);
-                int wordData = (0x0000FF00 & (reg1 << 8)) | (0x000000FF & reg0);
+                regD = dataMemory.readByte(0x01);
+                regR = dataMemory.readByte(0x00);
+                outData = (0x0000FF00 & (regD << 8)) | (0x000000FF & regR);
 
-                programMemory.writeWord(destAddress, wordData);
+                programMemory.writeWord(outAddress, outData);
             }
         },
         INSTRUCTION_ST_X_POST_INCREMENT {
@@ -1902,19 +1857,19 @@ public class CPUModule implements Runnable, CPUInstructions {
 
                 waitClock();
 
-                byte xRegL = dataMemory.readByte(0x1A);
-                byte xRegH = dataMemory.readByte(0x1B);
-                int destAddress = (0x0000FF00 & (xRegH << 8)) | (0x000000FF & xRegL);
+                dataL = dataMemory.readByte(0x1A);
+                dataH = dataMemory.readByte(0x1B);
+                outAddress = (0x0000FF00 & (dataH << 8)) | (0x000000FF & dataL);
 
-                dataMemory.writeByte(destAddress, dataMemory.readByte((0x01F0 & instruction) >> 4));
+                dataMemory.writeByte(outAddress, dataMemory.readByte((0x01F0 & instruction) >> 4));
 
-                xRegL += 1;
-                if (xRegL == 0x00) {
-                    xRegH += 1;
+                dataL += 1;
+                if (dataL == 0x00) {
+                    dataH += 1;
                 }
 
-                dataMemory.writeByte(0x1A, xRegL);
-                dataMemory.writeByte(0x1B, xRegH);
+                dataMemory.writeByte(0x1A, dataL);
+                dataMemory.writeByte(0x1B, dataH);
             }
         },
         INSTRUCTION_ST_X_PRE_DECREMENT {
@@ -1925,20 +1880,20 @@ public class CPUModule implements Runnable, CPUInstructions {
 
                 waitClock();
 
-                byte xRegL = dataMemory.readByte(0x1A);
-                byte xRegH = dataMemory.readByte(0x1B);
+                dataL = dataMemory.readByte(0x1A);
+                dataH = dataMemory.readByte(0x1B);
 
-                if (xRegL == 0x00) {
-                    xRegH -= 1;
+                if (dataL == 0x00) {
+                    dataH -= 1;
                 }
-                xRegL -= 1;
+                dataL -= 1;
 
-                int destAddress = (0x0000FF00 & (xRegH << 8)) | (0x000000FF & xRegL);
+                outAddress = (0x0000FF00 & (dataH << 8)) | (0x000000FF & dataL);
 
-                dataMemory.writeByte(destAddress, dataMemory.readByte((0x01F0 & instruction) >> 4));
+                dataMemory.writeByte(outAddress, dataMemory.readByte((0x01F0 & instruction) >> 4));
 
-                dataMemory.writeByte(0x1A, xRegL);
-                dataMemory.writeByte(0x1B, xRegH);
+                dataMemory.writeByte(0x1A, dataL);
+                dataMemory.writeByte(0x1B, dataH);
             }
         },
         INSTRUCTION_ST_X_UNCHANGED {
@@ -1949,11 +1904,11 @@ public class CPUModule implements Runnable, CPUInstructions {
 
                 waitClock();
 
-                byte xRegL = dataMemory.readByte(0x1A);
-                byte xRegH = dataMemory.readByte(0x1B);
-                int destAddress = (0x0000FF00 & (xRegH << 8)) | (0x000000FF & xRegL);
+                dataL = dataMemory.readByte(0x1A);
+                dataH = dataMemory.readByte(0x1B);
+                outAddress = (0x0000FF00 & (dataH << 8)) | (0x000000FF & dataL);
 
-                dataMemory.writeByte(destAddress, dataMemory.readByte((0x01F0 & instruction) >> 4));
+                dataMemory.writeByte(outAddress, dataMemory.readByte((0x01F0 & instruction) >> 4));
             }
         },
         INSTRUCTION_ST_Y_POST_INCREMENT {
@@ -1964,19 +1919,19 @@ public class CPUModule implements Runnable, CPUInstructions {
 
                 waitClock();
 
-                byte yRegL = dataMemory.readByte(0x1C);
-                byte yRegH = dataMemory.readByte(0x1D);
-                int destAddress = (0x0000FF00 & (yRegH << 8)) | (0x000000FF & yRegL);
+                dataL = dataMemory.readByte(0x1C);
+                dataH = dataMemory.readByte(0x1D);
+                outAddress = (0x0000FF00 & (dataH << 8)) | (0x000000FF & dataL);
 
-                dataMemory.writeByte(destAddress, dataMemory.readByte((0x01F0 & instruction) >> 4));
+                dataMemory.writeByte(outAddress, dataMemory.readByte((0x01F0 & instruction) >> 4));
 
-                yRegL += 1;
-                if (yRegL == 0x00) {
-                    yRegH += 1;
+                dataL += 1;
+                if (dataL == 0x00) {
+                    dataH += 1;
                 }
 
-                dataMemory.writeByte(0x1C, yRegL);
-                dataMemory.writeByte(0x1D, yRegH);
+                dataMemory.writeByte(0x1C, dataL);
+                dataMemory.writeByte(0x1D, dataH);
             }
         },
         INSTRUCTION_ST_Y_PRE_DECREMENT {
@@ -1987,20 +1942,20 @@ public class CPUModule implements Runnable, CPUInstructions {
 
                 waitClock();
 
-                byte yRegL = dataMemory.readByte(0x1C);
-                byte yRegH = dataMemory.readByte(0x1D);
+                dataL = dataMemory.readByte(0x1C);
+                dataH = dataMemory.readByte(0x1D);
 
-                if (yRegL == 0x00) {
-                    yRegH -= 1;
+                if (dataL == 0x00) {
+                    dataH -= 1;
                 }
-                yRegL -= 1;
+                dataL -= 1;
 
-                int destAddress = (0x0000FF00 & (yRegH << 8)) | (0x000000FF & yRegL);
+                outAddress = (0x0000FF00 & (dataH << 8)) | (0x000000FF & dataL);
 
-                dataMemory.writeByte(destAddress, dataMemory.readByte((0x01F0 & instruction) >> 4));
+                dataMemory.writeByte(outAddress, dataMemory.readByte((0x01F0 & instruction) >> 4));
 
-                dataMemory.writeByte(0x1C, yRegL);
-                dataMemory.writeByte(0x1D, yRegH);
+                dataMemory.writeByte(0x1C, dataL);
+                dataMemory.writeByte(0x1D, dataH);
             }
         },
         INSTRUCTION_ST_Y_UNCHANGED {
@@ -2011,11 +1966,11 @@ public class CPUModule implements Runnable, CPUInstructions {
 
                 waitClock();
 
-                byte yRegL = dataMemory.readByte(0x1C);
-                byte yRegH = dataMemory.readByte(0x1D);
-                int destAddress = (0x0000FF00 & (yRegH << 8)) | (0x000000FF & yRegL);
+                dataL = dataMemory.readByte(0x1C);
+                dataH = dataMemory.readByte(0x1D);
+                outAddress = (0x0000FF00 & (dataH << 8)) | (0x000000FF & dataL);
 
-                dataMemory.writeByte(destAddress, dataMemory.readByte((0x01F0 & instruction) >> 4));
+                dataMemory.writeByte(outAddress, dataMemory.readByte((0x01F0 & instruction) >> 4));
             }
         },
         INSTRUCTION_ST_Z_POST_INCREMENT {
@@ -2026,15 +1981,15 @@ public class CPUModule implements Runnable, CPUInstructions {
 
                 waitClock();
 
-                byte zRegL = dataMemory.readByte(0x1E);
-                byte zRegH = dataMemory.readByte(0x1F);
-                int destAddress = (0x0000FF00 & (zRegH << 8)) | (0x000000FF & zRegL);
+                dataL = dataMemory.readByte(0x1E);
+                dataH = dataMemory.readByte(0x1F);
+                outAddress = (0x0000FF00 & (dataH << 8)) | (0x000000FF & dataL);
 
-                dataMemory.writeByte(destAddress, dataMemory.readByte((0x01F0 & instruction) >> 4));
+                dataMemory.writeByte(outAddress, dataMemory.readByte((0x01F0 & instruction) >> 4));
 
-                destAddress += 1;
-                dataMemory.writeByte(0x1E, (byte) (0x000000FF & destAddress));
-                dataMemory.writeByte(0x1F, (byte) ((0x0000FF00 & destAddress) >> 8));
+                outAddress += 1;
+                dataMemory.writeByte(0x1E, (byte) (0x000000FF & outAddress));
+                dataMemory.writeByte(0x1F, (byte) ((0x0000FF00 & outAddress) >> 8));
             }
         },
         INSTRUCTION_ST_Z_PRE_DECREMENT {
@@ -2045,16 +2000,16 @@ public class CPUModule implements Runnable, CPUInstructions {
 
                 waitClock();
 
-                byte zRegL = dataMemory.readByte(0x1E);
-                byte zRegH = dataMemory.readByte(0x1F);
-                int destAddress = (0x0000FF00 & (zRegH << 8)) | (0x000000FF & zRegL);
+                dataL = dataMemory.readByte(0x1E);
+                dataH = dataMemory.readByte(0x1F);
+                outAddress = (0x0000FF00 & (dataH << 8)) | (0x000000FF & dataL);
 
-                destAddress -= 1;
+                outAddress -= 1;
 
-                dataMemory.writeByte(destAddress, dataMemory.readByte((0x01F0 & instruction) >> 4));
+                dataMemory.writeByte(outAddress, dataMemory.readByte((0x01F0 & instruction) >> 4));
 
-                dataMemory.writeByte(0x1E, (byte) (0x000000FF & destAddress));
-                dataMemory.writeByte(0x1F, (byte) ((0x0000FF00 & destAddress) >> 8));
+                dataMemory.writeByte(0x1E, (byte) (0x000000FF & outAddress));
+                dataMemory.writeByte(0x1F, (byte) ((0x0000FF00 & outAddress) >> 8));
             }
         },
         INSTRUCTION_ST_Z_UNCHANGED {
@@ -2065,11 +2020,11 @@ public class CPUModule implements Runnable, CPUInstructions {
 
                 waitClock();
 
-                byte zRegL = dataMemory.readByte(0x1E);
-                byte zRegH = dataMemory.readByte(0x1F);
-                int destAddress = (0x0000FF00 & (zRegH << 8)) | (0x000000FF & zRegL);
+                dataL = dataMemory.readByte(0x1E);
+                dataH = dataMemory.readByte(0x1F);
+                outAddress = (0x0000FF00 & (dataH << 8)) | (0x000000FF & dataL);
 
-                dataMemory.writeByte(destAddress, dataMemory.readByte((0x01F0 & instruction) >> 4));
+                dataMemory.writeByte(outAddress, dataMemory.readByte((0x01F0 & instruction) >> 4));
             }
         },
         INSTRUCTION_STD_Y {
@@ -2080,13 +2035,13 @@ public class CPUModule implements Runnable, CPUInstructions {
 
                 waitClock();
 
-                byte yRegL = dataMemory.readByte(0x1C);
-                byte yRegH = dataMemory.readByte(0x1D);
-                int destAddress = (0x0000FF00 & (yRegH << 8)) | (0x000000FF & yRegL);
+                dataL = dataMemory.readByte(0x1C);
+                dataH = dataMemory.readByte(0x1D);
+                outAddress = (0x0000FF00 & (dataH << 8)) | (0x000000FF & dataL);
 
-                destAddress += (((0x2000 & instruction) >> 8) | ((0x0C00 & instruction) >> 7) | (0x0007 & instruction));
+                outAddress += (((0x2000 & instruction) >> 8) | ((0x0C00 & instruction) >> 7) | (0x0007 & instruction));
 
-                dataMemory.writeByte(destAddress, dataMemory.readByte((0x01F0 & instruction) >> 4));
+                dataMemory.writeByte(outAddress, dataMemory.readByte((0x01F0 & instruction) >> 4));
             }
         },
         INSTRUCTION_STD_Z {
@@ -2097,13 +2052,13 @@ public class CPUModule implements Runnable, CPUInstructions {
 
                 waitClock();
 
-                byte zRegL = dataMemory.readByte(0x1E);
-                byte zRegH = dataMemory.readByte(0x1F);
-                int destAddress = (0x0000FF00 & (zRegH << 8)) | (0x000000FF & zRegL);
+                dataL = dataMemory.readByte(0x1E);
+                dataH = dataMemory.readByte(0x1F);
+                outAddress = (0x0000FF00 & (dataH << 8)) | (0x000000FF & dataL);
 
-                destAddress += (((0x2000 & instruction) >> 8) | ((0x0C00 & instruction) >> 7) | (0x0007 & instruction));
+                outAddress += (((0x2000 & instruction) >> 8) | ((0x0C00 & instruction) >> 7) | (0x0007 & instruction));
 
-                dataMemory.writeByte(destAddress, dataMemory.readByte((0x01F0 & instruction) >> 4));
+                dataMemory.writeByte(outAddress, dataMemory.readByte((0x01F0 & instruction) >> 4));
             }
         },
         INSTRUCTION_STS {
@@ -2113,9 +2068,9 @@ public class CPUModule implements Runnable, CPUInstructions {
                 Log.d(UCModule.MY_LOG_TAG, "Instruction STS");
 
                 waitClock();
-                int sdramDataAddress = (0x0000FFFF & programMemory.loadInstruction());
+                outAddress = (0x0000FFFF & programMemory.loadInstruction());
 
-                dataMemory.writeByte(sdramDataAddress,
+                dataMemory.writeByte(outAddress,
                         dataMemory.readByte(((0x01F0 & instruction) >> 4)));
             }
         },
@@ -2125,10 +2080,10 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************SUB***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction SUB");
 
-                byte regD = dataMemory.readByte((0x01F0 & instruction) >> 4);
-                byte regR = dataMemory.readByte(((0x0200 & instruction) >> 5) | (0x000F & instruction));
+                regD = dataMemory.readByte((0x01F0 & instruction) >> 4);
+                regR = dataMemory.readByte(((0x0200 & instruction) >> 5) | (0x000F & instruction));
 
-                byte result = (byte) (regD - regR);
+                result = (byte) (regD - regR);
 
                 dataMemory.writeByte((0x01F0 & instruction) >> 4, result);
 
@@ -2174,25 +2129,25 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************SUBI***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction SUBI");
 
-                byte regD = dataMemory.readByte(0x10 | (0x00F0 & instruction) >> 4);
-                int imediateValue = ((0x0F00 & instruction) >> 4) | (0x000F & instruction);
-                byte result = (byte) (regD - imediateValue);
+                regD = dataMemory.readByte(0x10 | (0x00F0 & instruction) >> 4);
+                constValue = ((0x0F00 & instruction) >> 4) | (0x000F & instruction);
+                result = (byte) (regD - constValue);
 
                 dataMemory.writeByte((0x10 | (0x00F0 & instruction) >> 4), result);
 
                 //Flag H
                 dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 5,
                         (0x00000001 &
-                                (((((~(0x08 & regD)) & (0x08 & imediateValue)) |
-                                        ((0x08 & result) & (0x08 & imediateValue)) |
+                                (((((~(0x08 & regD)) & (0x08 & constValue)) |
+                                        ((0x08 & result) & (0x08 & constValue)) |
                                         ((~(0x08 & regD)) & (0x08 & result)))
                                         >> 3))) != 0);
 
                 //Flag V
                 dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 3,
                         (0x00000001 &
-                                (((0x80 & regD) & (~(0x80 & imediateValue)) & (~(0x80 & result)) |
-                                        (~(0x80 & regD)) & (0x80 & imediateValue) & (0x80 & result))
+                                (((0x80 & regD) & (~(0x80 & constValue)) & (~(0x80 & result)) |
+                                        (~(0x80 & regD)) & (0x80 & constValue) & (0x80 & result))
                                         >> 7)) != 0);
 
                 //Flag N
@@ -2210,8 +2165,8 @@ public class CPUModule implements Runnable, CPUInstructions {
                 //Flag C
                 dataMemory.writeBit(DataMemory_ATmega328P.SREG_ADDR, 0,
                         (0x00000001 &
-                                (((((~(0x80 & regD)) & (0x80 & imediateValue)) |
-                                        ((0x80 & result) & (0x80 & imediateValue)) |
+                                (((((~(0x80 & regD)) & (0x80 & constValue)) |
+                                        ((0x80 & result) & (0x80 & constValue)) |
                                         ((~(0x80 & regD)) & (0x80 & result)))
                                         >> 7))) != 0);
 
@@ -2223,7 +2178,7 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************SWAP***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction SWAP");
 
-                byte regD = dataMemory.readByte((0x01F0 & instruction) >> 4);
+                regD = dataMemory.readByte((0x01F0 & instruction) >> 4);
 
                 dataMemory.writeByte((0x01F0 & instruction) >> 4, (byte) ((regD << 4) | (0x0F & (regD >> 4))));
             }

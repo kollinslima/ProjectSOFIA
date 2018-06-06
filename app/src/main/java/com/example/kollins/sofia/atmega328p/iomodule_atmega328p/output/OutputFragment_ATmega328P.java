@@ -56,8 +56,10 @@ public class OutputFragment_ATmega328P extends Fragment implements OutputFragmen
     public static int[] pinbuffer = new int[UCModule.getPinArray().length];
 
     public static long[] oldTime = new long[UCModule.getPinArray().length];
+    public static long[] dcTimeLow = new long[UCModule.getPinArray().length];
     public static boolean[] evalFreq = new boolean[UCModule.getPinArray().length];
     public static double[] frequencyBuffer = new double[UCModule.getPinArray().length];
+    public static double[] dutyCycleBuffer = new double[UCModule.getPinArray().length];
 
     private ListView outputPinsList;
     private OutputAdapter_ATmega328P outputAdapter;
@@ -129,6 +131,7 @@ public class OutputFragment_ATmega328P extends Fragment implements OutputFragmen
         for (OutputPin_ATmega328P pin : outputPins) {
             pin.resetPinState();
         }
+
         outputAdapter.notifyDataSetChanged();
 
     }
@@ -257,13 +260,15 @@ public class OutputFragment_ATmega328P extends Fragment implements OutputFragmen
                     return;
                 }
 
-                TextView led = (TextView) view.findViewById(R.id.ledState);
-                TextView freq = (TextView) view.findViewById(R.id.frequency);
+                TextView led = view.findViewById(R.id.ledState);
+                TextView freq = view.findViewById(R.id.frequency);
+                TextView dc = view.findViewById(R.id.dutycycle);
                 try {
                     OutputPin_ATmega328P pin = outputPins.get(index);
                     led.setText(UCModule.resources.getStringArray(R.array.ledText)[pin.getPinState(pin.getPinPositionSpinner())]);
                     led.setBackgroundResource(BACKGROUND_PIN[pin.getPinState(pin.getPinPositionSpinner())]);
                     freq.setText(String.format("%.0f Hz", frequencyBuffer[pin.getPinPositionSpinner()]>=0?frequencyBuffer[pin.getPinPositionSpinner()]:0));
+                    dc.setText(String.format("%.0f %%", dutyCycleBuffer[pin.getPinPositionSpinner()]<=100?dutyCycleBuffer[pin.getPinPositionSpinner()]:100));
                 } catch (IndexOutOfBoundsException e){
                     Log.e(UCModule.MY_LOG_TAG, "ERROR: updateView", e);
                 }

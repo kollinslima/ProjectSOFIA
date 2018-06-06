@@ -27,6 +27,4 @@ public interface Timer1Module extends Runnable {
     int CLOCK_PRESCALER_1024            = 5;
     int EXTERNAL_CLOCK_T1_FALLING_EDGE  = 6;
     int EXTERNAL_CLOCK_T1_RISING_EDGE   = 7;
-
-    void clockTimer1();
 }

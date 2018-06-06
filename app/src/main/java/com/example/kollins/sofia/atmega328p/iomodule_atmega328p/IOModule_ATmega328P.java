@@ -54,6 +54,15 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
     private final int OC2B_PIN_POSITION = 3;
     private final int OC2A_PIN_POSITION = 11;
 
+    private final int OC0B_BIT_POSITION = 5;
+    private final int OC0A_BIT_POSITION = 6;
+
+    private final int OC1B_BIT_POSITION = 2;
+    private final int OC1A_BIT_POSITION = 1;
+
+    private final int OC2B_BIT_POSITION = 3;
+    private final int OC2A_BIT_POSITION = 3;
+
     private byte valueRead_B;
     private byte configRead_B;
     private byte valueRead_C;
@@ -210,18 +219,24 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
             return;
         }
 
-        if (outputFragment.pinbuffer[OC0A_PIN_POSITION] != stateOC0A) {
-            outputFragment.pinbuffer[OC0A_PIN_POSITION] = stateOC0A;
+        if (OutputFragment_ATmega328P.pinbuffer[OC0A_PIN_POSITION] != stateOC0A) {
+            OutputFragment_ATmega328P.pinbuffer[OC0A_PIN_POSITION] = stateOC0A;
 
-            if (outputFragment.evalFreq[OC0A_PIN_POSITION]) {
-//                Log.d("Freq", "Frequency: " + (Math.pow(10, 10) / (time - outputFragment.oldTime[OC0A_PIN_POSITION])));
-                outputFragment.frequencyBuffer[OC0A_PIN_POSITION] = Math.pow(10, 10) / (time - outputFragment.oldTime[OC0A_PIN_POSITION]);
-                outputFragment.oldTime[OC0A_PIN_POSITION] = time;
-                outputFragment.evalFreq[OC0A_PIN_POSITION] = false;
+            if (OutputFragment_ATmega328P.evalFreq[OC0A_PIN_POSITION]) {
+//                Log.d("Freq", "Frequency: " + (Math.pow(10, 10) / (time - OutputFragment_ATmega328P.oldTime[OC0A_PIN_POSITION])));
+                double period = time - OutputFragment_ATmega328P.oldTime[OC0A_PIN_POSITION];
+                OutputFragment_ATmega328P.frequencyBuffer[OC0A_PIN_POSITION] = Math.pow(10, 10) / period;
+                OutputFragment_ATmega328P.dutyCycleBuffer[OC0A_PIN_POSITION] = (1 - ((time - OutputFragment_ATmega328P.dcTimeLow[OC0A_PIN_POSITION]) / period))*100;
+
+                OutputFragment_ATmega328P.oldTime[OC0A_PIN_POSITION] = time;
+                OutputFragment_ATmega328P.evalFreq[OC0A_PIN_POSITION] = false;
             } else {
-                outputFragment.evalFreq[OC0A_PIN_POSITION] = true;
+                OutputFragment_ATmega328P.evalFreq[OC0A_PIN_POSITION] = true;
+                OutputFragment_ATmega328P.dcTimeLow[OC0A_PIN_POSITION] = time;
             }
         }
+
+        outputFragment.writeFeedback(DataMemory_ATmega328P.PIND_ADDR, OC0A_BIT_POSITION, OutputFragment_ATmega328P.pinbuffer[OC0A_PIN_POSITION] != 0);
 
         try {
             int index = 0;
@@ -249,18 +264,24 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
             return;
         }
 
-        if (outputFragment.pinbuffer[OC0B_PIN_POSITION] != stateOC0B) {
-            outputFragment.pinbuffer[OC0B_PIN_POSITION] = stateOC0B;
+        if (OutputFragment_ATmega328P.pinbuffer[OC0B_PIN_POSITION] != stateOC0B) {
+            OutputFragment_ATmega328P.pinbuffer[OC0B_PIN_POSITION] = stateOC0B;
 
-            if (outputFragment.evalFreq[OC0B_PIN_POSITION]) {
-//                Log.d("Freq", "Frequency: " + (Math.pow(10, 10) / (time - outputFragment.oldTime[OC0B_PIN_POSITION])));
-                outputFragment.frequencyBuffer[OC0B_PIN_POSITION] = Math.pow(10, 10) / (time - outputFragment.oldTime[OC0B_PIN_POSITION]);
-                outputFragment.oldTime[OC0B_PIN_POSITION] = time;
-                outputFragment.evalFreq[OC0B_PIN_POSITION] = false;
+            if (OutputFragment_ATmega328P.evalFreq[OC0B_PIN_POSITION]) {
+//                Log.d("Freq", "Frequency: " + (Math.pow(10, 10) / (time - OutputFragment_ATmega328P.oldTime[OC0B_PIN_POSITION])));
+                double period = time - OutputFragment_ATmega328P.oldTime[OC0B_PIN_POSITION];
+                OutputFragment_ATmega328P.frequencyBuffer[OC0B_PIN_POSITION] = Math.pow(10, 10) / period;
+                OutputFragment_ATmega328P.dutyCycleBuffer[OC0B_PIN_POSITION] = (1 - ((time - OutputFragment_ATmega328P.dcTimeLow[OC0B_PIN_POSITION]) / period))*100;
+
+                OutputFragment_ATmega328P.oldTime[OC0B_PIN_POSITION] = time;
+                OutputFragment_ATmega328P.evalFreq[OC0B_PIN_POSITION] = false;
             } else {
-                outputFragment.evalFreq[OC0B_PIN_POSITION] = true;
+                OutputFragment_ATmega328P.evalFreq[OC0B_PIN_POSITION] = true;
+                OutputFragment_ATmega328P.dcTimeLow[OC0B_PIN_POSITION] = time;
             }
         }
+
+        outputFragment.writeFeedback(DataMemory_ATmega328P.PIND_ADDR, OC0B_BIT_POSITION, OutputFragment_ATmega328P.pinbuffer[OC0B_PIN_POSITION] != 0);
 
         try {
             int index = 0;
@@ -287,18 +308,24 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
             return;
         }
 
-        if (outputFragment.pinbuffer[OC1A_PIN_POSITION] != stateOC1A) {
-            outputFragment.pinbuffer[OC1A_PIN_POSITION] = stateOC1A;
+        if (OutputFragment_ATmega328P.pinbuffer[OC1A_PIN_POSITION] != stateOC1A) {
+            OutputFragment_ATmega328P.pinbuffer[OC1A_PIN_POSITION] = stateOC1A;
 
-            if (outputFragment.evalFreq[OC1A_PIN_POSITION]) {
-//                Log.d("Freq", "Frequency: " + (Math.pow(10, 10) / (time - outputFragment.oldTime[OC1A_PIN_POSITION])));
-                outputFragment.frequencyBuffer[OC1A_PIN_POSITION] = Math.pow(10, 10) / (time - outputFragment.oldTime[OC1A_PIN_POSITION]);
-                outputFragment.oldTime[OC1A_PIN_POSITION] = time;
-                outputFragment.evalFreq[OC1A_PIN_POSITION] = false;
+            if (OutputFragment_ATmega328P.evalFreq[OC1A_PIN_POSITION]) {
+//                Log.d("Freq", "Frequency: " + (Math.pow(10, 10) / (time - OutputFragment_ATmega328P.oldTime[OC1A_PIN_POSITION])));
+                double period = time - OutputFragment_ATmega328P.oldTime[OC1A_PIN_POSITION];
+                OutputFragment_ATmega328P.frequencyBuffer[OC1A_PIN_POSITION] = Math.pow(10, 10) / period;
+                OutputFragment_ATmega328P.dutyCycleBuffer[OC1A_PIN_POSITION] = (1 - ((time - OutputFragment_ATmega328P.dcTimeLow[OC1A_PIN_POSITION]) / period))*100;
+
+                OutputFragment_ATmega328P.oldTime[OC1A_PIN_POSITION] = time;
+                OutputFragment_ATmega328P.evalFreq[OC1A_PIN_POSITION] = false;
             } else {
-                outputFragment.evalFreq[OC1A_PIN_POSITION] = true;
+                OutputFragment_ATmega328P.evalFreq[OC1A_PIN_POSITION] = true;
+                OutputFragment_ATmega328P.dcTimeLow[OC1A_PIN_POSITION] = time;
             }
         }
+
+        outputFragment.writeFeedback(DataMemory_ATmega328P.PINB_ADDR, OC1A_BIT_POSITION, OutputFragment_ATmega328P.pinbuffer[OC1A_PIN_POSITION] != 0);
 
         try {
             int index = 0;
@@ -324,18 +351,24 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
             return;
         }
 
-        if (outputFragment.pinbuffer[OC1B_PIN_POSITION] != stateOC1B) {
-            outputFragment.pinbuffer[OC1B_PIN_POSITION] = stateOC1B;
+        if (OutputFragment_ATmega328P.pinbuffer[OC1B_PIN_POSITION] != stateOC1B) {
+            OutputFragment_ATmega328P.pinbuffer[OC1B_PIN_POSITION] = stateOC1B;
 
-            if (outputFragment.evalFreq[OC1B_PIN_POSITION]) {
-//                Log.d("Freq", "Frequency: " + (Math.pow(10, 10) / (time - outputFragment.oldTime[OC1B_PIN_POSITION])));
-                outputFragment.frequencyBuffer[OC1B_PIN_POSITION] = Math.pow(10, 10) / (time - outputFragment.oldTime[OC1B_PIN_POSITION]);
-                outputFragment.oldTime[OC1B_PIN_POSITION] = time;
-                outputFragment.evalFreq[OC1B_PIN_POSITION] = false;
+            if (OutputFragment_ATmega328P.evalFreq[OC1B_PIN_POSITION]) {
+//                Log.d("Freq", "Frequency: " + (Math.pow(10, 10) / (time - OutputFragment_ATmega328P.oldTime[OC1B_PIN_POSITION])));
+                double period = time - OutputFragment_ATmega328P.oldTime[OC1B_PIN_POSITION];
+                OutputFragment_ATmega328P.frequencyBuffer[OC1B_PIN_POSITION] = Math.pow(10, 10) / period;
+                OutputFragment_ATmega328P.dutyCycleBuffer[OC1B_PIN_POSITION] = (1 - ((time - OutputFragment_ATmega328P.dcTimeLow[OC1B_PIN_POSITION]) / period))*100;
+
+                OutputFragment_ATmega328P.oldTime[OC1B_PIN_POSITION] = time;
+                OutputFragment_ATmega328P.evalFreq[OC1B_PIN_POSITION] = false;
             } else {
-                outputFragment.evalFreq[OC1B_PIN_POSITION] = true;
+                OutputFragment_ATmega328P.evalFreq[OC1B_PIN_POSITION] = true;
+                OutputFragment_ATmega328P.dcTimeLow[OC1B_PIN_POSITION] = time;
             }
         }
+
+        outputFragment.writeFeedback(DataMemory_ATmega328P.PINB_ADDR, OC1B_BIT_POSITION, OutputFragment_ATmega328P.pinbuffer[OC1B_PIN_POSITION] != 0);
 
         try {
             int index = 0;
@@ -361,18 +394,24 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
             return;
         }
 
-        if (outputFragment.pinbuffer[OC2A_PIN_POSITION] != stateOC2A) {
-            outputFragment.pinbuffer[OC2A_PIN_POSITION] = stateOC2A;
+        if (OutputFragment_ATmega328P.pinbuffer[OC2A_PIN_POSITION] != stateOC2A) {
+            OutputFragment_ATmega328P.pinbuffer[OC2A_PIN_POSITION] = stateOC2A;
 
-            if (outputFragment.evalFreq[OC2A_PIN_POSITION]) {
-//                Log.d("Freq", "Frequency: " + (Math.pow(10, 10) / (time - outputFragment.oldTime[OC2A_PIN_POSITION])));
-                outputFragment.frequencyBuffer[OC2A_PIN_POSITION] = Math.pow(10, 10) / (time - outputFragment.oldTime[OC2A_PIN_POSITION]);
-                outputFragment.oldTime[OC2A_PIN_POSITION] = time;
-                outputFragment.evalFreq[OC2A_PIN_POSITION] = false;
+            if (OutputFragment_ATmega328P.evalFreq[OC2A_PIN_POSITION]) {
+//                Log.d("Freq", "Frequency: " + (Math.pow(10, 10) / (time - OutputFragment_ATmega328P.oldTime[OC2A_PIN_POSITION])));
+                double period = time - OutputFragment_ATmega328P.oldTime[OC2A_PIN_POSITION];
+                OutputFragment_ATmega328P.frequencyBuffer[OC2A_PIN_POSITION] = Math.pow(10, 10) / period;
+                OutputFragment_ATmega328P.dutyCycleBuffer[OC2A_PIN_POSITION] = (1 - ((time - OutputFragment_ATmega328P.dcTimeLow[OC2A_PIN_POSITION]) / period))*100;
+
+                OutputFragment_ATmega328P.oldTime[OC2A_PIN_POSITION] = time;
+                OutputFragment_ATmega328P.evalFreq[OC2A_PIN_POSITION] = false;
             } else {
-                outputFragment.evalFreq[OC2A_PIN_POSITION] = true;
+                OutputFragment_ATmega328P.evalFreq[OC2A_PIN_POSITION] = true;
+                OutputFragment_ATmega328P.dcTimeLow[OC2A_PIN_POSITION] = time;
             }
         }
+
+        outputFragment.writeFeedback(DataMemory_ATmega328P.PINB_ADDR, OC2A_BIT_POSITION, OutputFragment_ATmega328P.pinbuffer[OC2A_PIN_POSITION] != 0);
 
         try {
             int index = 0;
@@ -398,18 +437,24 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
             return;
         }
 
-        if (outputFragment.pinbuffer[OC2B_PIN_POSITION] != stateOC2B) {
-            outputFragment.pinbuffer[OC2B_PIN_POSITION] = stateOC2B;
+        if (OutputFragment_ATmega328P.pinbuffer[OC2B_PIN_POSITION] != stateOC2B) {
+            OutputFragment_ATmega328P.pinbuffer[OC2B_PIN_POSITION] = stateOC2B;
 
-            if (outputFragment.evalFreq[OC2B_PIN_POSITION]) {
-//                Log.d("Freq", "Frequency: " + (Math.pow(10, 10) / (time - outputFragment.oldTime[OC2B_PIN_POSITION])));
-                outputFragment.frequencyBuffer[OC2B_PIN_POSITION] = Math.pow(10, 10) / (time - outputFragment.oldTime[OC2B_PIN_POSITION]);
-                outputFragment.oldTime[OC2B_PIN_POSITION] = time;
-                outputFragment.evalFreq[OC2B_PIN_POSITION] = false;
+            if (OutputFragment_ATmega328P.evalFreq[OC2B_PIN_POSITION]) {
+//                Log.d("Freq", "Frequency: " + (Math.pow(10, 10) / (time - OutputFragment_ATmega328P.oldTime[OC2B_PIN_POSITION])));
+                double period = time - OutputFragment_ATmega328P.oldTime[OC2B_PIN_POSITION];
+                OutputFragment_ATmega328P.frequencyBuffer[OC2B_PIN_POSITION] = Math.pow(10, 10) / period;
+                OutputFragment_ATmega328P.dutyCycleBuffer[OC2B_PIN_POSITION] = (1 - ((time - OutputFragment_ATmega328P.dcTimeLow[OC2B_PIN_POSITION]) / period))*100;
+
+                OutputFragment_ATmega328P.oldTime[OC2B_PIN_POSITION] = time;
+                OutputFragment_ATmega328P.evalFreq[OC2B_PIN_POSITION] = false;
             } else {
-                outputFragment.evalFreq[OC2B_PIN_POSITION] = true;
+                OutputFragment_ATmega328P.evalFreq[OC2B_PIN_POSITION] = true;
+                OutputFragment_ATmega328P.dcTimeLow[OC2B_PIN_POSITION] = time;
             }
         }
+
+        outputFragment.writeFeedback(DataMemory_ATmega328P.PIND_ADDR, OC2B_BIT_POSITION, OutputFragment_ATmega328P.pinbuffer[OC2B_PIN_POSITION] != 0);
 
         try {
             int index = 0;
@@ -459,16 +504,16 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
 //                            return null;
                         }
 
-                        outputFragment.pinbuffer[i] = digitalPINState ? 1 : 0;
+                        OutputFragment_ATmega328P.pinbuffer[i] = digitalPINState ? 1 : 0;
 
                     } else {
-//                        outputFragment.pinbuffer[i] = digitalPINState ? 1 : 0;
+//                        OutputFragment_ATmega328P.pinbuffer[i] = digitalPINState ? 1 : 0;
                         if (!inputFragment.isPinHiZ(i)) {
 //                            Log.i(UCModule.MY_LOG_TAG, "Button pressed");
-                            outputFragment.pinbuffer[i] = digitalPINState ? 1 : 0;
+                            OutputFragment_ATmega328P.pinbuffer[i] = digitalPINState ? 1 : 0;
                         } else {
 //                            Log.i(UCModule.MY_LOG_TAG, "Button not pressed");
-                            outputFragment.pinbuffer[i] = IOModule.TRI_STATE;
+                            OutputFragment_ATmega328P.pinbuffer[i] = IOModule.TRI_STATE;
                         }
                     }
                 }
@@ -480,20 +525,25 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
                             || (i == 10 && !Timer1_ATmega328P.timerOutputControl_OC1B)
                             || (i == 11 && !Timer2_ATmega328P.timerOutputControl_OC2A)) {
 
-                        if (outputFragment.pinbuffer[i] != (0x01 & (valueRead_B >> bitPosition))) {
-                            outputFragment.pinbuffer[i] = (0x01 & (valueRead_B >> bitPosition));
+                        if (OutputFragment_ATmega328P.pinbuffer[i] != (0x01 & (valueRead_B >> bitPosition))) {
+                            OutputFragment_ATmega328P.pinbuffer[i] = (0x01 & (valueRead_B >> bitPosition));
 
-                            if (outputFragment.evalFreq[i]) {
-//                                Log.d("Freq", "Frequency: " + (Math.pow(10, 10) / (time_B - outputFragment.oldTime[i])));
-                                outputFragment.frequencyBuffer[i] = Math.pow(10, 10) / (time_B - outputFragment.oldTime[i]);
-                                outputFragment.oldTime[i] = time_B;
-                                outputFragment.evalFreq[i] = false;
+                            if (OutputFragment_ATmega328P.evalFreq[i]) {
+//                                Log.d("Freq", "Frequency: " + (Math.pow(10, 10) / (time_B - OutputFragment_ATmega328P.oldTime[i])));
+
+                                double period = time_B - OutputFragment_ATmega328P.oldTime[i];
+                                OutputFragment_ATmega328P.frequencyBuffer[i] = Math.pow(10, 10) / period;
+                                OutputFragment_ATmega328P.dutyCycleBuffer[i] = (1 - ((time_B - OutputFragment_ATmega328P.dcTimeLow[i]) / period))*100;
+
+                                OutputFragment_ATmega328P.oldTime[i] = time_B;
+                                OutputFragment_ATmega328P.evalFreq[i] = false;
                             } else {
-                                outputFragment.evalFreq[i] = true;
+                                OutputFragment_ATmega328P.evalFreq[i] = true;
+                                OutputFragment_ATmega328P.dcTimeLow[i] = time_B;
                             }
                         }
                     }
-                    outputFragment.writeFeedback(DataMemory_ATmega328P.PINB_ADDR, bitPosition, outputFragment.pinbuffer[i] != 0);
+                    outputFragment.writeFeedback(DataMemory_ATmega328P.PINB_ADDR, bitPosition, OutputFragment_ATmega328P.pinbuffer[i] != 0);
                 }
             }
 
@@ -552,32 +602,37 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
 //                            return null;
                         }
 
-                        outputFragment.pinbuffer[i] = digitalPINState ? 1 : 0;
+                        OutputFragment_ATmega328P.pinbuffer[i] = digitalPINState ? 1 : 0;
 
                     } else {
-//                        outputFragment.pinbuffer[i] = digitalPINState ? 1 : 0;
+//                        OutputFragment_ATmega328P.pinbuffer[i] = digitalPINState ? 1 : 0;
                         if (!inputFragment.isPinHiZ(i)) {
-                            outputFragment.pinbuffer[i] = digitalPINState ? 1 : 0;
+                            OutputFragment_ATmega328P.pinbuffer[i] = digitalPINState ? 1 : 0;
                         } else {
-                            outputFragment.pinbuffer[i] = IOModule.TRI_STATE;
+                            OutputFragment_ATmega328P.pinbuffer[i] = IOModule.TRI_STATE;
                         }
                     }
                 }
                 //Is output!
                 else {
-                    if (outputFragment.pinbuffer[i] != (0x01 & (valueRead_C >> bitPosition))) {
-                        outputFragment.pinbuffer[i] = (0x01 & (valueRead_C >> bitPosition));
+                    if (OutputFragment_ATmega328P.pinbuffer[i] != (0x01 & (valueRead_C >> bitPosition))) {
+                        OutputFragment_ATmega328P.pinbuffer[i] = (0x01 & (valueRead_C >> bitPosition));
 
-                        if (outputFragment.evalFreq[i]) {
-//                            Log.d("Freq", "Frequency: " + (Math.pow(10, 10) / (time_C - outputFragment.oldTime[i])));
-                            outputFragment.frequencyBuffer[i] = Math.pow(10, 10) / (time_C - outputFragment.oldTime[i]);
-                            outputFragment.oldTime[i] = time_C;
-                            outputFragment.evalFreq[i] = false;
+                        if (OutputFragment_ATmega328P.evalFreq[i]) {
+//                            Log.d("Freq", "Frequency: " + (Math.pow(10, 10) / (time_C - OutputFragment_ATmega328P.oldTime[i])));
+
+                            double period = time_C - OutputFragment_ATmega328P.oldTime[i];
+                            OutputFragment_ATmega328P.frequencyBuffer[i] = Math.pow(10, 10) / period;
+                            OutputFragment_ATmega328P.dutyCycleBuffer[i] = (1 - ((time_C - OutputFragment_ATmega328P.dcTimeLow[i]) / period))*100;
+
+                            OutputFragment_ATmega328P.oldTime[i] = time_C;
+                            OutputFragment_ATmega328P.evalFreq[i] = false;
                         } else {
-                            outputFragment.evalFreq[i] = true;
+                            OutputFragment_ATmega328P.evalFreq[i] = true;
+                            OutputFragment_ATmega328P.dcTimeLow[i] = time_C;
                         }
                     }
-                    outputFragment.writeFeedback(DataMemory_ATmega328P.PINC_ADDR, bitPosition, outputFragment.pinbuffer[i] != 0);
+                    outputFragment.writeFeedback(DataMemory_ATmega328P.PINC_ADDR, bitPosition, OutputFragment_ATmega328P.pinbuffer[i] != 0);
                 }
 
             }
@@ -634,14 +689,14 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
 //                            return null;
                         }
 
-                        outputFragment.pinbuffer[i] = digitalPINState ? 1 : 0;
+                        OutputFragment_ATmega328P.pinbuffer[i] = digitalPINState ? 1 : 0;
 
                     } else {
-//                        outputFragment.pinbuffer[i] = digitalPINState ? 1 : 0;
+//                        OutputFragment_ATmega328P.pinbuffer[i] = digitalPINState ? 1 : 0;
                         if (!inputFragment.isPinHiZ(i)) {
-                            outputFragment.pinbuffer[i] = digitalPINState ? 1 : 0;
+                            OutputFragment_ATmega328P.pinbuffer[i] = digitalPINState ? 1 : 0;
                         } else {
-                            outputFragment.pinbuffer[i] = IOModule.TRI_STATE;
+                            OutputFragment_ATmega328P.pinbuffer[i] = IOModule.TRI_STATE;
                         }
                     }
                 }
@@ -653,20 +708,24 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
                             || (i == 6 && !Timer0_ATmega328P.timerOutputControl_OC0A)
                             || (i == 3 && !Timer2_ATmega328P.timerOutputControl_OC2B)) {
 
-                        if (outputFragment.pinbuffer[i] != (0x01 & (valueRead_D >> bitPosition))) {
-                            outputFragment.pinbuffer[i] = (0x01 & (valueRead_D >> bitPosition));
+                        if (OutputFragment_ATmega328P.pinbuffer[i] != (0x01 & (valueRead_D >> bitPosition))) {
+                            OutputFragment_ATmega328P.pinbuffer[i] = (0x01 & (valueRead_D >> bitPosition));
 
-                            if (outputFragment.evalFreq[i]) {
-//                                Log.d("Freq", "Frequency: " + (Math.pow(10, 10) / (time_D - outputFragment.oldTime[i])));
-                                outputFragment.frequencyBuffer[i] = Math.pow(10, 10) / (time_D - outputFragment.oldTime[i]);
-                                outputFragment.oldTime[i] = time_D;
-                                outputFragment.evalFreq[i] = false;
+                            if (OutputFragment_ATmega328P.evalFreq[i]) {
+//                                Log.d("Freq", "Frequency: " + (Math.pow(10, 10) / (time_D - OutputFragment_ATmega328P.oldTime[i])));
+                                double period = time_D - OutputFragment_ATmega328P.oldTime[i];
+                                OutputFragment_ATmega328P.frequencyBuffer[i] = Math.pow(10, 10) / period;
+                                OutputFragment_ATmega328P.dutyCycleBuffer[i] = (1 - ((time_D - OutputFragment_ATmega328P.dcTimeLow[i]) / period))*100;
+
+                                OutputFragment_ATmega328P.oldTime[i] = time_D;
+                                OutputFragment_ATmega328P.evalFreq[i] = false;
                             } else {
-                                outputFragment.evalFreq[i] = true;
+                                OutputFragment_ATmega328P.evalFreq[i] = true;
+                                OutputFragment_ATmega328P.dcTimeLow[i] = time_C;
                             }
                         }
                     }
-                    outputFragment.writeFeedback(DataMemory_ATmega328P.PIND_ADDR, bitPosition, outputFragment.pinbuffer[i] != 0);
+                    outputFragment.writeFeedback(DataMemory_ATmega328P.PIND_ADDR, bitPosition, OutputFragment_ATmega328P.pinbuffer[i] != 0);
                 }
 
             }

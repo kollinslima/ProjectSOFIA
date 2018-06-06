@@ -27,6 +27,4 @@ public interface Timer2Module extends Runnable {
     int CLOCK_PRESCALER_128             = 5;
     int CLOCK_PRESCALER_256             = 6;
     int CLOCK_PRESCALER_1024            = 7;
-
-    void clockTimer2();
 }

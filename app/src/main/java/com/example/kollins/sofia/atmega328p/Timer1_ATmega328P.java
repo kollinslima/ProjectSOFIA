@@ -49,10 +49,6 @@ public class Timer1_ATmega328P implements Timer1Module {
     private static IOModule_ATmega328P ioModule;
     private UCModule uCModule;
 
-    private static Lock clockLock;
-    private static Lock timer1Lock;
-    private static Condition timer1ClockCondition;
-
     private static boolean oldExternalT1, newExternalT1;
     private static boolean oldICP1, newICP1;
 
@@ -63,15 +59,11 @@ public class Timer1_ATmega328P implements Timer1Module {
     private byte modeSelector;
     public static boolean enableICRWrite;
 
-    public Timer1_ATmega328P(DataMemory dataMemory, Handler uCHandler, Lock clockLock, UCModule uCModule, IOModule ioModule) {
+    public Timer1_ATmega328P(DataMemory dataMemory, Handler uCHandler, UCModule uCModule, IOModule ioModule) {
         this.dataMemory = (DataMemory_ATmega328P) dataMemory;
         this.uCHandler = uCHandler;
-        this.clockLock = clockLock;
         this.uCModule = uCModule;
         this.ioModule = (IOModule_ATmega328P) ioModule;
-
-        timer1Lock = new ReentrantLock();
-        timer1ClockCondition = timer1Lock.newCondition();
 
         oldExternalT1 = dataMemory.readBit(DataMemory_ATmega328P.PIND_ADDR, 5);
         oldICP1 = dataMemory.readBit(DataMemory_ATmega328P.PINB_ADDR, 0);
@@ -86,7 +78,7 @@ public class Timer1_ATmega328P implements Timer1Module {
         nextOverflow = false;
         nextClear = false;
 
-        enableICRWrite = false;
+        enableICRWrite = true;
 
         doubleBufferOCR1A = 0;
         doubleBufferOCR1B = 0;
@@ -151,7 +143,6 @@ public class Timer1_ATmega328P implements Timer1Module {
                     case 0x0F:
                         TimerMode.FAST_PWM_TOP_OCRA.count();
                         break;
-
                     default:
                         break;
                 }
@@ -168,15 +159,11 @@ public class Timer1_ATmega328P implements Timer1Module {
 
         if (UCModule.clockVector.contains(Boolean.FALSE)) {
             while (UCModule.clockVector.get(UCModule.TIMER1_ID)) {
-                Thread.yield();
-//                timer1Lock.lock();
-//                try {
-//                    timer1ClockCondition.await();
-//                } catch (InterruptedException e) {
-//                    Log.e(UCModule.MY_LOG_TAG, "ERROR: waitClock Timer1", e);
-//                } finally {
-//                    timer1Lock.unlock();
-//                }
+                try {
+                    Thread.sleep(1);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
             return;
         }
@@ -184,43 +171,8 @@ public class Timer1_ATmega328P implements Timer1Module {
         UCModule.resetClockVector();
 
         //Send Broadcast
-        uCHandler.sendEmptyMessage(UCModule.CLOCK_ACTION);
+//        uCHandler.sendEmptyMessage(UCModule.CLOCK_ACTION);
 
-//        clockLock.lock();
-//        try {
-//            UCModule.clockVector[UCModule.TIMER1_ID] = true;
-//
-//            for (int i = 0; i < UCModule.clockVector.length; i++) {
-//                if (!UCModule.clockVector[i]) {
-//
-//                    while (UCModule.clockVector[UCModule.TIMER1_ID]) {
-//                        timer1ClockCondition.await();
-//                    }
-//                    return;
-//                }
-//            }
-//
-//            UCModule.resetClockVector();
-//
-//            //Send Broadcast
-//            Log.v("ClockAction", "TIMER1 Sending CLOCK_ACTION");
-//            uCHandler.sendEmptyMessage(UCModule.CLOCK_ACTION);
-//
-//        } catch (InterruptedException e) {
-//            Log.e(UCModule.MY_LOG_TAG, "ERROR: waitClock Timer1", e);
-//        } finally {
-//            clockLock.unlock();
-//        }
-    }
-
-    @Override
-    public void clockTimer1() {
-//        timer1Lock.lock();
-//        try {
-//            timer1ClockCondition.signal();
-//        } finally {
-//            timer1Lock.unlock();
-//        }
     }
 
     public enum ClockSource {
@@ -1210,6 +1162,9 @@ public class Timer1_ATmega328P implements Timer1Module {
 
                 char icr1 = dataMemory.read16bits(DataMemory_ATmega328P.ICR1L_ADDR, DataMemory_ATmega328P.ICR1H_ADDR);
 
+                Log.v("TIMER1_MODE", "Progress: " + Integer.toHexString(progress));
+                Log.v("TIMER1_MODE", "ICR1: " + Integer.toHexString(icr1));
+
                 if (progress == icr1) {
                     UCModule.interruptionModule.timer1InputCapture();
                     nextClear = true;
@@ -1266,11 +1221,13 @@ public class Timer1_ATmega328P implements Timer1Module {
                             ioModule.setOC1A(stateOC1A, UCModule_View.simulatedTime);
                         } else {
                             if (match_A) {
+                                Log.v("TIMER1_MODE", "Match");
                                 stateOC1A = IOModule.HIGH_LEVEL;
                                 ioModule.setOC1A(stateOC1A, UCModule_View.simulatedTime);
                             }
 
                             if (progress == BOTTOM) {
+                                Log.v("TIMER1_MODE", "Bottom");
                                 stateOC1A = IOModule.LOW_LEVEL;
                                 ioModule.setOC1A(stateOC1A, UCModule_View.simulatedTime);
                             }

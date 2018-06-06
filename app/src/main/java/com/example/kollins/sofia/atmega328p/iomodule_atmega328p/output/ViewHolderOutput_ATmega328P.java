@@ -34,6 +34,7 @@ public class ViewHolderOutput_ATmega328P {
 
     final LinearLayout meter;
     final TextView freqMeter;
+    final TextView dcMeter;
 
     public ViewHolderOutput_ATmega328P(View view){
         pinSpinner = (Spinner) view.findViewById(R.id.pinSelectorOutput);
@@ -41,5 +42,6 @@ public class ViewHolderOutput_ATmega328P {
 
         meter = (LinearLayout) view.findViewById(R.id.meter);
         freqMeter = (TextView) view.findViewById(R.id.frequency);
+        dcMeter = (TextView) view.findViewById(R.id.dutycycle);
     }
 }

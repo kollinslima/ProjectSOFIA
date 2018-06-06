@@ -28,5 +28,4 @@ public interface ADCModule extends Runnable {
     int CLOCK_PRESCALER_64              = 6;
     int CLOCK_PRESCALER_128             = 7;
 
-    void clockADC();
 }

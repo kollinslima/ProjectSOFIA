@@ -28,5 +28,4 @@ public interface Timer0Module extends Runnable {
     int EXTERNAL_CLOCK_T0_FALLING_EDGE  = 6;
     int EXTERNAL_CLOCK_T0_RISING_EDGE   = 7;
 
-    void clockTimer0();
 }
