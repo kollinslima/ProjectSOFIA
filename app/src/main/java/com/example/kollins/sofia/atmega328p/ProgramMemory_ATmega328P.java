@@ -42,7 +42,7 @@ public class ProgramMemory_ATmega328P implements ProgramMemory {
     private char pcPointer;
 
     //32kBytes, each instruction is 16bits wide
-    private final int FLASH_SIZE = 32 * ((int) Math.pow(2, 10));
+    public static final int FLASH_SIZE = 32 * ((int) Math.pow(2, 10));
     private byte[] flashMemory = null;
 
     private final int INTEL_DATA_SIZE = 0;
@@ -80,7 +80,7 @@ public class ProgramMemory_ATmega328P implements ProgramMemory {
 
     public boolean loadProgramMemory(String hexFileLocation) {
 
-        Log.d("HEX", "Loading from " + hexFileLocation);
+//        Log.d("HEX", "Loading from " + hexFileLocation);
         String state = Environment.getExternalStorageState();
 
         //All set to read and write data in SDCard
@@ -113,22 +113,9 @@ public class ProgramMemory_ATmega328P implements ProgramMemory {
                     }
 
                 }
-                Log.d("HEX", "Hex loaded");
+//                Log.d("HEX", "Hex loaded");
 
-                //Watch for changes in hexFile
-                codeObserver = new FileObserver(hexFile.getPath().toString()) {
-                    @Override
-                    public void onEvent(int event, @Nullable String path) {
-                        Log.i(UCModule.MY_LOG_TAG, "File event: " + event);
-
-                        if (event == FileObserver.CLOSE_WRITE
-                                || event == FileObserver.DELETE_SELF) {
-                            //Send Broadcast
-                            ucHandler.sendEmptyMessage(UCModule.RESET_ACTION);
-                        }
-                    }
-                };
-                codeObserver.startWatching();
+                startCodeObserver(hexFile);
 
                 try {
                     FileInputStream fis = new FileInputStream(hexFile);
@@ -137,6 +124,9 @@ public class ProgramMemory_ATmega328P implements ProgramMemory {
                     Log.e(UCModule.MY_LOG_TAG, "ERROR: Load .hex file", e);
                     return false;
                 }
+            } else {
+                Log.e(UCModule.MY_LOG_TAG, "ERROR: Can't open hex directory");
+                return false;
             }
 
         } else {
@@ -145,6 +135,23 @@ public class ProgramMemory_ATmega328P implements ProgramMemory {
         }
 
         return true;
+    }
+
+    private void startCodeObserver(File hexFile) {
+        //Watch for changes in hexFile
+        codeObserver = new FileObserver(hexFile.getPath().toString()) {
+            @Override
+            public void onEvent(int event, @Nullable String path) {
+                Log.i(UCModule.MY_LOG_TAG, "File event: " + event);
+
+                if (event == FileObserver.CLOSE_WRITE
+                        || event == FileObserver.DELETE_SELF) {
+                    //Send Broadcast
+                    ucHandler.sendEmptyMessage(UCModule.RESET_ACTION);
+                }
+            }
+        };
+        codeObserver.startWatching();
     }
 
     @Override
@@ -185,11 +192,11 @@ public class ProgramMemory_ATmega328P implements ProgramMemory {
     }
 
     @Override
-    public void writeWord(int address, int data){
+    public void writeWord(int address, int data) {
         //address is a word address
 
-        flashMemory[address*2] = (byte) (0x0000FF & data);
-        flashMemory[(address*2)+1] = (byte) ((0x00FF00 & data)>>8);
+        flashMemory[address * 2] = (byte) (0x0000FF & data);
+        flashMemory[(address * 2) + 1] = (byte) ((0x00FF00 & data) >> 8);
     }
 
     @Override

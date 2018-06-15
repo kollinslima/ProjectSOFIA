@@ -67,10 +67,9 @@ public class CPUModuleTest {
 
         UCModule uCModule = mock(UCModule.class);
         Handler uCHandler = mock(Handler.class);
-        Lock clockLock = PowerMockito.mock(Lock.class);
 
         programMemory = new ProgramMemory_ATmega328P(uCHandler);
-        cpuModule = new CPUModule(programMemory,dataMemory,uCModule,uCHandler,clockLock);
+        cpuModule = new CPUModule(programMemory,dataMemory,uCModule,uCHandler);
 
         cpuField = CPUModule.class.getDeclaredField("instruction");
         cpuField.setAccessible(true);
