@@ -59,6 +59,8 @@ public class Timer1_ATmega328P implements Timer1Module {
     private byte modeSelector;
     public static boolean enableICRWrite;
 
+    private static short clockCount;
+
     public Timer1_ATmega328P(DataMemory dataMemory, Handler uCHandler, UCModule uCModule, IOModule ioModule) {
         this.dataMemory = (DataMemory_ATmega328P) dataMemory;
         this.uCHandler = uCHandler;
@@ -82,97 +84,72 @@ public class Timer1_ATmega328P implements Timer1Module {
 
         doubleBufferOCR1A = 0;
         doubleBufferOCR1B = 0;
+
+        clockCount = 0;
     }
 
     @Override
     public void run() {
-        Thread.currentThread().setName("TIMER 1");
-        while (!uCModule.getResetFlag()) {
-            if (ClockSource.values()[0x07 & dataMemory.readByte(DataMemory_ATmega328P.TCCR1B_ADDR)].work()) {
+        if (ClockSource.values()[0x07 & dataMemory.readByte(DataMemory_ATmega328P.TCCR1B_ADDR)].work()) {
 
-                if (dataMemory.readBit(DataMemory_ATmega328P.GTCCR_ADDR, 0)) {
-                    continue;   //Synchronization Mode
-                }
-
-                modeSelector = (byte) (0x03 & dataMemory.readByte(DataMemory_ATmega328P.TCCR1A_ADDR));
-                modeSelector = (byte) (((0x18 & dataMemory.readByte(DataMemory_ATmega328P.TCCR1B_ADDR)) >> 1) | modeSelector);
-
-                switch (modeSelector) {
-                    case 0x00:
-                        TimerMode.NORMAL_OPERATION.count();
-                        break;
-                    case 0x01:
-                        TimerMode.PWM_PHASE_CORRECT_8B.count();
-                        break;
-                    case 0x02:
-                        TimerMode.PWM_PHASE_CORRECT_9B.count();
-                        break;
-                    case 0x03:
-                        TimerMode.PWM_PHASE_CORRECT_10B.count();
-                        break;
-                    case 0x04:
-                        TimerMode.CTC_OPERATION_TOP_OCR1A.count();
-                        break;
-                    case 0x05:
-                        TimerMode.FAST_PWM_8B.count();
-                        break;
-                    case 0x06:
-                        TimerMode.FAST_PWM_9B.count();
-                        break;
-                    case 0x07:
-                        TimerMode.FAST_PWM_10B.count();
-                        break;
-                    case 0x08:
-                        TimerMode.PWM_PHASE_AND_FREQUENCY_CORRECT_TOP_ICR1.count();
-                        break;
-                    case 0x09:
-                        TimerMode.PWM_PHASE_AND_FREQUENCY_CORRECT_TOP_OCRA.count();
-                        break;
-                    case 0x0A:
-                        TimerMode.PWM_PHASE_CORRECT_TOP_ICR1.count();
-                        break;
-                    case 0x0B:
-                        TimerMode.PWM_PHASE_CORRECT_TOP_OCRA.count();
-                        break;
-                    case 0x0C:
-                        TimerMode.CTC_OPERATION_TOP_ICR1.count();
-                        break;
-                    case 0x0E:
-                        TimerMode.FAST_PWM_TOP_ICR1.count();
-                        break;
-                    case 0x0F:
-                        TimerMode.FAST_PWM_TOP_OCRA.count();
-                        break;
-                    default:
-                        break;
-                }
-
+            if (dataMemory.readBit(DataMemory_ATmega328P.GTCCR_ADDR, 0)) {
+                return;   //Synchronization Mode
             }
-        }
 
-        Log.i(UCModule.MY_LOG_TAG, "Finishing Timer 1");
-    }
+            modeSelector = (byte) (0x03 & dataMemory.readByte(DataMemory_ATmega328P.TCCR1A_ADDR));
+            modeSelector = (byte) (((0x18 & dataMemory.readByte(DataMemory_ATmega328P.TCCR1B_ADDR)) >> 1) | modeSelector);
 
-    private static void waitClock() {
-
-        UCModule.clockVector.set(UCModule.TIMER1_ID, Boolean.TRUE);
-
-        if (UCModule.clockVector.contains(Boolean.FALSE)) {
-            while (UCModule.clockVector.get(UCModule.TIMER1_ID)) {
-                try {
-                    Thread.sleep(1);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+            switch (modeSelector) {
+                case 0x00:
+                    TimerMode.NORMAL_OPERATION.count();
+                    break;
+                case 0x01:
+                    TimerMode.PWM_PHASE_CORRECT_8B.count();
+                    break;
+                case 0x02:
+                    TimerMode.PWM_PHASE_CORRECT_9B.count();
+                    break;
+                case 0x03:
+                    TimerMode.PWM_PHASE_CORRECT_10B.count();
+                    break;
+                case 0x04:
+                    TimerMode.CTC_OPERATION_TOP_OCR1A.count();
+                    break;
+                case 0x05:
+                    TimerMode.FAST_PWM_8B.count();
+                    break;
+                case 0x06:
+                    TimerMode.FAST_PWM_9B.count();
+                    break;
+                case 0x07:
+                    TimerMode.FAST_PWM_10B.count();
+                    break;
+                case 0x08:
+                    TimerMode.PWM_PHASE_AND_FREQUENCY_CORRECT_TOP_ICR1.count();
+                    break;
+                case 0x09:
+                    TimerMode.PWM_PHASE_AND_FREQUENCY_CORRECT_TOP_OCRA.count();
+                    break;
+                case 0x0A:
+                    TimerMode.PWM_PHASE_CORRECT_TOP_ICR1.count();
+                    break;
+                case 0x0B:
+                    TimerMode.PWM_PHASE_CORRECT_TOP_OCRA.count();
+                    break;
+                case 0x0C:
+                    TimerMode.CTC_OPERATION_TOP_ICR1.count();
+                    break;
+                case 0x0E:
+                    TimerMode.FAST_PWM_TOP_ICR1.count();
+                    break;
+                case 0x0F:
+                    TimerMode.FAST_PWM_TOP_OCRA.count();
+                    break;
+                default:
+                    break;
             }
-            return;
+
         }
-
-        UCModule.resetClockVector();
-
-        //Send Broadcast
-//        uCHandler.sendEmptyMessage(UCModule.CLOCK_ACTION);
-
     }
 
     public enum ClockSource {
@@ -180,7 +157,6 @@ public class Timer1_ATmega328P implements Timer1Module {
             @Override
             public boolean work() {
                 Log.i(TIMER1_TAG, "No Clock Source");
-                waitClock();
                 return false;
             }
         },
@@ -188,7 +164,6 @@ public class Timer1_ATmega328P implements Timer1Module {
             @Override
             public boolean work() {
                 Log.i(TIMER1_TAG, "Prescaler 1");
-                waitClock();
                 return true;
             }
         },
@@ -196,46 +171,53 @@ public class Timer1_ATmega328P implements Timer1Module {
             @Override
             public boolean work() {
                 Log.i(TIMER1_TAG, "Prescaler 8");
-                for (int i = 0; i < 8; i++) {
-                    waitClock();
+                if (++clockCount < 8){
+                    return false;
+                } else {
+                    clockCount = 0;
+                    return true;
                 }
-                return true;
             }
         },
         CLOCK_PRESCALER_64 {
             @Override
             public boolean work() {
                 Log.i(TIMER1_TAG, "Prescaler 64");
-                for (int i = 0; i < 64; i++) {
-                    waitClock();
+                if (++clockCount < 64){
+                    return false;
+                } else {
+                    clockCount = 0;
+                    return true;
                 }
-                return false;
             }
         },
         CLOCK_PRESCALER_256 {
             @Override
             public boolean work() {
                 Log.i(TIMER1_TAG, "Prescaler 256");
-                for (int i = 0; i < 256; i++) {
-                    waitClock();
+                if (++clockCount < 256){
+                    return false;
+                } else {
+                    clockCount = 0;
+                    return true;
                 }
-                return true;
             }
         },
         CLOCK_PRESCALER_1024 {
             @Override
             public boolean work() {
                 Log.i(TIMER1_TAG, "Prescaler 1024");
-                for (int i = 0; i < 1024; i++) {
-                    waitClock();
+                if (++clockCount < 1024){
+                    return false;
+                } else {
+                    clockCount = 0;
+                    return true;
                 }
-                return true;
             }
         },
         EXTERNAL_CLOCK_T1_FALLING_EDGE {
             @Override
             public boolean work() {
-                waitClock();
                 newExternalT1 = dataMemory.readBit(DataMemory_ATmega328P.PIND_ADDR, 5);
                 if (oldExternalT1 & !newExternalT1) {
                     oldExternalT1 = newExternalT1;
@@ -249,7 +231,6 @@ public class Timer1_ATmega328P implements Timer1Module {
         EXTERNAL_CLOCK_T1_RISING_EDGE {
             @Override
             public boolean work() {
-                waitClock();
                 newExternalT1 = dataMemory.readBit(DataMemory_ATmega328P.PIND_ADDR, 5);
                 if (!oldExternalT1 & newExternalT1) {
                     oldExternalT1 = newExternalT1;

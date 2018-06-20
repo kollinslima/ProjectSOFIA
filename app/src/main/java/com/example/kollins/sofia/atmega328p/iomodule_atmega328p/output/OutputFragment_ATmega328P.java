@@ -42,7 +42,10 @@ import com.example.kollins.sofia.ucinterfaces.DataMemory;
 import com.example.kollins.sofia.ucinterfaces.OutputFragment;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Queue;
 
 /**
  * Created by kollins on 3/14/18.
@@ -108,7 +111,7 @@ public class OutputFragment_ATmega328P extends Fragment implements OutputFragmen
         return haveOutput;
     }
 
-    public boolean isPullUpEnabled(){
+    public boolean isPullUpEnabled() {
         return !dataMemory.readBit(DataMemory_ATmega328P.MCUCR_ADDR, 4);
     }
 
@@ -144,7 +147,7 @@ public class OutputFragment_ATmega328P extends Fragment implements OutputFragmen
         outputAdapter.notifyDataSetChanged();
     }
 
-    public List<OutputPin_ATmega328P> getOutputPins(){
+    public List<OutputPin_ATmega328P> getOutputPins() {
         return outputPins;
     }
 
@@ -173,7 +176,7 @@ public class OutputFragment_ATmega328P extends Fragment implements OutputFragmen
             actionMode.finish();
             return true;
         }
-        if (menuItem.getItemId() == R.id.action_meter){
+        if (menuItem.getItemId() == R.id.action_meter) {
             SparseBooleanArray checked = outputPinsList.getCheckedItemPositions();
 
             for (int i = checked.size() - 1; i >= 0; i--) {
@@ -196,7 +199,7 @@ public class OutputFragment_ATmega328P extends Fragment implements OutputFragmen
         outputAdapter.notifyDataSetChanged();
         outputPinsList.setChoiceMode(ListView.CHOICE_MODE_NONE);
 
-        if (outputPinsList.getCount() == 0){
+        if (outputPinsList.getCount() == 0) {
             screenUpdater.sendEmptyMessage(UCModule_View.REMOVE_OUTPUT_FRAGMENT);
             haveOutput = false;
             getActivity().getSupportFragmentManager().beginTransaction().remove(this).commit();
@@ -248,30 +251,36 @@ public class OutputFragment_ATmega328P extends Fragment implements OutputFragmen
         return checkedCount;
     }
 
-    public synchronized void updateView(final int index) {
+    public synchronized void updateView(int index) {
+
+        if (outputPinsList == null) {
+            return;
+        }
+
+        View view = outputPinsList.getChildAt(index -
+                outputPinsList.getFirstVisiblePosition());
+
+        if (view == null) {
+            return;
+        }
+
+        final TextView led = view.findViewById(R.id.ledState);
+        final TextView freq = view.findViewById(R.id.frequency);
+        final TextView dc = view.findViewById(R.id.dutycycle);
+        final OutputPin_ATmega328P pin = outputPins.get(index);
+
+        final String ledText = UCModule.resources.getStringArray(R.array.ledText)[pin.getPinState(pin.getPinPositionSpinner())];
+        final int backgroundColor = BACKGROUND_PIN[pin.getPinState(pin.getPinPositionSpinner())];
+        final String freqText = String.format("%.0f Hz", frequencyBuffer[pin.getPinPositionSpinner()] >= 0 ? frequencyBuffer[pin.getPinPositionSpinner()] : 0);
+        final String dcText = String.format("%.0f %%", dutyCycleBuffer[pin.getPinPositionSpinner()] <= 100 ? dutyCycleBuffer[pin.getPinPositionSpinner()] : 100);
 
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                View view = outputPinsList.getChildAt(index -
-                        outputPinsList.getFirstVisiblePosition());
-
-                if (view == null) {
-                    return;
-                }
-
-                TextView led = view.findViewById(R.id.ledState);
-                TextView freq = view.findViewById(R.id.frequency);
-                TextView dc = view.findViewById(R.id.dutycycle);
-                try {
-                    OutputPin_ATmega328P pin = outputPins.get(index);
-                    led.setText(UCModule.resources.getStringArray(R.array.ledText)[pin.getPinState(pin.getPinPositionSpinner())]);
-                    led.setBackgroundResource(BACKGROUND_PIN[pin.getPinState(pin.getPinPositionSpinner())]);
-                    freq.setText(String.format("%.0f Hz", frequencyBuffer[pin.getPinPositionSpinner()]>=0?frequencyBuffer[pin.getPinPositionSpinner()]:0));
-                    dc.setText(String.format("%.0f %%", dutyCycleBuffer[pin.getPinPositionSpinner()]<=100?dutyCycleBuffer[pin.getPinPositionSpinner()]:100));
-                } catch (IndexOutOfBoundsException e){
-                    Log.e(UCModule.MY_LOG_TAG, "ERROR: updateView", e);
-                }
+                led.setText(ledText);
+                led.setBackgroundResource(backgroundColor);
+                freq.setText(freqText);
+                dc.setText(dcText);
             }
         });
     }
@@ -291,13 +300,13 @@ public class OutputFragment_ATmega328P extends Fragment implements OutputFragmen
         return;
     }
 
-    public List<OutputPin_ATmega328P> getPinList(){
+    public List<OutputPin_ATmega328P> getPinList() {
         return outputPins;
     }
 
     public void writeFeedback(int address, int bitPosition, boolean state) {
-        UCModule.interruptionModule.checkIOInterruption(address, bitPosition,dataMemory.readBit(address,bitPosition),state);
-        dataMemory.writeFeedback(address,bitPosition,state);
+        UCModule.interruptionModule.checkIOInterruption(address, bitPosition, dataMemory.readBit(address, bitPosition), state);
+        dataMemory.writeFeedback(address, bitPosition, state);
     }
 
     public boolean isMeasrureOutput(int memoryAddress, int bitPosition) {

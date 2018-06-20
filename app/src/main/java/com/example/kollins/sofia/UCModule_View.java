@@ -61,7 +61,7 @@ import static android.app.Activity.RESULT_OK;
  * Created by kollins on 3/23/18.
  */
 
-public class UCModule_View extends Fragment implements Runnable {
+public class UCModule_View extends Fragment implements Runnable{
 
     public enum LED_STATUS {RUNNING, SHORT_CIRCUIT, HEX_FILE_ERROR}
 
@@ -96,7 +96,7 @@ public class UCModule_View extends Fragment implements Runnable {
     public static long simulatedTime;
     private int memorySize;
     private String simulatedText, memoryUsageText;
-//    private long nanoSeconds;
+    //    private long nanoSeconds;
     private long microSeconds;
     private long seconds;
 
@@ -164,7 +164,9 @@ public class UCModule_View extends Fragment implements Runnable {
     public void run() {
         Thread.currentThread().setName("UCModule_View");
         simulatedTime = 0;
+
         while (!ucModule.getResetFlag()) {
+
             waitClock();
             simulatedTime += CLOCK_PERIOD;
 
@@ -181,35 +183,25 @@ public class UCModule_View extends Fragment implements Runnable {
                 screenUpdater.post(new Runnable() {
                     @Override
                     public void run() {
-                        simulatedTimeDisplay.setText(simulatedText);
-                        memoryUsage.setText(memoryUsageText);
+                    simulatedTimeDisplay.setText(simulatedText);
+                    memoryUsage.setText(memoryUsageText);
                     }
                 });
             }
+            ucModule.setUpdateScreenFlag(false);
         }
 
-        Log.i(UCModule.MY_LOG_TAG, "Finishing UCView");
+        Log.i(UCModule.MY_LOG_TAG, "Finishing UCModule_View");
     }
 
-    private void waitClock() {
-
-        UCModule.clockVector.set(UCModule.SIMULATED_TIMER_ID, Boolean.TRUE);
-
-        if (UCModule.clockVector.contains(Boolean.FALSE)) {
-            while (UCModule.clockVector.get(UCModule.SIMULATED_TIMER_ID)) {
-                try {
-                    Thread.sleep(1);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+    private void waitClock(){
+        while (!ucModule.getUpdateScreenFlag()){
+            try {
+                Thread.sleep(1);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
-            return;
         }
-
-        UCModule.resetClockVector();
-
-        //Send Broadcast
-//        uCHandler.sendEmptyMessage(UCModule.CLOCK_ACTION);
     }
 
     public void setMemoryIO(DataMemory dataMemory) {

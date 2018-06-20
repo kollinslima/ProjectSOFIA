@@ -76,7 +76,7 @@ public class InterruptionModule_ATmega328P implements InterruptionModule {
 
     @Override
     public boolean haveInterruption() {
-        Log.i(INTERRUPTION_TAG, "CPU Interruption check");
+//        Log.i(INTERRUPTION_TAG, "CPU Interruption check");
         //Is global interruption enabled?
         if (dataMemory.readBit(DataMemory_ATmega328P.SREG_ADDR, 7)) {
 
@@ -398,11 +398,11 @@ public class InterruptionModule_ATmega328P implements InterruptionModule {
 
     @Override
     public void checkIOInterruption(int pinAddress, int pinPosition, boolean oldState, boolean newState) {
-        Log.v(INTERRUPTION_TAG, "Check IO Interruption");
-        Log.v(INTERRUPTION_TAG, "Address: " + Integer.toHexString(pinAddress));
-        Log.v(INTERRUPTION_TAG, "Position: " + pinPosition);
-        Log.v(INTERRUPTION_TAG, "Old state: " + oldState);
-        Log.v(INTERRUPTION_TAG, "New state: " + newState);
+//        Log.v(INTERRUPTION_TAG, "Check IO Interruption");
+//        Log.v(INTERRUPTION_TAG, "Address: " + Integer.toHexString(pinAddress));
+//        Log.v(INTERRUPTION_TAG, "Position: " + pinPosition);
+//        Log.v(INTERRUPTION_TAG, "Old state: " + oldState);
+//        Log.v(INTERRUPTION_TAG, "New state: " + newState);
 
         if (pinAddress == DataMemory_ATmega328P.PIND_ADDR) {
             if (pinPosition == 2) {

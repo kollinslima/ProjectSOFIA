@@ -62,17 +62,10 @@ import java.util.concurrent.locks.ReentrantLock;
 public class UCModule extends AppCompatActivity {
 
     //To calculate efective clock
-//    private static int sum, n = 0;
-//    private static long time1 = 0, time2 = 0;
+    private static int sum, n = 0;
+    private static long time1 = 0, time2 = 0;
 
     private static Context context;
-
-    public static final short CPU_ID = 0;
-    public static final short SIMULATED_TIMER_ID = 1;
-    public static final short TIMER0_ID = 2;
-    public static final short TIMER1_ID = 3;
-    public static final short TIMER2_ID = 4;
-    public static final short ADC_ID = 5;
 
     public static String PACKAGE_NAME;
 
@@ -94,31 +87,24 @@ public class UCModule extends AppCompatActivity {
 
     public static final String MY_LOG_TAG = "LOG_SIMULATOR";
 
-    public static CopyOnWriteArrayList<Boolean> clockVector;
-
     public static InterruptionModule interruptionModule;
 
     private DataMemory dataMemory;
     private ProgramMemory programMemory;
 
     private CPUModule cpuModule;
-    private Thread threadCPU;
 
     private Timer0Module timer0;
-    private Thread threadTimer0;
 
     private Timer1Module timer1;
-    private Thread threadTimer1;
 
     private Timer2Module timer2;
-    private Thread threadTimer2;
 
     private ADCModule adc;
-    private Thread threadADC;
 
     private UCHandler uCHandler;
 
-    private boolean resetFlag;
+    private boolean resetFlag, updateScreenFlag;
     private boolean shortCircuitFlag;
 
     public static boolean setUpSuccessful;
@@ -126,6 +112,8 @@ public class UCModule extends AppCompatActivity {
     private FrameLayout frameIO;
     private UCModule_View ucView;
     private Thread threadUCView;
+
+    private Thread threadScheduler;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -147,13 +135,9 @@ public class UCModule extends AppCompatActivity {
 
         numberOfModules = getDeviceModules() + 1;
 
-//        clockVector = new boolean[getDeviceModules() + 1];    //+1 for SIMULATED_TIMER;
-//        clockVector.setSize(getDeviceModules() + 1);
-
-        resetClockVector();
-
         setUpSuccessful = false;
         shortCircuitFlag = false;
+        updateScreenFlag = false;
 
         ucView = new UCModule_View();
 
@@ -199,7 +183,7 @@ public class UCModule extends AppCompatActivity {
 
         shortCircuitFlag = false;
         setResetFlag(false);
-        resetClockVector();
+//        resetClockVector();
 
         try {
             //Init FLASH
@@ -233,43 +217,32 @@ public class UCModule extends AppCompatActivity {
 
                 //Init CPU
                 cpuModule = new CPUModule(programMemory, dataMemory, this, uCHandler);
-                threadCPU = new Thread(cpuModule);
-                threadCPU.start();
 
                 //Init Timer0
                 Class timer0Device = Class.forName(PACKAGE_NAME + "." + device.toLowerCase() + ".Timer0_" + device);
                 timer0 = (Timer0Module) timer0Device.getDeclaredConstructor(DataMemory.class, Handler.class, UCModule.class, IOModule.class)
                         .newInstance(dataMemory, uCHandler, this, ucView.getIOModule());
 
-                threadTimer0 = new Thread(timer0);
-                threadTimer0.start();
-
                 //Init Timer1
                 Class timer1Device = Class.forName(PACKAGE_NAME + "." + device.toLowerCase() + ".Timer1_" + device);
                 timer1 = (Timer1Module) timer1Device.getDeclaredConstructor(DataMemory.class, Handler.class, UCModule.class, IOModule.class)
                         .newInstance(dataMemory, uCHandler, this, ucView.getIOModule());
-
-                threadTimer1 = new Thread(timer1);
-                threadTimer1.start();
 
                 //Init Timer2
                 Class timer2Device = Class.forName(PACKAGE_NAME + "." + device.toLowerCase() + ".Timer2_" + device);
                 timer2 = (Timer2Module) timer2Device.getDeclaredConstructor(DataMemory.class, Handler.class, UCModule.class, IOModule.class)
                         .newInstance(dataMemory, uCHandler, this, ucView.getIOModule());
 
-                threadTimer2 = new Thread(timer2);
-                threadTimer2.start();
-
                 //Init ADC
                 Class adcDevice = Class.forName(PACKAGE_NAME + "." + device.toLowerCase() + ".ADC_" + device);
                 adc = (ADCModule) adcDevice.getDeclaredConstructor(DataMemory.class, Handler.class, UCModule.class)
                         .newInstance(dataMemory, uCHandler, this);
 
-                threadADC = new Thread(adc);
-                threadADC.start();
-
                 setUpSuccessful = true;
                 ucView.setStatus(UCModule_View.LED_STATUS.RUNNING);
+
+                threadScheduler = new Thread(new Scheduler());
+                threadScheduler.start();
 
             } else {
                 setUpSuccessful = false;
@@ -415,6 +388,14 @@ public class UCModule extends AppCompatActivity {
         resetFlag = state;
     }
 
+    public synchronized boolean getUpdateScreenFlag() {
+        return updateScreenFlag;
+    }
+
+    public synchronized void setUpdateScreenFlag(boolean state) {
+        updateScreenFlag = state;
+    }
+
     private void reset() {
 
         Log.i(MY_LOG_TAG, "Reset");
@@ -429,32 +410,13 @@ public class UCModule extends AppCompatActivity {
 
         setResetFlag(true);
 
+        while (threadScheduler.isAlive()||threadUCView.isAlive());
+
         try {
-            while (threadCPU.isAlive()
-                    || threadUCView.isAlive()
-                    || threadTimer0.isAlive()
-                    || threadTimer1.isAlive()
-                    || threadTimer2.isAlive()
-                    || threadADC.isAlive()) {
-
-                resetClockVector();
-//                cpuModule.clockCPU();
-//                ucView.clockUCView();
-//                timer0.clockTimer0();
-//                timer1.clockTimer1();
-//                timer2.clockTimer2();
-//                adc.clockADC();
-            }
-
-
-            threadCPU.join();
+            threadScheduler.join();
             threadUCView.join();
-            threadTimer0.join();
-            threadTimer1.join();
-            threadTimer2.join();
-            threadADC.join();
-        } catch (InterruptedException | NullPointerException e) {
-            Log.e(MY_LOG_TAG, "ERROR: stopSystem", e);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
 
         for (int i = 0; i < OutputFragment_ATmega328P.evalFreq.length; i++) {
@@ -473,22 +435,6 @@ public class UCModule extends AppCompatActivity {
         stopSystem();
     }
 
-    public static void resetClockVector() {
-        Boolean[] array = new Boolean[numberOfModules];
-        Arrays.fill(array, Boolean.FALSE);
-        clockVector = new CopyOnWriteArrayList<>(array);
-
-        //Measure efective clock
-//        time2 = SystemClock.elapsedRealtimeNanos();
-//        Log.i("Clock", String.valueOf(getAvgClock(Math.pow(10, 9) / (time2 - time1))));
-//        time1 = time2;
-    }
-
-//    private static double getAvgClock(double newClock) {
-//        sum += newClock;
-//        return (sum / ++n);
-//    }
-
     public void changeFileLocation(String newHexFileLocation) {
         if (newHexFileLocation.substring(newHexFileLocation.length() - 3).equals("hex")) {
             hexFileLocation = newHexFileLocation.replace("/storage/emulated/0/", "");
@@ -505,16 +451,6 @@ public class UCModule extends AppCompatActivity {
             int action = msg.what;
 
             switch (action) {
-//                case CLOCK_ACTION:
-
-//                    cpuModule.clockCPU();
-//                    ucView.clockUCView();
-//                    timer0.clockTimer0();
-//                    timer1.clockTimer1();
-//                    timer2.clockTimer2();
-//                    adc.clockADC();
-//                    break;
-
                 case RESET_ACTION:
                     reset();
                     break;
@@ -534,4 +470,40 @@ public class UCModule extends AppCompatActivity {
         }
     }
 
+    private class Scheduler implements Runnable{
+
+        private double getAvgClock(double newClock) {
+            sum += newClock;
+            return (sum / ++n);
+        }
+
+        @Override
+        public void run() {
+            Thread.currentThread().setName("Scheduler");
+            while (!getResetFlag()){
+
+                //Measure efective clock
+//                time2 = SystemClock.elapsedRealtimeNanos();
+//                Log.i("Clock", String.valueOf(getAvgClock(Math.pow(10, 9) / (time2 - time1))));
+//                time1 = time2;
+
+                timer0.run();
+                timer1.run();
+                timer2.run();
+                adc.run();
+                cpuModule.run();
+
+                while (getUpdateScreenFlag()){
+                    try {
+                        Thread.sleep(1);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                setUpdateScreenFlag(true);
+            }
+
+            Log.i(UCModule.MY_LOG_TAG, "Finishing Scheduler");
+        }
+    }
 }

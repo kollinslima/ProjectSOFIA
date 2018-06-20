@@ -550,7 +550,8 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
             if (pins[0] != null) {
 
                 for (OutputPin_ATmega328P p : pins[0]) {
-                    publishProgress(index);
+//                    publishProgress(index);
+                    outputFragment.updateView(index);
                     index += 1;
                 }
             }
@@ -566,10 +567,10 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
             return null;
         }
 
-        @Override
-        protected void onProgressUpdate(Integer... values) {
-            outputFragment.updateView(values[0]);
-        }
+//        @Override
+//        protected void onProgressUpdate(Integer... values) {
+//            outputFragment.updateView(values[0]);
+//        }
 
     }
 
@@ -638,7 +639,8 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
             }
             if (pins[0] != null) {
                 for (OutputPin_ATmega328P p : pins[0]) {
-                    publishProgress(index);
+//                    publishProgress(index);
+                    outputFragment.updateView(index);
                     index += 1;
                 }
             }
@@ -653,11 +655,11 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
 
             return null;
         }
-
-        @Override
-        protected void onProgressUpdate(Integer... values) {
-            outputFragment.updateView(values[0]);
-        }
+//
+//        @Override
+//        protected void onProgressUpdate(Integer... values) {
+//            outputFragment.updateView(values[0]);
+//        }
     }
 
     private class PortDUpdateView extends AsyncTask<List<OutputPin_ATmega328P>, Integer, Void> {
@@ -733,7 +735,8 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
             if (pins[0] != null) {
 
                 for (OutputPin_ATmega328P p : pins[0]) {
-                    publishProgress(index);
+//                    publishProgress(index);
+                    outputFragment.updateView(index);
                     index += 1;
                 }
             }
@@ -749,9 +752,9 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
             return null;
         }
 
-        @Override
-        protected void onProgressUpdate(Integer... values) {
-            outputFragment.updateView(values[0]);
-        }
+//        @Override
+//        protected void onProgressUpdate(Integer... values) {
+//            outputFragment.updateView(values[0]);
+//        }
     }
 }

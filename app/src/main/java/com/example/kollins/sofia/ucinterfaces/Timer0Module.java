@@ -17,7 +17,7 @@
 
 package com.example.kollins.sofia.ucinterfaces;
 
-public interface Timer0Module extends Runnable {
+public interface Timer0Module {
 
     int NO_CLOCK_SOURCE                 = 0;
     int CLOCK_PRESCALER_1               = 1;
@@ -28,4 +28,5 @@ public interface Timer0Module extends Runnable {
     int EXTERNAL_CLOCK_T0_FALLING_EDGE  = 6;
     int EXTERNAL_CLOCK_T0_RISING_EDGE   = 7;
 
+    void run();
 }

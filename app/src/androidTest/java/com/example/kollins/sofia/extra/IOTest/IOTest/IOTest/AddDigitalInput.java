@@ -15,11 +15,9 @@
  * limitations under the License.
  */
 
-package com.example.kollins.sofia.extra;
+package com.example.kollins.sofia.extra.IOTest.IOTest.IOTest;
 
 
-import android.content.Context;
-import android.support.test.InstrumentationRegistry;
 import android.support.test.espresso.ViewInteraction;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
@@ -30,6 +28,7 @@ import android.view.ViewParent;
 
 import com.example.kollins.sofia.R;
 import com.example.kollins.sofia.UCModule;
+import com.example.kollins.sofia.extra.SplashScreen;
 
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -51,18 +50,13 @@ import static org.hamcrest.Matchers.is;
 
 @LargeTest
 @RunWith(AndroidJUnit4.class)
-public class IOTest {
-
-//    private String getResourceString(int id) {
-//        Context targetContext = InstrumentationRegistry.getTargetContext();
-//        return targetContext.getResources().getString(id);
-//    }
+public class AddDigitalInput {
 
     @Rule
     public ActivityTestRule<UCModule> mActivityTestRule = new ActivityTestRule<>(UCModule.class);
 
     @Test
-    public void output_add() {
+    public void addDigitalInput() {
         ViewInteraction actionMenuItemView = onView(
                 allOf(withId(R.id.action_add), withContentDescription("Add"),
                         childAtPosition(
@@ -74,7 +68,7 @@ public class IOTest {
         actionMenuItemView.perform(click());
 
         ViewInteraction appCompatTextView = onView(
-                allOf(withId(R.id.title), withText("Saída"),
+                allOf(withId(R.id.title), withText("Digital Input"),
                         childAtPosition(
                                 childAtPosition(
                                         withClassName(is("android.support.v7.view.menu.ListMenuItemView")),
@@ -83,8 +77,7 @@ public class IOTest {
                         isDisplayed()));
         appCompatTextView.perform(click());
 
-//        System.out.println(getResourceString(R.id.labelOutput));
-        onView(withId(R.id.labelOutput)).check(matches(isDisplayed()));
+        onView(withId(R.id.labelInput)).check(matches(isDisplayed()));
 
     }
 

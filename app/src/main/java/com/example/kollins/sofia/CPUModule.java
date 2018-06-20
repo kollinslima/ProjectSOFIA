@@ -25,15 +25,11 @@ import com.example.kollins.sofia.ucinterfaces.CPUInstructions;
 import com.example.kollins.sofia.ucinterfaces.DataMemory;
 import com.example.kollins.sofia.ucinterfaces.ProgramMemory;
 
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
 /**
  * Created by kollins on 3/9/18.
  */
 
-public class CPUModule implements Runnable, CPUInstructions {
+public class CPUModule implements CPUInstructions {
 
     public static short[] INSTRUCTION_ID = new short[(int) (Math.pow(2, 16) + 1)];
 
@@ -50,6 +46,13 @@ public class CPUModule implements Runnable, CPUInstructions {
     private static int offset, outData, outAddress, constValue;
     private static int stackPointer;
     private static int testJMP_CALL, testLDS_STS;
+    private static int instruction_tmp;
+
+    private static boolean needMoreClockCycles;
+    private static boolean clockCycleDone;
+    private boolean interruptionReturn;
+    private static short clockCycleNeeded;
+    private short clockCycleCount;
 
 
     public CPUModule(ProgramMemory programMemory, DataMemory dataMemory, UCModule uCModule,
@@ -59,81 +62,94 @@ public class CPUModule implements Runnable, CPUInstructions {
         this.dataMemory = dataMemory;
         this.uCHandler = uCHandler;
         this.uCModule = uCModule;
+
+        clockCycleDone = false;
+        needMoreClockCycles = false;
+        interruptionReturn = false;
+        clockCycleCount = 0;
+        clockCycleNeeded = 0;
     }
 
-    @Override
     public void run() {
-        Thread.currentThread().setName("CPU");
-        Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
 
-        while (!uCModule.getResetFlag()) {
+        if (needMoreClockCycles) {
 
-            waitClock();
+            /*****Loop for multicycle instructions*****/
+            /*
+            Instructions:
+            clockCycleNeeded = Clock Cycle - 2 (1 clock cycle already done, last clock will execute)
+             */
+            while (++clockCycleCount <= clockCycleNeeded) {
+                return;
+            }
+
+            clockCycleDone = true;
+            needMoreClockCycles = false;
+            clockCycleCount = 0;
+
+            if (interruptionReturn) {
+                interruptionReturn = false;
+                interruptionRoutinePrepare();
+            } else {
+                decodeAndExecute();
+            }
+        } else {
 
             /******************************Fetch*****************************/
-
             //Load instruction and add PC;
             instruction = programMemory.loadInstruction();
             Log.d(UCModule.MY_LOG_TAG, "Instruction loaded: " + Integer.toHexString(instruction));
-
-            /*************************Decode and execute*******************/
-            Executor.values()[INSTRUCTION_ID[instruction]].executeInstruction();
-
-            if (UCModule.interruptionModule.haveInterruption()) {
-
-                Log.i("Interruption", "Handle Interruption");
-
-                //Virtual CALL
-                waitClock();
-                waitClock();
-                waitClock();
-                waitClock();
-
-                //PC is already in position to go to stack (write little-endian)
-                int stackPointer = (dataMemory.readByte(DataMemory_ATmega328P.SPH_ADDR) << 8) |
-                        (0x000000FF & dataMemory.readByte(DataMemory_ATmega328P.SPL_ADDR));
-
-
-                //Write PC low
-                stackPointer -= 1;
-                dataMemory.writeByte(stackPointer, (byte) (0x000000FF & programMemory.getPC()));
-                stackPointer -= 1;
-                //Write PC high
-                dataMemory.writeByte(stackPointer, (byte) (0x000000FF & (programMemory.getPC() >> 8)));
-
-                //Update SPL
-                dataMemory.writeByte(DataMemory_ATmega328P.SPL_ADDR, (byte) (0x000000FF & stackPointer));
-                //Update SPH
-                dataMemory.writeByte(DataMemory_ATmega328P.SPH_ADDR, (byte) ((0x0000FF00 & stackPointer) >> 8));
-
-                programMemory.setPC(UCModule.interruptionModule.getPCInterruptionAddress());
-                UCModule.interruptionModule.disableGlobalInterruptions();
-            }
+            decodeAndExecute();
         }
-
-        Log.i(UCModule.MY_LOG_TAG, "Finishing CPU");
 
     }
 
-    private static void waitClock() {
+    private void decodeAndExecute() {
+        /*************************Decode and execute*******************/
+        Executor.values()[INSTRUCTION_ID[instruction]].executeInstruction();
 
-        UCModule.clockVector.set(UCModule.CPU_ID, Boolean.TRUE);
-
-        if (UCModule.clockVector.contains(Boolean.FALSE)) {
-            while (UCModule.clockVector.get(UCModule.CPU_ID)) {
-                try {
-                    Thread.sleep(1);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
+        if (needMoreClockCycles){
             return;
         }
 
-        UCModule.resetClockVector();
+        if (UCModule.interruptionModule.haveInterruption()) {
+            interruptionRoutinePrepare();
+        }
+    }
 
-        //Send Broadcast
-//        uCHandler.sendEmptyMessage(UCModule.CLOCK_ACTION);
+    private void interruptionRoutinePrepare() {
+        Log.i(UCModule.MY_LOG_TAG, "Handle Interruption");
+
+        //Virtual CALL - 4 clock cycles
+        if (!clockCycleDone) {
+            needMoreClockCycles = true;
+            clockCycleNeeded = 4;
+            interruptionReturn = true;
+            return;
+        }
+        clockCycleDone = false;
+
+        //PC is already in position to go to stack (write little-endian)
+        stackPointer = (dataMemory.readByte(DataMemory_ATmega328P.SPH_ADDR) << 8) |
+                (0x000000FF & dataMemory.readByte(DataMemory_ATmega328P.SPL_ADDR));
+
+
+        //Write PC low
+        stackPointer -= 1;
+        dataMemory.writeByte(stackPointer, (byte) (0x000000FF & programMemory.getPC()));
+        stackPointer -= 1;
+        //Write PC high
+        dataMemory.writeByte(stackPointer, (byte) (0x000000FF & (programMemory.getPC() >> 8)));
+
+        Log.d("CPU", "StackPointer_InterruptFinish: " + Integer.toHexString(stackPointer));
+
+        //Update SPL
+        dataMemory.writeByte(DataMemory_ATmega328P.SPL_ADDR, (byte) (0x000000FF & stackPointer));
+        //Update SPH
+        dataMemory.writeByte(DataMemory_ATmega328P.SPH_ADDR, (byte) ((0x0000FF00 & stackPointer) >> 8));
+
+        programMemory.setPC(UCModule.interruptionModule.getPCInterruptionAddress());
+        UCModule.interruptionModule.disableGlobalInterruptions();
     }
 
     public enum Executor {
@@ -248,7 +264,12 @@ public class CPUModule implements Runnable, CPUInstructions {
                 Log.d(UCModule.MY_LOG_TAG, "Instruction ADIW");
 
                 //2 clockCycles
-                waitClock();
+                if (!clockCycleDone) {
+                    needMoreClockCycles = true;
+                    clockCycleNeeded = 0;
+                    return;
+                }
+                clockCycleDone = false;
 
                 offset = (((0x0030 & instruction) >> 4) * 2);
                 dataL = dataMemory.readByte(0x18 + offset);
@@ -382,8 +403,17 @@ public class CPUModule implements Runnable, CPUInstructions {
             public void executeInstruction() {
                 /*************************BRBC***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction BRBC");
+
+                if (clockCycleDone){
+                    clockCycleDone = false;
+                    return;
+                }
+
                 if (!dataMemory.readBit(DataMemory_ATmega328P.SREG_ADDR, (0x0007 & instruction))) {
-                    waitClock();
+
+                    needMoreClockCycles = true;
+                    clockCycleNeeded = 0;
+
                     programMemory.addToPC(((0x03F8 & instruction) << 22) >> 25);          //Make sign extension to get correct two complement
                 }
             }
@@ -393,8 +423,17 @@ public class CPUModule implements Runnable, CPUInstructions {
             public void executeInstruction() {
                 /*************************BRBS***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction BRBS");
+
+                if (clockCycleDone){
+                    clockCycleDone = false;
+                    return;
+                }
+
                 if (dataMemory.readBit(DataMemory_ATmega328P.SREG_ADDR, (0x0007 & instruction))) {
-                    waitClock();
+
+                    needMoreClockCycles = true;
+                    clockCycleNeeded = 0;
+
                     programMemory.addToPC(((0x03F8 & instruction) << 22) >> 25);          //Make sign extension to get correct two complement
                 }
             }
@@ -431,9 +470,12 @@ public class CPUModule implements Runnable, CPUInstructions {
                 Log.d(UCModule.MY_LOG_TAG, "Instruction CALL");
 
                 //4 clockCycles
-                waitClock();
-                waitClock();
-                waitClock();
+                if (!clockCycleDone) {
+                    needMoreClockCycles = true;
+                    clockCycleNeeded = 2;
+                    return;
+                }
+                clockCycleDone = false;
 
                 outData = (0x0001 & instruction) | ((0x01F0 & instruction) >> 3);
 
@@ -466,7 +508,14 @@ public class CPUModule implements Runnable, CPUInstructions {
             public void executeInstruction() {
                 /*************************CBI***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction CBI");
-                waitClock();
+
+                if (!clockCycleDone) {
+                    needMoreClockCycles = true;
+                    clockCycleNeeded = 0;
+                    return;
+                }
+                clockCycleDone = false;
+
                 dataMemory.writeBit(((0x00F8 & instruction) >> 3) + 0x20, (0x0007 & instruction), false);
             }
         },
@@ -646,28 +695,38 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************CPSE***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction CPSE");
 
+
+                if (clockCycleDone){
+                    clockCycleDone = false;
+                    return;
+                }
+
                 regD = dataMemory.readByte((0x01F0 & instruction) >> 4);
                 regR = dataMemory.readByte(((0x0200 & instruction) >> 5) | (0x000F & instruction));
 
                 if (regD == regR) {
 
-                    waitClock();
-                    instruction = programMemory.loadInstruction();
+                    needMoreClockCycles = true;
+                    clockCycleNeeded = 0;
+
+                    instruction_tmp = programMemory.loadInstruction();
 
                     //Test 2 word instructions
                     //JMP
-                    int testJMP_CALL = (0xFE0E & instruction);
-                    int testLDS_STS = (0xFE0F & instruction);
+                    int testJMP_CALL = (0xFE0E & instruction_tmp);
+                    int testLDS_STS = (0xFE0F & instruction_tmp);
 
                     if (testJMP_CALL == 0x940C ||       //JMP
                             testJMP_CALL == 0x940E ||   //CALL
                             testLDS_STS == 0x9000 ||    //LDS
                             testLDS_STS == 0x9200)      //STS
                     {
-                        waitClock();
+                        clockCycleNeeded += 1;
                         programMemory.addToPC(1);
                     }
+
                 }
+
             }
         },
         INSTRUCTION_DEC {
@@ -732,7 +791,12 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************FMUL***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction FMUL");
 
-                waitClock();
+                if (!clockCycleDone) {
+                    needMoreClockCycles = true;
+                    clockCycleNeeded = 0;
+                    return;
+                }
+                clockCycleDone = false;
 
                 regD = dataMemory.readByte(0x10 + ((0x0070 & instruction) >> 4));
                 regR = dataMemory.readByte(0x10 + (0x0007 & instruction));
@@ -754,7 +818,12 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************FMULS***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction FMULS");
 
-                waitClock();
+                if (!clockCycleDone) {
+                    needMoreClockCycles = true;
+                    clockCycleNeeded = 0;
+                    return;
+                }
+                clockCycleDone = false;
 
                 regD = dataMemory.readByte(0x10 + ((0x0070 & instruction) >> 4));
                 regR = dataMemory.readByte(0x10 + (0x0007 & instruction));
@@ -776,7 +845,12 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************FMULSU***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction FMULSU");
 
-                waitClock();
+                if (!clockCycleDone) {
+                    needMoreClockCycles = true;
+                    clockCycleNeeded = 0;
+                    return;
+                }
+                clockCycleDone = false;
 
                 regD = dataMemory.readByte(0x10 + ((0x0070 & instruction) >> 4));
                 regR = dataMemory.readByte(0x10 + (0x0007 & instruction));
@@ -799,8 +873,12 @@ public class CPUModule implements Runnable, CPUInstructions {
                 Log.d(UCModule.MY_LOG_TAG, "Instruction ICALL");
 
                 //3 clockCycles
-                waitClock();
-                waitClock();
+                if (!clockCycleDone) {
+                    needMoreClockCycles = true;
+                    clockCycleNeeded = 1;
+                    return;
+                }
+                clockCycleDone = false;
 
                 dataL = dataMemory.readByte(0x1E);
                 dataH = dataMemory.readByte(0x1F);
@@ -833,8 +911,12 @@ public class CPUModule implements Runnable, CPUInstructions {
                 Log.d(UCModule.MY_LOG_TAG, "Instruction IJMP");
 
                 //3 clockCycles
-                waitClock();
-                waitClock();
+                if (!clockCycleDone) {
+                    needMoreClockCycles = true;
+                    clockCycleNeeded = 1;
+                    return;
+                }
+                clockCycleDone = false;
 
                 dataL = dataMemory.readByte(0x1E);
                 dataH = dataMemory.readByte(0x1F);
@@ -889,8 +971,12 @@ public class CPUModule implements Runnable, CPUInstructions {
                 Log.d(UCModule.MY_LOG_TAG, "Instruction JMP");
 
                 //3 clockCycles
-                waitClock();
-                waitClock();
+                if (!clockCycleDone) {
+                    needMoreClockCycles = true;
+                    clockCycleNeeded = 1;
+                    return;
+                }
+                clockCycleDone = false;
 
                 outData = (0x0001 & instruction) | ((0x01F0 & instruction) >> 3);
                 instruction = programMemory.loadInstruction();
@@ -904,7 +990,12 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************LD (X Post Increment)***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction LD (X Post Increment)");
 
-                waitClock();
+                if (!clockCycleDone) {
+                    needMoreClockCycles = true;
+                    clockCycleNeeded = 0;
+                    return;
+                }
+                clockCycleDone = false;
 
                 dataL = dataMemory.readByte(0x1A);
                 dataH = dataMemory.readByte(0x1B);
@@ -923,7 +1014,12 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************LD (X Pre Decrement)***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction LD (X Pre Decrement)");
 
-                waitClock();
+                if (!clockCycleDone) {
+                    needMoreClockCycles = true;
+                    clockCycleNeeded = 0;
+                    return;
+                }
+                clockCycleDone = false;
 
                 dataL = dataMemory.readByte(0x1A);
                 dataH = dataMemory.readByte(0x1B);
@@ -943,7 +1039,12 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************LD (X unchanged)***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction LD (X Unchanged)");
 
-                waitClock();
+                if (!clockCycleDone) {
+                    needMoreClockCycles = true;
+                    clockCycleNeeded = 0;
+                    return;
+                }
+                clockCycleDone = false;
 
                 dataL = dataMemory.readByte(0x1A);
                 dataH = dataMemory.readByte(0x1B);
@@ -958,7 +1059,12 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************LD (Y Post Increment)***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction LD (Y Post Increment)");
 
-                waitClock();
+                if (!clockCycleDone) {
+                    needMoreClockCycles = true;
+                    clockCycleNeeded = 0;
+                    return;
+                }
+                clockCycleDone = false;
 
                 dataL = dataMemory.readByte(0x1C);
                 dataH = dataMemory.readByte(0x1D);
@@ -977,7 +1083,12 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************LD (Y Pre Decrement)***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction LD (Y Pre Decrement)");
 
-                waitClock();
+                if (!clockCycleDone) {
+                    needMoreClockCycles = true;
+                    clockCycleNeeded = 0;
+                    return;
+                }
+                clockCycleDone = false;
 
                 dataL = dataMemory.readByte(0x1C);
                 dataH = dataMemory.readByte(0x1D);
@@ -997,7 +1108,12 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************LD (Y Unchanged)***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction LD (Y Unchanged)");
 
-                waitClock();
+                if (!clockCycleDone) {
+                    needMoreClockCycles = true;
+                    clockCycleNeeded = 0;
+                    return;
+                }
+                clockCycleDone = false;
 
                 dataL = dataMemory.readByte(0x1C);
                 dataH = dataMemory.readByte(0x1D);
@@ -1012,7 +1128,12 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************LD (Z Post Increment)***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction LD (Z Post Increment)");
 
-                waitClock();
+                if (!clockCycleDone) {
+                    needMoreClockCycles = true;
+                    clockCycleNeeded = 0;
+                    return;
+                }
+                clockCycleDone = false;
 
                 dataL = dataMemory.readByte(0x1E);
                 dataH = dataMemory.readByte(0x1F);
@@ -1031,7 +1152,12 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************LD (Z Pre Decrement)***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction LD (Z Pre Decrement)");
 
-                waitClock();
+                if (!clockCycleDone) {
+                    needMoreClockCycles = true;
+                    clockCycleNeeded = 0;
+                    return;
+                }
+                clockCycleDone = false;
 
                 dataL = dataMemory.readByte(0x1E);
                 dataH = dataMemory.readByte(0x1F);
@@ -1050,7 +1176,12 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************LD (Z unchanged)***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction LD (Z unchanged)");
 
-                waitClock();
+                if (!clockCycleDone) {
+                    needMoreClockCycles = true;
+                    clockCycleNeeded = 0;
+                    return;
+                }
+                clockCycleDone = false;
 
                 dataL = dataMemory.readByte(0x1E);
                 dataH = dataMemory.readByte(0x1F);
@@ -1065,7 +1196,12 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************LDD (Y)***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction LDD (Y)");
 
-                waitClock();
+                if (!clockCycleDone) {
+                    needMoreClockCycles = true;
+                    clockCycleNeeded = 0;
+                    return;
+                }
+                clockCycleDone = false;
 
                 dataL = dataMemory.readByte(0x1C);
                 dataH = dataMemory.readByte(0x1D);
@@ -1082,7 +1218,12 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************LDD (Z)***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction LDD (Z)");
 
-                waitClock();
+                if (!clockCycleDone) {
+                    needMoreClockCycles = true;
+                    clockCycleNeeded = 0;
+                    return;
+                }
+                clockCycleDone = false;
 
                 dataL = dataMemory.readByte(0x1E);
                 dataH = dataMemory.readByte(0x1F);
@@ -1111,7 +1252,12 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************LDS***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction LDS");
 
-                waitClock();
+                if (!clockCycleDone) {
+                    needMoreClockCycles = true;
+                    clockCycleNeeded = 0;
+                    return;
+                }
+                clockCycleDone = false;
 
                 outAddress = (0x0000FFFF & programMemory.loadInstruction());
 
@@ -1125,8 +1271,12 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************LPM (Z Post Increment)***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction LPM (Z Post Increment)");
 
-                waitClock();
-                waitClock();
+                if (!clockCycleDone) {
+                    needMoreClockCycles = true;
+                    clockCycleNeeded = 1;
+                    return;
+                }
+                clockCycleDone = false;
 
                 dataL = dataMemory.readByte(0x1E);
                 dataH = dataMemory.readByte(0x1F);
@@ -1145,8 +1295,12 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************LPM (Z Unchanged - Dest R0)***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction LPM (Z Unchanged - Dest R0)");
 
-                waitClock();
-                waitClock();
+                if (!clockCycleDone) {
+                    needMoreClockCycles = true;
+                    clockCycleNeeded = 1;
+                    return;
+                }
+                clockCycleDone = false;
 
                 dataL = dataMemory.readByte(0x1E);
                 dataH = dataMemory.readByte(0x1F);
@@ -1161,8 +1315,12 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************LPM (Z Unchanged)***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction LPM (Z Unchanged)");
 
-                waitClock();
-                waitClock();
+                if (!clockCycleDone) {
+                    needMoreClockCycles = true;
+                    clockCycleNeeded = 1;
+                    return;
+                }
+                clockCycleDone = false;
 
                 dataL = dataMemory.readByte(0x1E);
                 dataH = dataMemory.readByte(0x1F);
@@ -1230,7 +1388,12 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************MUL***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction MUL");
 
-                waitClock();
+                if (!clockCycleDone) {
+                    needMoreClockCycles = true;
+                    clockCycleNeeded = 0;
+                    return;
+                }
+                clockCycleDone = false;
 
                 regD = dataMemory.readByte((0x01F0 & instruction) >> 4);
                 regR = dataMemory.readByte(((0x0200 & instruction) >> 5) | (0x000F & instruction));
@@ -1252,7 +1415,12 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************MULS***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction MULS");
 
-                waitClock();
+                if (!clockCycleDone) {
+                    needMoreClockCycles = true;
+                    clockCycleNeeded = 0;
+                    return;
+                }
+                clockCycleDone = false;
 
                 regD = dataMemory.readByte((0x01F0 & instruction) >> 4);
                 regR = dataMemory.readByte(((0x0200 & instruction) >> 5) | (0x000F & instruction));
@@ -1274,7 +1442,12 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************MULSU***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction MULSU");
 
-                waitClock();
+                if (!clockCycleDone) {
+                    needMoreClockCycles = true;
+                    clockCycleNeeded = 0;
+                    return;
+                }
+                clockCycleDone = false;
 
                 regD = dataMemory.readByte((0x01F0 & instruction) >> 4);
                 regR = dataMemory.readByte(((0x0200 & instruction) >> 5) | (0x000F & instruction));
@@ -1391,7 +1564,12 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************POP***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction POP");
 
-                waitClock();
+                if (!clockCycleDone) {
+                    needMoreClockCycles = true;
+                    clockCycleNeeded = 0;
+                    return;
+                }
+                clockCycleDone = false;
 
                 stackPointer = (dataMemory.readByte(DataMemory_ATmega328P.SPH_ADDR) << 8) |
                         (0x000000FF & dataMemory.readByte(DataMemory_ATmega328P.SPL_ADDR));
@@ -1413,7 +1591,12 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************PUSH***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction PUSH");
 
-                waitClock();
+                if (!clockCycleDone) {
+                    needMoreClockCycles = true;
+                    clockCycleNeeded = 0;
+                    return;
+                }
+                clockCycleDone = false;
 
                 result = dataMemory.readByte((0x01F0 & instruction) >> 4);
 
@@ -1434,8 +1617,13 @@ public class CPUModule implements Runnable, CPUInstructions {
             public void executeInstruction() {
                 /*************************RCALL***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction RCALL");
-                waitClock();
-                waitClock();
+
+                if (!clockCycleDone) {
+                    needMoreClockCycles = true;
+                    clockCycleNeeded = 1;
+                    return;
+                }
+                clockCycleDone = false;
 
                 outData = ((0x0FFF & instruction) << 20) >> 20;
 
@@ -1464,9 +1652,12 @@ public class CPUModule implements Runnable, CPUInstructions {
                 Log.d(UCModule.MY_LOG_TAG, "Instruction RET");
 
                 //4 clockCycles
-                waitClock();
-                waitClock();
-                waitClock();
+                if (!clockCycleDone) {
+                    needMoreClockCycles = true;
+                    clockCycleNeeded = 2;
+                    return;
+                }
+                clockCycleDone = false;
 
                 stackPointer = (dataMemory.readByte(DataMemory_ATmega328P.SPH_ADDR) << 8) |
                         (0x000000FF & dataMemory.readByte(DataMemory_ATmega328P.SPL_ADDR));
@@ -1492,12 +1683,17 @@ public class CPUModule implements Runnable, CPUInstructions {
                 Log.d(UCModule.MY_LOG_TAG, "Instruction RETI");
 
                 //4 clockCycles
-                waitClock();
-                waitClock();
-                waitClock();
+                if (!clockCycleDone) {
+                    needMoreClockCycles = true;
+                    clockCycleNeeded = 2;
+                    return;
+                }
+                clockCycleDone = false;
 
                 stackPointer = (dataMemory.readByte(DataMemory_ATmega328P.SPH_ADDR) << 8) |
                         (0x000000FF & dataMemory.readByte(DataMemory_ATmega328P.SPL_ADDR));
+
+                Log.d("CPU", "StackPointer_RETI: " + Integer.toHexString(stackPointer));
 
                 //PC little endian read
                 dataH = dataMemory.readByte(stackPointer);
@@ -1519,8 +1715,14 @@ public class CPUModule implements Runnable, CPUInstructions {
             @Override
             public void executeInstruction() {
                 /*************************RJMP***********************/
-                waitClock();
                 Log.d(UCModule.MY_LOG_TAG, "Instruction RJMP");
+                if (!clockCycleDone) {
+                    needMoreClockCycles = true;
+                    clockCycleNeeded = 0;
+                    return;
+                }
+                clockCycleDone = false;
+
                 programMemory.addToPC(((0x0FFF & instruction) << 20) >> 20);          //Make sign extension to get correct two complement
             }
         },
@@ -1672,7 +1874,13 @@ public class CPUModule implements Runnable, CPUInstructions {
             public void executeInstruction() {
                 /*************************SBI***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction SBI");
-                waitClock();
+                if (!clockCycleDone) {
+                    needMoreClockCycles = true;
+                    clockCycleNeeded = 0;
+                    return;
+                }
+                clockCycleDone = false;
+
                 dataMemory.writeBit(((0x00F8 & instruction) >> 3) + 0x20, (0x0007 & instruction), true);
             }
         },
@@ -1682,22 +1890,29 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************SBIC***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction SBIC");
 
+                if (clockCycleDone){
+                    clockCycleDone = false;
+                    return;
+                }
+
                 if (!dataMemory.readBit(((0x00F8 & instruction) >> 3) + 0x20, (0x0007 & instruction))) {
 
-                    waitClock();
-                    instruction = programMemory.loadInstruction();
+                    needMoreClockCycles = true;
+                    clockCycleNeeded = 0;
+
+                    instruction_tmp = programMemory.loadInstruction();
 
                     //Test 2 word instructions
                     //JMP
-                    testJMP_CALL = (0xFE0E & instruction);
-                    testLDS_STS = (0xFE0F & instruction);
+                    testJMP_CALL = (0xFE0E & instruction_tmp);
+                    testLDS_STS = (0xFE0F & instruction_tmp);
 
                     if (testJMP_CALL == 0x940C ||       //JMP
                             testJMP_CALL == 0x940E ||   //CALL
                             testLDS_STS == 0x9000 ||    //LDS
                             testLDS_STS == 0x9200)      //STS
                     {
-                        waitClock();
+                        clockCycleNeeded += 1;
                         programMemory.addToPC(1);
                     }
                 }
@@ -1709,22 +1924,29 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************SBIS***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction SBIS");
 
+                if (clockCycleDone){
+                    clockCycleDone = false;
+                    return;
+                }
+
                 if (dataMemory.readBit(((0x00F8 & instruction) >> 3) + 0x20, (0x0007 & instruction))) {
 
-                    waitClock();
-                    instruction = programMemory.loadInstruction();
+                    needMoreClockCycles = true;
+                    clockCycleNeeded = 0;
+
+                    instruction_tmp = programMemory.loadInstruction();
 
                     //Test 2 word instructions
                     //JMP
-                    testJMP_CALL = (0xFE0E & instruction);
-                    testLDS_STS = (0xFE0F & instruction);
+                    testJMP_CALL = (0xFE0E & instruction_tmp);
+                    testLDS_STS = (0xFE0F & instruction_tmp);
 
                     if (testJMP_CALL == 0x940C ||       //JMP
                             testJMP_CALL == 0x940E ||   //CALL
                             testLDS_STS == 0x9000 ||    //LDS
                             testLDS_STS == 0x9200)      //STS
                     {
-                        waitClock();
+                        clockCycleNeeded += 1;
                         programMemory.addToPC(1);
                     }
                 }
@@ -1735,7 +1957,12 @@ public class CPUModule implements Runnable, CPUInstructions {
             public void executeInstruction() {
                 /*************************SBIW***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction SBIW");
-                waitClock();
+                if (!clockCycleDone) {
+                    needMoreClockCycles = true;
+                    clockCycleNeeded = 0;
+                    return;
+                }
+                clockCycleDone = false;
 
                 offset = (((0x0030 & instruction) >> 4) * 2);
                 dataL = dataMemory.readByte(0x18 + offset);
@@ -1775,22 +2002,30 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************SBRC***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction SBRC");
 
+                if (clockCycleDone){
+                    clockCycleDone = false;
+                    return;
+                }
+
+
                 if (!dataMemory.readBit(((0x01F0 & instruction) >> 4), (0x0007 & instruction))) {
 
-                    waitClock();
-                    instruction = programMemory.loadInstruction();
+                    needMoreClockCycles = true;
+                    clockCycleNeeded = 0;
+
+                    instruction_tmp = programMemory.loadInstruction();
 
                     //Test 2 word instructions
                     //JMP
-                    testJMP_CALL = (0xFE0E & instruction);
-                    testLDS_STS = (0xFE0F & instruction);
+                    testJMP_CALL = (0xFE0E & instruction_tmp);
+                    testLDS_STS = (0xFE0F & instruction_tmp);
 
                     if (testJMP_CALL == 0x940C ||       //JMP
                             testJMP_CALL == 0x940E ||   //CALL
                             testLDS_STS == 0x9000 ||    //LDS
                             testLDS_STS == 0x9200)      //STS
                     {
-                        waitClock();
+                        clockCycleNeeded += 1;
                         programMemory.addToPC(1);
                     }
                 }
@@ -1801,10 +2036,16 @@ public class CPUModule implements Runnable, CPUInstructions {
             public void executeInstruction() {
                 /*************************SBRS***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction SBRS");
+                if (clockCycleDone){
+                    clockCycleDone = false;
+                    return;
+                }
 
                 if (dataMemory.readBit(((0x01F0 & instruction) >> 4), (0x0007 & instruction))) {
 
-                    waitClock();
+                    needMoreClockCycles = true;
+                    clockCycleNeeded = 0;
+
                     instruction = programMemory.loadInstruction();
 
                     //Test 2 word instructions
@@ -1817,7 +2058,7 @@ public class CPUModule implements Runnable, CPUInstructions {
                             testLDS_STS == 0x9000 ||    //LDS
                             testLDS_STS == 0x9200)      //STS
                     {
-                        waitClock();
+                        clockCycleNeeded += 1;
                         programMemory.addToPC(1);
                     }
                 }
@@ -1835,8 +2076,12 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************SPM***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction SPM");
 
-                waitClock();
-                waitClock();
+                if (!clockCycleDone) {
+                    needMoreClockCycles = true;
+                    clockCycleNeeded = 1;
+                    return;
+                }
+                clockCycleDone = false;
 
                 dataL = dataMemory.readByte(0x1E);
                 dataH = dataMemory.readByte(0x1F);
@@ -1855,7 +2100,12 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************ST (X post increment)***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction ST (X post increment)");
 
-                waitClock();
+                if (!clockCycleDone) {
+                    needMoreClockCycles = true;
+                    clockCycleNeeded = 0;
+                    return;
+                }
+                clockCycleDone = false;
 
                 dataL = dataMemory.readByte(0x1A);
                 dataH = dataMemory.readByte(0x1B);
@@ -1878,7 +2128,12 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************ST (X pre decrement)***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction ST (X Pre Decrement)");
 
-                waitClock();
+                if (!clockCycleDone) {
+                    needMoreClockCycles = true;
+                    clockCycleNeeded = 0;
+                    return;
+                }
+                clockCycleDone = false;
 
                 dataL = dataMemory.readByte(0x1A);
                 dataH = dataMemory.readByte(0x1B);
@@ -1902,7 +2157,12 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************ST (X unchanged)***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction ST (X unchanged)");
 
-                waitClock();
+                if (!clockCycleDone) {
+                    needMoreClockCycles = true;
+                    clockCycleNeeded = 0;
+                    return;
+                }
+                clockCycleDone = false;
 
                 dataL = dataMemory.readByte(0x1A);
                 dataH = dataMemory.readByte(0x1B);
@@ -1917,7 +2177,12 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************ST (Y post increment)***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction ST (Y post increment)");
 
-                waitClock();
+                if (!clockCycleDone) {
+                    needMoreClockCycles = true;
+                    clockCycleNeeded = 0;
+                    return;
+                }
+                clockCycleDone = false;
 
                 dataL = dataMemory.readByte(0x1C);
                 dataH = dataMemory.readByte(0x1D);
@@ -1940,7 +2205,12 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************ST (Y pre decrement)***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction ST (Y Pre Decrement)");
 
-                waitClock();
+                if (!clockCycleDone) {
+                    needMoreClockCycles = true;
+                    clockCycleNeeded = 0;
+                    return;
+                }
+                clockCycleDone = false;
 
                 dataL = dataMemory.readByte(0x1C);
                 dataH = dataMemory.readByte(0x1D);
@@ -1964,7 +2234,12 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************ST (X unchanged)***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction ST (X unchanged)");
 
-                waitClock();
+                if (!clockCycleDone) {
+                    needMoreClockCycles = true;
+                    clockCycleNeeded = 0;
+                    return;
+                }
+                clockCycleDone = false;
 
                 dataL = dataMemory.readByte(0x1C);
                 dataH = dataMemory.readByte(0x1D);
@@ -1979,7 +2254,12 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************ST (Z Post Increment)***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction ST (Z Post Increment)");
 
-                waitClock();
+                if (!clockCycleDone) {
+                    needMoreClockCycles = true;
+                    clockCycleNeeded = 0;
+                    return;
+                }
+                clockCycleDone = false;
 
                 dataL = dataMemory.readByte(0x1E);
                 dataH = dataMemory.readByte(0x1F);
@@ -1998,7 +2278,12 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************ST (Z Pre Increment)***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction ST (Z Pre Decrement)");
 
-                waitClock();
+                if (!clockCycleDone) {
+                    needMoreClockCycles = true;
+                    clockCycleNeeded = 0;
+                    return;
+                }
+                clockCycleDone = false;
 
                 dataL = dataMemory.readByte(0x1E);
                 dataH = dataMemory.readByte(0x1F);
@@ -2018,7 +2303,12 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************ST (Z unchanged)***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction ST (Z unchanged)");
 
-                waitClock();
+                if (!clockCycleDone) {
+                    needMoreClockCycles = true;
+                    clockCycleNeeded = 0;
+                    return;
+                }
+                clockCycleDone = false;
 
                 dataL = dataMemory.readByte(0x1E);
                 dataH = dataMemory.readByte(0x1F);
@@ -2033,7 +2323,12 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************STD (Y)***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction STD (Y)");
 
-                waitClock();
+                if (!clockCycleDone) {
+                    needMoreClockCycles = true;
+                    clockCycleNeeded = 0;
+                    return;
+                }
+                clockCycleDone = false;
 
                 dataL = dataMemory.readByte(0x1C);
                 dataH = dataMemory.readByte(0x1D);
@@ -2050,7 +2345,12 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************STD (Z)***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction STD (Z)");
 
-                waitClock();
+                if (!clockCycleDone) {
+                    needMoreClockCycles = true;
+                    clockCycleNeeded = 0;
+                    return;
+                }
+                clockCycleDone = false;
 
                 dataL = dataMemory.readByte(0x1E);
                 dataH = dataMemory.readByte(0x1F);
@@ -2067,7 +2367,13 @@ public class CPUModule implements Runnable, CPUInstructions {
                 /*************************STS***********************/
                 Log.d(UCModule.MY_LOG_TAG, "Instruction STS");
 
-                waitClock();
+                if (!clockCycleDone) {
+                    needMoreClockCycles = true;
+                    clockCycleNeeded = 0;
+                    return;
+                }
+                clockCycleDone = false;
+
                 outAddress = (0x0000FFFF & programMemory.loadInstruction());
 
                 dataMemory.writeByte(outAddress,

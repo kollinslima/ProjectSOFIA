@@ -59,8 +59,8 @@ public class CPUModuleTest {
 
     @Before
     public void prepareForTest() throws Exception {
-        PowerMockito.spy(CPUModule.class);
-        PowerMockito.doNothing().when(CPUModule.class, "waitClock");
+//        PowerMockito.spy(CPUModule.class);
+//        PowerMockito.doNothing().when(CPUModule.class, "waitClock");
 
         dataMemory = new DataMemory_ATmega328P(ioModule);
         dataMemory.stopTimer();
@@ -74,6 +74,7 @@ public class CPUModuleTest {
         cpuField = CPUModule.class.getDeclaredField("instruction");
         cpuField.setAccessible(true);
 
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", true);
         Whitebox.setInternalState(dataMemory,"updateMemMapFlag", false);
     }
 
@@ -884,6 +885,7 @@ public class CPUModuleTest {
 
     @Test
     public void BRBC_BranchWithI_ReturnPCOne() throws IllegalAccessException {
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x000F;
         cpuField.set(null, instruction);
 
@@ -900,6 +902,7 @@ public class CPUModuleTest {
 
     @Test
     public void BRBC_NotBranchWithI_ReturnPCZero() throws IllegalAccessException {
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x000F;
         cpuField.set(null, instruction);
 
@@ -916,6 +919,7 @@ public class CPUModuleTest {
 
     @Test
     public void BRBC_BranchWithT_ReturnPCTwo() throws IllegalAccessException {
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x0016;
         cpuField.set(null, instruction);
 
@@ -932,6 +936,7 @@ public class CPUModuleTest {
 
     @Test
     public void BRBC_NotBranchWithT_ReturnPCZero() throws IllegalAccessException {
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x0016;
         cpuField.set(null, instruction);
 
@@ -948,6 +953,7 @@ public class CPUModuleTest {
 
     @Test
     public void BRBC_BranchWithH_ReturnPCThree() throws IllegalAccessException {
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x001D;
         cpuField.set(null, instruction);
 
@@ -964,6 +970,7 @@ public class CPUModuleTest {
 
     @Test
     public void BRBC_NotBranchWithH_ReturnPCZero() throws IllegalAccessException {
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x001D;
         cpuField.set(null, instruction);
 
@@ -980,6 +987,7 @@ public class CPUModuleTest {
 
     @Test
     public void BRBC_BranchWithS_ReturnPCFour() throws IllegalAccessException {
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x0024;
         cpuField.set(null, instruction);
 
@@ -996,6 +1004,7 @@ public class CPUModuleTest {
 
     @Test
     public void BRBC_NotBranchWithS_ReturnPCZero() throws IllegalAccessException {
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x0024;
         cpuField.set(null, instruction);
 
@@ -1012,6 +1021,7 @@ public class CPUModuleTest {
 
     @Test
     public void BRBC_BranchWithV_ReturnPCFive() throws IllegalAccessException {
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x002B;
         cpuField.set(null, instruction);
 
@@ -1028,6 +1038,7 @@ public class CPUModuleTest {
 
     @Test
     public void BRBC_NotBranchWithV_ReturnPCZero() throws IllegalAccessException {
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x002B;
         cpuField.set(null, instruction);
 
@@ -1044,6 +1055,7 @@ public class CPUModuleTest {
 
     @Test
     public void BRBC_BranchWithN_ReturnPCSix() throws IllegalAccessException {
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x0032;
         cpuField.set(null, instruction);
 
@@ -1060,6 +1072,7 @@ public class CPUModuleTest {
 
     @Test
     public void BRBC_NotBranchWithN_ReturnPCZero() throws IllegalAccessException {
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x0032;
         cpuField.set(null, instruction);
 
@@ -1076,6 +1089,7 @@ public class CPUModuleTest {
 
     @Test
     public void BRBC_BranchWithZ_ReturnPCSeven() throws IllegalAccessException {
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x0039;
         cpuField.set(null, instruction);
 
@@ -1092,6 +1106,7 @@ public class CPUModuleTest {
 
     @Test
     public void BRBC_NotBranchWithZ_ReturnPCZero() throws IllegalAccessException {
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x0039;
         cpuField.set(null, instruction);
 
@@ -1108,6 +1123,7 @@ public class CPUModuleTest {
 
     @Test
     public void BRBC_BranchWithC_ReturnPCEight() throws IllegalAccessException {
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x0040;
         cpuField.set(null, instruction);
 
@@ -1124,6 +1140,7 @@ public class CPUModuleTest {
 
     @Test
     public void BRBC_NotBranchWithC_ReturnPCZero() throws IllegalAccessException {
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x0040;
         cpuField.set(null, instruction);
 
@@ -1140,6 +1157,7 @@ public class CPUModuleTest {
 
     @Test
     public void BRBS_BranchWithI_ReturnPCOne() throws IllegalAccessException {
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x000F;
         cpuField.set(null, instruction);
 
@@ -1156,6 +1174,7 @@ public class CPUModuleTest {
 
     @Test
     public void BRBS_NotBranchWithI_ReturnPCZero() throws IllegalAccessException {
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x000F;
         cpuField.set(null, instruction);
 
@@ -1172,6 +1191,7 @@ public class CPUModuleTest {
 
     @Test
     public void BRBS_BranchWithT_ReturnPCTwo() throws IllegalAccessException {
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x0016;
         cpuField.set(null, instruction);
 
@@ -1188,6 +1208,7 @@ public class CPUModuleTest {
 
     @Test
     public void BRBS_NotBranchWithT_ReturnPCZero() throws IllegalAccessException {
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x0016;
         cpuField.set(null, instruction);
 
@@ -1204,6 +1225,7 @@ public class CPUModuleTest {
 
     @Test
     public void BRBS_BranchWithH_ReturnPCThree() throws IllegalAccessException {
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x001D;
         cpuField.set(null, instruction);
 
@@ -1220,6 +1242,7 @@ public class CPUModuleTest {
 
     @Test
     public void BRBS_NotBranchWithH_ReturnPCZero() throws IllegalAccessException {
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x001D;
         cpuField.set(null, instruction);
 
@@ -1236,6 +1259,7 @@ public class CPUModuleTest {
 
     @Test
     public void BRBS_BranchWithS_ReturnPCFour() throws IllegalAccessException {
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x0024;
         cpuField.set(null, instruction);
 
@@ -1252,6 +1276,7 @@ public class CPUModuleTest {
 
     @Test
     public void BRBS_NotBranchWithS_ReturnPCZero() throws IllegalAccessException {
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x0024;
         cpuField.set(null, instruction);
 
@@ -1268,6 +1293,7 @@ public class CPUModuleTest {
 
     @Test
     public void BRBS_BranchWithV_ReturnPCFive() throws IllegalAccessException {
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x002B;
         cpuField.set(null, instruction);
 
@@ -1284,6 +1310,7 @@ public class CPUModuleTest {
 
     @Test
     public void BRBS_NotBranchWithV_ReturnPCZero() throws IllegalAccessException {
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x002B;
         cpuField.set(null, instruction);
 
@@ -1300,6 +1327,7 @@ public class CPUModuleTest {
 
     @Test
     public void BRBS_BranchWithN_ReturnPCSix() throws IllegalAccessException {
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x0032;
         cpuField.set(null, instruction);
 
@@ -1316,6 +1344,7 @@ public class CPUModuleTest {
 
     @Test
     public void BRBS_NotBranchWithN_ReturnPCZero() throws IllegalAccessException {
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x0032;
         cpuField.set(null, instruction);
 
@@ -1332,6 +1361,7 @@ public class CPUModuleTest {
 
     @Test
     public void BRBS_BranchWithZ_ReturnPCSeven() throws IllegalAccessException {
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x0039;
         cpuField.set(null, instruction);
 
@@ -1348,6 +1378,7 @@ public class CPUModuleTest {
 
     @Test
     public void BRBS_NotBranchWithZ_ReturnPCZero() throws IllegalAccessException {
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x0039;
         cpuField.set(null, instruction);
 
@@ -1364,6 +1395,7 @@ public class CPUModuleTest {
 
     @Test
     public void BRBS_BranchWithC_ReturnPCEight() throws IllegalAccessException {
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x0040;
         cpuField.set(null, instruction);
 
@@ -1380,6 +1412,7 @@ public class CPUModuleTest {
 
     @Test
     public void BRBS_NotBranchWithC_ReturnPCZero() throws IllegalAccessException {
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x0040;
         cpuField.set(null, instruction);
 
@@ -2084,7 +2117,7 @@ public class CPUModuleTest {
 
     @Test
     public void CPSE_JumpOneWordInstruction() throws IllegalAccessException {
-
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x00FE;
         cpuField.set(null, instruction);
 
@@ -2105,7 +2138,7 @@ public class CPUModuleTest {
 
     @Test
     public void CPSE_JumpTwoWordInstructionSTS() throws IllegalAccessException {
-
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x00FE;
         cpuField.set(null, instruction);
 
@@ -2126,7 +2159,7 @@ public class CPUModuleTest {
 
     @Test
     public void CPSE_JumpTwoWordInstructionLDS() throws IllegalAccessException {
-
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x00FE;
         cpuField.set(null, instruction);
 
@@ -2147,7 +2180,7 @@ public class CPUModuleTest {
 
     @Test
     public void CPSE_JumpTwoWordInstructionCALL() throws IllegalAccessException {
-
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x00FE;
         cpuField.set(null, instruction);
 
@@ -2168,7 +2201,7 @@ public class CPUModuleTest {
 
     @Test
     public void CPSE_JumpTwoWordInstructionJMP() throws IllegalAccessException {
-
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x00FE;
         cpuField.set(null, instruction);
 
@@ -2189,7 +2222,7 @@ public class CPUModuleTest {
 
     @Test
     public void CPSE_NoJump() throws IllegalAccessException {
-
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x00FE;
         cpuField.set(null, instruction);
 
@@ -5215,7 +5248,7 @@ public class CPUModuleTest {
 
     @Test
     public void SBIC_JumpOneWordInstruction() throws IllegalAccessException {
-
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x0010;
         cpuField.set(null, instruction);
 
@@ -5232,7 +5265,7 @@ public class CPUModuleTest {
 
     @Test
     public void SBIC_JumpTwoWordInstructionSTS() throws IllegalAccessException {
-
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x0010;
         cpuField.set(null, instruction);
 
@@ -5249,7 +5282,7 @@ public class CPUModuleTest {
 
     @Test
     public void SBIC_JumpTwoWordInstructionLDS() throws IllegalAccessException {
-
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x0010;
         cpuField.set(null, instruction);
 
@@ -5266,7 +5299,7 @@ public class CPUModuleTest {
 
     @Test
     public void SBIC_JumpTwoWordInstructionCALL() throws IllegalAccessException {
-
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x0010;
         cpuField.set(null, instruction);
 
@@ -5283,7 +5316,7 @@ public class CPUModuleTest {
 
     @Test
     public void SBIC_JumpTwoWordInstructionJMP() throws IllegalAccessException {
-
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x0010;
         cpuField.set(null, instruction);
 
@@ -5300,7 +5333,7 @@ public class CPUModuleTest {
 
     @Test
     public void SBIC_NoJump() throws IllegalAccessException {
-
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x0010;
         cpuField.set(null, instruction);
 
@@ -5317,7 +5350,7 @@ public class CPUModuleTest {
 
     @Test
     public void SBIS_JumpOneWordInstruction() throws IllegalAccessException {
-
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x0038;
         cpuField.set(null, instruction);
 
@@ -5334,7 +5367,7 @@ public class CPUModuleTest {
 
     @Test
     public void SBIS_JumpTwoWordInstructionSTS() throws IllegalAccessException {
-
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x0038;
         cpuField.set(null, instruction);
 
@@ -5351,7 +5384,7 @@ public class CPUModuleTest {
 
     @Test
     public void SBIS_JumpTwoWordInstructionLDS() throws IllegalAccessException {
-
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x0038;
         cpuField.set(null, instruction);
 
@@ -5368,7 +5401,7 @@ public class CPUModuleTest {
 
     @Test
     public void SBIS_JumpTwoWordInstructionCALL() throws IllegalAccessException {
-
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x0038;
         cpuField.set(null, instruction);
 
@@ -5385,7 +5418,7 @@ public class CPUModuleTest {
 
     @Test
     public void SBIS_JumpTwoWordInstructionJMP() throws IllegalAccessException {
-
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x0038;
         cpuField.set(null, instruction);
 
@@ -5402,7 +5435,7 @@ public class CPUModuleTest {
 
     @Test
     public void SBIS_NoJump() throws IllegalAccessException {
-
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x0038;
         cpuField.set(null, instruction);
 
@@ -5519,7 +5552,7 @@ public class CPUModuleTest {
 
     @Test
     public void SBRC_JumpOneWordInstruction() throws IllegalAccessException {
-
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x0010;
         cpuField.set(null, instruction);
 
@@ -5536,7 +5569,7 @@ public class CPUModuleTest {
 
     @Test
     public void SBRC_JumpTwoWordInstructionSTS() throws IllegalAccessException {
-
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x0010;
         cpuField.set(null, instruction);
 
@@ -5553,7 +5586,7 @@ public class CPUModuleTest {
 
     @Test
     public void SBRC_JumpTwoWordInstructionLDS() throws IllegalAccessException {
-
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x0010;
         cpuField.set(null, instruction);
 
@@ -5570,7 +5603,7 @@ public class CPUModuleTest {
 
     @Test
     public void SBRC_JumpTwoWordInstructionCALL() throws IllegalAccessException {
-
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x0010;
         cpuField.set(null, instruction);
 
@@ -5587,7 +5620,7 @@ public class CPUModuleTest {
 
     @Test
     public void SBRC_JumpTwoWordInstructionJMP() throws IllegalAccessException {
-
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x0010;
         cpuField.set(null, instruction);
 
@@ -5604,7 +5637,7 @@ public class CPUModuleTest {
 
     @Test
     public void SBRC_NoJump() throws IllegalAccessException {
-
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x0010;
         cpuField.set(null, instruction);
 
@@ -5621,7 +5654,7 @@ public class CPUModuleTest {
 
     @Test
     public void SBRS_JumpOneWordInstruction() throws IllegalAccessException {
-
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x0030;
         cpuField.set(null, instruction);
 
@@ -5638,7 +5671,7 @@ public class CPUModuleTest {
 
     @Test
     public void SBRS_JumpTwoWordInstructionSTS() throws IllegalAccessException {
-
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x0030;
         cpuField.set(null, instruction);
 
@@ -5655,7 +5688,7 @@ public class CPUModuleTest {
 
     @Test
     public void SBRS_JumpTwoWordInstructionLDS() throws IllegalAccessException {
-
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x0030;
         cpuField.set(null, instruction);
 
@@ -5672,7 +5705,7 @@ public class CPUModuleTest {
 
     @Test
     public void SBRS_JumpTwoWordInstructionCALL() throws IllegalAccessException {
-
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x0030;
         cpuField.set(null, instruction);
 
@@ -5689,7 +5722,7 @@ public class CPUModuleTest {
 
     @Test
     public void SBRS_JumpTwoWordInstructionJMP() throws IllegalAccessException {
-
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x0030;
         cpuField.set(null, instruction);
 
@@ -5706,7 +5739,7 @@ public class CPUModuleTest {
 
     @Test
     public void SBRS_NoJump() throws IllegalAccessException {
-
+        Whitebox.setInternalState(CPUModule.class,"clockCycleDone", false);
         instruction = 0x0030;
         cpuField.set(null, instruction);
 

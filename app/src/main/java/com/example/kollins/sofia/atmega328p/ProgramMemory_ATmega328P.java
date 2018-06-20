@@ -177,18 +177,19 @@ public class ProgramMemory_ATmega328P implements ProgramMemory {
     @Override
     public void setPC(int pc) {
         pcPointer = (char) pc;
-//        Log.d(UCModule.MY_LOG_TAG, "Setting PC to " + (int) pcPointer);
+        Log.d(UCModule.MY_LOG_TAG, "Setting PC to " + (int) pcPointer);
     }
 
     @Override
     public int getPC() {
+        Log.d(UCModule.MY_LOG_TAG, "Getting PC: " + (int) pcPointer);
         return pcPointer;
     }
 
     @Override
     public void addToPC(int offset) {
         pcPointer += offset;
-//        Log.d(UCModule.MY_LOG_TAG, "Adding " + offset + " to PC. New value: " + (int) pcPointer);
+        Log.d(UCModule.MY_LOG_TAG, "Adding " + offset + " to PC. New value: " + (int) pcPointer);
     }
 
     @Override
