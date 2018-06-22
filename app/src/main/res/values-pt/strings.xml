@@ -119,4 +119,5 @@
 
     <string name="seach_mem_map">Buscar</string>
     <string name="action_meter">Medidor</string>
+    <string name="serial_monitor_title">Monitor Serial</string>
 </resources>

@@ -2046,12 +2046,12 @@ public class CPUModule implements CPUInstructions {
                     needMoreClockCycles = true;
                     clockCycleNeeded = 0;
 
-                    instruction = programMemory.loadInstruction();
+                    instruction_tmp = programMemory.loadInstruction();
 
                     //Test 2 word instructions
                     //JMP
-                    testJMP_CALL = (0xFE0E & instruction);
-                    testLDS_STS = (0xFE0F & instruction);
+                    testJMP_CALL = (0xFE0E & instruction_tmp);
+                    testLDS_STS = (0xFE0F & instruction_tmp);
 
                     if (testJMP_CALL == 0x940C ||       //JMP
                             testJMP_CALL == 0x940E ||   //CALL

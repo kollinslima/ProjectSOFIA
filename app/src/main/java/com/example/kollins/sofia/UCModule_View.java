@@ -44,6 +44,7 @@ import android.widget.Toast;
 import com.example.kollins.sofia.extra.AboutPage;
 import com.example.kollins.sofia.extra.memory_map.MemoryFragment;
 import com.example.kollins.sofia.extra.PathUtil;
+import com.example.kollins.sofia.serial_monitor.SerialFragment;
 import com.example.kollins.sofia.ucinterfaces.DataMemory;
 import com.example.kollins.sofia.ucinterfaces.InputFragment;
 import com.example.kollins.sofia.ucinterfaces.IOModule;
@@ -61,7 +62,7 @@ import static android.app.Activity.RESULT_OK;
  * Created by kollins on 3/23/18.
  */
 
-public class UCModule_View extends Fragment implements Runnable{
+public class UCModule_View extends Fragment {
 
     public enum LED_STATUS {RUNNING, SHORT_CIRCUIT, HEX_FILE_ERROR}
 
@@ -84,6 +85,7 @@ public class UCModule_View extends Fragment implements Runnable{
 
     private OutputFragment outputFragment;
     private InputFragment inputFragment;
+    private SerialFragment serialFragment;
     private IOModule ioModule;
     private MemoryFragment memoryFragment;
 
@@ -108,6 +110,7 @@ public class UCModule_View extends Fragment implements Runnable{
         setRetainInstance(true);
         screenUpdater = new ScreenUpdater();
 
+        simulatedTime = 0;
         delayScreenUpdateCount = 0;
 
         try {
@@ -128,6 +131,7 @@ public class UCModule_View extends Fragment implements Runnable{
                     .newInstance(outputFragment, inputFragment);
 
             memoryFragment = new MemoryFragment();
+            serialFragment = new SerialFragment();
 
         } catch (ClassNotFoundException | IllegalAccessException | java.lang.InstantiationException
                 | NoSuchMethodException | InvocationTargetException e) {
@@ -160,47 +164,26 @@ public class UCModule_View extends Fragment implements Runnable{
     }
 
     @SuppressLint("StringFormatInvalid")
-    @Override
     public void run() {
-        Thread.currentThread().setName("UCModule_View");
-        simulatedTime = 0;
+        simulatedTime += CLOCK_PERIOD;
 
-        while (!ucModule.getResetFlag()) {
+        if (++delayScreenUpdateCount >= DELAY_SCREEN_UPDATE) {
 
-            waitClock();
-            simulatedTime += CLOCK_PERIOD;
+            delayScreenUpdateCount = 0;
 
-            if (++delayScreenUpdateCount >= DELAY_SCREEN_UPDATE) {
+            microSeconds = simulatedTime / (10000);
+            seconds = TimeUnit.MICROSECONDS.toSeconds(microSeconds);
 
-                delayScreenUpdateCount = 0;
+            simulatedText = UCModule.resources.getString(R.string.simulated_time_format, seconds, microSeconds);
+            memoryUsageText = UCModule.resources.getString(R.string.memory_usage_format, ucModule.getMemoryUsage(), memorySize);
 
-                microSeconds = simulatedTime / (10000);
-                seconds = TimeUnit.MICROSECONDS.toSeconds(microSeconds);
-
-                simulatedText = UCModule.resources.getString(R.string.simulated_time_format, seconds, microSeconds);
-                memoryUsageText = UCModule.resources.getString(R.string.memory_usage_format, ucModule.getMemoryUsage(), memorySize);
-
-                screenUpdater.post(new Runnable() {
-                    @Override
-                    public void run() {
+            screenUpdater.post(new Runnable() {
+                @Override
+                public void run() {
                     simulatedTimeDisplay.setText(simulatedText);
                     memoryUsage.setText(memoryUsageText);
-                    }
-                });
-            }
-            ucModule.setUpdateScreenFlag(false);
-        }
-
-        Log.i(UCModule.MY_LOG_TAG, "Finishing UCModule_View");
-    }
-
-    private void waitClock(){
-        while (!ucModule.getUpdateScreenFlag()){
-            try {
-                Thread.sleep(1);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+                }
+            });
         }
     }
 
@@ -219,6 +202,11 @@ public class UCModule_View extends Fragment implements Runnable{
         if (outputFragment != null) {
             outputFragment.resetOuputs();
         }
+        if (serialFragment != null) {
+            serialFragment.resetSerial();
+        }
+
+        simulatedTime = 0;
     }
 
     public void setUCHandler(UCModule.UCHandler uCHandler) {
@@ -349,7 +337,7 @@ public class UCModule_View extends Fragment implements Runnable{
                     outputFrame.setVisibility(View.VISIBLE);
                     if (!outputFragment.haveOutput()) {
 
-                        mFragmentManager = ((AppCompatActivity) getActivity()).getSupportFragmentManager();
+                        mFragmentManager = getActivity().getSupportFragmentManager();
                         mFragmentTransaction = mFragmentManager.beginTransaction();
 
                         mFragmentTransaction.add(R.id.outputPins, (android.support.v4.app.Fragment) outputFragment, OutputFragment.TAG_OUTPUT_FRAGMENT);
@@ -363,7 +351,7 @@ public class UCModule_View extends Fragment implements Runnable{
                     inputFrame.setVisibility(View.VISIBLE);
                     if (!inputFragment.haveInput()) {
 
-                        mFragmentManager = ((AppCompatActivity) getActivity()).getSupportFragmentManager();
+                        mFragmentManager = getActivity().getSupportFragmentManager();
                         mFragmentTransaction = mFragmentManager.beginTransaction();
 
                         mFragmentTransaction.add(R.id.inputPins, (android.support.v4.app.Fragment) inputFragment, InputFragment.TAG_INPUT_FRAGMENT);
@@ -378,7 +366,7 @@ public class UCModule_View extends Fragment implements Runnable{
                     inputFrame.setVisibility(View.VISIBLE);
                     if (!inputFragment.haveInput()) {
 
-                        mFragmentManager = ((AppCompatActivity) getActivity()).getSupportFragmentManager();
+                        mFragmentManager = getActivity().getSupportFragmentManager();
                         mFragmentTransaction = mFragmentManager.beginTransaction();
 
                         mFragmentTransaction.add(R.id.inputPins, (android.support.v4.app.Fragment) inputFragment, InputFragment.TAG_INPUT_FRAGMENT);
@@ -386,6 +374,17 @@ public class UCModule_View extends Fragment implements Runnable{
 
                     }
                     inputFragment.addAnalogicInput();
+                    break;
+
+                case R.id.action_serial_monitor:
+                    outputFrame.setVisibility(View.VISIBLE);
+                    mFragmentManager = getActivity().getSupportFragmentManager();
+                    mFragmentTransaction = mFragmentManager.beginTransaction();
+
+                    mFragmentTransaction.add(R.id.outputPins, serialFragment, SerialFragment.TAG_SERIAL_FRAGMENT);
+                    mFragmentTransaction.addToBackStack(null);
+                    mFragmentTransaction.commit();
+
                     break;
             }
             return true;

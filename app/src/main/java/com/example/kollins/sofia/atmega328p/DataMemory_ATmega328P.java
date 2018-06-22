@@ -305,7 +305,7 @@ public class DataMemory_ATmega328P implements DataMemory {
         sdramMemory[TWCR_ADDR] = 0x00;
         sdramMemory[TWAMR_ADDR] = 0x00;
         /***********************************************/
-        sdramMemory[UCSR0A_ADDR] = 0x00;
+        sdramMemory[UCSR0A_ADDR] = 0x20;
         sdramMemory[UCSR0B_ADDR] = 0x00;
         sdramMemory[UCSR0C_ADDR] = 0x06;
         /***********************************************/
@@ -352,6 +352,9 @@ public class DataMemory_ATmega328P implements DataMemory {
                 || byteAddress == OCR1BH_ADDR
                 || byteAddress == ICR1H_ADDR) {
             return timer1_TEMP;
+        } else if (byteAddress == UDR0_ADDR) {
+            UCModule.interruptionModule.receiveBufferReadedUSART();
+            return USART_ATmega328P.receiver_UDR0;
         }
         return sdramMemory[byteAddress];
     }
@@ -361,6 +364,10 @@ public class DataMemory_ATmega328P implements DataMemory {
 //        Log.d(UCModule.MY_LOG_TAG,
 //                String.format("Read IO byte SDRAM\nAddress: 0x%s, Data read: 0x%02X",
 //                        Integer.toHexString((int) byteAddress), sdramMemory[byteAddress]));
+        if (byteAddress == UDR0_ADDR) {
+            UCModule.interruptionModule.receiveBufferReadedUSART();
+            return USART_ATmega328P.receiver_UDR0;
+        }
 
         return sdramMemory[byteAddress];
     }
@@ -436,6 +443,10 @@ public class DataMemory_ATmega328P implements DataMemory {
             //Clear Flag
             byteData = (byte) (0x00EF & byteData);
             sdramMemory[byteAddress] = byteData;
+        } else if (byteAddress == UCSR0A_ADDR) {
+            //Clear Flag
+            byteData = (byte) (0x00BF & byteData);
+            sdramMemory[byteAddress] = byteData;
         } else if (byteAddress == GTCCR_ADDR) {
             //Synchronization Mode
             sdramMemory[byteAddress] = byteData;
@@ -471,6 +482,11 @@ public class DataMemory_ATmega328P implements DataMemory {
         } else if (byteAddress == ADCL_ADDR || byteAddress == ADCH_ADDR) {
             if (adcWriteEnable) {
                 sdramMemory[byteAddress] = byteData;
+            }
+        } else if (byteAddress == UDR0_ADDR) {
+            if (readBit(UCSR0A_ADDR, 5)) {
+                USART_ATmega328P.transmitter_UDR0 = byteData;
+                writeBit(UCSR0A_ADDR, 5, false);
             }
         } else {
             sdramMemory[byteAddress] = byteData;
@@ -521,6 +537,10 @@ public class DataMemory_ATmega328P implements DataMemory {
             //Write 0 to ADSC has no effect
             return;
 
+        } else if (byteAddress == UCSR0A_ADDR && bitPosition == 6) {
+            //Clear Flag
+            sdramMemory[byteAddress] = (byte) (sdramMemory[byteAddress] & (0xFF7F >> (7 - bitPosition)));
+
         } else if (byteAddress == GTCCR_ADDR) {
             //Synchronization Mode
             sdramMemory[byteAddress] = (byte) (sdramMemory[byteAddress] & (0xFF7F >> (7 - bitPosition)));   //Clear
@@ -532,6 +552,14 @@ public class DataMemory_ATmega328P implements DataMemory {
                 sdramMemory[byteAddress] = (byte) (sdramMemory[byteAddress] & (0xFF7F >> (7 - 0)));
             }
 
+        } else if (byteAddress == UDR0_ADDR) {
+            if (readBit(UCSR0A_ADDR, 5)) {
+                USART_ATmega328P.transmitter_UDR0 = (byte) (USART_ATmega328P.transmitter_UDR0 & (0xFF7F >> (7 - bitPosition)));
+                if (bitState) {
+                    USART_ATmega328P.transmitter_UDR0 = (byte) (USART_ATmega328P.transmitter_UDR0 | (0x01 << bitPosition));     //Set
+                }
+                writeBit(UCSR0A_ADDR, 5, false);
+            }
         } else {
             sdramMemory[byteAddress] = (byte) (sdramMemory[byteAddress] & (0xFF7F >> (7 - bitPosition)));   //Clear
             if (bitState) {
@@ -589,6 +617,10 @@ public class DataMemory_ATmega328P implements DataMemory {
 
         if (byteAddress == TCCR0B_ADDR && (bitPosition == 7 || bitPosition == 6)) {
             return false;   //Force math always read as 0;
+        }
+        if (byteAddress == UDR0_ADDR) {
+            UCModule.interruptionModule.receiveBufferReadedUSART();
+            return (0x01 & (USART_ATmega328P.receiver_UDR0 >> bitPosition)) != 0;
         }
         return (0x01 & (sdramMemory[byteAddress] >> bitPosition)) != 0;
 

@@ -23,6 +23,7 @@ import android.os.Message;
 import android.util.Log;
 
 import com.example.kollins.sofia.atmega328p.DataMemory_ATmega328P;
+import com.example.kollins.sofia.atmega328p.USART_ATmega328P;
 import com.example.kollins.sofia.atmega328p.iomodule_atmega328p.input.InputFragment_ATmega328P;
 import com.example.kollins.sofia.atmega328p.iomodule_atmega328p.input.InputPin_ATmega328P;
 import com.example.kollins.sofia.atmega328p.iomodule_atmega328p.output.OutputFragment_ATmega328P;
@@ -704,11 +705,13 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
                 }
                 //Is output!
                 else {
-                    //Check MUX Timer0 and Timer 2
-                    if (((i < 5 && i != 3) || i > 6)
+                    //Check MUX Timer0, Timer 2 and USART.
+                    if ((i == 2 || i == 4 || i == 7)
                             || (i == 5 && !Timer0_ATmega328P.timerOutputControl_OC0B)
                             || (i == 6 && !Timer0_ATmega328P.timerOutputControl_OC0A)
-                            || (i == 3 && !Timer2_ATmega328P.timerOutputControl_OC2B)) {
+                            || (i == 3 && !Timer2_ATmega328P.timerOutputControl_OC2B)
+                            || (i == 0 && !USART_ATmega328P.usartOutputControl_Rx)
+                            || (i == 1 && !USART_ATmega328P.usartOutputControl_Tx)) {
 
                         if (OutputFragment_ATmega328P.pinbuffer[i] != (0x01 & (valueRead_D >> bitPosition))) {
                             OutputFragment_ATmega328P.pinbuffer[i] = (0x01 & (valueRead_D >> bitPosition));

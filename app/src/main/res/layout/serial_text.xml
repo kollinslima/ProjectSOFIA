@@ -16,11 +16,15 @@
   ~ limitations under the License.
   -->
 
-<resources>
-    <dimen name="statusLedDimen">15dp</dimen>
-    <dimen name="about_space">20dp</dimen>
-    <dimen name="row_mem_map">50dp</dimen>
-    <dimen name="serial_close_button">25dp</dimen>
-    <dimen name="serial_send_button">40dp</dimen>
-    <dimen name="serial_text_size">12dp</dimen>
-</resources>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="@color/serial_theme_background">
+    <TextView
+        android:id="@+id/serialListMessage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="@dimen/serial_text_size"
+        android:textColor="@color/serial_theme_chars"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+</LinearLayout>

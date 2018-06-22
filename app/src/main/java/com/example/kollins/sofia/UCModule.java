@@ -45,6 +45,7 @@ import com.example.kollins.sofia.ucinterfaces.ProgramMemory;
 import com.example.kollins.sofia.ucinterfaces.Timer0Module;
 import com.example.kollins.sofia.ucinterfaces.Timer1Module;
 import com.example.kollins.sofia.ucinterfaces.Timer2Module;
+import com.example.kollins.sofia.ucinterfaces.USARTModule;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
@@ -101,6 +102,8 @@ public class UCModule extends AppCompatActivity {
     private Timer2Module timer2;
 
     private ADCModule adc;
+
+    private USARTModule usart;
 
     private UCHandler uCHandler;
 
@@ -212,9 +215,6 @@ public class UCModule extends AppCompatActivity {
                 ucView.setMemoryIO(dataMemory);
                 interruptionModule.setMemory(dataMemory);
 
-                threadUCView = new Thread(ucView);
-                threadUCView.start();
-
                 //Init CPU
                 cpuModule = new CPUModule(programMemory, dataMemory, this, uCHandler);
 
@@ -237,6 +237,11 @@ public class UCModule extends AppCompatActivity {
                 Class adcDevice = Class.forName(PACKAGE_NAME + "." + device.toLowerCase() + ".ADC_" + device);
                 adc = (ADCModule) adcDevice.getDeclaredConstructor(DataMemory.class, Handler.class, UCModule.class)
                         .newInstance(dataMemory, uCHandler, this);
+
+                //Init USART
+                Class usartDevice = Class.forName(PACKAGE_NAME + "." + device.toLowerCase() + ".USART_" + device);
+                usart = (USARTModule) usartDevice.getDeclaredConstructor(DataMemory.class)
+                        .newInstance(dataMemory);
 
                 setUpSuccessful = true;
                 ucView.setStatus(UCModule_View.LED_STATUS.RUNNING);
@@ -388,14 +393,6 @@ public class UCModule extends AppCompatActivity {
         resetFlag = state;
     }
 
-    public synchronized boolean getUpdateScreenFlag() {
-        return updateScreenFlag;
-    }
-
-    public synchronized void setUpdateScreenFlag(boolean state) {
-        updateScreenFlag = state;
-    }
-
     private void reset() {
 
         Log.i(MY_LOG_TAG, "Reset");
@@ -491,16 +488,10 @@ public class UCModule extends AppCompatActivity {
                 timer1.run();
                 timer2.run();
                 adc.run();
+                usart.run();
                 cpuModule.run();
+                ucView.run();
 
-                while (getUpdateScreenFlag()){
-                    try {
-                        Thread.sleep(1);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-                setUpdateScreenFlag(true);
             }
 
             Log.i(UCModule.MY_LOG_TAG, "Finishing Scheduler");

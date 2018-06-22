@@ -41,6 +41,9 @@ public class InterruptionModule_ATmega328P implements InterruptionModule {
     private static final int POINTER_ADDR_TIMER0_COMP_A = 13;
     private static final int POINTER_ADDR_TIMER0_COMP_B = 14;
     private static final int POINTER_ADDR_TIMER0_OVERFLOW = 15;
+    private static final int POINTER_ADDR_USART_RX_COMPLETE = 17;
+    private static final int POINTER_ADDR_USART_UDRE_EMPTY = 18;
+    private static final int POINTER_ADDR_USART_TX_COMPLETE = 19;
     private static final int POINTER_ADDR_ADC = 20;
 
     private static final char[] INTERRUPT_VECTOR = {
@@ -281,6 +284,38 @@ public class InterruptionModule_ATmega328P implements InterruptionModule {
                 }
             }
 
+            //Check USART Rx Complete
+            if (dataMemory.readBit(DataMemory_ATmega328P.UCSR0B_ADDR, 7)) {
+                if (dataMemory.readBit(DataMemory_ATmega328P.UCSR0A_ADDR, 7)) {
+
+                    Log.i(INTERRUPTION_TAG, "Rx Complete Found");
+                    pcInterruption = INTERRUPT_VECTOR[POINTER_ADDR_USART_RX_COMPLETE];
+                    return true;
+                }
+            }
+
+            //Check USART UDRE Empty
+            if (dataMemory.readBit(DataMemory_ATmega328P.UCSR0B_ADDR, 5)) {
+                if (dataMemory.readBit(DataMemory_ATmega328P.UCSR0A_ADDR, 5)) {
+
+                    Log.i(INTERRUPTION_TAG, "UDRE Empty Found");
+                    pcInterruption = INTERRUPT_VECTOR[POINTER_ADDR_USART_UDRE_EMPTY];
+                    return true;
+                }
+            }
+
+            //Check USART Tx Complete
+            if (dataMemory.readBit(DataMemory_ATmega328P.UCSR0B_ADDR, 5)) {
+                if (dataMemory.readBit(DataMemory_ATmega328P.UCSR0A_ADDR, 5)) {
+
+                    //Interruption will execute -> Clear flag
+                    dataMemory.writeIOBit(DataMemory_ATmega328P.UCSR0A_ADDR, 5, false);
+                    Log.i(INTERRUPTION_TAG, "Tx Complete Found");
+                    pcInterruption = INTERRUPT_VECTOR[POINTER_ADDR_USART_TX_COMPLETE];
+                    return true;
+                }
+            }
+
             //Check ADC
             if (dataMemory.readBit(DataMemory_ATmega328P.ADCSRA_ADDR, 3)) {
                 if (dataMemory.readBit(DataMemory_ATmega328P.ADCSRA_ADDR, 4)) {
@@ -394,6 +429,26 @@ public class InterruptionModule_ATmega328P implements InterruptionModule {
     @Override
     public void conversionCompleteADC() {
         dataMemory.writeIOBit(DataMemory_ATmega328P.ADCSRA_ADDR, 4, true);
+    }
+
+    @Override
+    public void dataRegisterEmptyUSART() {
+        dataMemory.writeIOBit(DataMemory_ATmega328P.UCSR0A_ADDR, 5, true);
+    }
+
+    @Override
+    public void transmissionCompleteUSART() {
+        dataMemory.writeIOBit(DataMemory_ATmega328P.UCSR0A_ADDR, 6, true);
+    }
+
+    @Override
+    public void receiveCompleteUSART() {
+        dataMemory.writeIOBit(DataMemory_ATmega328P.UCSR0A_ADDR, 7, true);
+    }
+
+    @Override
+    public void receiveBufferReadedUSART() {
+        dataMemory.writeIOBit(DataMemory_ATmega328P.UCSR0A_ADDR, 7, false);
     }
 
     @Override

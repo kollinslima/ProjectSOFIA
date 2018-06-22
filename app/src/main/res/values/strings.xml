@@ -116,5 +116,6 @@
 
     <string name="seach_mem_map">Search</string>
     <string name="action_meter">Meter</string>
+    <string name="serial_monitor_title">Serial Monitor</string>
 
 </resources>

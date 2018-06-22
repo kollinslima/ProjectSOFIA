@@ -17,6 +17,7 @@
 
 package com.example.kollins.sofia.atmega328p.iomodule_atmega328p.output;
 
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
@@ -253,36 +254,38 @@ public class OutputFragment_ATmega328P extends Fragment implements OutputFragmen
 
     public synchronized void updateView(int index) {
 
-        if (outputPinsList == null) {
-            return;
-        }
+        new UpdateScreen().execute(index);
 
-        View view = outputPinsList.getChildAt(index -
-                outputPinsList.getFirstVisiblePosition());
+//        if (outputPinsList == null) {
+//            return;
+//        }
+//
+//        View view = outputPinsList.getChildAt(index -
+//                outputPinsList.getFirstVisiblePosition());
+//
+//        if (view == null) {
+//            return;
+//        }
+//
+//        final TextView led = view.findViewById(R.id.ledState);
+//        final TextView freq = view.findViewById(R.id.frequency);
+//        final TextView dc = view.findViewById(R.id.dutycycle);
+//        final OutputPin_ATmega328P pin = outputPins.get(index);
+//
+//        final String ledText = UCModule.resources.getStringArray(R.array.ledText)[pin.getPinState(pin.getPinPositionSpinner())];
+//        final int backgroundColor = BACKGROUND_PIN[pin.getPinState(pin.getPinPositionSpinner())];
+//        final String freqText = String.format("%.0f Hz", frequencyBuffer[pin.getPinPositionSpinner()] >= 0 ? frequencyBuffer[pin.getPinPositionSpinner()] : 0);
+//        final String dcText = String.format("%.0f %%", dutyCycleBuffer[pin.getPinPositionSpinner()] <= 100 ? dutyCycleBuffer[pin.getPinPositionSpinner()] : 100);
 
-        if (view == null) {
-            return;
-        }
-
-        final TextView led = view.findViewById(R.id.ledState);
-        final TextView freq = view.findViewById(R.id.frequency);
-        final TextView dc = view.findViewById(R.id.dutycycle);
-        final OutputPin_ATmega328P pin = outputPins.get(index);
-
-        final String ledText = UCModule.resources.getStringArray(R.array.ledText)[pin.getPinState(pin.getPinPositionSpinner())];
-        final int backgroundColor = BACKGROUND_PIN[pin.getPinState(pin.getPinPositionSpinner())];
-        final String freqText = String.format("%.0f Hz", frequencyBuffer[pin.getPinPositionSpinner()] >= 0 ? frequencyBuffer[pin.getPinPositionSpinner()] : 0);
-        final String dcText = String.format("%.0f %%", dutyCycleBuffer[pin.getPinPositionSpinner()] <= 100 ? dutyCycleBuffer[pin.getPinPositionSpinner()] : 100);
-
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                led.setText(ledText);
-                led.setBackgroundResource(backgroundColor);
-                freq.setText(freqText);
-                dc.setText(dcText);
-            }
-        });
+//        getActivity().runOnUiThread(new Runnable() {
+//            @Override
+//            public void run() {
+//                led.setText(ledText);
+//                led.setBackgroundResource(backgroundColor);
+//                freq.setText(freqText);
+//                dc.setText(dcText);
+//            }
+//        });
     }
 
     @Override
@@ -311,5 +314,51 @@ public class OutputFragment_ATmega328P extends Fragment implements OutputFragmen
 
     public boolean isMeasrureOutput(int memoryAddress, int bitPosition) {
         return !dataMemory.readBit(memoryAddress, bitPosition);
+    }
+
+    private class UpdateScreen extends AsyncTask<Integer, Void, Integer>{
+
+        private TextView led, freq, dc;
+        private OutputPin_ATmega328P pin;
+        private String ledText, freqText, dcText;
+        private int backgroundColor;
+
+        @Override
+        protected Integer doInBackground(Integer... integers) {
+            if (outputPinsList == null) {
+                return -1;
+            }
+
+            View view = outputPinsList.getChildAt(integers[0] -
+                    outputPinsList.getFirstVisiblePosition());
+
+            if (view == null) {
+                return -1;
+            }
+
+            led = view.findViewById(R.id.ledState);
+            freq = view.findViewById(R.id.frequency);
+            dc = view.findViewById(R.id.dutycycle);
+            pin = outputPins.get(integers[0]);
+
+            ledText = UCModule.resources.getStringArray(R.array.ledText)[pin.getPinState(pin.getPinPositionSpinner())];
+            backgroundColor = BACKGROUND_PIN[pin.getPinState(pin.getPinPositionSpinner())];
+            freqText = String.format("%.0f Hz", frequencyBuffer[pin.getPinPositionSpinner()] >= 0 ? frequencyBuffer[pin.getPinPositionSpinner()] : 0);
+            dcText = String.format("%.0f %%", dutyCycleBuffer[pin.getPinPositionSpinner()] <= 100 ? dutyCycleBuffer[pin.getPinPositionSpinner()] : 100);
+
+            return 0;
+        }
+
+        @Override
+        protected void onPostExecute(Integer integer) {
+            super.onPostExecute(integer);
+
+            if (integer == 0) {
+                led.setText(ledText);
+                led.setBackgroundResource(backgroundColor);
+                freq.setText(freqText);
+                dc.setText(dcText);
+            }
+        }
     }
 }

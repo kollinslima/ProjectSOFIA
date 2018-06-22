@@ -51,4 +51,11 @@ public interface InterruptionModule {
     void timer2MatchB();
 
     void conversionCompleteADC();
+
+    void dataRegisterEmptyUSART();
+
+    void transmissionCompleteUSART();
+
+    void receiveCompleteUSART();
+    void receiveBufferReadedUSART();
 }

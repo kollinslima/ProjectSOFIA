@@ -43,4 +43,7 @@
     <color name="running">#00FF00</color>
     <color name="hex_file_error">#FFFF00</color>
     <color name="short_circuit">#FF0000</color>
+
+    <color name="serial_theme_background">#000000</color>
+    <color name="serial_theme_chars">#4FA404</color>
 </resources>
