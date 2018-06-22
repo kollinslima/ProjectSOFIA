@@ -266,11 +266,6 @@ public class UCModule extends AppCompatActivity {
 
     }
 
-    public int getMemoryUsage() {
-//        return (int) (dataMemory.getMemoryUsage() * 100);
-        return dataMemory.getMemoryUsage();
-    }
-
     public static int getDeviceModules() {
         int id = resources.getIdentifier(device, "integer", PACKAGE_NAME);
         return resources.getInteger(id);
@@ -407,11 +402,10 @@ public class UCModule extends AppCompatActivity {
 
         setResetFlag(true);
 
-        while (threadScheduler.isAlive()||threadUCView.isAlive());
+        while (threadScheduler.isAlive());
 
         try {
             threadScheduler.join();
-            threadUCView.join();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

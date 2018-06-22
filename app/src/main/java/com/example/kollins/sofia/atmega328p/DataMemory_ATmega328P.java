@@ -864,6 +864,7 @@ public class DataMemory_ATmega328P implements DataMemory {
         @Override
         public void run() {
             updateMemMapFlag = true;
+            MemoryFragment.updateMemoryUsage(getMemoryUsage(), getMemorySize());
         }
     }
 }

@@ -17,6 +17,7 @@
 
 package com.example.kollins.sofia.extra.memory_map;
 
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -29,6 +30,7 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import com.example.kollins.sofia.R;
 import com.example.kollins.sofia.UCModule;
@@ -43,6 +45,8 @@ public class MemoryFragment extends Fragment {
     public static MemoryAdapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
     private DataMemory dataMemory;
+
+    private static TextView memUsageBytesText, memUsagePercentText;
 
     private Toolbar toolbar;
 
@@ -66,6 +70,14 @@ public class MemoryFragment extends Fragment {
         mAdapter = new MemoryAdapter(dataMemory);
         mRecyclerView.setAdapter(mAdapter);
 
+        memUsageBytesText = layout.findViewById(R.id.memoryUsageBytes);
+        memUsagePercentText = layout.findViewById(R.id.memoryUsagePercent);
+
+        int memoryUsage = dataMemory.getMemoryUsage();
+        int memorySize = dataMemory.getMemorySize();
+        memUsageBytesText.setText("Bytes: " + memoryUsage + "/" + memorySize);
+        memUsagePercentText.setText(String.valueOf((memoryUsage*100)/memorySize) + "%");
+
         dataMemory.startTimer();
 
         return layout;
@@ -79,6 +91,10 @@ public class MemoryFragment extends Fragment {
 
     public void setDataMemory(DataMemory dataMemory) {
         this.dataMemory = dataMemory;
+    }
+
+    public static void updateMemoryUsage(int memoryUsage, int memorySize) {
+        new UpdateMemoryUsage().execute(memoryUsage, memorySize);
     }
 
     private class ToolBarMenuItemClick implements Toolbar.OnMenuItemClickListener{
@@ -105,6 +121,25 @@ public class MemoryFragment extends Fragment {
                 }
             });
             return true;
+        }
+    }
+
+    private static class UpdateMemoryUsage extends AsyncTask<Integer, Void, Void>{
+
+        private String memoryByte, memoryPercent;
+
+        @Override
+        protected Void doInBackground(Integer... integers) {
+            memoryByte = "Bytes: " + integers[0] + "/" + integers[1];
+            memoryPercent = String.valueOf((integers[0]*100)/integers[1]) + "%";
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            memUsageBytesText.setText(memoryByte);
+            memUsagePercentText.setText(memoryPercent);
         }
     }
 }

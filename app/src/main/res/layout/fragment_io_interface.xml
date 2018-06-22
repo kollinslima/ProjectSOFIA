@@ -42,13 +42,13 @@
                 android:textAppearance="?android:attr/textAppearanceSmall"
                 android:textColor="@color/simulatedTime" />
 
-            <TextView
-                android:id="@+id/memoryUsage"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerInParent="true"
-                android:textAppearance="?android:attr/textAppearanceSmall"
-                android:textColor="@android:color/white" />
+            <!--<TextView-->
+                <!--android:id="@+id/memoryUsage"-->
+                <!--android:layout_width="wrap_content"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:layout_centerInParent="true"-->
+                <!--android:textAppearance="?android:attr/textAppearanceSmall"-->
+                <!--android:textColor="@android:color/white" />-->
 
             <TextView
                 android:id="@+id/statusInfo"

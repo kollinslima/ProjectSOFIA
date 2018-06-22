@@ -20,7 +20,6 @@
     <string name="project_name">Project SOFIA</string>
 
     <string name="simulated_time_format">%d.%06d s</string>
-    <string name="memory_usage_format">Mem: %d/%d</string>
 
     <string name="hex_file_read_fail">Fail to read program</string>
     <!--<string name="hex_file_read_fail_instructions">Load a .hex file and reset system</string>-->

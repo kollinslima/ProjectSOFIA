@@ -19,6 +19,7 @@ package com.example.kollins.sofia.serial_monitor;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.text.method.ScrollingMovementMethod;
@@ -30,6 +31,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.example.kollins.sofia.R;
+import com.example.kollins.sofia.UCModule_View;
 
 public class SerialFragment extends Fragment {
 
@@ -40,6 +42,8 @@ public class SerialFragment extends Fragment {
     private static TextView serialMonitor;
     private Button closeButton, sendButton;
     private EditText messageSerial;
+
+    private Handler screenUpdater;
 
     @Nullable
     @Override
@@ -53,6 +57,7 @@ public class SerialFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 getActivity().onBackPressed();
+                screenUpdater.sendEmptyMessage(UCModule_View.REMOVE_SERIAL_FRAGMENT);
             }
         });
 
@@ -83,6 +88,10 @@ public class SerialFragment extends Fragment {
             serialMonitor.setText("");
         }
         serialStringBuilder.setLength(0);
+    }
+
+    public void setScreenUpdater(Handler screenUpdater) {
+        this.screenUpdater = screenUpdater;
     }
 
     private static class UpdateSerialMonitor extends AsyncTask<Byte,Void,String>{

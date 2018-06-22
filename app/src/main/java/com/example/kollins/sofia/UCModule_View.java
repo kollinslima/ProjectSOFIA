@@ -70,6 +70,7 @@ public class UCModule_View extends Fragment {
 
     public static final int REMOVE_OUTPUT_FRAGMENT = 0;
     public static final int REMOVE_INPUT_FRAGMENT = 1;
+    public static final int REMOVE_SERIAL_FRAGMENT = 2;
 
     public static final int OSCILATOR = 16 * ((int) Math.pow(10, 6));
     public static final long CLOCK_PERIOD = (long) ((1 / (double) OSCILATOR) * Math.pow(10, 10));
@@ -97,8 +98,7 @@ public class UCModule_View extends Fragment {
     private TextView simulatedTimeDisplay, startInstructions, statusInfo, memoryUsage, hexFileErrorInstructions;
     public static long simulatedTime;
     private int memorySize;
-    private String simulatedText, memoryUsageText;
-    //    private long nanoSeconds;
+    private String simulatedText;
     private long microSeconds;
     private long seconds;
 
@@ -132,6 +132,7 @@ public class UCModule_View extends Fragment {
 
             memoryFragment = new MemoryFragment();
             serialFragment = new SerialFragment();
+            serialFragment.setScreenUpdater(screenUpdater);
 
         } catch (ClassNotFoundException | IllegalAccessException | java.lang.InstantiationException
                 | NoSuchMethodException | InvocationTargetException e) {
@@ -152,7 +153,6 @@ public class UCModule_View extends Fragment {
 
         statusInfo = (TextView) view.findViewById(R.id.statusInfo);
         simulatedTimeDisplay = (TextView) view.findViewById(R.id.simulatedTime);
-        memoryUsage = (TextView) view.findViewById(R.id.memoryUsage);
 
         startInstructions = (TextView) view.findViewById(R.id.startInstructions);
         hexFileErrorInstructions = (TextView) view.findViewById(R.id.hexFileErrorInstructions);
@@ -175,13 +175,11 @@ public class UCModule_View extends Fragment {
             seconds = TimeUnit.MICROSECONDS.toSeconds(microSeconds);
 
             simulatedText = UCModule.resources.getString(R.string.simulated_time_format, seconds, microSeconds);
-            memoryUsageText = UCModule.resources.getString(R.string.memory_usage_format, ucModule.getMemoryUsage(), memorySize);
 
             screenUpdater.post(new Runnable() {
                 @Override
                 public void run() {
                     simulatedTimeDisplay.setText(simulatedText);
-                    memoryUsage.setText(memoryUsageText);
                 }
             });
         }
@@ -409,6 +407,11 @@ public class UCModule_View extends Fragment {
                     }
                     break;
 
+                case REMOVE_SERIAL_FRAGMENT:
+                    if (inputFrame.getVisibility() != View.VISIBLE) {
+                        startInstructions.setVisibility(View.VISIBLE);
+                    }
+                    break;
             }
         }
     }
