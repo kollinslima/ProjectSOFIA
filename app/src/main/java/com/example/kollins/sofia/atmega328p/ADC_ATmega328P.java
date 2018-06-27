@@ -87,10 +87,10 @@ public class ADC_ATmega328P implements ADCModule {
 
             prescaler = (0x0007 & adcsraRead);
 
-            ClockSource.values()[prescaler].work();
+//            ClockSource.values()[prescaler].work();
             inputIndex = (0x000F & admuxRead);
 
-            ClockSource.values()[prescaler].work();
+//            ClockSource.values()[prescaler].work();
             switch (0x00C0 & admuxRead) {
                 case 0x0000:
                     vRef = AREF * 1000;
@@ -121,7 +121,7 @@ public class ADC_ATmega328P implements ADCModule {
                     conversionADC |= conversionIncrease;
                 }
             }
-            ClockSource.values()[prescaler].work();
+//            ClockSource.values()[prescaler].work();
 
             if (dataMemory.readBit(DataMemory_ATmega328P.ADMUX_ADDR, 5)) {
                 //Left Ajust

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.example.kollins.sofia;
+package com.example.kollins.sofia.atmega328p;
 
 import com.example.kollins.sofia.atmega328p.DataMemory_ATmega328P;
 import com.example.kollins.sofia.atmega328p.Timer1_ATmega328P;

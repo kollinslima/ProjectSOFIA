@@ -18,6 +18,7 @@
 package com.example.kollins.sofia.extra.IOTest.IOTest.IOTest;
 
 
+import android.content.Intent;
 import android.support.test.espresso.ViewInteraction;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
@@ -33,6 +34,7 @@ import com.example.kollins.sofia.extra.SplashScreen;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;

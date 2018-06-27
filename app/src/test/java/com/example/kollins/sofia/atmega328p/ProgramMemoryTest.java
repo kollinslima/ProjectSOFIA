@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.example.kollins.sofia;
+package com.example.kollins.sofia.atmega328p;
 
 import android.os.Environment;
 import android.os.Handler;
@@ -151,5 +151,61 @@ public class ProgramMemoryTest {
         Whitebox.setInternalState(programMemory,"pcPointer", (char) (ProgramMemory_ATmega328P.FLASH_SIZE/2));
 
         programMemory.loadInstruction();
+    }
+
+    @Test
+    public void setPC_to_0x50() {
+        int test_value = 0x50;
+        programMemory.setPC(test_value);
+        char pcPointer_test = Whitebox.getInternalState(programMemory,"pcPointer");
+        assertEquals(test_value, pcPointer_test);
+    }
+
+    @Test
+    public void getPC_0x60() {
+        int test_value = 0x60;
+        Whitebox.setInternalState(programMemory,"pcPointer", (char) test_value);
+        int pcPointer_test = programMemory.getPC();
+        assertEquals(test_value, pcPointer_test);
+    }
+
+    @Test
+    public void addToPC_add_0xF1() {
+        int add_value = 0xF1;
+        Whitebox.setInternalState(programMemory,"pcPointer", (char) 0);
+        programMemory.addToPC(add_value);
+        char pcPointer_test = Whitebox.getInternalState(programMemory,"pcPointer");
+        assertEquals(add_value, pcPointer_test);
+    }
+
+    @Test
+    public void writeWord_write0xABCD_to0x02() {
+        int data = 0xABCD;
+        int address = 0x02; //Word Address
+
+        programMemory.writeWord(address, data);
+
+        assertEquals((byte) 0xCD, flashMemoryTest[(address*2)]);
+        assertEquals((byte) 0xAB, flashMemoryTest[(address*2) + 1]);
+    }
+
+    @Test
+    public void readByte_readLowByte() {
+        int data = 0xABCD;
+        int address = 0x01; //Word Address
+
+        programMemory.writeWord(address, data);
+
+        assertEquals((byte) 0xCD, programMemory.readByte(address*2));
+    }
+
+    @Test
+    public void readByte_readHighByte() {
+        int data = 0xABCD;
+        int address = 0x01; //Word Address
+
+        programMemory.writeWord(address, data);
+
+        assertEquals((byte) 0xAB, programMemory.readByte(address*2 + 1));
     }
 }
