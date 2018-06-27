@@ -40,7 +40,7 @@ public class USART_ATmega328P implements USARTModule {
         usartOutputControl_Tx = false;
     }
 
-
+    @Override
     public void run() {
 
         //Check if there is data to be transmitted
@@ -51,7 +51,7 @@ public class USART_ATmega328P implements USARTModule {
             if (!dataMemory.readBit(DataMemory_ATmega328P.UCSR0A_ADDR, 6)
                     && !dataMemory.readBit(DataMemory_ATmega328P.UCSR0A_ADDR, 5)) {
 
-                Log.d(USART_LOG_TAG, "Transmitting: " + transmitter_UDR0);
+//                Log.d(USART_LOG_TAG, "Transmitting: " + transmitter_UDR0);
                 SerialFragment.appendByte(transmitter_UDR0);
                 UCModule.interruptionModule.dataRegisterEmptyUSART();
                 UCModule.interruptionModule.transmissionCompleteUSART();
@@ -70,8 +70,8 @@ public class USART_ATmega328P implements USARTModule {
 
                 receiver_UDR0 = SerialFragment.buffer.substring(0, 1).getBytes()[0];
                 SerialFragment.buffer = SerialFragment.buffer.substring(1);
-                Log.d(USART_LOG_TAG, "Received: " + receiver_UDR0);
-                Log.d(USART_LOG_TAG, "BufferLeft " + SerialFragment.buffer);
+//                Log.d(USART_LOG_TAG, "Received: " + receiver_UDR0);
+//                Log.d(USART_LOG_TAG, "BufferLeft " + SerialFragment.buffer);
                 UCModule.interruptionModule.receiveCompleteUSART();
             }
         } else {
