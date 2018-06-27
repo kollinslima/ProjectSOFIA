@@ -26,27 +26,27 @@ public class InterruptionModule_ATmega328P implements InterruptionModule {
 
     private static final String INTERRUPTION_TAG = "Interruption";
 
-    private static final int POINTER_ADDR_INT0 = 0;
-    private static final int POINTER_ADDR_INT1 = 1;
-    private static final int POINTER_ADDR_PCINT0 = 2;
-    private static final int POINTER_ADDR_PCINT1 = 3;
-    private static final int POINTER_ADDR_PCINT2 = 4;
-    private static final int POINTER_ADDR_TIMER2_COMP_A = 6;
-    private static final int POINTER_ADDR_TIMER2_COMP_B = 7;
-    private static final int POINTER_ADDR_TIMER2_OVERFLOW = 8;
-    private static final int POINTER_ADDR_TIMER1_CAPTURE_EVENT = 9;
-    private static final int POINTER_ADDR_TIMER1_COMP_A = 10;
-    private static final int POINTER_ADDR_TIMER1_COMP_B = 11;
-    private static final int POINTER_ADDR_TIMER1_OVERFLOW = 12;
-    private static final int POINTER_ADDR_TIMER0_COMP_A = 13;
-    private static final int POINTER_ADDR_TIMER0_COMP_B = 14;
-    private static final int POINTER_ADDR_TIMER0_OVERFLOW = 15;
-    private static final int POINTER_ADDR_USART_RX_COMPLETE = 17;
-    private static final int POINTER_ADDR_USART_UDRE_EMPTY = 18;
-    private static final int POINTER_ADDR_USART_TX_COMPLETE = 19;
-    private static final int POINTER_ADDR_ADC = 20;
+    public static final int POINTER_ADDR_INT0 = 0;
+    public static final int POINTER_ADDR_INT1 = 1;
+    public static final int POINTER_ADDR_PCINT0 = 2;
+    public static final int POINTER_ADDR_PCINT1 = 3;
+    public static final int POINTER_ADDR_PCINT2 = 4;
+    public static final int POINTER_ADDR_TIMER2_COMP_A = 6;
+    public static final int POINTER_ADDR_TIMER2_COMP_B = 7;
+    public static final int POINTER_ADDR_TIMER2_OVERFLOW = 8;
+    public static final int POINTER_ADDR_TIMER1_CAPTURE_EVENT = 9;
+    public static final int POINTER_ADDR_TIMER1_COMP_A = 10;
+    public static final int POINTER_ADDR_TIMER1_COMP_B = 11;
+    public static final int POINTER_ADDR_TIMER1_OVERFLOW = 12;
+    public static final int POINTER_ADDR_TIMER0_COMP_A = 13;
+    public static final int POINTER_ADDR_TIMER0_COMP_B = 14;
+    public static final int POINTER_ADDR_TIMER0_OVERFLOW = 15;
+    public static final int POINTER_ADDR_USART_RX_COMPLETE = 17;
+    public static final int POINTER_ADDR_USART_UDRE_EMPTY = 18;
+    public static final int POINTER_ADDR_USART_TX_COMPLETE = 19;
+    public static final int POINTER_ADDR_ADC = 20;
 
-    private static final char[] INTERRUPT_VECTOR = {
+    public static final char[] INTERRUPT_VECTOR = {
             0x0002,  //INT0
             0x0004,  //INT1
             0x0006,  //PCINT0
@@ -82,14 +82,13 @@ public class InterruptionModule_ATmega328P implements InterruptionModule {
 //        Log.i(INTERRUPTION_TAG, "CPU Interruption check");
         //Is global interruption enabled?
         if (dataMemory.readBit(DataMemory_ATmega328P.SREG_ADDR, 7)) {
-
             //Check INT0
             if (dataMemory.readBit(DataMemory_ATmega328P.EIMSK_ADDR, 0)) {
                 byte configINT0 = dataMemory.readByte(DataMemory_ATmega328P.EICRA_ADDR);
                 if ((0x03 & configINT0) == 0x00) {
                     //Level interruption
                     if (!dataMemory.readBit(DataMemory_ATmega328P.PIND_ADDR, 2)) {
-                        Log.i(INTERRUPTION_TAG, "INT0 Level Found");
+//                        Log.i(INTERRUPTION_TAG, "INT0 Level Found");
                         pcInterruption = INTERRUPT_VECTOR[POINTER_ADDR_INT0];
                         return true;
                     }
@@ -98,7 +97,7 @@ public class InterruptionModule_ATmega328P implements InterruptionModule {
 
                         //Interruption will execute -> Clear flag
                         dataMemory.writeIOBit(DataMemory_ATmega328P.EIFR_ADDR, 0, false);
-                        Log.i(INTERRUPTION_TAG, "INT0 Found");
+//                        Log.i(INTERRUPTION_TAG, "INT0 Found");
                         pcInterruption = INTERRUPT_VECTOR[POINTER_ADDR_INT0];
                         return true;
                     }
@@ -111,7 +110,7 @@ public class InterruptionModule_ATmega328P implements InterruptionModule {
                 if ((0x0C & configINT1) == 0x00) {
                     //Level interruption
                     if (!dataMemory.readBit(DataMemory_ATmega328P.PIND_ADDR, 3)) {
-                        Log.i(INTERRUPTION_TAG, "INT1 Level Found");
+//                        Log.i(INTERRUPTION_TAG, "INT1 Level Found");
                         pcInterruption = INTERRUPT_VECTOR[POINTER_ADDR_INT1];
                         return true;
                     }
@@ -120,7 +119,7 @@ public class InterruptionModule_ATmega328P implements InterruptionModule {
 
                         //Interruption will execute -> Clear flag
                         dataMemory.writeIOBit(DataMemory_ATmega328P.EIFR_ADDR, 1, false);
-                        Log.i(INTERRUPTION_TAG, "INT1 Found");
+//                        Log.i(INTERRUPTION_TAG, "INT1 Found");
                         pcInterruption = INTERRUPT_VECTOR[POINTER_ADDR_INT1];
                         return true;
                     }
@@ -133,7 +132,7 @@ public class InterruptionModule_ATmega328P implements InterruptionModule {
 
                     //Interruption will execute -> Clear flag
                     dataMemory.writeIOBit(DataMemory_ATmega328P.PCIFR_ADDR, 0, false);
-                    Log.i(INTERRUPTION_TAG, "PCINT0 Found");
+//                    Log.i(INTERRUPTION_TAG, "PCINT0 Found");
                     pcInterruption = INTERRUPT_VECTOR[POINTER_ADDR_PCINT0];
                     return true;
                 }
@@ -145,7 +144,7 @@ public class InterruptionModule_ATmega328P implements InterruptionModule {
 
                     //Interruption will execute -> Clear flag
                     dataMemory.writeIOBit(DataMemory_ATmega328P.PCIFR_ADDR, 1, false);
-                    Log.i(INTERRUPTION_TAG, "PCINT1 Found");
+//                    Log.i(INTERRUPTION_TAG, "PCINT1 Found");
                     pcInterruption = INTERRUPT_VECTOR[POINTER_ADDR_PCINT1];
                     return true;
                 }
@@ -157,7 +156,7 @@ public class InterruptionModule_ATmega328P implements InterruptionModule {
 
                     //Interruption will execute -> Clear flag
                     dataMemory.writeIOBit(DataMemory_ATmega328P.PCIFR_ADDR, 2, false);
-                    Log.i(INTERRUPTION_TAG, "PCINT2 Found");
+//                    Log.i(INTERRUPTION_TAG, "PCINT2 Found");
                     pcInterruption = INTERRUPT_VECTOR[POINTER_ADDR_PCINT2];
                     return true;
                 }
@@ -169,7 +168,7 @@ public class InterruptionModule_ATmega328P implements InterruptionModule {
 
                     //Interruption will execute -> Clear flag
                     dataMemory.writeIOBit(DataMemory_ATmega328P.TIFR2_ADDR, 1, false);
-                    Log.i(INTERRUPTION_TAG, "TIMER2 COMP_A Found");
+//                    Log.i(INTERRUPTION_TAG, "TIMER2 COMP_A Found");
                     pcInterruption = INTERRUPT_VECTOR[POINTER_ADDR_TIMER2_COMP_A];
                     return true;
                 }
@@ -181,7 +180,7 @@ public class InterruptionModule_ATmega328P implements InterruptionModule {
 
                     //Interruption will execute -> Clear flag
                     dataMemory.writeIOBit(DataMemory_ATmega328P.TIFR2_ADDR, 2, false);
-                    Log.i(INTERRUPTION_TAG, "TIMER2 COMP_B Found");
+//                    Log.i(INTERRUPTION_TAG, "TIMER2 COMP_B Found");
                     pcInterruption = INTERRUPT_VECTOR[POINTER_ADDR_TIMER2_COMP_B];
                     return true;
                 }
@@ -193,7 +192,7 @@ public class InterruptionModule_ATmega328P implements InterruptionModule {
 
                     //Interruption will execute -> Clear flag
                     dataMemory.writeIOBit(DataMemory_ATmega328P.TIFR2_ADDR, 0, false);
-                    Log.i(INTERRUPTION_TAG, "TIMER2 OVERLOW Found");
+//                    Log.i(INTERRUPTION_TAG, "TIMER2 OVERLOW Found");
                     pcInterruption = INTERRUPT_VECTOR[POINTER_ADDR_TIMER2_OVERFLOW];
                     return true;
                 }
@@ -205,7 +204,7 @@ public class InterruptionModule_ATmega328P implements InterruptionModule {
 
                     //Interruption will execute -> Clear flag
                     dataMemory.writeIOBit(DataMemory_ATmega328P.TIFR1_ADDR, 5, false);
-                    Log.i(INTERRUPTION_TAG, "TIMER1 CAPTURE EVENT Found");
+//                    Log.i(INTERRUPTION_TAG, "TIMER1 CAPTURE EVENT Found");
                     pcInterruption = INTERRUPT_VECTOR[POINTER_ADDR_TIMER1_CAPTURE_EVENT];
                     return true;
                 }
@@ -217,7 +216,7 @@ public class InterruptionModule_ATmega328P implements InterruptionModule {
 
                     //Interruption will execute -> Clear flag
                     dataMemory.writeIOBit(DataMemory_ATmega328P.TIFR1_ADDR, 1, false);
-                    Log.i(INTERRUPTION_TAG, "TIMER1 COMP_A Found");
+//                    Log.i(INTERRUPTION_TAG, "TIMER1 COMP_A Found");
                     pcInterruption = INTERRUPT_VECTOR[POINTER_ADDR_TIMER1_COMP_A];
                     return true;
                 }
@@ -229,7 +228,7 @@ public class InterruptionModule_ATmega328P implements InterruptionModule {
 
                     //Interruption will execute -> Clear flag
                     dataMemory.writeIOBit(DataMemory_ATmega328P.TIFR1_ADDR, 2, false);
-                    Log.i(INTERRUPTION_TAG, "TIMER1 COMP_B Found");
+//                    Log.i(INTERRUPTION_TAG, "TIMER1 COMP_B Found");
                     pcInterruption = INTERRUPT_VECTOR[POINTER_ADDR_TIMER1_COMP_B];
                     return true;
                 }
@@ -241,7 +240,7 @@ public class InterruptionModule_ATmega328P implements InterruptionModule {
 
                     //Interruption will execute -> Clear flag
                     dataMemory.writeIOBit(DataMemory_ATmega328P.TIFR1_ADDR, 0, false);
-                    Log.i(INTERRUPTION_TAG, "TIMER1 OVERFLOW Found");
+//                    Log.i(INTERRUPTION_TAG, "TIMER1 OVERFLOW Found");
                     pcInterruption = INTERRUPT_VECTOR[POINTER_ADDR_TIMER1_OVERFLOW];
                     return true;
                 }
@@ -254,7 +253,7 @@ public class InterruptionModule_ATmega328P implements InterruptionModule {
 
                     //Interruption will execute -> Clear flag
                     dataMemory.writeIOBit(DataMemory_ATmega328P.TIFR0_ADDR, 1, false);
-                    Log.i(INTERRUPTION_TAG, "TIMER0 COMP_A Found");
+//                    Log.i(INTERRUPTION_TAG, "TIMER0 COMP_A Found");
                     pcInterruption = INTERRUPT_VECTOR[POINTER_ADDR_TIMER0_COMP_A];
                     return true;
                 }
@@ -266,7 +265,7 @@ public class InterruptionModule_ATmega328P implements InterruptionModule {
 
                     //Interruption will execute -> Clear flag
                     dataMemory.writeIOBit(DataMemory_ATmega328P.TIFR0_ADDR, 2, false);
-                    Log.i(INTERRUPTION_TAG, "TIMER0 COMP_B Found");
+//                    Log.i(INTERRUPTION_TAG, "TIMER0 COMP_B Found");
                     pcInterruption = INTERRUPT_VECTOR[POINTER_ADDR_TIMER0_COMP_B];
                     return true;
                 }
@@ -278,7 +277,7 @@ public class InterruptionModule_ATmega328P implements InterruptionModule {
 
                     //Interruption will execute -> Clear flag
                     dataMemory.writeIOBit(DataMemory_ATmega328P.TIFR0_ADDR, 0, false);
-                    Log.i(INTERRUPTION_TAG, "TIMER0 OVERFLOW Found");
+//                    Log.i(INTERRUPTION_TAG, "TIMER0 OVERFLOW Found");
                     pcInterruption = INTERRUPT_VECTOR[POINTER_ADDR_TIMER0_OVERFLOW];
                     return true;
                 }
@@ -288,7 +287,7 @@ public class InterruptionModule_ATmega328P implements InterruptionModule {
             if (dataMemory.readBit(DataMemory_ATmega328P.UCSR0B_ADDR, 7)) {
                 if (dataMemory.readBit(DataMemory_ATmega328P.UCSR0A_ADDR, 7)) {
 
-                    Log.i(INTERRUPTION_TAG, "Rx Complete Found");
+//                    Log.i(INTERRUPTION_TAG, "Rx Complete Found");
                     pcInterruption = INTERRUPT_VECTOR[POINTER_ADDR_USART_RX_COMPLETE];
                     return true;
                 }
@@ -298,18 +297,18 @@ public class InterruptionModule_ATmega328P implements InterruptionModule {
             if (dataMemory.readBit(DataMemory_ATmega328P.UCSR0B_ADDR, 5)) {
                 if (dataMemory.readBit(DataMemory_ATmega328P.UCSR0A_ADDR, 5)) {
 
-                    Log.i(INTERRUPTION_TAG, "UDRE Empty Found");
+//                    Log.i(INTERRUPTION_TAG, "UDRE Empty Found");
                     pcInterruption = INTERRUPT_VECTOR[POINTER_ADDR_USART_UDRE_EMPTY];
                     return true;
                 }
             }
 
             //Check USART Tx Complete
-            if (dataMemory.readBit(DataMemory_ATmega328P.UCSR0B_ADDR, 5)) {
-                if (dataMemory.readBit(DataMemory_ATmega328P.UCSR0A_ADDR, 5)) {
+            if (dataMemory.readBit(DataMemory_ATmega328P.UCSR0B_ADDR, 6)) {
+                if (dataMemory.readBit(DataMemory_ATmega328P.UCSR0A_ADDR, 6)) {
 
                     //Interruption will execute -> Clear flag
-                    dataMemory.writeIOBit(DataMemory_ATmega328P.UCSR0A_ADDR, 5, false);
+                    dataMemory.writeIOBit(DataMemory_ATmega328P.UCSR0A_ADDR, 6, false);
                     Log.i(INTERRUPTION_TAG, "Tx Complete Found");
                     pcInterruption = INTERRUPT_VECTOR[POINTER_ADDR_USART_TX_COMPLETE];
                     return true;
@@ -352,7 +351,7 @@ public class InterruptionModule_ATmega328P implements InterruptionModule {
 
         //Auto Trigger ADC
         if (dataMemory.readBit(DataMemory_ATmega328P.ADCSRA_ADDR, 5)
-                && (0x07 & dataMemory.readByte(DataMemory_ATmega328P.ADCSRB_ADDR)) == 4) {
+                && ((0x07 & dataMemory.readByte(DataMemory_ATmega328P.ADCSRB_ADDR)) == 4)) {
             dataMemory.writeIOBit(DataMemory_ATmega328P.ADCSRA_ADDR, 6, true);
         }
     }
@@ -462,12 +461,12 @@ public class InterruptionModule_ATmega328P implements InterruptionModule {
         if (pinAddress == DataMemory_ATmega328P.PIND_ADDR) {
             if (pinPosition == 2) {
                 if (!checkINT0Interruption(oldState, newState)) {
-                    Log.v(INTERRUPTION_TAG, "INT0 not detected");
+//                    Log.v(INTERRUPTION_TAG, "INT0 not detected");
                     checkPCINT2Interruption(pinPosition, oldState, newState);
                 }
             } else if (pinPosition == 3) {
                 if (!checkINT1Interruption(oldState, newState)) {
-                    Log.v(INTERRUPTION_TAG, "INT1 not detected");
+//                    Log.v(INTERRUPTION_TAG, "INT1 not detected");
                     checkPCINT2Interruption(pinPosition, oldState, newState);
                 }
             } else {
@@ -490,7 +489,7 @@ public class InterruptionModule_ATmega328P implements InterruptionModule {
                 case 0x00:
                     //Level interrupt
                     if (!newState) {
-                        Log.v(INTERRUPTION_TAG, "INT0 Level");
+//                        Log.v(INTERRUPTION_TAG, "INT0 Level");
                         dataMemory.writeIOBit(DataMemory_ATmega328P.EIFR_ADDR, 0, false);
 
                         //Auto Trigger ADC
@@ -505,7 +504,7 @@ public class InterruptionModule_ATmega328P implements InterruptionModule {
                 case 0x01:
                     //Change interrupt
                     if (oldState ^ newState) {
-                        Log.v(INTERRUPTION_TAG, "INT0 Change");
+//                        Log.v(INTERRUPTION_TAG, "INT0 Change");
                         dataMemory.writeIOBit(DataMemory_ATmega328P.EIFR_ADDR, 0, true);
 
                         //Auto Trigger ADC
@@ -519,7 +518,7 @@ public class InterruptionModule_ATmega328P implements InterruptionModule {
                 case 0x02:
                     //Falling edge interrupt
                     if (oldState && !newState) {
-                        Log.v(INTERRUPTION_TAG, "INT0 Falling Edge");
+//                        Log.v(INTERRUPTION_TAG, "INT0 Falling Edge");
                         dataMemory.writeIOBit(DataMemory_ATmega328P.EIFR_ADDR, 0, true);
 
                         //Auto Trigger ADC
@@ -533,7 +532,7 @@ public class InterruptionModule_ATmega328P implements InterruptionModule {
                 case 0x03:
                     //Rising edge interrupt
                     if (!oldState && newState) {
-                        Log.v(INTERRUPTION_TAG, "INT0 Rising Edge");
+//                        Log.v(INTERRUPTION_TAG, "INT0 Rising Edge");
                         dataMemory.writeIOBit(DataMemory_ATmega328P.EIFR_ADDR, 0, true);
 
                         //Auto Trigger ADC
@@ -599,6 +598,7 @@ public class InterruptionModule_ATmega328P implements InterruptionModule {
     }
 
     private void checkPCINT2Interruption(int pinPosition, boolean oldState, boolean newState) {
+
         if (dataMemory.readBit(DataMemory_ATmega328P.PCICR_ADDR, 2)) {
             //PCINT2 enabled
             if (dataMemory.readBit(DataMemory_ATmega328P.PCMSK2_ADDR, pinPosition)) {
