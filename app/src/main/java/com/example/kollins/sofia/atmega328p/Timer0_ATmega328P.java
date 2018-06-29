@@ -57,6 +57,9 @@ public class Timer0_ATmega328P implements Timer0Module {
 
     private static short clockCount;
 
+    private static boolean match_A, match_B;
+    private static byte progress;
+
     public Timer0_ATmega328P(DataMemory dataMemory, IOModule ioModule) {
         this.dataMemory = (DataMemory_ATmega328P) dataMemory;
 //        this.uCHandler = uCHandler;
@@ -83,6 +86,11 @@ public class Timer0_ATmega328P implements Timer0Module {
     }
 
     public void run() {
+
+        //Power Reduction Register
+        if (dataMemory.readBit(DataMemory_ATmega328P.PRR_ADDR, 5)){
+            return;
+        }
 
         if (ClockSource.values()[0x07 & dataMemory.readByte(DataMemory_ATmega328P.TCCR0B_ADDR)].work()) {
 
@@ -220,8 +228,8 @@ public class Timer0_ATmega328P implements Timer0Module {
         NORMAL_OPERATION {
             @Override
             public void count() {
-                boolean match_A = false, match_B = false;
-                byte progress = dataMemory.readByte(DataMemory_ATmega328P.TCNT0_ADDR);
+                match_A = false; match_B = false;
+                progress = dataMemory.readByte(DataMemory_ATmega328P.TCNT0_ADDR);
                 progress = (byte) (progress + 1);
 
                 if (progress == BOTTOM) {
@@ -318,8 +326,8 @@ public class Timer0_ATmega328P implements Timer0Module {
         PWM_PHASE_CORRECT_TOP_0XFF {
             @Override
             public void count() {
-                boolean match_A = false, match_B = false;
-                byte progress = dataMemory.readByte(DataMemory_ATmega328P.TCNT0_ADDR);
+                match_A = false; match_B = false;
+                progress = dataMemory.readByte(DataMemory_ATmega328P.TCNT0_ADDR);
                 if (progress == MAX) {
                     doubleBufferOCR0A = dataMemory.readByte(DataMemory_ATmega328P.OCR0A_ADDR);
                     doubleBufferOCR0B = dataMemory.readByte(DataMemory_ATmega328P.OCR0B_ADDR);
@@ -445,8 +453,8 @@ public class Timer0_ATmega328P implements Timer0Module {
         CTC_OPERATION {
             @Override
             public void count() {
-                boolean match_A = false, match_B = false;
-                byte progress = dataMemory.readByte(DataMemory_ATmega328P.TCNT0_ADDR);
+                match_A = false; match_B = false;
+                progress = dataMemory.readByte(DataMemory_ATmega328P.TCNT0_ADDR);
                 progress = (byte) (progress + 1);
 
                 if (nextClear) {
@@ -554,8 +562,8 @@ public class Timer0_ATmega328P implements Timer0Module {
         FAST_PWM_TOP_0XFF {
             @Override
             public void count() {
-                boolean match_A = false, match_B = false;
-                byte progress = dataMemory.readByte(DataMemory_ATmega328P.TCNT0_ADDR);
+                match_A = false; match_B = false;
+                progress = dataMemory.readByte(DataMemory_ATmega328P.TCNT0_ADDR);
                 if (progress == BOTTOM) {
                     doubleBufferOCR0A = dataMemory.readByte(DataMemory_ATmega328P.OCR0A_ADDR);
                     doubleBufferOCR0B = dataMemory.readByte(DataMemory_ATmega328P.OCR0B_ADDR);
@@ -667,8 +675,8 @@ public class Timer0_ATmega328P implements Timer0Module {
         PWM_PHASE_CORRECT_TOP_OCRA {
             @Override
             public void count() {
-                boolean match_A = false, match_B = false;
-                byte progress = dataMemory.readByte(DataMemory_ATmega328P.TCNT0_ADDR);
+                match_A = false; match_B = false;
+                progress = dataMemory.readByte(DataMemory_ATmega328P.TCNT0_ADDR);
                 if (progress == doubleBufferOCR0A) {
                     doubleBufferOCR0A = dataMemory.readByte(DataMemory_ATmega328P.OCR0A_ADDR);
                     doubleBufferOCR0B = dataMemory.readByte(DataMemory_ATmega328P.OCR0B_ADDR);
@@ -800,8 +808,8 @@ public class Timer0_ATmega328P implements Timer0Module {
         FAST_PWM_TOP_OCRA {
             @Override
             public void count() {
-                boolean match_A = false, match_B = false;
-                byte progress = dataMemory.readByte(DataMemory_ATmega328P.TCNT0_ADDR);
+                match_A = false; match_B = false;
+                progress = dataMemory.readByte(DataMemory_ATmega328P.TCNT0_ADDR);
                 if (progress == BOTTOM) {
                     doubleBufferOCR0A = dataMemory.readByte(DataMemory_ATmega328P.OCR0A_ADDR);
                     doubleBufferOCR0B = dataMemory.readByte(DataMemory_ATmega328P.OCR0B_ADDR);

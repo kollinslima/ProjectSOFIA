@@ -42,7 +42,7 @@ public class Timer2_ATmega328P implements Timer2Module {
     public static boolean timerOutputControl_OC2B;
 
     private static DataMemory_ATmega328P dataMemory;
-//    private static Handler uCHandler;
+    //    private static Handler uCHandler;
     private static IOModule_ATmega328P ioModule;
 //    private UCModule uCModule;
 
@@ -51,10 +51,13 @@ public class Timer2_ATmega328P implements Timer2Module {
     private static int stateOC2A, stateOC2B;
     private static boolean nextOverflow, nextClear;
     private static boolean phaseCorrect_UPCount,        //Tell about the next count
-                           phaseCorrect_UPCount_old;    //Tell about how I get to the actual value
+            phaseCorrect_UPCount_old;    //Tell about how I get to the actual value
     private static byte doubleBufferOCR2A, doubleBufferOCR2B;
 
     private static short clockCount;
+
+    private static boolean match_A, match_B;
+    private static byte progress;
 
     public Timer2_ATmega328P(DataMemory dataMemory, IOModule ioModule) {
         this.dataMemory = (DataMemory_ATmega328P) dataMemory;
@@ -81,41 +84,47 @@ public class Timer2_ATmega328P implements Timer2Module {
 
     @Override
     public void run() {
-            if (ClockSource.values()[0x07 & dataMemory.readByte(DataMemory_ATmega328P.TCCR2B_ADDR)].work()) {
-                if (dataMemory.readBit(DataMemory_ATmega328P.GTCCR_ADDR, 1)) {
-                    return;   //Synchronization Mode
-                }
 
-                buffer_WGM22 = dataMemory.readBit(DataMemory_ATmega328P.TCCR2B_ADDR, 3);
+        //Power Reduction Register
+        if (dataMemory.readBit(DataMemory_ATmega328P.PRR_ADDR, 6)) {
+            return;
+        }
 
-                switch (0x03 & dataMemory.readByte(DataMemory_ATmega328P.TCCR2A_ADDR)) {
-                    case 0x00:
-                        if (!buffer_WGM22) {
-                            TimerMode.NORMAL_OPERATION.count();
-                        }
-                        break;
-                    case 0x01:
-                        if (buffer_WGM22) {
-                            TimerMode.PWM_PHASE_CORRECT_TOP_OCRA.count();
-                        } else {
-                            TimerMode.PWM_PHASE_CORRECT_TOP_0XFF.count();
-                        }
-                        break;
-                    case 0x02:
-                        if (!buffer_WGM22) {
-                            TimerMode.CTC_OPERATION.count();
-                        }
-                        break;
-                    case 0x03:
-                        if (buffer_WGM22) {
-                            TimerMode.FAST_PWM_TOP_OCRA.count();
-                        } else {
-                            TimerMode.FAST_PWM_TOP_0XFF.count();
-                        }
-                        break;
-                }
-
+        if (ClockSource.values()[0x07 & dataMemory.readByte(DataMemory_ATmega328P.TCCR2B_ADDR)].work()) {
+            if (dataMemory.readBit(DataMemory_ATmega328P.GTCCR_ADDR, 1)) {
+                return;   //Synchronization Mode
             }
+
+            buffer_WGM22 = dataMemory.readBit(DataMemory_ATmega328P.TCCR2B_ADDR, 3);
+
+            switch (0x03 & dataMemory.readByte(DataMemory_ATmega328P.TCCR2A_ADDR)) {
+                case 0x00:
+                    if (!buffer_WGM22) {
+                        TimerMode.NORMAL_OPERATION.count();
+                    }
+                    break;
+                case 0x01:
+                    if (buffer_WGM22) {
+                        TimerMode.PWM_PHASE_CORRECT_TOP_OCRA.count();
+                    } else {
+                        TimerMode.PWM_PHASE_CORRECT_TOP_0XFF.count();
+                    }
+                    break;
+                case 0x02:
+                    if (!buffer_WGM22) {
+                        TimerMode.CTC_OPERATION.count();
+                    }
+                    break;
+                case 0x03:
+                    if (buffer_WGM22) {
+                        TimerMode.FAST_PWM_TOP_OCRA.count();
+                    } else {
+                        TimerMode.FAST_PWM_TOP_0XFF.count();
+                    }
+                    break;
+            }
+
+        }
     }
 
     public enum ClockSource {
@@ -137,7 +146,7 @@ public class Timer2_ATmega328P implements Timer2Module {
             @Override
             public boolean work() {
                 Log.i(TIMER2_TAG, "Prescaler 8");
-                if (++clockCount < 8){
+                if (++clockCount < 8) {
                     return false;
                 } else {
                     clockCount = 0;
@@ -149,7 +158,7 @@ public class Timer2_ATmega328P implements Timer2Module {
             @Override
             public boolean work() {
                 Log.i(TIMER2_TAG, "Prescaler 32");
-                if (++clockCount < 32){
+                if (++clockCount < 32) {
                     return false;
                 } else {
                     clockCount = 0;
@@ -161,7 +170,7 @@ public class Timer2_ATmega328P implements Timer2Module {
             @Override
             public boolean work() {
                 Log.i(TIMER2_TAG, "Prescaler 64");
-                if (++clockCount < 64){
+                if (++clockCount < 64) {
                     return false;
                 } else {
                     clockCount = 0;
@@ -173,7 +182,7 @@ public class Timer2_ATmega328P implements Timer2Module {
             @Override
             public boolean work() {
                 Log.i(TIMER2_TAG, "Prescaler 128");
-                if (++clockCount < 128){
+                if (++clockCount < 128) {
                     return false;
                 } else {
                     clockCount = 0;
@@ -185,7 +194,7 @@ public class Timer2_ATmega328P implements Timer2Module {
             @Override
             public boolean work() {
                 Log.i(TIMER2_TAG, "Prescaler 256");
-                if (++clockCount < 256){
+                if (++clockCount < 256) {
                     return false;
                 } else {
                     clockCount = 0;
@@ -197,7 +206,7 @@ public class Timer2_ATmega328P implements Timer2Module {
             @Override
             public boolean work() {
                 Log.i(TIMER2_TAG, "Prescaler 1024");
-                if (++clockCount < 1024){
+                if (++clockCount < 1024) {
                     return false;
                 } else {
                     clockCount = 0;
@@ -213,8 +222,9 @@ public class Timer2_ATmega328P implements Timer2Module {
         NORMAL_OPERATION {
             @Override
             public void count() {
-                boolean match_A = false, match_B = false;
-                byte progress = dataMemory.readByte(DataMemory_ATmega328P.TCNT2_ADDR);
+                match_A = false;
+                match_B = false;
+                progress = dataMemory.readByte(DataMemory_ATmega328P.TCNT2_ADDR);
                 progress = (byte) (progress + 1);
 
                 if (progress == BOTTOM) {
@@ -304,8 +314,9 @@ public class Timer2_ATmega328P implements Timer2Module {
         PWM_PHASE_CORRECT_TOP_0XFF {
             @Override
             public void count() {
-                boolean match_A = false, match_B = false;
-                byte progress = dataMemory.readByte(DataMemory_ATmega328P.TCNT2_ADDR);
+                match_A = false;
+                match_B = false;
+                progress = dataMemory.readByte(DataMemory_ATmega328P.TCNT2_ADDR);
                 if (progress == MAX) {
                     doubleBufferOCR2A = dataMemory.readByte(DataMemory_ATmega328P.OCR2A_ADDR);
                     doubleBufferOCR2B = dataMemory.readByte(DataMemory_ATmega328P.OCR2B_ADDR);
@@ -423,8 +434,9 @@ public class Timer2_ATmega328P implements Timer2Module {
         CTC_OPERATION {
             @Override
             public void count() {
-                boolean match_A = false, match_B = false;
-                byte progress = dataMemory.readByte(DataMemory_ATmega328P.TCNT2_ADDR);
+                match_A = false;
+                match_B = false;
+                progress = dataMemory.readByte(DataMemory_ATmega328P.TCNT2_ADDR);
                 progress = (byte) (progress + 1);
 
                 if (nextClear) {
@@ -524,8 +536,9 @@ public class Timer2_ATmega328P implements Timer2Module {
         FAST_PWM_TOP_0XFF {
             @Override
             public void count() {
-                boolean match_A = false, match_B = false;
-                byte progress = dataMemory.readByte(DataMemory_ATmega328P.TCNT2_ADDR);
+                match_A = false;
+                match_B = false;
+                progress = dataMemory.readByte(DataMemory_ATmega328P.TCNT2_ADDR);
                 if (progress == BOTTOM) {
                     doubleBufferOCR2A = dataMemory.readByte(DataMemory_ATmega328P.OCR2A_ADDR);
                     doubleBufferOCR2B = dataMemory.readByte(DataMemory_ATmega328P.OCR2B_ADDR);
@@ -629,8 +642,9 @@ public class Timer2_ATmega328P implements Timer2Module {
         PWM_PHASE_CORRECT_TOP_OCRA {
             @Override
             public void count() {
-                boolean match_A = false, match_B = false;
-                byte progress = dataMemory.readByte(DataMemory_ATmega328P.TCNT2_ADDR);
+                match_A = false;
+                match_B = false;
+                progress = dataMemory.readByte(DataMemory_ATmega328P.TCNT2_ADDR);
                 if (progress == doubleBufferOCR2A) {
                     doubleBufferOCR2A = dataMemory.readByte(DataMemory_ATmega328P.OCR2A_ADDR);
                     doubleBufferOCR2B = dataMemory.readByte(DataMemory_ATmega328P.OCR2B_ADDR);
@@ -754,8 +768,9 @@ public class Timer2_ATmega328P implements Timer2Module {
         FAST_PWM_TOP_OCRA {
             @Override
             public void count() {
-                boolean match_A = false, match_B = false;
-                byte progress = dataMemory.readByte(DataMemory_ATmega328P.TCNT2_ADDR);
+                match_A = false;
+                match_B = false;
+                progress = dataMemory.readByte(DataMemory_ATmega328P.TCNT2_ADDR);
                 if (progress == BOTTOM) {
                     doubleBufferOCR2A = dataMemory.readByte(DataMemory_ATmega328P.OCR2A_ADDR);
                     doubleBufferOCR2B = dataMemory.readByte(DataMemory_ATmega328P.OCR2B_ADDR);

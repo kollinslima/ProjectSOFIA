@@ -43,6 +43,11 @@ public class USART_ATmega328P implements USARTModule {
     @Override
     public void run() {
 
+        //Power Reduction Register
+        if (dataMemory.readBit(DataMemory_ATmega328P.PRR_ADDR, 1)){
+            return;
+        }
+
         //Check if there is data to be transmitted
         if (dataMemory.readBit(DataMemory_ATmega328P.UCSR0B_ADDR, 3)) {
 

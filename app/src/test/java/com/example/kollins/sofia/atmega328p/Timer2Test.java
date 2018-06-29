@@ -591,7 +591,7 @@ public class Timer2Test {
 
     @Test
     public void phaseCorrect_topMAX_update_OCRA_OCRB() throws Exception {
-        byte initialProgress = Timer2_ATmega328P.MAX - 1;
+        byte initialProgress = Timer2_ATmega328P.MAX;
         byte newOCRA = 0x0A;
         byte newOCRB = 0x0B;
 
@@ -604,8 +604,8 @@ public class Timer2Test {
 
         timer2.run();
 
-        assertEquals(newOCRA, dataMemory.readByte(DataMemory_ATmega328P.OCR2A_ADDR));
-        assertEquals(newOCRB, dataMemory.readByte(DataMemory_ATmega328P.OCR2B_ADDR));
+        assertEquals(newOCRA, doubleBufferOCR2AField.get(null));
+        assertEquals(newOCRB, doubleBufferOCR2BField.get(null));
     }
 
     @Test

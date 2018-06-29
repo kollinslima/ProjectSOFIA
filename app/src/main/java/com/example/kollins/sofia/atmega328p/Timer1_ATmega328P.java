@@ -35,11 +35,11 @@ public class Timer1_ATmega328P implements Timer1Module {
 
     private static final String TIMER1_TAG = "Timer1";
 
-    private static final char MAX = 0xFFFF;
-    private static final char MAX_8B = 0x00FF;
-    private static final char MAX_9B = 0x01FF;
-    private static final char MAX_10B = 0x03FF;
-    private static final char BOTTOM = 0x0000;
+    public static final char MAX = 0xFFFF;
+    public static final char MAX_8B = 0x00FF;
+    public static final char MAX_9B = 0x01FF;
+    public static final char MAX_10B = 0x03FF;
+    public static final char BOTTOM = 0x0000;
 
     public static boolean timerOutputControl_OC1A;
     public static boolean timerOutputControl_OC1B;
@@ -62,6 +62,9 @@ public class Timer1_ATmega328P implements Timer1Module {
     public static boolean enableICRWrite;
 
     private static short clockCount;
+
+    private static boolean match_A, match_B;
+    private static char progress, icr1, ocr1a, ocr1b;
 
     public Timer1_ATmega328P(DataMemory dataMemory, IOModule ioModule) {
         this.dataMemory = (DataMemory_ATmega328P) dataMemory;
@@ -93,6 +96,12 @@ public class Timer1_ATmega328P implements Timer1Module {
 
     @Override
     public void run() {
+
+        //Power Reduction Register
+        if (dataMemory.readBit(DataMemory_ATmega328P.PRR_ADDR, 3)){
+            return;
+        }
+
         if (ClockSource.values()[0x07 & dataMemory.readByte(DataMemory_ATmega328P.TCCR1B_ADDR)].work()) {
 
             if (dataMemory.readBit(DataMemory_ATmega328P.GTCCR_ADDR, 0)) {
@@ -150,6 +159,29 @@ public class Timer1_ATmega328P implements Timer1Module {
                     break;
                 default:
                     break;
+            }
+
+            if (!enableICRWrite) {
+                //Input Capture Unit
+                newICP1 = dataMemory.readBit(DataMemory_ATmega328P.PINB_ADDR, 0);
+                if (dataMemory.readBit(DataMemory_ATmega328P.TCCR1B_ADDR, 6)) {
+                    //Rising Edge detect
+                    if (!oldICP1 && newICP1) {
+                        UCModule.interruptionModule.timer1InputCapture();
+                        dataMemory.write16bits(DataMemory_ATmega328P.ICR1L_ADDR, DataMemory_ATmega328P.ICR1H_ADDR,
+                                (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
+
+                    }
+                } else {
+                    //Falling Edge detect
+                    if (oldICP1 && !newICP1) {
+                        UCModule.interruptionModule.timer1InputCapture();
+                        dataMemory.write16bits(DataMemory_ATmega328P.ICR1L_ADDR, DataMemory_ATmega328P.ICR1H_ADDR,
+                                (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
+
+                    }
+                }
+                oldICP1 = newICP1;
             }
 
         }
@@ -253,8 +285,8 @@ public class Timer1_ATmega328P implements Timer1Module {
             @Override
             public void count() {
                 enableICRWrite = false;
-                boolean match_A = false, match_B = false;
-                char progress = dataMemory.read16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR);
+                match_A = false; match_B = false;
+                progress = dataMemory.read16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR);
 
                 progress += 1;
 
@@ -264,7 +296,7 @@ public class Timer1_ATmega328P implements Timer1Module {
                 if (dataMemory.readForceMatchA_timer1()) {
                     match_A = true; //FORCE MATCH
                 } else {
-                    char ocr1a = dataMemory.read16bits(DataMemory_ATmega328P.OCR1AL_ADDR, DataMemory_ATmega328P.OCR1AH_ADDR);
+                    ocr1a = dataMemory.read16bits(DataMemory_ATmega328P.OCR1AL_ADDR, DataMemory_ATmega328P.OCR1AH_ADDR);
 
                     if (progress == ocr1a) {
                         UCModule.interruptionModule.timer1MatchA();
@@ -274,7 +306,7 @@ public class Timer1_ATmega328P implements Timer1Module {
                 if (dataMemory.readForceMatchB_timer1()) {
                     match_B = true; //FORCE MATCH
                 } else {
-                    char ocr1b = dataMemory.read16bits(DataMemory_ATmega328P.OCR1BL_ADDR, DataMemory_ATmega328P.OCR1BH_ADDR);
+                    ocr1b = dataMemory.read16bits(DataMemory_ATmega328P.OCR1BL_ADDR, DataMemory_ATmega328P.OCR1BH_ADDR);
 
                     if (progress == ocr1b) {
                         UCModule.interruptionModule.timer1MatchB();
@@ -354,27 +386,6 @@ public class Timer1_ATmega328P implements Timer1Module {
                         break;
                 }
 
-                //Input Capture Unit
-                newICP1 = dataMemory.readBit(DataMemory_ATmega328P.PINB_ADDR, 0);
-                if (dataMemory.readBit(DataMemory_ATmega328P.TCCR1B_ADDR, 6)) {
-                    //Rising Edge detect
-                    if (!oldICP1 && newICP1) {
-                        UCModule.interruptionModule.timer1InputCapture();
-                        dataMemory.write16bits(DataMemory_ATmega328P.ICR1L_ADDR, DataMemory_ATmega328P.ICR1H_ADDR,
-                                (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
-
-                    }
-                } else {
-                    //Falling Edge detect
-                    if (oldICP1 && !newICP1) {
-                        UCModule.interruptionModule.timer1InputCapture();
-                        dataMemory.write16bits(DataMemory_ATmega328P.ICR1L_ADDR, DataMemory_ATmega328P.ICR1H_ADDR,
-                                (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
-
-                    }
-                }
-                oldICP1 = newICP1;
-
                 dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                         (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
@@ -384,8 +395,8 @@ public class Timer1_ATmega328P implements Timer1Module {
             @Override
             public void count() {
                 enableICRWrite = false;
-                boolean match_A = false, match_B = false;
-                char progress = dataMemory.read16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR);
+                match_A = false; match_B = false;
+                progress = dataMemory.read16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR);
                 progress += 1;
 
                 if (nextClear) {
@@ -403,7 +414,7 @@ public class Timer1_ATmega328P implements Timer1Module {
                 if (dataMemory.readForceMatchA_timer1()) {
                     match_A = true; //FORCE MATCH
                 } else {
-                    char ocr1a = dataMemory.read16bits(DataMemory_ATmega328P.OCR1AL_ADDR, DataMemory_ATmega328P.OCR1AH_ADDR);
+                    ocr1a = dataMemory.read16bits(DataMemory_ATmega328P.OCR1AL_ADDR, DataMemory_ATmega328P.OCR1AH_ADDR);
 
                     if (progress == ocr1a) {
                         UCModule.interruptionModule.timer1MatchA();
@@ -415,7 +426,7 @@ public class Timer1_ATmega328P implements Timer1Module {
                 if (dataMemory.readForceMatchB_timer1()) {
                     match_B = true; //FORCE MATCH
                 } else {
-                    char ocr1b = dataMemory.read16bits(DataMemory_ATmega328P.OCR1BL_ADDR, DataMemory_ATmega328P.OCR1BH_ADDR);
+                    ocr1b = dataMemory.read16bits(DataMemory_ATmega328P.OCR1BL_ADDR, DataMemory_ATmega328P.OCR1BH_ADDR);
 
                     if (progress == ocr1b) {
                         UCModule.interruptionModule.timer1MatchB();
@@ -495,25 +506,6 @@ public class Timer1_ATmega328P implements Timer1Module {
                         break;
                 }
 
-                //Input Capture Unit
-                newICP1 = dataMemory.readBit(DataMemory_ATmega328P.PINB_ADDR, 0);
-                if (dataMemory.readBit(DataMemory_ATmega328P.TCCR1B_ADDR, 6)) {
-                    //Rising Edge detect
-                    if (!oldICP1 && newICP1) {
-                        UCModule.interruptionModule.timer1InputCapture();
-                        dataMemory.write16bits(DataMemory_ATmega328P.ICR1L_ADDR, DataMemory_ATmega328P.ICR1H_ADDR,
-                                (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
-                    }
-                } else {
-                    //Falling Edge detect
-                    if (oldICP1 && !newICP1) {
-                        UCModule.interruptionModule.timer1InputCapture();
-                        dataMemory.write16bits(DataMemory_ATmega328P.ICR1L_ADDR, DataMemory_ATmega328P.ICR1H_ADDR,
-                                (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
-                    }
-                }
-                oldICP1 = newICP1;
-
                 dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                         (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
             }
@@ -522,8 +514,8 @@ public class Timer1_ATmega328P implements Timer1Module {
             @Override
             public void count() {
                 enableICRWrite = true;
-                boolean match_A = false, match_B = false;
-                char progress = dataMemory.read16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR);
+                match_A = false; match_B = false;
+                progress = dataMemory.read16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR);
                 progress += 1;
 
                 if (nextClear) {
@@ -531,7 +523,7 @@ public class Timer1_ATmega328P implements Timer1Module {
                     progress = BOTTOM;
                 }
 
-                char icr1 = dataMemory.read16bits(DataMemory_ATmega328P.ICR1L_ADDR, DataMemory_ATmega328P.ICR1H_ADDR);
+                icr1 = dataMemory.read16bits(DataMemory_ATmega328P.ICR1L_ADDR, DataMemory_ATmega328P.ICR1H_ADDR);
                 if (progress == icr1) {
                     UCModule.interruptionModule.timer1InputCapture();
                     nextClear = true;
@@ -547,7 +539,7 @@ public class Timer1_ATmega328P implements Timer1Module {
                 if (dataMemory.readForceMatchA_timer1()) {
                     match_A = true; //FORCE MATCH
                 } else {
-                    char ocr1a = dataMemory.read16bits(DataMemory_ATmega328P.OCR1AL_ADDR, DataMemory_ATmega328P.OCR1AH_ADDR);
+                    ocr1a = dataMemory.read16bits(DataMemory_ATmega328P.OCR1AL_ADDR, DataMemory_ATmega328P.OCR1AH_ADDR);
 
                     if (progress == ocr1a) {
                         UCModule.interruptionModule.timer1MatchA();
@@ -558,7 +550,7 @@ public class Timer1_ATmega328P implements Timer1Module {
                 if (dataMemory.readForceMatchB_timer1()) {
                     match_B = true; //FORCE MATCH
                 } else {
-                    char ocr1b = dataMemory.read16bits(DataMemory_ATmega328P.OCR1BL_ADDR, DataMemory_ATmega328P.OCR1BH_ADDR);
+                    ocr1b = dataMemory.read16bits(DataMemory_ATmega328P.OCR1BL_ADDR, DataMemory_ATmega328P.OCR1BH_ADDR);
 
                     if (progress == ocr1b) {
                         UCModule.interruptionModule.timer1MatchB();
@@ -650,8 +642,8 @@ public class Timer1_ATmega328P implements Timer1Module {
                     return;
                 }
 
-                boolean match_A = false, match_B = false;
-                char progress = dataMemory.read16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR);
+                match_A = false; match_B = false;
+                progress = dataMemory.read16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR);
 
                 if (progress == BOTTOM) {
                     doubleBufferOCR1A = dataMemory.read16bits(DataMemory_ATmega328P.OCR1AL_ADDR, DataMemory_ATmega328P.OCR1AH_ADDR);
@@ -777,26 +769,6 @@ public class Timer1_ATmega328P implements Timer1Module {
                         break;
                 }
 
-                //Input Capture Unit
-                newICP1 = dataMemory.readBit(DataMemory_ATmega328P.PINB_ADDR, 0);
-                if (dataMemory.readBit(DataMemory_ATmega328P.TCCR1B_ADDR, 6)) {
-                    //Rising Edge detect
-                    if (!oldICP1 && newICP1) {
-                        UCModule.interruptionModule.timer1InputCapture();
-                        dataMemory.write16bits(DataMemory_ATmega328P.ICR1L_ADDR, DataMemory_ATmega328P.ICR1H_ADDR,
-                                (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
-
-                    }
-                } else {
-                    //Falling Edge detect
-                    if (oldICP1 && !newICP1) {
-                        UCModule.interruptionModule.timer1InputCapture();
-                        dataMemory.write16bits(DataMemory_ATmega328P.ICR1L_ADDR, DataMemory_ATmega328P.ICR1H_ADDR,
-                                (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
-                    }
-                }
-                oldICP1 = newICP1;
-
                 dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                         (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
             }
@@ -809,8 +781,8 @@ public class Timer1_ATmega328P implements Timer1Module {
                     return;
                 }
 
-                boolean match_A = false, match_B = false;
-                char progress = dataMemory.read16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR);
+                match_A = false; match_B = false;
+                progress = dataMemory.read16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR);
 
                 if (progress == BOTTOM) {
                     doubleBufferOCR1A = dataMemory.read16bits(DataMemory_ATmega328P.OCR1AL_ADDR, DataMemory_ATmega328P.OCR1AH_ADDR);
@@ -937,25 +909,6 @@ public class Timer1_ATmega328P implements Timer1Module {
                         break;
                 }
 
-                //Input Capture Unit
-                newICP1 = dataMemory.readBit(DataMemory_ATmega328P.PINB_ADDR, 0);
-                if (dataMemory.readBit(DataMemory_ATmega328P.TCCR1B_ADDR, 6)) {
-                    //Rising Edge detect
-                    if (!oldICP1 && newICP1) {
-                        UCModule.interruptionModule.timer1InputCapture();
-                        dataMemory.write16bits(DataMemory_ATmega328P.ICR1L_ADDR, DataMemory_ATmega328P.ICR1H_ADDR,
-                                (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
-                    }
-                } else {
-                    //Falling Edge detect
-                    if (oldICP1 && !newICP1) {
-                        UCModule.interruptionModule.timer1InputCapture();
-                        dataMemory.write16bits(DataMemory_ATmega328P.ICR1L_ADDR, DataMemory_ATmega328P.ICR1H_ADDR,
-                                (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
-                    }
-                }
-                oldICP1 = newICP1;
-
                 dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                         (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
             }
@@ -968,8 +921,8 @@ public class Timer1_ATmega328P implements Timer1Module {
                     return;
                 }
 
-                boolean match_A = false, match_B = false;
-                char progress = dataMemory.read16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR);
+                match_A = false; match_B = false;
+                progress = dataMemory.read16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR);
 
                 if (progress == BOTTOM) {
                     doubleBufferOCR1A = dataMemory.read16bits(DataMemory_ATmega328P.OCR1AL_ADDR, DataMemory_ATmega328P.OCR1AH_ADDR);
@@ -1096,25 +1049,6 @@ public class Timer1_ATmega328P implements Timer1Module {
                         break;
                 }
 
-                //Input Capture Unit
-                newICP1 = dataMemory.readBit(DataMemory_ATmega328P.PINB_ADDR, 0);
-                if (dataMemory.readBit(DataMemory_ATmega328P.TCCR1B_ADDR, 6)) {
-                    //Rising Edge detect
-                    if (!oldICP1 && newICP1) {
-                        UCModule.interruptionModule.timer1InputCapture();
-                        dataMemory.write16bits(DataMemory_ATmega328P.ICR1L_ADDR, DataMemory_ATmega328P.ICR1H_ADDR,
-                                (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
-                    }
-                } else {
-                    //Falling Edge detect
-                    if (oldICP1 && !newICP1) {
-                        UCModule.interruptionModule.timer1InputCapture();
-                        dataMemory.write16bits(DataMemory_ATmega328P.ICR1L_ADDR, DataMemory_ATmega328P.ICR1H_ADDR,
-                                (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
-                    }
-                }
-                oldICP1 = newICP1;
-
                 dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                         (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
             }
@@ -1127,8 +1061,8 @@ public class Timer1_ATmega328P implements Timer1Module {
                     return;
                 }
 
-                boolean match_A = false, match_B = false;
-                char progress = dataMemory.read16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR);
+                match_A = false; match_B = false;
+                progress = dataMemory.read16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR);
 
                 if (progress == BOTTOM) {
                     doubleBufferOCR1A = dataMemory.read16bits(DataMemory_ATmega328P.OCR1AL_ADDR, DataMemory_ATmega328P.OCR1AH_ADDR);
@@ -1144,7 +1078,7 @@ public class Timer1_ATmega328P implements Timer1Module {
                     UCModule.interruptionModule.timer1Overflow();
                 }
 
-                char icr1 = dataMemory.read16bits(DataMemory_ATmega328P.ICR1L_ADDR, DataMemory_ATmega328P.ICR1H_ADDR);
+                icr1 = dataMemory.read16bits(DataMemory_ATmega328P.ICR1L_ADDR, DataMemory_ATmega328P.ICR1H_ADDR);
 
                 Log.v("TIMER1_MODE", "Progress: " + Integer.toHexString(progress));
                 Log.v("TIMER1_MODE", "ICR1: " + Integer.toHexString(icr1));
@@ -1281,8 +1215,8 @@ public class Timer1_ATmega328P implements Timer1Module {
                     return;
                 }
 
-                boolean match_A = false, match_B = false;
-                char progress = dataMemory.read16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR);
+                match_A = false; match_B = false;
+                progress = dataMemory.read16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR);
 
                 if (progress == BOTTOM) {
                     doubleBufferOCR1A = dataMemory.read16bits(DataMemory_ATmega328P.OCR1AL_ADDR, DataMemory_ATmega328P.OCR1AH_ADDR);
@@ -1412,25 +1346,6 @@ public class Timer1_ATmega328P implements Timer1Module {
                         break;
                 }
 
-                //Input Capture Unit
-                newICP1 = dataMemory.readBit(DataMemory_ATmega328P.PINB_ADDR, 0);
-                if (dataMemory.readBit(DataMemory_ATmega328P.TCCR1B_ADDR, 6)) {
-                    //Rising Edge detect
-                    if (!oldICP1 && newICP1) {
-                        UCModule.interruptionModule.timer1InputCapture();
-                        dataMemory.write16bits(DataMemory_ATmega328P.ICR1L_ADDR, DataMemory_ATmega328P.ICR1H_ADDR,
-                                (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
-                    }
-                } else {
-                    //Falling Edge detect
-                    if (oldICP1 && !newICP1) {
-                        UCModule.interruptionModule.timer1InputCapture();
-                        dataMemory.write16bits(DataMemory_ATmega328P.ICR1L_ADDR, DataMemory_ATmega328P.ICR1H_ADDR,
-                                (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
-                    }
-                }
-                oldICP1 = newICP1;
-
                 dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                         (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
             }
@@ -1443,8 +1358,8 @@ public class Timer1_ATmega328P implements Timer1Module {
                     return;
                 }
 
-                boolean match_A = false, match_B = false;
-                char progress = dataMemory.read16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR);
+                match_A = false; match_B = false;
+                progress = dataMemory.read16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR);
 
                 if (progress == MAX_8B) {
                     doubleBufferOCR1A = dataMemory.read16bits(DataMemory_ATmega328P.OCR1AL_ADDR, DataMemory_ATmega328P.OCR1AH_ADDR);
@@ -1582,25 +1497,6 @@ public class Timer1_ATmega328P implements Timer1Module {
                         break;
                 }
 
-                //Input Capture Unit
-                newICP1 = dataMemory.readBit(DataMemory_ATmega328P.PINB_ADDR, 0);
-                if (dataMemory.readBit(DataMemory_ATmega328P.TCCR1B_ADDR, 6)) {
-                    //Rising Edge detect
-                    if (!oldICP1 && newICP1) {
-                        UCModule.interruptionModule.timer1InputCapture();
-                        dataMemory.write16bits(DataMemory_ATmega328P.ICR1L_ADDR, DataMemory_ATmega328P.ICR1H_ADDR,
-                                (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
-                    }
-                } else {
-                    //Falling Edge detect
-                    if (oldICP1 && !newICP1) {
-                        UCModule.interruptionModule.timer1InputCapture();
-                        dataMemory.write16bits(DataMemory_ATmega328P.ICR1L_ADDR, DataMemory_ATmega328P.ICR1H_ADDR,
-                                (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
-                    }
-                }
-                oldICP1 = newICP1;
-
                 dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                         (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
             }
@@ -1613,8 +1509,8 @@ public class Timer1_ATmega328P implements Timer1Module {
                     return;
                 }
 
-                boolean match_A = false, match_B = false;
-                char progress = dataMemory.read16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR);
+                match_A = false; match_B = false;
+                progress = dataMemory.read16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR);
 
                 if (progress == MAX_9B) {
                     doubleBufferOCR1A = dataMemory.read16bits(DataMemory_ATmega328P.OCR1AL_ADDR, DataMemory_ATmega328P.OCR1AH_ADDR);
@@ -1752,25 +1648,6 @@ public class Timer1_ATmega328P implements Timer1Module {
                         break;
                 }
 
-                //Input Capture Unit
-                newICP1 = dataMemory.readBit(DataMemory_ATmega328P.PINB_ADDR, 0);
-                if (dataMemory.readBit(DataMemory_ATmega328P.TCCR1B_ADDR, 6)) {
-                    //Rising Edge detect
-                    if (!oldICP1 && newICP1) {
-                        UCModule.interruptionModule.timer1InputCapture();
-                        dataMemory.write16bits(DataMemory_ATmega328P.ICR1L_ADDR, DataMemory_ATmega328P.ICR1H_ADDR,
-                                (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
-                    }
-                } else {
-                    //Falling Edge detect
-                    if (oldICP1 && !newICP1) {
-                        UCModule.interruptionModule.timer1InputCapture();
-                        dataMemory.write16bits(DataMemory_ATmega328P.ICR1L_ADDR, DataMemory_ATmega328P.ICR1H_ADDR,
-                                (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
-                    }
-                }
-                oldICP1 = newICP1;
-
                 dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                         (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
             }
@@ -1783,8 +1660,8 @@ public class Timer1_ATmega328P implements Timer1Module {
                     return;
                 }
 
-                boolean match_A = false, match_B = false;
-                char progress = dataMemory.read16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR);
+                match_A = false; match_B = false;
+                progress = dataMemory.read16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR);
 
                 if (progress == MAX_10B) {
                     doubleBufferOCR1A = dataMemory.read16bits(DataMemory_ATmega328P.OCR1AL_ADDR, DataMemory_ATmega328P.OCR1AH_ADDR);
@@ -1922,25 +1799,6 @@ public class Timer1_ATmega328P implements Timer1Module {
                         break;
                 }
 
-                //Input Capture Unit
-                newICP1 = dataMemory.readBit(DataMemory_ATmega328P.PINB_ADDR, 0);
-                if (dataMemory.readBit(DataMemory_ATmega328P.TCCR1B_ADDR, 6)) {
-                    //Rising Edge detect
-                    if (!oldICP1 && newICP1) {
-                        UCModule.interruptionModule.timer1InputCapture();
-                        dataMemory.write16bits(DataMemory_ATmega328P.ICR1L_ADDR, DataMemory_ATmega328P.ICR1H_ADDR,
-                                (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
-                    }
-                } else {
-                    //Falling Edge detect
-                    if (oldICP1 && !newICP1) {
-                        UCModule.interruptionModule.timer1InputCapture();
-                        dataMemory.write16bits(DataMemory_ATmega328P.ICR1L_ADDR, DataMemory_ATmega328P.ICR1H_ADDR,
-                                (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
-                    }
-                }
-                oldICP1 = newICP1;
-
                 dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                         (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
             }
@@ -1953,10 +1811,10 @@ public class Timer1_ATmega328P implements Timer1Module {
                     return;
                 }
 
-                boolean match_A = false, match_B = false;
-                char progress = dataMemory.read16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR);
+                match_A = false; match_B = false;
+                progress = dataMemory.read16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR);
 
-                char icr1 = dataMemory.read16bits(DataMemory_ATmega328P.ICR1L_ADDR, DataMemory_ATmega328P.ICR1H_ADDR);
+                icr1 = dataMemory.read16bits(DataMemory_ATmega328P.ICR1L_ADDR, DataMemory_ATmega328P.ICR1H_ADDR);
 
                 if (progress == icr1) {
                     doubleBufferOCR1A = dataMemory.read16bits(DataMemory_ATmega328P.OCR1AL_ADDR, DataMemory_ATmega328P.OCR1AH_ADDR);
@@ -2113,8 +1971,8 @@ public class Timer1_ATmega328P implements Timer1Module {
                     return;
                 }
 
-                boolean match_A = false, match_B = false;
-                char progress = dataMemory.read16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR);
+                match_A = false; match_B = false;
+                progress = dataMemory.read16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR);
 
                 if (progress == doubleBufferOCR1A) {
                     doubleBufferOCR1A = dataMemory.read16bits(DataMemory_ATmega328P.OCR1AL_ADDR, DataMemory_ATmega328P.OCR1AH_ADDR);
@@ -2258,25 +2116,6 @@ public class Timer1_ATmega328P implements Timer1Module {
                         break;
                 }
 
-                //Input Capture Unit
-                newICP1 = dataMemory.readBit(DataMemory_ATmega328P.PINB_ADDR, 0);
-                if (dataMemory.readBit(DataMemory_ATmega328P.TCCR1B_ADDR, 6)) {
-                    //Rising Edge detect
-                    if (!oldICP1 && newICP1) {
-                        UCModule.interruptionModule.timer1InputCapture();
-                        dataMemory.write16bits(DataMemory_ATmega328P.ICR1L_ADDR, DataMemory_ATmega328P.ICR1H_ADDR,
-                                (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
-                    }
-                } else {
-                    //Falling Edge detect
-                    if (oldICP1 && !newICP1) {
-                        UCModule.interruptionModule.timer1InputCapture();
-                        dataMemory.write16bits(DataMemory_ATmega328P.ICR1L_ADDR, DataMemory_ATmega328P.ICR1H_ADDR,
-                                (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
-                    }
-                }
-                oldICP1 = newICP1;
-
                 dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                         (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
             }
@@ -2289,10 +2128,10 @@ public class Timer1_ATmega328P implements Timer1Module {
                     return;
                 }
 
-                boolean match_A = false, match_B = false;
-                char progress = dataMemory.read16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR);
+                match_A = false; match_B = false;
+                progress = dataMemory.read16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR);
 
-                char icr1 = dataMemory.read16bits(DataMemory_ATmega328P.ICR1L_ADDR, DataMemory_ATmega328P.ICR1H_ADDR);
+                icr1 = dataMemory.read16bits(DataMemory_ATmega328P.ICR1L_ADDR, DataMemory_ATmega328P.ICR1H_ADDR);
 
                 if (progress == BOTTOM) {
                     doubleBufferOCR1A = dataMemory.read16bits(DataMemory_ATmega328P.OCR1AL_ADDR, DataMemory_ATmega328P.OCR1AH_ADDR);
@@ -2330,16 +2169,17 @@ public class Timer1_ATmega328P implements Timer1Module {
                 //CHANEL A
                 switch (0xC0 & outputMode) {
                     case 0x00:
+                    case 0x40:
                         //OC1A disconected
                         timerOutputControl_OC1A = false;
                         break;
-                    case 0x40:
-                        timerOutputControl_OC1A = true;
-                        if (match_A) {
-                            stateOC1A = (stateOC1A + 1) % 2;  //Toggle
-                            ioModule.setOC1A(stateOC1A, UCModule_View.simulatedTime);
-                        }
-                        break;
+//                    case 0x40:
+//                        timerOutputControl_OC1A = true;
+//                        if (match_A) {
+//                            stateOC1A = (stateOC1A + 1) % 2;  //Toggle
+//                            ioModule.setOC1A(stateOC1A, UCModule_View.simulatedTime);
+//                        }
+//                        break;
                     case 0x80:
                         //OC1A Clear on Compare Match counting up, OC1A Set on Compare Match counting down
                         timerOutputControl_OC1A = true;
@@ -2449,8 +2289,8 @@ public class Timer1_ATmega328P implements Timer1Module {
                     return;
                 }
 
-                boolean match_A = false, match_B = false;
-                char progress = dataMemory.read16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR);
+                match_A = false; match_B = false;
+                progress = dataMemory.read16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR);
 
                 if (progress == BOTTOM) {
                     doubleBufferOCR1A = dataMemory.read16bits(DataMemory_ATmega328P.OCR1AL_ADDR, DataMemory_ATmega328P.OCR1AH_ADDR);
@@ -2593,25 +2433,6 @@ public class Timer1_ATmega328P implements Timer1Module {
                     default:
                         break;
                 }
-
-                //Input Capture Unit
-                newICP1 = dataMemory.readBit(DataMemory_ATmega328P.PINB_ADDR, 0);
-                if (dataMemory.readBit(DataMemory_ATmega328P.TCCR1B_ADDR, 6)) {
-                    //Rising Edge detect
-                    if (!oldICP1 && newICP1) {
-                        UCModule.interruptionModule.timer1InputCapture();
-                        dataMemory.write16bits(DataMemory_ATmega328P.ICR1L_ADDR, DataMemory_ATmega328P.ICR1H_ADDR,
-                                (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
-                    }
-                } else {
-                    //Falling Edge detect
-                    if (oldICP1 && !newICP1) {
-                        UCModule.interruptionModule.timer1InputCapture();
-                        dataMemory.write16bits(DataMemory_ATmega328P.ICR1L_ADDR, DataMemory_ATmega328P.ICR1H_ADDR,
-                                (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
-                    }
-                }
-                oldICP1 = newICP1;
 
                 dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                         (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));

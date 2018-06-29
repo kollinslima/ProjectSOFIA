@@ -63,8 +63,13 @@ public class ADC_ATmega328P implements ADCModule {
     }
 
     public void run() {
-        //13 clock cycles to finish conversion
 
+        //Power Reduction Register
+        if (dataMemory.readBit(DataMemory_ATmega328P.PRR_ADDR, 0)){
+            return;
+        }
+
+        //13 clock cycles to finish conversion
         if (dataMemory.readBit(DataMemory_ATmega328P.ADCSRA_ADDR, 7)
                 && dataMemory.readBit(DataMemory_ATmega328P.ADCSRA_ADDR, 6)) {
 
