@@ -216,22 +216,22 @@ public class UCModule extends AppCompatActivity {
                 interruptionModule.setMemory(dataMemory);
 
                 //Init CPU
-                cpuModule = new CPUModule(programMemory, dataMemory, this, uCHandler);
+                cpuModule = new CPUModule(programMemory, dataMemory);
 
                 //Init Timer0
                 Class timer0Device = Class.forName(PACKAGE_NAME + "." + device.toLowerCase() + ".Timer0_" + device);
                 timer0 = (Timer0Module) timer0Device.getDeclaredConstructor(DataMemory.class, Handler.class, UCModule.class, IOModule.class)
-                        .newInstance(dataMemory, uCHandler, this, ucView.getIOModule());
+                        .newInstance(dataMemory, ucView.getIOModule());
 
                 //Init Timer1
                 Class timer1Device = Class.forName(PACKAGE_NAME + "." + device.toLowerCase() + ".Timer1_" + device);
                 timer1 = (Timer1Module) timer1Device.getDeclaredConstructor(DataMemory.class, Handler.class, UCModule.class, IOModule.class)
-                        .newInstance(dataMemory, uCHandler, this, ucView.getIOModule());
+                        .newInstance(dataMemory, ucView.getIOModule());
 
                 //Init Timer2
                 Class timer2Device = Class.forName(PACKAGE_NAME + "." + device.toLowerCase() + ".Timer2_" + device);
                 timer2 = (Timer2Module) timer2Device.getDeclaredConstructor(DataMemory.class, Handler.class, UCModule.class, IOModule.class)
-                        .newInstance(dataMemory, uCHandler, this, ucView.getIOModule());
+                        .newInstance(dataMemory, ucView.getIOModule());
 
                 //Init ADC
                 Class adcDevice = Class.forName(PACKAGE_NAME + "." + device.toLowerCase() + ".ADC_" + device);

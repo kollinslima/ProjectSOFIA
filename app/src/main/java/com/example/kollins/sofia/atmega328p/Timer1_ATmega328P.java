@@ -45,15 +45,17 @@ public class Timer1_ATmega328P implements Timer1Module {
     public static boolean timerOutputControl_OC1B;
 
     private static DataMemory_ATmega328P dataMemory;
-    private static Handler uCHandler;
+//    private static Handler uCHandler;
     private static IOModule_ATmega328P ioModule;
-    private UCModule uCModule;
+//    private UCModule uCModule;
 
     private static boolean oldExternalT1, newExternalT1;
     private static boolean oldICP1, newICP1;
 
     private static int stateOC1A, stateOC1B;
-    private static boolean nextOverflow, nextClear, phaseCorrect_UPCount;
+    private static boolean nextOverflow, nextClear;
+    private static boolean phaseCorrect_UPCount,        //Tell about the next count
+                           phaseCorrect_UPCount_old;    //Tell about how I get to the actual value
     private static char doubleBufferOCR1A, doubleBufferOCR1B;
 
     private byte modeSelector;
@@ -61,10 +63,10 @@ public class Timer1_ATmega328P implements Timer1Module {
 
     private static short clockCount;
 
-    public Timer1_ATmega328P(DataMemory dataMemory, Handler uCHandler, UCModule uCModule, IOModule ioModule) {
+    public Timer1_ATmega328P(DataMemory dataMemory, IOModule ioModule) {
         this.dataMemory = (DataMemory_ATmega328P) dataMemory;
-        this.uCHandler = uCHandler;
-        this.uCModule = uCModule;
+//        this.uCHandler = uCHandler;
+//        this.uCModule = uCModule;
         this.ioModule = (IOModule_ATmega328P) ioModule;
 
         oldExternalT1 = dataMemory.readBit(DataMemory_ATmega328P.PIND_ADDR, 5);
@@ -73,6 +75,7 @@ public class Timer1_ATmega328P implements Timer1Module {
         timerOutputControl_OC1A = false;
         timerOutputControl_OC1B = false;
         phaseCorrect_UPCount = true;
+        phaseCorrect_UPCount_old = false;
 
         stateOC1A = IOModule.TRI_STATE;
         stateOC1B = IOModule.TRI_STATE;
@@ -1455,6 +1458,8 @@ public class Timer1_ATmega328P implements Timer1Module {
                     progress -= 1;
                 }
 
+                phaseCorrect_UPCount_old = phaseCorrect_UPCount;
+
                 if (progress == BOTTOM) {
                     UCModule.interruptionModule.timer1Overflow();
                     phaseCorrect_UPCount = true;
@@ -1491,7 +1496,7 @@ public class Timer1_ATmega328P implements Timer1Module {
                             ioModule.setOC1A(stateOC1A, UCModule_View.simulatedTime);
                         } else {
                             if (match_A) {
-                                if (phaseCorrect_UPCount) {
+                                if (phaseCorrect_UPCount_old) {
                                     stateOC1A = IOModule.LOW_LEVEL;
                                 } else {
                                     stateOC1A = IOModule.HIGH_LEVEL;
@@ -1511,7 +1516,7 @@ public class Timer1_ATmega328P implements Timer1Module {
                             ioModule.setOC1A(stateOC1A, UCModule_View.simulatedTime);
                         } else {
                             if (match_A) {
-                                if (phaseCorrect_UPCount) {
+                                if (phaseCorrect_UPCount_old) {
                                     stateOC1A = IOModule.HIGH_LEVEL;
                                 } else {
                                     stateOC1A = IOModule.LOW_LEVEL;
@@ -1543,7 +1548,7 @@ public class Timer1_ATmega328P implements Timer1Module {
                             ioModule.setOC1B(stateOC1B, UCModule_View.simulatedTime);
                         } else {
                             if (match_B) {
-                                if (phaseCorrect_UPCount) {
+                                if (phaseCorrect_UPCount_old) {
                                     stateOC1B = IOModule.LOW_LEVEL;
                                 } else {
                                     stateOC1B = IOModule.HIGH_LEVEL;
@@ -1563,7 +1568,7 @@ public class Timer1_ATmega328P implements Timer1Module {
                             ioModule.setOC1B(stateOC1B, UCModule_View.simulatedTime);
                         } else {
                             if (match_B) {
-                                if (phaseCorrect_UPCount) {
+                                if (phaseCorrect_UPCount_old) {
                                     stateOC1B = IOModule.HIGH_LEVEL;
                                 } else {
                                     stateOC1B = IOModule.LOW_LEVEL;
@@ -1623,6 +1628,8 @@ public class Timer1_ATmega328P implements Timer1Module {
                     progress -= 1;
                 }
 
+                phaseCorrect_UPCount_old = phaseCorrect_UPCount;
+
                 if (progress == BOTTOM) {
                     UCModule.interruptionModule.timer1Overflow();
                     phaseCorrect_UPCount = true;
@@ -1659,7 +1666,7 @@ public class Timer1_ATmega328P implements Timer1Module {
                             ioModule.setOC1A(stateOC1A, UCModule_View.simulatedTime);
                         } else {
                             if (match_A) {
-                                if (phaseCorrect_UPCount) {
+                                if (phaseCorrect_UPCount_old) {
                                     stateOC1A = IOModule.LOW_LEVEL;
                                 } else {
                                     stateOC1A = IOModule.HIGH_LEVEL;
@@ -1679,7 +1686,7 @@ public class Timer1_ATmega328P implements Timer1Module {
                             ioModule.setOC1A(stateOC1A, UCModule_View.simulatedTime);
                         } else {
                             if (match_A) {
-                                if (phaseCorrect_UPCount) {
+                                if (phaseCorrect_UPCount_old) {
                                     stateOC1A = IOModule.HIGH_LEVEL;
                                 } else {
                                     stateOC1A = IOModule.LOW_LEVEL;
@@ -1711,7 +1718,7 @@ public class Timer1_ATmega328P implements Timer1Module {
                             ioModule.setOC1B(stateOC1B, UCModule_View.simulatedTime);
                         } else {
                             if (match_B) {
-                                if (phaseCorrect_UPCount) {
+                                if (phaseCorrect_UPCount_old) {
                                     stateOC1B = IOModule.LOW_LEVEL;
                                 } else {
                                     stateOC1B = IOModule.HIGH_LEVEL;
@@ -1731,7 +1738,7 @@ public class Timer1_ATmega328P implements Timer1Module {
                             ioModule.setOC1B(stateOC1B, UCModule_View.simulatedTime);
                         } else {
                             if (match_B) {
-                                if (phaseCorrect_UPCount) {
+                                if (phaseCorrect_UPCount_old) {
                                     stateOC1B = IOModule.HIGH_LEVEL;
                                 } else {
                                     stateOC1B = IOModule.LOW_LEVEL;
@@ -1791,6 +1798,8 @@ public class Timer1_ATmega328P implements Timer1Module {
                     progress -= 1;
                 }
 
+                phaseCorrect_UPCount_old = phaseCorrect_UPCount;
+
                 if (progress == BOTTOM) {
                     UCModule.interruptionModule.timer1Overflow();
                     phaseCorrect_UPCount = true;
@@ -1827,7 +1836,7 @@ public class Timer1_ATmega328P implements Timer1Module {
                             ioModule.setOC1A(stateOC1A, UCModule_View.simulatedTime);
                         } else {
                             if (match_A) {
-                                if (phaseCorrect_UPCount) {
+                                if (phaseCorrect_UPCount_old) {
                                     stateOC1A = IOModule.LOW_LEVEL;
                                 } else {
                                     stateOC1A = IOModule.HIGH_LEVEL;
@@ -1847,7 +1856,7 @@ public class Timer1_ATmega328P implements Timer1Module {
                             ioModule.setOC1A(stateOC1A, UCModule_View.simulatedTime);
                         } else {
                             if (match_A) {
-                                if (phaseCorrect_UPCount) {
+                                if (phaseCorrect_UPCount_old) {
                                     stateOC1A = IOModule.HIGH_LEVEL;
                                 } else {
                                     stateOC1A = IOModule.LOW_LEVEL;
@@ -1879,7 +1888,7 @@ public class Timer1_ATmega328P implements Timer1Module {
                             ioModule.setOC1B(stateOC1B, UCModule_View.simulatedTime);
                         } else {
                             if (match_B) {
-                                if (phaseCorrect_UPCount) {
+                                if (phaseCorrect_UPCount_old) {
                                     stateOC1B = IOModule.LOW_LEVEL;
                                 } else {
                                     stateOC1B = IOModule.HIGH_LEVEL;
@@ -1899,7 +1908,7 @@ public class Timer1_ATmega328P implements Timer1Module {
                             ioModule.setOC1B(stateOC1B, UCModule_View.simulatedTime);
                         } else {
                             if (match_B) {
-                                if (phaseCorrect_UPCount) {
+                                if (phaseCorrect_UPCount_old) {
                                     stateOC1B = IOModule.HIGH_LEVEL;
                                 } else {
                                     stateOC1B = IOModule.LOW_LEVEL;
@@ -1961,6 +1970,8 @@ public class Timer1_ATmega328P implements Timer1Module {
                     progress -= 1;
                 }
 
+                phaseCorrect_UPCount_old = phaseCorrect_UPCount;
+
                 if (progress == BOTTOM) {
                     UCModule.interruptionModule.timer1Overflow();
                     phaseCorrect_UPCount = true;
@@ -2004,7 +2015,7 @@ public class Timer1_ATmega328P implements Timer1Module {
                             ioModule.setOC1A(stateOC1A, UCModule_View.simulatedTime);
                         } else {
                             if (match_A) {
-                                if (phaseCorrect_UPCount) {
+                                if (phaseCorrect_UPCount_old) {
                                     stateOC1A = IOModule.LOW_LEVEL;
                                 } else {
                                     stateOC1A = IOModule.HIGH_LEVEL;
@@ -2024,7 +2035,7 @@ public class Timer1_ATmega328P implements Timer1Module {
                             ioModule.setOC1A(stateOC1A, UCModule_View.simulatedTime);
                         } else {
                             if (match_A) {
-                                if (phaseCorrect_UPCount) {
+                                if (phaseCorrect_UPCount_old) {
                                     stateOC1A = IOModule.HIGH_LEVEL;
                                 } else {
                                     stateOC1A = IOModule.LOW_LEVEL;
@@ -2056,7 +2067,7 @@ public class Timer1_ATmega328P implements Timer1Module {
                             ioModule.setOC1B(stateOC1B, UCModule_View.simulatedTime);
                         } else {
                             if (match_B) {
-                                if (phaseCorrect_UPCount) {
+                                if (phaseCorrect_UPCount_old) {
                                     stateOC1B = IOModule.LOW_LEVEL;
                                 } else {
                                     stateOC1B = IOModule.HIGH_LEVEL;
@@ -2076,7 +2087,7 @@ public class Timer1_ATmega328P implements Timer1Module {
                             ioModule.setOC1B(stateOC1B, UCModule_View.simulatedTime);
                         } else {
                             if (match_B) {
-                                if (phaseCorrect_UPCount) {
+                                if (phaseCorrect_UPCount_old) {
                                     stateOC1B = IOModule.HIGH_LEVEL;
                                 } else {
                                     stateOC1B = IOModule.LOW_LEVEL;
@@ -2116,6 +2127,8 @@ public class Timer1_ATmega328P implements Timer1Module {
                 } else {
                     progress -= 1;
                 }
+
+                phaseCorrect_UPCount_old = phaseCorrect_UPCount;
 
                 if (progress == BOTTOM) {
                     UCModule.interruptionModule.timer1Overflow();
@@ -2159,7 +2172,7 @@ public class Timer1_ATmega328P implements Timer1Module {
                             ioModule.setOC1A(stateOC1A, UCModule_View.simulatedTime);
                         } else {
                             if (match_A) {
-                                if (phaseCorrect_UPCount) {
+                                if (phaseCorrect_UPCount_old) {
                                     stateOC1A = IOModule.LOW_LEVEL;
                                 } else {
                                     stateOC1A = IOModule.HIGH_LEVEL;
@@ -2179,7 +2192,7 @@ public class Timer1_ATmega328P implements Timer1Module {
                             ioModule.setOC1A(stateOC1A, UCModule_View.simulatedTime);
                         } else {
                             if (match_A) {
-                                if (phaseCorrect_UPCount) {
+                                if (phaseCorrect_UPCount_old) {
                                     stateOC1A = IOModule.HIGH_LEVEL;
                                 } else {
                                     stateOC1A = IOModule.LOW_LEVEL;
@@ -2211,7 +2224,7 @@ public class Timer1_ATmega328P implements Timer1Module {
                             ioModule.setOC1B(stateOC1B, UCModule_View.simulatedTime);
                         } else {
                             if (match_B) {
-                                if (phaseCorrect_UPCount) {
+                                if (phaseCorrect_UPCount_old) {
                                     stateOC1B = IOModule.LOW_LEVEL;
                                 } else {
                                     stateOC1B = IOModule.HIGH_LEVEL;
@@ -2231,7 +2244,7 @@ public class Timer1_ATmega328P implements Timer1Module {
                             ioModule.setOC1B(stateOC1B, UCModule_View.simulatedTime);
                         } else {
                             if (match_B) {
-                                if (phaseCorrect_UPCount) {
+                                if (phaseCorrect_UPCount_old) {
                                     stateOC1B = IOModule.HIGH_LEVEL;
                                 } else {
                                     stateOC1B = IOModule.LOW_LEVEL;
@@ -2293,6 +2306,8 @@ public class Timer1_ATmega328P implements Timer1Module {
                     progress -= 1;
                 }
 
+                phaseCorrect_UPCount_old = phaseCorrect_UPCount;
+
                 if (progress == BOTTOM) {
                     UCModule.interruptionModule.timer1Overflow();
                     phaseCorrect_UPCount = true;
@@ -2336,7 +2351,7 @@ public class Timer1_ATmega328P implements Timer1Module {
                             ioModule.setOC1A(stateOC1A, UCModule_View.simulatedTime);
                         } else {
                             if (match_A) {
-                                if (phaseCorrect_UPCount) {
+                                if (phaseCorrect_UPCount_old) {
                                     stateOC1A = IOModule.LOW_LEVEL;
                                 } else {
                                     stateOC1A = IOModule.HIGH_LEVEL;
@@ -2356,7 +2371,7 @@ public class Timer1_ATmega328P implements Timer1Module {
                             ioModule.setOC1A(stateOC1A, UCModule_View.simulatedTime);
                         } else {
                             if (match_A) {
-                                if (phaseCorrect_UPCount) {
+                                if (phaseCorrect_UPCount_old) {
                                     stateOC1A = IOModule.HIGH_LEVEL;
                                 } else {
                                     stateOC1A = IOModule.LOW_LEVEL;
@@ -2388,7 +2403,7 @@ public class Timer1_ATmega328P implements Timer1Module {
                             ioModule.setOC1B(stateOC1B, UCModule_View.simulatedTime);
                         } else {
                             if (match_B) {
-                                if (phaseCorrect_UPCount) {
+                                if (phaseCorrect_UPCount_old) {
                                     stateOC1B = IOModule.LOW_LEVEL;
                                 } else {
                                     stateOC1B = IOModule.HIGH_LEVEL;
@@ -2408,7 +2423,7 @@ public class Timer1_ATmega328P implements Timer1Module {
                             ioModule.setOC1B(stateOC1B, UCModule_View.simulatedTime);
                         } else {
                             if (match_B) {
-                                if (phaseCorrect_UPCount) {
+                                if (phaseCorrect_UPCount_old) {
                                     stateOC1B = IOModule.HIGH_LEVEL;
                                 } else {
                                     stateOC1B = IOModule.LOW_LEVEL;
@@ -2448,6 +2463,8 @@ public class Timer1_ATmega328P implements Timer1Module {
                 } else {
                     progress -= 1;
                 }
+
+                phaseCorrect_UPCount_old = phaseCorrect_UPCount;
 
                 if (progress == BOTTOM) {
                     UCModule.interruptionModule.timer1Overflow();
@@ -2491,7 +2508,7 @@ public class Timer1_ATmega328P implements Timer1Module {
                             ioModule.setOC1A(stateOC1A, UCModule_View.simulatedTime);
                         } else {
                             if (match_A) {
-                                if (phaseCorrect_UPCount) {
+                                if (phaseCorrect_UPCount_old) {
                                     stateOC1A = IOModule.LOW_LEVEL;
                                 } else {
                                     stateOC1A = IOModule.HIGH_LEVEL;
@@ -2511,7 +2528,7 @@ public class Timer1_ATmega328P implements Timer1Module {
                             ioModule.setOC1A(stateOC1A, UCModule_View.simulatedTime);
                         } else {
                             if (match_A) {
-                                if (phaseCorrect_UPCount) {
+                                if (phaseCorrect_UPCount_old) {
                                     stateOC1A = IOModule.HIGH_LEVEL;
                                 } else {
                                     stateOC1A = IOModule.LOW_LEVEL;
@@ -2543,7 +2560,7 @@ public class Timer1_ATmega328P implements Timer1Module {
                             ioModule.setOC1B(stateOC1B, UCModule_View.simulatedTime);
                         } else {
                             if (match_B) {
-                                if (phaseCorrect_UPCount) {
+                                if (phaseCorrect_UPCount_old) {
                                     stateOC1B = IOModule.LOW_LEVEL;
                                 } else {
                                     stateOC1B = IOModule.HIGH_LEVEL;
@@ -2563,7 +2580,7 @@ public class Timer1_ATmega328P implements Timer1Module {
                             ioModule.setOC1B(stateOC1B, UCModule_View.simulatedTime);
                         } else {
                             if (match_B) {
-                                if (phaseCorrect_UPCount) {
+                                if (phaseCorrect_UPCount_old) {
                                     stateOC1B = IOModule.HIGH_LEVEL;
                                 } else {
                                     stateOC1B = IOModule.LOW_LEVEL;

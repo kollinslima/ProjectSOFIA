@@ -35,34 +35,37 @@ public class Timer2_ATmega328P implements Timer2Module {
 
     private static final String TIMER2_TAG = "Timer2";
 
-    private static final byte MAX = -1; //0xFF signed
-    private static final byte BOTTOM = 0x00;
+    public static final byte MAX = -1; //0xFF signed
+    public static final byte BOTTOM = 0x00;
 
     public static boolean timerOutputControl_OC2A;
     public static boolean timerOutputControl_OC2B;
 
     private static DataMemory_ATmega328P dataMemory;
-    private static Handler uCHandler;
+//    private static Handler uCHandler;
     private static IOModule_ATmega328P ioModule;
-    private UCModule uCModule;
+//    private UCModule uCModule;
 
     private boolean buffer_WGM22;
 
     private static int stateOC2A, stateOC2B;
-    private static boolean nextOverflow, nextClear, phaseCorrect_UPCount;
+    private static boolean nextOverflow, nextClear;
+    private static boolean phaseCorrect_UPCount,        //Tell about the next count
+                           phaseCorrect_UPCount_old;    //Tell about how I get to the actual value
     private static byte doubleBufferOCR2A, doubleBufferOCR2B;
 
     private static short clockCount;
 
-    public Timer2_ATmega328P(DataMemory dataMemory, Handler uCHandler, UCModule uCModule, IOModule ioModule) {
+    public Timer2_ATmega328P(DataMemory dataMemory, IOModule ioModule) {
         this.dataMemory = (DataMemory_ATmega328P) dataMemory;
-        this.uCHandler = uCHandler;
-        this.uCModule = uCModule;
+//        this.uCHandler = uCHandler;
+//        this.uCModule = uCModule;
         this.ioModule = (IOModule_ATmega328P) ioModule;
 
         timerOutputControl_OC2A = false;
         timerOutputControl_OC2B = false;
         phaseCorrect_UPCount = true;
+        phaseCorrect_UPCount_old = false;
 
         stateOC2A = IOModule.TRI_STATE;
         stateOC2B = IOModule.TRI_STATE;
@@ -314,6 +317,8 @@ public class Timer2_ATmega328P implements Timer2Module {
                     progress = (byte) (progress - 1);
                 }
 
+                phaseCorrect_UPCount_old = phaseCorrect_UPCount;
+
                 if (progress == BOTTOM) {
                     UCModule.interruptionModule.timer2Overflow();
                     phaseCorrect_UPCount = true;
@@ -350,7 +355,7 @@ public class Timer2_ATmega328P implements Timer2Module {
                             ioModule.setOC2A(stateOC2A, UCModule_View.simulatedTime);
                         } else {
                             if (match_A) {
-                                if (phaseCorrect_UPCount) {
+                                if (phaseCorrect_UPCount_old) {
                                     stateOC2A = IOModule.LOW_LEVEL;
                                 } else {
                                     stateOC2A = IOModule.HIGH_LEVEL;
@@ -370,7 +375,7 @@ public class Timer2_ATmega328P implements Timer2Module {
                             ioModule.setOC2A(stateOC2A, UCModule_View.simulatedTime);
                         } else {
                             if (match_A) {
-                                if (phaseCorrect_UPCount) {
+                                if (phaseCorrect_UPCount_old) {
                                     stateOC2A = IOModule.HIGH_LEVEL;
                                 } else {
                                     stateOC2A = IOModule.LOW_LEVEL;
@@ -391,7 +396,7 @@ public class Timer2_ATmega328P implements Timer2Module {
                         //OC2B Clear on Compare Match counting up, OC2B Set on Compare Match counting down
                         timerOutputControl_OC2B = true;
                         if (match_B) {
-                            if (phaseCorrect_UPCount) {
+                            if (phaseCorrect_UPCount_old) {
                                 stateOC2B = IOModule.LOW_LEVEL;
                             } else {
                                 stateOC2B = IOModule.HIGH_LEVEL;
@@ -403,7 +408,7 @@ public class Timer2_ATmega328P implements Timer2Module {
                         //OC2B Set on Compare Match counting up, OC2B Clear on Compare Match counting down
                         timerOutputControl_OC2B = true;
                         if (match_B) {
-                            if (phaseCorrect_UPCount) {
+                            if (phaseCorrect_UPCount_old) {
                                 stateOC2B = IOModule.HIGH_LEVEL;
                             } else {
                                 stateOC2B = IOModule.LOW_LEVEL;
@@ -637,6 +642,8 @@ public class Timer2_ATmega328P implements Timer2Module {
                     progress = (byte) (progress - 1);
                 }
 
+                phaseCorrect_UPCount_old = phaseCorrect_UPCount;
+
                 if (progress == BOTTOM) {
                     UCModule.interruptionModule.timer2Overflow();
                     phaseCorrect_UPCount = true;
@@ -679,7 +686,7 @@ public class Timer2_ATmega328P implements Timer2Module {
                             ioModule.setOC2A(stateOC2A, UCModule_View.simulatedTime);
                         } else {
                             if (match_A) {
-                                if (phaseCorrect_UPCount) {
+                                if (phaseCorrect_UPCount_old) {
                                     stateOC2A = IOModule.LOW_LEVEL;
                                 } else {
                                     stateOC2A = IOModule.HIGH_LEVEL;
@@ -699,7 +706,7 @@ public class Timer2_ATmega328P implements Timer2Module {
                             ioModule.setOC2A(stateOC2A, UCModule_View.simulatedTime);
                         } else {
                             if (match_A) {
-                                if (phaseCorrect_UPCount) {
+                                if (phaseCorrect_UPCount_old) {
                                     stateOC2A = IOModule.HIGH_LEVEL;
                                 } else {
                                     stateOC2A = IOModule.LOW_LEVEL;
@@ -720,7 +727,7 @@ public class Timer2_ATmega328P implements Timer2Module {
                         //OC2B Clear on Compare Match counting up, OC2B Set on Compare Match counting down
                         timerOutputControl_OC2B = true;
                         if (match_B) {
-                            if (phaseCorrect_UPCount) {
+                            if (phaseCorrect_UPCount_old) {
                                 stateOC2B = IOModule.LOW_LEVEL;
                             } else {
                                 stateOC2B = IOModule.HIGH_LEVEL;
@@ -732,7 +739,7 @@ public class Timer2_ATmega328P implements Timer2Module {
                         //OC2B Set on Compare Match counting up, OC2B Clear on Compare Match counting down
                         timerOutputControl_OC2B = true;
                         if (match_B) {
-                            if (phaseCorrect_UPCount) {
+                            if (phaseCorrect_UPCount_old) {
                                 stateOC2B = IOModule.HIGH_LEVEL;
                             } else {
                                 stateOC2B = IOModule.LOW_LEVEL;

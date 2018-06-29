@@ -37,8 +37,8 @@ public class CPUModule implements CPUInstructions {
 
     private static ProgramMemory programMemory;
     private static DataMemory dataMemory;
-    private static Handler uCHandler;
-    private UCModule uCModule;
+//    private static Handler uCHandler;
+//    private UCModule uCModule;
 
     //Auxiliary Variables for Instruction Processing
     private static byte regD, regR, result;
@@ -55,13 +55,12 @@ public class CPUModule implements CPUInstructions {
     private short clockCycleCount;
 
 
-    public CPUModule(ProgramMemory programMemory, DataMemory dataMemory, UCModule uCModule,
-                     Handler uCHandler) {
+    public CPUModule(ProgramMemory programMemory, DataMemory dataMemory) {
 
         this.programMemory = programMemory;
         this.dataMemory = dataMemory;
-        this.uCHandler = uCHandler;
-        this.uCModule = uCModule;
+//        this.uCHandler = uCHandler;
+//        this.uCModule = uCModule;
 
         clockCycleDone = false;
         needMoreClockCycles = false;

@@ -65,11 +65,11 @@ public class CPUModuleTest {
         dataMemory = new DataMemory_ATmega328P(ioModule);
         dataMemory.stopTimer();
 
-        UCModule uCModule = mock(UCModule.class);
+//        UCModule uCModule = mock(UCModule.class);
         Handler uCHandler = mock(Handler.class);
 
         programMemory = new ProgramMemory_ATmega328P(uCHandler);
-        cpuModule = new CPUModule(programMemory,dataMemory,uCModule,uCHandler);
+        cpuModule = new CPUModule(programMemory,dataMemory);
 
         cpuField = CPUModule.class.getDeclaredField("instruction");
         cpuField.setAccessible(true);

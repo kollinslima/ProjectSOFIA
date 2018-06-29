@@ -35,30 +35,32 @@ public class Timer0_ATmega328P implements Timer0Module {
 
     private static final String TIMER0_TAG = "Timer0";
 
-    private static final byte MAX = -1; //0xFF signed
-    private static final byte BOTTOM = 0x00;
+    public static final byte MAX = -1; //0xFF signed
+    public static final byte BOTTOM = 0x00;
 
     public static boolean timerOutputControl_OC0A;
     public static boolean timerOutputControl_OC0B;
 
     private static DataMemory_ATmega328P dataMemory;
-    private static Handler uCHandler;
+//    private static Handler uCHandler;
     private static IOModule_ATmega328P ioModule;
-    private UCModule uCModule;
+//    private UCModule uCModule;
 
     private static boolean oldExternalT0, newExternalT0;
     private boolean buffer_WGM02;
 
     private static int stateOC0A, stateOC0B;
-    private static boolean nextOverflow, nextClear, phaseCorrect_UPCount;
+    private static boolean nextOverflow, nextClear;
+    private static boolean phaseCorrect_UPCount,        //Tell about the next count
+                           phaseCorrect_UPCount_old;    //Tell about how I get to the actual value
     private static byte doubleBufferOCR0A, doubleBufferOCR0B;
 
     private static short clockCount;
 
-    public Timer0_ATmega328P(DataMemory dataMemory, Handler uCHandler, UCModule uCModule, IOModule ioModule) {
+    public Timer0_ATmega328P(DataMemory dataMemory, IOModule ioModule) {
         this.dataMemory = (DataMemory_ATmega328P) dataMemory;
-        this.uCHandler = uCHandler;
-        this.uCModule = uCModule;
+//        this.uCHandler = uCHandler;
+//        this.uCModule = uCModule;
         this.ioModule = (IOModule_ATmega328P) ioModule;
 
         oldExternalT0 = dataMemory.readBit(DataMemory_ATmega328P.PIND_ADDR, 4);
@@ -66,6 +68,7 @@ public class Timer0_ATmega328P implements Timer0Module {
         timerOutputControl_OC0A = false;
         timerOutputControl_OC0B = false;
         phaseCorrect_UPCount = true;
+        phaseCorrect_UPCount_old = false;
 
         stateOC0A = IOModule.TRI_STATE;
         stateOC0B = IOModule.TRI_STATE;
@@ -328,6 +331,8 @@ public class Timer0_ATmega328P implements Timer0Module {
                     progress = (byte) (progress - 1);
                 }
 
+                phaseCorrect_UPCount_old = phaseCorrect_UPCount;
+
                 if (progress == BOTTOM) {
                     UCModule.interruptionModule.timer0Overflow();
                     phaseCorrect_UPCount = true;
@@ -364,7 +369,7 @@ public class Timer0_ATmega328P implements Timer0Module {
                             ioModule.setOC0A(stateOC0A, UCModule_View.simulatedTime);
                         } else {
                             if (match_A) {
-                                if (phaseCorrect_UPCount) {
+                                if (phaseCorrect_UPCount_old) {
                                     stateOC0A = IOModule.LOW_LEVEL;
                                 } else {
                                     stateOC0A = IOModule.HIGH_LEVEL;
@@ -384,7 +389,7 @@ public class Timer0_ATmega328P implements Timer0Module {
                             ioModule.setOC0A(stateOC0A, UCModule_View.simulatedTime);
                         } else {
                             if (match_A) {
-                                if (phaseCorrect_UPCount) {
+                                if (phaseCorrect_UPCount_old) {
                                     stateOC0A = IOModule.HIGH_LEVEL;
                                 } else {
                                     stateOC0A = IOModule.LOW_LEVEL;
@@ -409,7 +414,7 @@ public class Timer0_ATmega328P implements Timer0Module {
                         //OC0B Clear on Compare Match counting up, OC0B Set on Compare Match counting down
                         timerOutputControl_OC0B = true;
                         if (match_B) {
-                            if (phaseCorrect_UPCount) {
+                            if (phaseCorrect_UPCount_old) {
                                 stateOC0B = IOModule.LOW_LEVEL;
                             } else {
                                 stateOC0B = IOModule.HIGH_LEVEL;
@@ -421,7 +426,7 @@ public class Timer0_ATmega328P implements Timer0Module {
                         //OC0B Set on Compare Match counting up, OC0B Clear on Compare Match counting down
                         timerOutputControl_OC0B = true;
                         if (match_B) {
-                            if (phaseCorrect_UPCount) {
+                            if (phaseCorrect_UPCount_old) {
                                 stateOC0B = IOModule.HIGH_LEVEL;
                             } else {
                                 stateOC0B = IOModule.LOW_LEVEL;
@@ -675,6 +680,8 @@ public class Timer0_ATmega328P implements Timer0Module {
                     progress = (byte) (progress - 1);
                 }
 
+                phaseCorrect_UPCount_old = phaseCorrect_UPCount;
+
                 if (progress == BOTTOM) {
                     UCModule.interruptionModule.timer0Overflow();
                     phaseCorrect_UPCount = true;
@@ -717,7 +724,7 @@ public class Timer0_ATmega328P implements Timer0Module {
                             ioModule.setOC0A(stateOC0A, UCModule_View.simulatedTime);
                         } else {
                             if (match_A) {
-                                if (phaseCorrect_UPCount) {
+                                if (phaseCorrect_UPCount_old) {
                                     stateOC0A = IOModule.LOW_LEVEL;
                                 } else {
                                     stateOC0A = IOModule.HIGH_LEVEL;
@@ -737,7 +744,7 @@ public class Timer0_ATmega328P implements Timer0Module {
                             ioModule.setOC0A(stateOC0A, UCModule_View.simulatedTime);
                         } else {
                             if (match_A) {
-                                if (phaseCorrect_UPCount) {
+                                if (phaseCorrect_UPCount_old) {
                                     stateOC0A = IOModule.HIGH_LEVEL;
                                 } else {
                                     stateOC0A = IOModule.LOW_LEVEL;
@@ -762,7 +769,7 @@ public class Timer0_ATmega328P implements Timer0Module {
                         //OC0B Clear on Compare Match counting up, OC0B Set on Compare Match counting down
                         timerOutputControl_OC0B = true;
                         if (match_B) {
-                            if (phaseCorrect_UPCount) {
+                            if (phaseCorrect_UPCount_old) {
                                 stateOC0B = IOModule.LOW_LEVEL;
                             } else {
                                 stateOC0B = IOModule.HIGH_LEVEL;
@@ -774,7 +781,7 @@ public class Timer0_ATmega328P implements Timer0Module {
                         //OC0B Set on Compare Match counting up, OC0B Clear on Compare Match counting down
                         timerOutputControl_OC0B = true;
                         if (match_B) {
-                            if (phaseCorrect_UPCount) {
+                            if (phaseCorrect_UPCount_old) {
                                 stateOC0B = IOModule.HIGH_LEVEL;
                             } else {
                                 stateOC0B = IOModule.LOW_LEVEL;
