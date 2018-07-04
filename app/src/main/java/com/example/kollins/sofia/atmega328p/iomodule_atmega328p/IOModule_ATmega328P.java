@@ -342,7 +342,7 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
                 sendShortCircuit();
             }
         } catch (NullPointerException e) {
-            Log.e(UCModule.MY_LOG_TAG, "ERROR: setOC1A (IOModule) -> output list is null", e);
+//            Log.e(UCModule.MY_LOG_TAG, "ERROR: setOC1A (IOModule) -> output list is null", e);
         }
     }
 

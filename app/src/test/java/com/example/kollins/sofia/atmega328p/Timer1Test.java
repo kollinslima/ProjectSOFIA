@@ -105,6 +105,9 @@ public class Timer1Test {
 
         PowerMockito.doNothing().when(ioModule, "setOC1A", Matchers.anyInt(), Matchers.anyLong());
         PowerMockito.doNothing().when(ioModule, "setOC1B", Matchers.anyInt(), Matchers.anyLong());
+
+        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
     }
 
     @Test
@@ -241,7 +244,7 @@ public class Timer1Test {
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x00);
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 6, true);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
@@ -264,7 +267,7 @@ public class Timer1Test {
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x00);
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 6, false);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
@@ -286,7 +289,7 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x00);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
@@ -303,7 +306,7 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x00);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
@@ -320,7 +323,7 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x00);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
@@ -337,7 +340,7 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x00);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
@@ -358,7 +361,7 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x50);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
@@ -387,7 +390,7 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1C_ADDR, 6, true);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x50);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
@@ -408,7 +411,7 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0xA0);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
@@ -435,7 +438,7 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0xF0);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
@@ -462,11 +465,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x01);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
         upCountField.set(null, true);
 
         timer1.run();
@@ -482,11 +485,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x01);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
         upCountField.set(null, false);
 
         timer1.run();
@@ -502,11 +505,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x01);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
         upCountField.set(null, true);
 
         timer1.run();
@@ -522,11 +525,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x01);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
         upCountField.set(null, false);
 
         timer1.run();
@@ -543,7 +546,7 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x01);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
@@ -552,7 +555,7 @@ public class Timer1Test {
         dataMemory.write16bits(DataMemory_ATmega328P.OCR1BL_ADDR, DataMemory_ATmega328P.OCR1BH_ADDR,
                 (byte) (0x00FF & newTop), (byte) (0x00FF & (newTop >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
         upCountField.set(null, true);
 
         timer1.run();
@@ -569,11 +572,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x01);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
         upCountField.set(null, true);
 
         outputControlOC1AField.set(null, true);
@@ -593,11 +596,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x51);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
         upCountField.set(null, true);
 
         outputControlOC1AField.set(null, true);
@@ -619,11 +622,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0xA1);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
         upCountField.set(null, true);
 
         doubleBufferOCR1AField.set(null, valueOCRA);
@@ -652,11 +655,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0xA1);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
         upCountField.set(null, false);
 
         doubleBufferOCR1AField.set(null, valueOCRA);
@@ -685,11 +688,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0xF1);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
         upCountField.set(null, false);
 
         doubleBufferOCR1AField.set(null, valueOCRA);
@@ -718,11 +721,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0xF1);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
         upCountField.set(null, true);
 
         doubleBufferOCR1AField.set(null, valueOCRA);
@@ -749,11 +752,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x02);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
         upCountField.set(null, true);
 
         timer1.run();
@@ -769,11 +772,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x02);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
         upCountField.set(null, false);
 
         timer1.run();
@@ -789,11 +792,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x02);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
         upCountField.set(null, true);
 
         timer1.run();
@@ -809,11 +812,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x02);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
         upCountField.set(null, false);
 
         timer1.run();
@@ -830,7 +833,7 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x02);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
@@ -839,7 +842,7 @@ public class Timer1Test {
         dataMemory.write16bits(DataMemory_ATmega328P.OCR1BL_ADDR, DataMemory_ATmega328P.OCR1BH_ADDR,
                 (byte) (0x00FF & newTop), (byte) (0x00FF & (newTop >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
         upCountField.set(null, true);
 
         timer1.run();
@@ -856,11 +859,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x02);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
         upCountField.set(null, true);
 
         outputControlOC1AField.set(null, true);
@@ -880,11 +883,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x52);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
         upCountField.set(null, true);
 
         outputControlOC1AField.set(null, true);
@@ -906,11 +909,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0xA2);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
         upCountField.set(null, true);
 
         doubleBufferOCR1AField.set(null, valueOCRA);
@@ -939,11 +942,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0xA2);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
         upCountField.set(null, false);
 
         doubleBufferOCR1AField.set(null, valueOCRA);
@@ -972,11 +975,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0xF2);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
         upCountField.set(null, false);
 
         doubleBufferOCR1AField.set(null, valueOCRA);
@@ -1005,11 +1008,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0xF2);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
         upCountField.set(null, true);
 
         doubleBufferOCR1AField.set(null, valueOCRA);
@@ -1036,11 +1039,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x03);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
         upCountField.set(null, true);
 
         timer1.run();
@@ -1056,11 +1059,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x03);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
         upCountField.set(null, false);
 
         timer1.run();
@@ -1076,11 +1079,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x03);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
         upCountField.set(null, true);
 
         timer1.run();
@@ -1096,11 +1099,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x03);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
         upCountField.set(null, false);
 
         timer1.run();
@@ -1117,7 +1120,7 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x03);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
@@ -1126,7 +1129,7 @@ public class Timer1Test {
         dataMemory.write16bits(DataMemory_ATmega328P.OCR1BL_ADDR, DataMemory_ATmega328P.OCR1BH_ADDR,
                 (byte) (0x00FF & newTop), (byte) (0x00FF & (newTop >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
         upCountField.set(null, true);
 
         timer1.run();
@@ -1143,11 +1146,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x03);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
         upCountField.set(null, true);
 
         outputControlOC1AField.set(null, true);
@@ -1167,11 +1170,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x53);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
         upCountField.set(null, true);
 
         outputControlOC1AField.set(null, true);
@@ -1193,11 +1196,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0xA3);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
         upCountField.set(null, true);
 
         doubleBufferOCR1AField.set(null, valueOCRA);
@@ -1226,11 +1229,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0xA3);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
         upCountField.set(null, false);
 
         doubleBufferOCR1AField.set(null, valueOCRA);
@@ -1259,11 +1262,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0xF3);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
         upCountField.set(null, false);
 
         doubleBufferOCR1AField.set(null, valueOCRA);
@@ -1292,11 +1295,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0xF3);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
         upCountField.set(null, true);
 
         doubleBufferOCR1AField.set(null, valueOCRA);
@@ -1323,7 +1326,7 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, true);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x00);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
@@ -1340,7 +1343,7 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, true);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x00);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
@@ -1357,7 +1360,7 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, true);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x00);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
@@ -1379,7 +1382,7 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, true);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x00);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
@@ -1403,7 +1406,7 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, true);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x00);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
@@ -1428,7 +1431,7 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, true);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x50);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
@@ -1462,7 +1465,7 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1C_ADDR, 6, true);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x50);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
@@ -1493,7 +1496,7 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, true);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0xA0);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
@@ -1525,7 +1528,7 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, true);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0xF0);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
@@ -1556,11 +1559,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, true);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x01);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
 
         timer1.run();
 
@@ -1577,7 +1580,7 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, true);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x01);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
@@ -1586,7 +1589,7 @@ public class Timer1Test {
         dataMemory.write16bits(DataMemory_ATmega328P.OCR1BL_ADDR, DataMemory_ATmega328P.OCR1BH_ADDR,
                 (byte) (0x00FF & newTop), (byte) (0x00FF & (newTop >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
 
         timer1.run();
 
@@ -1602,11 +1605,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, true);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x01);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
 
         outputControlOC1AField.set(null, true);
         outputControlOC1BField.set(null, true);
@@ -1625,11 +1628,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, true);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x51);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
         upCountField.set(null, true);
 
         outputControlOC1AField.set(null, true);
@@ -1651,11 +1654,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, true);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0xA1);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
 
         doubleBufferOCR1AField.set(null, valueOCRA);
         doubleBufferOCR1BField.set(null, valueOCRB);
@@ -1683,11 +1686,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, true);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0xA1);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
 
         nextClearField.set(null, true);
         doubleBufferOCR1AField.set(null, valueOCRA);
@@ -1716,11 +1719,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, true);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0xF1);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
 
         doubleBufferOCR1AField.set(null, valueOCRA);
         doubleBufferOCR1BField.set(null, valueOCRB);
@@ -1748,11 +1751,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, true);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0xF1);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
 
         nextClearField.set(null, true);
         doubleBufferOCR1AField.set(null, valueOCRA);
@@ -1779,11 +1782,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, true);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x02);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
 
         timer1.run();
 
@@ -1800,7 +1803,7 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, true);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x02);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
@@ -1809,7 +1812,7 @@ public class Timer1Test {
         dataMemory.write16bits(DataMemory_ATmega328P.OCR1BL_ADDR, DataMemory_ATmega328P.OCR1BH_ADDR,
                 (byte) (0x00FF & newTop), (byte) (0x00FF & (newTop >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
 
         timer1.run();
 
@@ -1825,11 +1828,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, true);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x02);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
 
         outputControlOC1AField.set(null, true);
         outputControlOC1BField.set(null, true);
@@ -1848,11 +1851,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, true);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x52);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
         upCountField.set(null, true);
 
         outputControlOC1AField.set(null, true);
@@ -1874,11 +1877,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, true);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0xA2);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
 
         doubleBufferOCR1AField.set(null, valueOCRA);
         doubleBufferOCR1BField.set(null, valueOCRB);
@@ -1906,11 +1909,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, true);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0xA2);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
 
         nextClearField.set(null, true);
         doubleBufferOCR1AField.set(null, valueOCRA);
@@ -1939,11 +1942,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, true);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0xF2);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
 
         doubleBufferOCR1AField.set(null, valueOCRA);
         doubleBufferOCR1BField.set(null, valueOCRB);
@@ -1971,11 +1974,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, true);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0xF2);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
 
         nextClearField.set(null, true);
         doubleBufferOCR1AField.set(null, valueOCRA);
@@ -2002,11 +2005,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, true);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x03);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
 
         timer1.run();
 
@@ -2023,7 +2026,7 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, true);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x03);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
@@ -2032,7 +2035,7 @@ public class Timer1Test {
         dataMemory.write16bits(DataMemory_ATmega328P.OCR1BL_ADDR, DataMemory_ATmega328P.OCR1BH_ADDR,
                 (byte) (0x00FF & newTop), (byte) (0x00FF & (newTop >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
 
         timer1.run();
 
@@ -2048,11 +2051,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, true);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x03);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
 
         outputControlOC1AField.set(null, true);
         outputControlOC1BField.set(null, true);
@@ -2071,11 +2074,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, true);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x53);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
         upCountField.set(null, true);
 
         outputControlOC1AField.set(null, true);
@@ -2097,11 +2100,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, true);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0xA3);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
 
         doubleBufferOCR1AField.set(null, valueOCRA);
         doubleBufferOCR1BField.set(null, valueOCRB);
@@ -2129,11 +2132,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, true);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0xA3);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
 
         nextClearField.set(null, true);
         doubleBufferOCR1AField.set(null, valueOCRA);
@@ -2162,11 +2165,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, true);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0xF3);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
 
         doubleBufferOCR1AField.set(null, valueOCRA);
         doubleBufferOCR1BField.set(null, valueOCRB);
@@ -2194,11 +2197,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, true);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0xF3);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
 
         nextClearField.set(null, true);
         doubleBufferOCR1AField.set(null, valueOCRA);
@@ -2225,11 +2228,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x00);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
         upCountField.set(null, true);
 
         timer1.run();
@@ -2245,11 +2248,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x00);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
         upCountField.set(null, false);
 
         timer1.run();
@@ -2266,14 +2269,14 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x00);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
         dataMemory.write16bits(DataMemory_ATmega328P.ICR1L_ADDR, DataMemory_ATmega328P.ICR1H_ADDR,
                 (byte) (0x00FF & top), (byte) (0x00FF & (top >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
 
         upCountField.set(null, true);
 
@@ -2291,14 +2294,14 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x00);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
         dataMemory.write16bits(DataMemory_ATmega328P.ICR1L_ADDR, DataMemory_ATmega328P.ICR1H_ADDR,
                 (byte) (0x00FF & top), (byte) (0x00FF & (top >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
 
         upCountField.set(null, false);
 
@@ -2317,7 +2320,7 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x00);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
@@ -2327,7 +2330,7 @@ public class Timer1Test {
         dataMemory.write16bits(DataMemory_ATmega328P.OCR1BL_ADDR, DataMemory_ATmega328P.OCR1BH_ADDR,
                 (byte) (0x00FF & newTop), (byte) (0x00FF & (newTop >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
 
         doubleBufferOCR1AField.set(null, top);
         doubleBufferOCR1BField.set(null, top);
@@ -2348,14 +2351,14 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x00);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
         dataMemory.write16bits(DataMemory_ATmega328P.ICR1L_ADDR, DataMemory_ATmega328P.ICR1H_ADDR,
                 (byte) (0x00FF & top), (byte) (0x00FF & (top >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
 
         upCountField.set(null, true);
         outputControlOC1AField.set(null, true);
@@ -2376,14 +2379,14 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x50);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
         dataMemory.write16bits(DataMemory_ATmega328P.ICR1L_ADDR, DataMemory_ATmega328P.ICR1H_ADDR,
                 (byte) (0x00FF & top), (byte) (0x00FF & (top >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
 
         upCountField.set(null, true);
         outputControlOC1AField.set(null, true);
@@ -2405,14 +2408,14 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0xA0);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
         dataMemory.write16bits(DataMemory_ATmega328P.ICR1L_ADDR, DataMemory_ATmega328P.ICR1H_ADDR,
                 (byte) (0x00FF & top), (byte) (0x00FF & (top >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
 
         upCountField.set(null, true);
 
@@ -2438,14 +2441,14 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0xA0);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
         dataMemory.write16bits(DataMemory_ATmega328P.ICR1L_ADDR, DataMemory_ATmega328P.ICR1H_ADDR,
                 (byte) (0x00FF & top), (byte) (0x00FF & (top >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
 
         upCountField.set(null, false);
 
@@ -2471,14 +2474,14 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0xF0);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
         dataMemory.write16bits(DataMemory_ATmega328P.ICR1L_ADDR, DataMemory_ATmega328P.ICR1H_ADDR,
                 (byte) (0x00FF & top), (byte) (0x00FF & (top >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
 
         upCountField.set(null, true);
 
@@ -2504,14 +2507,14 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0xF0);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
         dataMemory.write16bits(DataMemory_ATmega328P.ICR1L_ADDR, DataMemory_ATmega328P.ICR1H_ADDR,
                 (byte) (0x00FF & top), (byte) (0x00FF & (top >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
 
         upCountField.set(null, false);
 
@@ -2535,11 +2538,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x01);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
         upCountField.set(null, true);
 
         timer1.run();
@@ -2555,11 +2558,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x01);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
         upCountField.set(null, false);
 
         timer1.run();
@@ -2576,11 +2579,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x01);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
 
         upCountField.set(null, true);
         doubleBufferOCR1AField.set(null, top);
@@ -2599,11 +2602,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x01);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
 
         upCountField.set(null, false);
         doubleBufferOCR1AField.set(null, top);
@@ -2623,7 +2626,7 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x01);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
@@ -2633,7 +2636,7 @@ public class Timer1Test {
         dataMemory.write16bits(DataMemory_ATmega328P.OCR1BL_ADDR, DataMemory_ATmega328P.OCR1BH_ADDR,
                 (byte) (0x00FF & newTop), (byte) (0x00FF & (newTop >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
 
         doubleBufferOCR1AField.set(null, top);
         doubleBufferOCR1BField.set(null, top);
@@ -2654,12 +2657,12 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x01);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
 
         upCountField.set(null, true);
         doubleBufferOCR1AField.set(null, top);
@@ -2682,14 +2685,14 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x51);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
         dataMemory.write16bits(DataMemory_ATmega328P.ICR1L_ADDR, DataMemory_ATmega328P.ICR1H_ADDR,
                 (byte) (0x00FF & top), (byte) (0x00FF & (top >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
 
         upCountField.set(null, true);
         doubleBufferOCR1AField.set(null, top);
@@ -2715,11 +2718,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0xA1);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
 
         upCountField.set(null, true);
 
@@ -2742,11 +2745,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0xA1);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
 
         upCountField.set(null, true);
 
@@ -2770,11 +2773,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0xA1);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
 
         upCountField.set(null, false);
 
@@ -2797,11 +2800,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0xF1);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
 
         upCountField.set(null, true);
 
@@ -2824,11 +2827,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0xF1);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
 
         upCountField.set(null, true);
 
@@ -2852,11 +2855,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0xF1);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
 
         upCountField.set(null, false);
 
@@ -2878,11 +2881,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x02);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
         upCountField.set(null, true);
 
         timer1.run();
@@ -2898,11 +2901,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x02);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
         upCountField.set(null, false);
 
         timer1.run();
@@ -2919,14 +2922,14 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x02);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
         dataMemory.write16bits(DataMemory_ATmega328P.ICR1L_ADDR, DataMemory_ATmega328P.ICR1H_ADDR,
                 (byte) (0x00FF & top), (byte) (0x00FF & (top >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
 
         upCountField.set(null, true);
 
@@ -2944,14 +2947,14 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x02);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
         dataMemory.write16bits(DataMemory_ATmega328P.ICR1L_ADDR, DataMemory_ATmega328P.ICR1H_ADDR,
                 (byte) (0x00FF & top), (byte) (0x00FF & (top >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
 
         upCountField.set(null, false);
 
@@ -2970,7 +2973,7 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x02);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
@@ -2983,7 +2986,7 @@ public class Timer1Test {
         dataMemory.write16bits(DataMemory_ATmega328P.OCR1BL_ADDR, DataMemory_ATmega328P.OCR1BH_ADDR,
                 (byte) (0x00FF & newTop), (byte) (0x00FF & (newTop >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
 
         doubleBufferOCR1AField.set(null, top);
         doubleBufferOCR1BField.set(null, top);
@@ -3004,14 +3007,14 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x02);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
         dataMemory.write16bits(DataMemory_ATmega328P.ICR1L_ADDR, DataMemory_ATmega328P.ICR1H_ADDR,
                 (byte) (0x00FF & top), (byte) (0x00FF & (top >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
 
         upCountField.set(null, true);
         outputControlOC1AField.set(null, true);
@@ -3033,14 +3036,14 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x51);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
         dataMemory.write16bits(DataMemory_ATmega328P.ICR1L_ADDR, DataMemory_ATmega328P.ICR1H_ADDR,
                 (byte) (0x00FF & top), (byte) (0x00FF & (top >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
 
         upCountField.set(null, true);
         doubleBufferOCR1AField.set(null, valueOCR);
@@ -3067,14 +3070,14 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0xA2);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
         dataMemory.write16bits(DataMemory_ATmega328P.ICR1L_ADDR, DataMemory_ATmega328P.ICR1H_ADDR,
                 (byte) (0x00FF & top), (byte) (0x00FF & (top >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
 
         upCountField.set(null, true);
 
@@ -3100,14 +3103,14 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0xA2);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
         dataMemory.write16bits(DataMemory_ATmega328P.ICR1L_ADDR, DataMemory_ATmega328P.ICR1H_ADDR,
                 (byte) (0x00FF & top), (byte) (0x00FF & (top >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
 
         upCountField.set(null, false);
 
@@ -3133,14 +3136,14 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0xF2);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
         dataMemory.write16bits(DataMemory_ATmega328P.ICR1L_ADDR, DataMemory_ATmega328P.ICR1H_ADDR,
                 (byte) (0x00FF & top), (byte) (0x00FF & (top >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
 
         upCountField.set(null, true);
 
@@ -3166,14 +3169,14 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0xF2);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
         dataMemory.write16bits(DataMemory_ATmega328P.ICR1L_ADDR, DataMemory_ATmega328P.ICR1H_ADDR,
                 (byte) (0x00FF & top), (byte) (0x00FF & (top >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
 
         upCountField.set(null, false);
 
@@ -3197,11 +3200,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x03);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
         upCountField.set(null, true);
 
         timer1.run();
@@ -3217,11 +3220,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x03);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
         upCountField.set(null, false);
 
         timer1.run();
@@ -3238,11 +3241,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x03);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
 
         upCountField.set(null, true);
         doubleBufferOCR1AField.set(null, top);
@@ -3261,11 +3264,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x03);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
 
         upCountField.set(null, false);
         doubleBufferOCR1AField.set(null, top);
@@ -3285,7 +3288,7 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x03);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
@@ -3295,7 +3298,7 @@ public class Timer1Test {
         dataMemory.write16bits(DataMemory_ATmega328P.OCR1BL_ADDR, DataMemory_ATmega328P.OCR1BH_ADDR,
                 (byte) (0x00FF & newTop), (byte) (0x00FF & (newTop >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
 
         doubleBufferOCR1AField.set(null, top);
         doubleBufferOCR1BField.set(null, top);
@@ -3316,12 +3319,12 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x03);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
 
         upCountField.set(null, true);
         doubleBufferOCR1AField.set(null, top);
@@ -3344,14 +3347,8 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x53);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
-
-        dataMemory.write16bits(DataMemory_ATmega328P.ICR1L_ADDR, DataMemory_ATmega328P.ICR1H_ADDR,
-                (byte) (0x00FF & top), (byte) (0x00FF & (top >> 8)));
-
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
 
         upCountField.set(null, true);
         doubleBufferOCR1AField.set(null, top);
@@ -3377,11 +3374,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0xA3);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
 
         upCountField.set(null, true);
 
@@ -3404,11 +3401,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0xA3);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
 
         upCountField.set(null, true);
 
@@ -3432,11 +3429,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0xA3);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
 
         upCountField.set(null, false);
 
@@ -3459,11 +3456,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0xF3);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
 
         upCountField.set(null, true);
 
@@ -3486,11 +3483,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0xF3);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
 
         upCountField.set(null, true);
 
@@ -3514,11 +3511,11 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, false);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0xF3);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
-        Whitebox.setInternalState(dataMemory,"flagOCR1AReady", true);
+        
 
         upCountField.set(null, false);
 
@@ -3532,26 +3529,6 @@ public class Timer1Test {
         assertEquals(0, stateOC1BField.get(null));
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     @Test
     public void ctcMode_topICR1_count() {
         char progress = 0x0000;
@@ -3560,7 +3537,7 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, true);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x00);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
@@ -3577,7 +3554,7 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, true);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x00);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
@@ -3594,7 +3571,7 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, true);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x00);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
@@ -3616,7 +3593,7 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, true);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x00);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
@@ -3640,7 +3617,7 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, true);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x00);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
@@ -3665,7 +3642,7 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, true);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x50);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
@@ -3702,7 +3679,7 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1C_ADDR, 6, true);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x50);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
@@ -3736,7 +3713,7 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, true);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0xA0);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
@@ -3771,7 +3748,7 @@ public class Timer1Test {
         dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, true);
         dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0xF0);
 
-        Whitebox.setInternalState(dataMemory,"timer1WriteEnable", true);
+        
         dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
                 (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
 
@@ -3795,5 +3772,449 @@ public class Timer1Test {
         assertEquals(1, stateOC1AField.get(null));
         assertEquals(1, stateOC1BField.get(null));
         assertTrue((Boolean) nextClearField.get(null));
+    }
+
+    @Test
+    public void fastPWM_topICR1_upCount() throws Exception {
+        char progress = 0x0000;
+
+        dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 4, true);
+        dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, true);
+        dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x02);
+
+        dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
+                (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
+
+        timer1.run();
+
+        assertEquals(progress+1, dataMemory.read16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR));
+    }
+
+
+    @Test
+    public void fastPWM_topICR1_updateTop() throws Exception {
+        char top = 0x0A00;
+        char newTop = 0x00B0;
+        char progress = Timer1_ATmega328P.BOTTOM;
+
+        dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 4, true);
+        dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, true);
+        dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x02);
+
+        dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
+                (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
+
+        dataMemory.write16bits(DataMemory_ATmega328P.OCR1AL_ADDR, DataMemory_ATmega328P.OCR1AH_ADDR,
+                (byte) (0x00FF & newTop), (byte) (0x00FF & (newTop >> 8)));
+
+        dataMemory.write16bits(DataMemory_ATmega328P.OCR1BL_ADDR, DataMemory_ATmega328P.OCR1BH_ADDR,
+                (byte) (0x00FF & newTop), (byte) (0x00FF & (newTop >> 8)));
+
+        doubleBufferOCR1AField.set(null, top);
+        doubleBufferOCR1BField.set(null, top);
+
+        timer1.run();
+
+        assertEquals(newTop, doubleBufferOCR1AField.get(null));
+        assertEquals(newTop, doubleBufferOCR1BField.get(null));
+    }
+
+    @Test
+    public void fastPWM_topICR1_normalOperation() throws Exception {
+        char top = 0x0A00;
+        char progress = Timer1_ATmega328P.BOTTOM + 1;
+
+        dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 4, true);
+        dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, true);
+        dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x02);
+
+        dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
+                (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
+
+        dataMemory.write16bits(DataMemory_ATmega328P.ICR1L_ADDR, DataMemory_ATmega328P.ICR1H_ADDR,
+                (byte) (0x00FF & top), (byte) (0x00FF & (top >> 8)));
+
+
+        outputControlOC1AField.set(null, true);
+        outputControlOC1BField.set(null, true);
+
+        timer1.run();
+
+        assertFalse((Boolean) outputControlOC1AField.get(null));
+        assertFalse((Boolean) outputControlOC1BField.get(null));
+    }
+
+    @Test
+    public void fastPWM_topICR1_toggleOnCompareMatch() throws Exception {
+        char top = 0x0A00;
+        char valOCR = 0x00B00;
+        char progress = (char) (valOCR-1);
+
+        dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 4, true);
+        dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, true);
+        dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x52);
+
+        dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
+                (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
+
+        dataMemory.write16bits(DataMemory_ATmega328P.ICR1L_ADDR, DataMemory_ATmega328P.ICR1H_ADDR,
+                (byte) (0x00FF & top), (byte) (0x00FF & (top >> 8)));
+
+        doubleBufferOCR1AField.set(null, valOCR);
+        doubleBufferOCR1BField.set(null, valOCR);
+
+        stateOC1AField.set(null, 0);
+        outputControlOC1BField.set(null, true);
+
+        timer1.run();
+
+        assertEquals(1, stateOC1AField.get(null));
+        assertFalse((Boolean) outputControlOC1BField.get(null));
+    }
+
+    @Test
+    public void fastPWM_topICR1_clearCompareMath() throws Exception {
+        char top = 0x0A00;
+        char valueOCR = 0x00B0;
+        char progress = (char) (valueOCR - 1);
+
+        dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 4, true);
+        dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, true);
+        dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0xA2);
+
+        dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
+                (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
+
+        dataMemory.write16bits(DataMemory_ATmega328P.ICR1L_ADDR, DataMemory_ATmega328P.ICR1H_ADDR,
+                (byte) (0x00FF & top), (byte) (0x00FF & (top >> 8)));
+
+        doubleBufferOCR1AField.set(null, valueOCR);
+        doubleBufferOCR1BField.set(null, valueOCR);
+
+        stateOC1AField.set(null, 1);
+        stateOC1BField.set(null, 1);
+
+        timer1.run();
+
+        assertEquals(0, stateOC1AField.get(null));
+        assertEquals(0, stateOC1BField.get(null));
+    }
+
+    @Test
+    public void fastPWM_topICR1_clearCompareMath_setAtBottom() throws Exception {
+        char top = 0x0A00;
+        char valueOCR = 0x00B0;
+        char progress = Timer1_ATmega328P.MAX;
+
+        dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 4, true);
+        dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, true);
+        dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0xA2);
+
+        dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
+                (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
+
+        dataMemory.write16bits(DataMemory_ATmega328P.ICR1L_ADDR, DataMemory_ATmega328P.ICR1H_ADDR,
+                (byte) (0x00FF & top), (byte) (0x00FF & (top >> 8)));
+
+        doubleBufferOCR1AField.set(null, valueOCR);
+        doubleBufferOCR1BField.set(null, valueOCR);
+
+        stateOC1AField.set(null, 0);
+        stateOC1BField.set(null, 0);
+
+        timer1.run();
+
+        assertEquals(1, stateOC1AField.get(null));
+        assertEquals(1, stateOC1BField.get(null));
+    }
+
+    @Test
+    public void fastPWM_topICR1_setCompareMath() throws Exception {
+        char top = 0x0A00;
+        char valueOCR = 0x00B0;
+        char progress = (char) (valueOCR - 1);
+
+        dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 4, true);
+        dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, true);
+        dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0xF2);
+
+        dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
+                (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
+
+        dataMemory.write16bits(DataMemory_ATmega328P.ICR1L_ADDR, DataMemory_ATmega328P.ICR1H_ADDR,
+                (byte) (0x00FF & top), (byte) (0x00FF & (top >> 8)));
+
+
+        doubleBufferOCR1AField.set(null, valueOCR);
+        doubleBufferOCR1BField.set(null, valueOCR);
+
+        stateOC1AField.set(null, 0);
+        stateOC1BField.set(null, 0);
+
+        timer1.run();
+
+        assertEquals(1, stateOC1AField.get(null));
+        assertEquals(1, stateOC1BField.get(null));
+    }
+
+    @Test
+    public void fastPWM_topICR1_setCompareMath_clearAtBottom() throws Exception {
+        char top = 0x0A00;
+        char valueOCR = 0x00B0;
+        char progress = Timer1_ATmega328P.MAX;
+
+        dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 4, true);
+        dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, true);
+        dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0xF2);
+
+        dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
+                (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
+
+        dataMemory.write16bits(DataMemory_ATmega328P.ICR1L_ADDR, DataMemory_ATmega328P.ICR1H_ADDR,
+                (byte) (0x00FF & top), (byte) (0x00FF & (top >> 8)));
+
+        doubleBufferOCR1AField.set(null, valueOCR);
+        doubleBufferOCR1BField.set(null, valueOCR);
+
+        stateOC1AField.set(null, 1);
+        stateOC1BField.set(null, 1);
+
+        timer1.run();
+
+        assertEquals(0, stateOC1AField.get(null));
+        assertEquals(0, stateOC1BField.get(null));
+    }
+
+    @Test
+    public void fastPWM_topOCRA_upCount() throws Exception {
+        char progress = 0x0000;
+
+        dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 4, true);
+        dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, true);
+        dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x03);
+
+        dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
+                (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
+
+        timer1.run();
+
+        assertEquals(progress+1, dataMemory.read16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR));
+    }
+
+    @Test
+    public void fastPWM_topOCRA_updateTop() throws Exception {
+        char top = 0x0A00;
+        char newTop = 0x00B0;
+        char progress = Timer1_ATmega328P.BOTTOM;
+
+        dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 4, true);
+        dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, true);
+        dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x03);
+
+        dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
+                (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
+
+        dataMemory.write16bits(DataMemory_ATmega328P.OCR1AL_ADDR, DataMemory_ATmega328P.OCR1AH_ADDR,
+                (byte) (0x00FF & newTop), (byte) (0x00FF & (newTop >> 8)));
+
+        dataMemory.write16bits(DataMemory_ATmega328P.OCR1BL_ADDR, DataMemory_ATmega328P.OCR1BH_ADDR,
+                (byte) (0x00FF & newTop), (byte) (0x00FF & (newTop >> 8)));
+
+        doubleBufferOCR1AField.set(null, top);
+        doubleBufferOCR1BField.set(null, top);
+
+        timer1.run();
+
+        assertEquals(newTop, doubleBufferOCR1AField.get(null));
+        assertEquals(newTop, doubleBufferOCR1BField.get(null));
+    }
+
+    @Test
+    public void fastPWM_topOCRA_normalOperation() throws Exception {
+        char top = 0x0A00;
+        char progress = Timer1_ATmega328P.BOTTOM + 1;
+
+        dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 4, true);
+        dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, true);
+        dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x03);
+
+        dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
+                (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
+
+        doubleBufferOCR1AField.set(null, top);
+
+        outputControlOC1AField.set(null, true);
+        outputControlOC1BField.set(null, true);
+
+        timer1.run();
+
+        assertFalse((Boolean) outputControlOC1AField.get(null));
+        assertFalse((Boolean) outputControlOC1BField.get(null));
+    }
+
+    @Test
+    public void fastPWM_topOCRA_toggleOnCompareMatch() throws Exception {
+        char top = 0x0A00;
+        char progress = (char) (top - 1);
+
+        dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 4, true);
+        dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, true);
+        dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0x53);
+
+        dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
+                (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
+
+        doubleBufferOCR1AField.set(null, top);
+
+        outputControlOC1AField.set(null, false);
+        outputControlOC1BField.set(null, true);
+
+        stateOC1AField.set(null, 0);
+
+        timer1.run();
+
+        assertTrue((Boolean) outputControlOC1AField.get(null));
+        assertFalse((Boolean) outputControlOC1BField.get(null));
+        assertEquals(1, stateOC1AField.get(null));
+    }
+
+    @Test
+    public void fastPWM_topOCRA_clearCompareMath_chanelA() throws Exception {
+        char top = 0x0A00;
+        char progress = (char) (top - 1);
+
+        dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 4, true);
+        dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, true);
+        dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0xA3);
+
+        dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
+                (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
+
+        doubleBufferOCR1AField.set(null, top);
+        doubleBufferOCR1BField.set(null, top);
+
+        stateOC1AField.set(null, 1);
+
+        timer1.run();
+
+        assertEquals(0, stateOC1AField.get(null));
+    }
+
+    @Test
+    public void fastPWM_topOCRA_clearCompareMath_chanelB() throws Exception {
+        char top = 0x0A00;
+        char ocraTop = (char) (top + 1);
+        char progress = (char) (top - 1);
+
+        dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 4, true);
+        dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, true);
+        dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0xA3);
+
+        dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
+                (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
+
+
+        doubleBufferOCR1AField.set(null, ocraTop);
+        doubleBufferOCR1BField.set(null, top);
+
+        stateOC1BField.set(null, 1);
+
+        timer1.run();
+
+        assertEquals(0, stateOC1BField.get(null));
+    }
+
+    @Test
+    public void fastPWM_topOCRA_clearCompareMath_setAtBottom() throws Exception {
+        char top = 0x0A00;
+        char ocraTop = (char) (top + 1);
+        char progress = Timer1_ATmega328P.MAX;
+
+        dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 4, true);
+        dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, true);
+        dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0xA2);
+
+        dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
+                (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
+
+        doubleBufferOCR1AField.set(null, ocraTop);
+        doubleBufferOCR1BField.set(null, top);
+
+        stateOC1AField.set(null, 0);
+        stateOC1BField.set(null, 0);
+
+        timer1.run();
+
+        assertEquals(1, stateOC1AField.get(null));
+        assertEquals(1, stateOC1BField.get(null));
+    }
+
+    @Test
+    public void fastPWM_topOCRA_setCompareMath_chanelA() throws Exception {
+        char top = 0x0A00;
+        char progress = (char) (top - 1);
+
+        dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 4, true);
+        dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, true);
+        dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0xF3);
+
+        dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
+                (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
+
+        doubleBufferOCR1AField.set(null, top);
+
+        stateOC1AField.set(null, 0);
+
+        timer1.run();
+
+        assertEquals(1, stateOC1AField.get(null));
+    }
+
+    @Test
+    public void fastPWM_topOCRA_setCompareMatch_chanelB() throws Exception {
+        char top = 0x0A00;
+        char ocraTop = (char) (top + 1);
+        char progress = (char) (top - 1);
+
+        dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 4, true);
+        dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, true);
+        dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0xF3);
+
+        dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
+                (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
+
+        doubleBufferOCR1AField.set(null, ocraTop);
+        doubleBufferOCR1BField.set(null, top);
+
+        stateOC1BField.set(null, 0);
+
+        timer1.run();
+
+        assertEquals(1, stateOC1BField.get(null));
+    }
+
+    @Test
+    public void fastPWM_topOCRA_setCompareMath_clearAtBottom() throws Exception {
+        char top = 0x0A00;
+        char ocraTop = (char) (top + 1);
+        char progress = Timer1_ATmega328P.MAX;
+
+        dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 4, true);
+        dataMemory.writeIOBit(DataMemory_ATmega328P.TCCR1B_ADDR, 3, true);
+        dataMemory.writeByte(DataMemory_ATmega328P.TCCR1A_ADDR, (byte) 0xF3);
+
+        dataMemory.write16bits(DataMemory_ATmega328P.TCNT1L_ADDR, DataMemory_ATmega328P.TCNT1H_ADDR,
+                (byte) (0x00FF & progress), (byte) (0x00FF & (progress >> 8)));
+
+        doubleBufferOCR1AField.set(null, ocraTop);
+        doubleBufferOCR1BField.set(null, top);
+
+        stateOC1AField.set(null, 1);
+        stateOC1BField.set(null, 1);
+
+        timer1.run();
+
+        assertEquals(0, stateOC1AField.get(null));
+        assertEquals(0, stateOC1BField.get(null));
     }
 }

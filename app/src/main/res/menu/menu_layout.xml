@@ -38,6 +38,10 @@
         android:title="@string/action_memory_map"
         app:showAsAction="never"/>
 
+    <item android:id="@+id/action_adc_adjust"
+        android:title="@string/action_adc_adjust"
+        app:showAsAction="never"/>
+
     <item android:id="@+id/action_clear_io"
         android:title="@string/action_clear_io"
         app:showAsAction="never"/>

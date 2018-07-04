@@ -191,21 +191,21 @@ public class Timer1_ATmega328P implements Timer1Module {
         NO_CLOCK_SOURCE {
             @Override
             public boolean work() {
-                Log.i(TIMER1_TAG, "No Clock Source");
+//                Log.i(TIMER1_TAG, "No Clock Source");
                 return false;
             }
         },
         CLOCK_PRESCALER_1 {
             @Override
             public boolean work() {
-                Log.i(TIMER1_TAG, "Prescaler 1");
+//                Log.i(TIMER1_TAG, "Prescaler 1");
                 return true;
             }
         },
         CLOCK_PRESCALER_8 {
             @Override
             public boolean work() {
-                Log.i(TIMER1_TAG, "Prescaler 8");
+//                Log.i(TIMER1_TAG, "Prescaler 8");
                 if (++clockCount < 8){
                     return false;
                 } else {
@@ -217,7 +217,7 @@ public class Timer1_ATmega328P implements Timer1Module {
         CLOCK_PRESCALER_64 {
             @Override
             public boolean work() {
-                Log.i(TIMER1_TAG, "Prescaler 64");
+//                Log.i(TIMER1_TAG, "Prescaler 64");
                 if (++clockCount < 64){
                     return false;
                 } else {
@@ -229,7 +229,7 @@ public class Timer1_ATmega328P implements Timer1Module {
         CLOCK_PRESCALER_256 {
             @Override
             public boolean work() {
-                Log.i(TIMER1_TAG, "Prescaler 256");
+//                Log.i(TIMER1_TAG, "Prescaler 256");
                 if (++clockCount < 256){
                     return false;
                 } else {
@@ -241,7 +241,7 @@ public class Timer1_ATmega328P implements Timer1Module {
         CLOCK_PRESCALER_1024 {
             @Override
             public boolean work() {
-                Log.i(TIMER1_TAG, "Prescaler 1024");
+//                Log.i(TIMER1_TAG, "Prescaler 1024");
                 if (++clockCount < 1024){
                     return false;
                 } else {
@@ -1139,13 +1139,11 @@ public class Timer1_ATmega328P implements Timer1Module {
                             ioModule.setOC1A(stateOC1A, UCModule_View.simulatedTime);
                         } else {
                             if (match_A) {
-                                Log.v("TIMER1_MODE", "Match");
                                 stateOC1A = IOModule.HIGH_LEVEL;
                                 ioModule.setOC1A(stateOC1A, UCModule_View.simulatedTime);
                             }
 
                             if (progress == BOTTOM) {
-                                Log.v("TIMER1_MODE", "Bottom");
                                 stateOC1A = IOModule.LOW_LEVEL;
                                 ioModule.setOC1A(stateOC1A, UCModule_View.simulatedTime);
                             }

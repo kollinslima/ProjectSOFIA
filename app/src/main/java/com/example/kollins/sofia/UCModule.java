@@ -168,13 +168,13 @@ public class UCModule extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        setUpUc();
+        reset();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        reset();
+        stopSystem();
     }
 
     private void setUpUc() {
@@ -220,23 +220,23 @@ public class UCModule extends AppCompatActivity {
 
                 //Init Timer0
                 Class timer0Device = Class.forName(PACKAGE_NAME + "." + device.toLowerCase() + ".Timer0_" + device);
-                timer0 = (Timer0Module) timer0Device.getDeclaredConstructor(DataMemory.class, Handler.class, UCModule.class, IOModule.class)
+                timer0 = (Timer0Module) timer0Device.getDeclaredConstructor(DataMemory.class, IOModule.class)
                         .newInstance(dataMemory, ucView.getIOModule());
 
                 //Init Timer1
                 Class timer1Device = Class.forName(PACKAGE_NAME + "." + device.toLowerCase() + ".Timer1_" + device);
-                timer1 = (Timer1Module) timer1Device.getDeclaredConstructor(DataMemory.class, Handler.class, UCModule.class, IOModule.class)
+                timer1 = (Timer1Module) timer1Device.getDeclaredConstructor(DataMemory.class, IOModule.class)
                         .newInstance(dataMemory, ucView.getIOModule());
 
                 //Init Timer2
                 Class timer2Device = Class.forName(PACKAGE_NAME + "." + device.toLowerCase() + ".Timer2_" + device);
-                timer2 = (Timer2Module) timer2Device.getDeclaredConstructor(DataMemory.class, Handler.class, UCModule.class, IOModule.class)
+                timer2 = (Timer2Module) timer2Device.getDeclaredConstructor(DataMemory.class, IOModule.class)
                         .newInstance(dataMemory, ucView.getIOModule());
 
                 //Init ADC
                 Class adcDevice = Class.forName(PACKAGE_NAME + "." + device.toLowerCase() + ".ADC_" + device);
-                adc = (ADCModule) adcDevice.getDeclaredConstructor(DataMemory.class, Handler.class, UCModule.class)
-                        .newInstance(dataMemory, uCHandler, this);
+                adc = (ADCModule) adcDevice.getDeclaredConstructor(DataMemory.class)
+                        .newInstance(dataMemory);
 
                 //Init USART
                 Class usartDevice = Class.forName(PACKAGE_NAME + "." + device.toLowerCase() + ".USART_" + device);
@@ -296,6 +296,10 @@ public class UCModule extends AppCompatActivity {
 
     public static String[] getPinModeArray() {
         return resources.getStringArray(R.array.inputModes);
+    }
+
+    public static String getAREFError() {
+        return resources.getString(R.string.arefError);
     }
 
     public static int getSourcePower() {
@@ -402,12 +406,10 @@ public class UCModule extends AppCompatActivity {
 
         setResetFlag(true);
 
-        while (threadScheduler.isAlive());
-
         try {
-            threadScheduler.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+            threadScheduler.join(1000);
+        } catch (InterruptedException|NullPointerException e) {
+            Log.e("ERROR", "ERROR: stopSystem -> join", e);
         }
 
         for (int i = 0; i < OutputFragment_ATmega328P.evalFreq.length; i++) {

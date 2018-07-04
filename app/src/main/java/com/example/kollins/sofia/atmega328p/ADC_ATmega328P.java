@@ -33,16 +33,17 @@ public class ADC_ATmega328P implements ADCModule {
     //mV
     private static final short BANDGAP_REFERENCE = 1100;
 
-    //Default AREF
-    public static short AREF = 0;
+    //Default AREF (mV)
+    public static short AREF = 5000;
 
     //Input holds value in mV.
-    public static short[] adcInput = new short[11];
-    private static final short BANDGAP_INDEX = 9;
+    public static short[] adcInput = new short[16];
+    public static final short BANDGAP_INDEX = 14;
 
-    private static Handler uCHandler;
+//    private static Handler uCHandler;
+
+//    private UCModule uCModule;
     private static DataMemory_ATmega328P dataMemory;
-    private UCModule uCModule;
     private int inputIndex;
     private boolean freeRunConversionEnable;
 
@@ -52,10 +53,10 @@ public class ADC_ATmega328P implements ADCModule {
     private double resolution, conversionAux;
     private boolean isFreeRun;
 
-    public ADC_ATmega328P(DataMemory dataMemory, Handler uCHandler, UCModule uCModule) {
+    public ADC_ATmega328P(DataMemory dataMemory) {
         this.dataMemory = (DataMemory_ATmega328P) dataMemory;
-        this.uCHandler = uCHandler;
-        this.uCModule = uCModule;
+//        this.uCHandler = uCHandler;
+//        this.uCModule = uCModule;
 
         adcInput[BANDGAP_INDEX] = BANDGAP_REFERENCE;
 
@@ -65,11 +66,15 @@ public class ADC_ATmega328P implements ADCModule {
     public void run() {
 
         //Power Reduction Register
-        if (dataMemory.readBit(DataMemory_ATmega328P.PRR_ADDR, 0)){
+        if (dataMemory.readBit(DataMemory_ATmega328P.PRR_ADDR, 0)) {
             return;
         }
 
-        //13 clock cycles to finish conversion
+        /*
+        This module is faster than the real uC.
+        It takes only one clock cycle to complete a conversion
+         */
+
         if (dataMemory.readBit(DataMemory_ATmega328P.ADCSRA_ADDR, 7)
                 && dataMemory.readBit(DataMemory_ATmega328P.ADCSRA_ADDR, 6)) {
 
@@ -92,13 +97,11 @@ public class ADC_ATmega328P implements ADCModule {
 
             prescaler = (0x0007 & adcsraRead);
 
-//            ClockSource.values()[prescaler].work();
             inputIndex = (0x000F & admuxRead);
 
-//            ClockSource.values()[prescaler].work();
             switch (0x00C0 & admuxRead) {
                 case 0x0000:
-                    vRef = AREF * 1000;
+                    vRef = AREF;
                     break;
                 case 0x0040:
                     vRef = UCModule.getSourcePower() * 1000;
@@ -117,7 +120,7 @@ public class ADC_ATmega328P implements ADCModule {
             conversionADC = 0;
             for (int conversionIncrease = 0x0200;
                  conversionIncrease > 0;
-                 conversionIncrease = conversionIncrease >> 1, ClockSource.values()[prescaler].work()) {
+                 conversionIncrease = conversionIncrease >> 1) {
 
                 conversionAux += conversionIncrease * resolution;
                 if (conversionAux > adcInput[inputIndex]) {
@@ -126,7 +129,6 @@ public class ADC_ATmega328P implements ADCModule {
                     conversionADC |= conversionIncrease;
                 }
             }
-//            ClockSource.values()[prescaler].work();
 
             if (dataMemory.readBit(DataMemory_ATmega328P.ADMUX_ADDR, 5)) {
                 //Left Ajust
@@ -153,88 +155,88 @@ public class ADC_ATmega328P implements ADCModule {
 
     }
 
-    public enum ClockSource {
-        CLOCK_PRESCALER_2_1 {
-            @Override
-            public void work() {
-                Log.v("ADC", "Clock Prescaler 2");
-//                waitClock();
-//                for (int i = 0; i < 2; i++) {
-//                    waitClock();
-//                }
-            }
-        },
-        CLOCK_PRESCALER_2_2 {
-            @Override
-            public void work() {
-                Log.v("ADC", "Clock Prescaler 2");
-//                waitClock();
-//                for (int i = 0; i < 2; i++) {
-//                    waitClock();
-//                }
-            }
-        },
-        CLOCK_PRESCALER_4 {
-            @Override
-            public void work() {
-                Log.v("ADC", "Clock Prescaler 4");
-//                waitClock();
-//                for (int i = 0; i < 4; i++) {
-//                    waitClock();
-//                }
-            }
-        },
-        CLOCK_PRESCALER_8 {
-            @Override
-            public void work() {
-                Log.v("ADC", "Clock Prescaler 8");
-//                waitClock();
-//                for (int i = 0; i < 8; i++) {
-//                    waitClock();
-//                }
-            }
-        },
-        CLOCK_PRESCALER_16 {
-            @Override
-            public void work() {
-                Log.v("ADC", "Clock Prescaler 16");
-//                waitClock();
-//                for (int i = 0; i < 16; i++) {
-//                    waitClock();
-//                }
-            }
-        },
-        CLOCK_PRESCALER_32 {
-            @Override
-            public void work() {
-                Log.v("ADC", "Clock Prescaler 32");
-//                waitClock();
-//                for (int i = 0; i < 32; i++) {
-//                    waitClock();
-//                }
-            }
-        },
-        CLOCK_PRESCALER_64 {
-            @Override
-            public void work() {
-                Log.v("ADC", "Clock Prescaler 64");
-//                waitClock();
-//                for (int i = 0; i < 64; i++) {
-//                    waitClock();
-//                }
-            }
-        },
-        CLOCK_PRESCALER_128 {
-            @Override
-            public void work() {
-                Log.v("ADC", "Clock Prescaler 128");
-//                waitClock();
-//                for (int i = 0; i < 128; i++) {
-//                    waitClock();
-//                }
-            }
-        };
-
-        public abstract void work();
-    }
+//    public enum ClockSource {
+//        CLOCK_PRESCALER_2_1 {
+//            @Override
+//            public void work() {
+//                Log.v("ADC", "Clock Prescaler 2");
+////                waitClock();
+////                for (int i = 0; i < 2; i++) {
+////                    waitClock();
+////                }
+//            }
+//        },
+//        CLOCK_PRESCALER_2_2 {
+//            @Override
+//            public void work() {
+//                Log.v("ADC", "Clock Prescaler 2");
+////                waitClock();
+////                for (int i = 0; i < 2; i++) {
+////                    waitClock();
+////                }
+//            }
+//        },
+//        CLOCK_PRESCALER_4 {
+//            @Override
+//            public void work() {
+//                Log.v("ADC", "Clock Prescaler 4");
+////                waitClock();
+////                for (int i = 0; i < 4; i++) {
+////                    waitClock();
+////                }
+//            }
+//        },
+//        CLOCK_PRESCALER_8 {
+//            @Override
+//            public void work() {
+//                Log.v("ADC", "Clock Prescaler 8");
+////                waitClock();
+////                for (int i = 0; i < 8; i++) {
+////                    waitClock();
+////                }
+//            }
+//        },
+//        CLOCK_PRESCALER_16 {
+//            @Override
+//            public void work() {
+//                Log.v("ADC", "Clock Prescaler 16");
+////                waitClock();
+////                for (int i = 0; i < 16; i++) {
+////                    waitClock();
+////                }
+//            }
+//        },
+//        CLOCK_PRESCALER_32 {
+//            @Override
+//            public void work() {
+//                Log.v("ADC", "Clock Prescaler 32");
+////                waitClock();
+////                for (int i = 0; i < 32; i++) {
+////                    waitClock();
+////                }
+//            }
+//        },
+//        CLOCK_PRESCALER_64 {
+//            @Override
+//            public void work() {
+//                Log.v("ADC", "Clock Prescaler 64");
+////                waitClock();
+////                for (int i = 0; i < 64; i++) {
+////                    waitClock();
+////                }
+//            }
+//        },
+//        CLOCK_PRESCALER_128 {
+//            @Override
+//            public void work() {
+//                Log.v("ADC", "Clock Prescaler 128");
+////                waitClock();
+////                for (int i = 0; i < 128; i++) {
+////                    waitClock();
+////                }
+//            }
+//        };
+//
+//        public abstract void work();
+//    }
 }

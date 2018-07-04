@@ -135,21 +135,21 @@ public class Timer0_ATmega328P implements Timer0Module {
         NO_CLOCK_SOURCE {
             @Override
             public boolean work() {
-                Log.i(TIMER0_TAG, "No Clock Source");
+//                Log.i(TIMER0_TAG, "No Clock Source");
                 return false;
             }
         },
         CLOCK_PRESCALER_1 {
             @Override
             public boolean work() {
-                Log.i(TIMER0_TAG, "Prescaler 1");
+//                Log.i(TIMER0_TAG, "Prescaler 1");
                 return true;
             }
         },
         CLOCK_PRESCALER_8 {
             @Override
             public boolean work() {
-                Log.i(TIMER0_TAG, "Prescaler 8");
+//                Log.i(TIMER0_TAG, "Prescaler 8");
                 if (++clockCount < 8){
                     return false;
                 } else {
@@ -161,7 +161,7 @@ public class Timer0_ATmega328P implements Timer0Module {
         CLOCK_PRESCALER_64 {
             @Override
             public boolean work() {
-                Log.i(TIMER0_TAG, "Prescaler 64");
+//                Log.i(TIMER0_TAG, "Prescaler 64");
                 if (++clockCount < 64){
                     return false;
                 } else {
@@ -173,7 +173,7 @@ public class Timer0_ATmega328P implements Timer0Module {
         CLOCK_PRESCALER_256 {
             @Override
             public boolean work() {
-                Log.i(TIMER0_TAG, "Prescaler 256");
+//                Log.i(TIMER0_TAG, "Prescaler 256");
                 if (++clockCount < 256){
                     return false;
                 } else {
@@ -185,7 +185,7 @@ public class Timer0_ATmega328P implements Timer0Module {
         CLOCK_PRESCALER_1024 {
             @Override
             public boolean work() {
-                Log.i(TIMER0_TAG, "Prescaler 1024");
+//                Log.i(TIMER0_TAG, "Prescaler 1024");
                 if (++clockCount < 1024){
                     return false;
                 } else {

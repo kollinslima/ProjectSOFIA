@@ -119,4 +119,9 @@
     <string name="seach_mem_map">Buscar</string>
     <string name="action_meter">Medidor</string>
     <string name="serial_monitor_title">Monitor Serial</string>
+    <string name="action_adc_adjust">Config AREF</string>
+    <string name="AREF_value">Novo valor de AREF (Volts)</string>
+    <string name="adc_cancel">Cancelar</string>
+    <string name="AREF_current">AREF Atual = </string>
+    <string name="arefError">Digite um valor positivo entre 1 e 5</string>
 </resources>

@@ -41,6 +41,8 @@ import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.kollins.sofia.atmega328p.ADC_ATmega328P;
+import com.example.kollins.sofia.extra.AREF_Configuration;
 import com.example.kollins.sofia.extra.AboutPage;
 import com.example.kollins.sofia.extra.memory_map.MemoryFragment;
 import com.example.kollins.sofia.extra.PathUtil;
@@ -67,6 +69,7 @@ public class UCModule_View extends Fragment {
     public enum LED_STATUS {RUNNING, SHORT_CIRCUIT, HEX_FILE_ERROR}
 
     private static final int FILE_IMPORT_CODE = 0;
+    private static final int AREF_VALUE = 1;
 
     public static final int REMOVE_OUTPUT_FRAGMENT = 0;
     public static final int REMOVE_INPUT_FRAGMENT = 1;
@@ -290,6 +293,10 @@ public class UCModule_View extends Fragment {
                     mFragmentTransaction.commit();
                     break;
 
+                case R.id.action_adc_adjust:
+                    startActivityForResult(new Intent(getActivity().getBaseContext(), AREF_Configuration.class), AREF_VALUE);
+                    break;
+
                 case R.id.action_clear_io:
                     outputFragment.clearAll();
                     outputFrame.setVisibility(View.GONE);
@@ -320,6 +327,13 @@ public class UCModule_View extends Fragment {
                     Log.d("FileImporter", "Path: " + PathUtil.getPath(getContext(), uri));
                     ucModule.changeFileLocation(PathUtil.getPath(getContext(), uri));
                     uCHandler.sendEmptyMessage(UCModule.RESET_ACTION);
+                }
+                break;
+
+            case AREF_VALUE:
+                if (resultCode == RESULT_OK){
+                    double voltage = data.getDoubleExtra(AREF_Configuration.AREF_EXTRA, 0);
+                    ADC_ATmega328P.AREF = (short) (voltage);
                 }
                 break;
         }
@@ -407,11 +421,11 @@ public class UCModule_View extends Fragment {
                     }
                     break;
 
-                case REMOVE_SERIAL_FRAGMENT:
-                    if (inputFrame.getVisibility() != View.VISIBLE) {
-                        startInstructions.setVisibility(View.VISIBLE);
-                    }
-                    break;
+//                case REMOVE_SERIAL_FRAGMENT:
+//                    if (inputFrame.getVisibility() != View.VISIBLE) {
+//                        startInstructions.setVisibility(View.VISIBLE);
+//                    }
+//                    break;
             }
         }
     }

@@ -39,6 +39,8 @@
         </activity>
         <activity android:name=".UCModule"
             android:screenOrientation="portrait"/>
+        <activity android:name=".extra.AREF_Configuration"
+            android:screenOrientation="portrait"/>
         <activity android:name=".extra.AboutPage"
             android:screenOrientation="portrait"/>
     </application>

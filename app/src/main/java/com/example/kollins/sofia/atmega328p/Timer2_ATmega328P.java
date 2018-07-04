@@ -131,21 +131,21 @@ public class Timer2_ATmega328P implements Timer2Module {
         NO_CLOCK_SOURCE {
             @Override
             public boolean work() {
-                Log.i(TIMER2_TAG, "No Clock Source");
+//                Log.i(TIMER2_TAG, "No Clock Source");
                 return false;
             }
         },
         CLOCK_PRESCALER_1 {
             @Override
             public boolean work() {
-                Log.i(TIMER2_TAG, "Prescaler 1");
+//                Log.i(TIMER2_TAG, "Prescaler 1");
                 return true;
             }
         },
         CLOCK_PRESCALER_8 {
             @Override
             public boolean work() {
-                Log.i(TIMER2_TAG, "Prescaler 8");
+//                Log.i(TIMER2_TAG, "Prescaler 8");
                 if (++clockCount < 8) {
                     return false;
                 } else {
@@ -157,7 +157,7 @@ public class Timer2_ATmega328P implements Timer2Module {
         CLOCK_PRESCALER_32 {
             @Override
             public boolean work() {
-                Log.i(TIMER2_TAG, "Prescaler 32");
+//                Log.i(TIMER2_TAG, "Prescaler 32");
                 if (++clockCount < 32) {
                     return false;
                 } else {
@@ -169,7 +169,7 @@ public class Timer2_ATmega328P implements Timer2Module {
         CLOCK_PRESCALER_64 {
             @Override
             public boolean work() {
-                Log.i(TIMER2_TAG, "Prescaler 64");
+//                Log.i(TIMER2_TAG, "Prescaler 64");
                 if (++clockCount < 64) {
                     return false;
                 } else {
@@ -181,7 +181,7 @@ public class Timer2_ATmega328P implements Timer2Module {
         CLOCK_PRESCALER_128 {
             @Override
             public boolean work() {
-                Log.i(TIMER2_TAG, "Prescaler 128");
+//                Log.i(TIMER2_TAG, "Prescaler 128");
                 if (++clockCount < 128) {
                     return false;
                 } else {
@@ -193,7 +193,7 @@ public class Timer2_ATmega328P implements Timer2Module {
         CLOCK_PRESCALER_256 {
             @Override
             public boolean work() {
-                Log.i(TIMER2_TAG, "Prescaler 256");
+//                Log.i(TIMER2_TAG, "Prescaler 256");
                 if (++clockCount < 256) {
                     return false;
                 } else {
@@ -205,7 +205,7 @@ public class Timer2_ATmega328P implements Timer2Module {
         CLOCK_PRESCALER_1024 {
             @Override
             public boolean work() {
-                Log.i(TIMER2_TAG, "Prescaler 1024");
+//                Log.i(TIMER2_TAG, "Prescaler 1024");
                 if (++clockCount < 1024) {
                     return false;
                 } else {
