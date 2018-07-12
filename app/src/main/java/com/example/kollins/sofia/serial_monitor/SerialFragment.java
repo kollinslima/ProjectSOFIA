@@ -36,7 +36,6 @@ import com.example.kollins.sofia.UCModule_View;
 public class SerialFragment extends Fragment {
 
     public static String TAG_SERIAL_FRAGMENT = "serialFragmentTAG";
-    private static StringBuilder serialStringBuilder = new StringBuilder();
     public static String buffer = new String();
 
     private static TextView serialMonitor;
@@ -73,8 +72,6 @@ public class SerialFragment extends Fragment {
 
         serialMonitor = layout.findViewById(R.id.serialMessages);
         serialMonitor.setMovementMethod(new ScrollingMovementMethod());
-        serialMonitor.append(serialStringBuilder.toString());
-        serialStringBuilder.setLength(0);
 
         return layout;
     }
@@ -87,7 +84,6 @@ public class SerialFragment extends Fragment {
         if (serialMonitor != null) {
             serialMonitor.setText("");
         }
-        serialStringBuilder.setLength(0);
     }
 
     public void setScreenUpdater(Handler screenUpdater) {
@@ -98,8 +94,7 @@ public class SerialFragment extends Fragment {
 
         @Override
         protected String doInBackground(Byte... bytes) {
-            serialStringBuilder.append((char) (bytes[0] & 0xFF));
-            return serialStringBuilder.toString();
+            return String.valueOf((char) (bytes[0] & 0xFF));
         }
 
         @Override
@@ -107,7 +102,6 @@ public class SerialFragment extends Fragment {
             super.onPostExecute(message);
             if (serialMonitor != null) {
                 serialMonitor.append(message);
-                serialStringBuilder.setLength(0);
             }
         }
     }

@@ -325,6 +325,7 @@ public class OutputFragment_ATmega328P extends Fragment implements OutputFragmen
 
         @Override
         protected Integer doInBackground(Integer... integers) {
+
             if (outputPinsList == null) {
                 return -1;
             }
@@ -339,7 +340,13 @@ public class OutputFragment_ATmega328P extends Fragment implements OutputFragmen
             led = view.findViewById(R.id.ledState);
             freq = view.findViewById(R.id.frequency);
             dc = view.findViewById(R.id.dutycycle);
-            pin = outputPins.get(integers[0]);
+
+            try {
+                pin = outputPins.get(integers[0]);
+            } catch (IndexOutOfBoundsException e){
+                Log.e(UCModule.MY_LOG_TAG, "Invalid Index", e);
+                return -1;
+            }
 
             ledText = UCModule.resources.getStringArray(R.array.ledText)[pin.getPinState(pin.getPinPositionSpinner())];
             backgroundColor = BACKGROUND_PIN[pin.getPinState(pin.getPinPositionSpinner())];

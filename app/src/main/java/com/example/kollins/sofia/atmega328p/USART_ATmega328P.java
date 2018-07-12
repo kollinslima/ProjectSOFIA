@@ -56,7 +56,7 @@ public class USART_ATmega328P implements USARTModule {
             if (!dataMemory.readBit(DataMemory_ATmega328P.UCSR0A_ADDR, 6)
                     && !dataMemory.readBit(DataMemory_ATmega328P.UCSR0A_ADDR, 5)) {
 
-//                Log.d(USART_LOG_TAG, "Transmitting: " + transmitter_UDR0);
+                Log.d(USART_LOG_TAG, "Transmitting: " + ((char) transmitter_UDR0));
                 SerialFragment.appendByte(transmitter_UDR0);
                 UCModule.interruptionModule.dataRegisterEmptyUSART();
                 UCModule.interruptionModule.transmissionCompleteUSART();

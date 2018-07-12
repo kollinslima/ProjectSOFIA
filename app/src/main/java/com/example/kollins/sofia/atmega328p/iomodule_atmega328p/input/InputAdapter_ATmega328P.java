@@ -18,6 +18,7 @@
 package com.example.kollins.sofia.atmega328p.iomodule_atmega328p.input;
 
 import android.graphics.Color;
+import android.os.AsyncTask;
 import android.os.SystemClock;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -353,6 +354,7 @@ public class InputAdapter_ATmega328P extends BaseAdapter {
                             case IOModule.PUSH_GND:
                             case IOModule.PUSH_VDD:
 
+                                pin.setHiZDone(false, pin.getPinSpinnerPosition());
                                 inputFragment.requestHiZ(true, pin);
                                 pin.setPinState(IOModule.TRI_STATE);
 
@@ -363,22 +365,22 @@ public class InputAdapter_ATmega328P extends BaseAdapter {
 
                                 holder.inputPinState.setBackgroundResource(R.drawable.digital_input_undefined);
 
-                                //Wait for pull Up Request
-                                try {
-                                    Thread.sleep(10);
-                                } catch (InterruptedException e) {
-                                    e.printStackTrace();
-                                }
+                                new WaitHiZPushButton(pin).execute();
 
-                                //Check if request HiZ was acepted
-                                if (pin.getHiZ(pin.getPinSpinnerPosition())) {
-                                    if (inputFragment.isPullUpEnabled() && inputFragment.isPinPullUPEnabled(pin.getMemory(), pin.getBitPosition())) {
-                                        inputFragment.inputRequest_inputChanel(IOModule.HIGH_LEVEL, pin.getMemory(), pin.getBitPosition(), pin);
-
-                                    } else {
-                                        inputFragment.inputRequest_inputChanel(randomGenerator.nextInt(2), pin.getMemory(), pin.getBitPosition(), pin);
-                                    }
-                                }
+                                //Wait for HiZ Request
+//                                while (!pin.getHiZDone(pin.getPinSpinnerPosition())) {
+//                                    Thread.yield();
+//                                }
+//
+//                                //Check if request HiZ was acepted
+//                                if (pin.getHiZ(pin.getPinSpinnerPosition())) {
+//
+//                                    if (inputFragment.isPullUpEnabled() && inputFragment.isPinPullUPEnabled(pin.getMemory(), pin.getBitPosition())) {
+//                                        inputFragment.inputRequest_inputChanel(IOModule.HIGH_LEVEL, pin.getMemory(), pin.getBitPosition(), pin);
+//                                    } else {
+//                                        inputFragment.inputRequest_inputChanel(randomGenerator.nextInt(2), pin.getMemory(), pin.getBitPosition(), pin);
+//                                    }
+//                                }
                                 break;
                             case IOModule.PULL_UP:
                                 inputFragment.requestHiZ(false, pin);
@@ -410,7 +412,6 @@ public class InputAdapter_ATmega328P extends BaseAdapter {
                                 break;
                         }
                     }
-
                     return true;
                 }
             });
@@ -478,12 +479,12 @@ public class InputAdapter_ATmega328P extends BaseAdapter {
 
                         //Check if request HiZ was acepted
 //                        if (pin.getHiZ(pin.getPinSpinnerPosition())) {
-                            if (inputFragment.isPullUpEnabled() && inputFragment.isPinPullUPEnabled(pin.getMemory(), pin.getBitPosition())) {
-                                inputFragment.inputRequest_inputChanel(IOModule.HIGH_LEVEL, pin.getMemory(), pin.getBitPosition(), pin);
+                        if (inputFragment.isPullUpEnabled() && inputFragment.isPinPullUPEnabled(pin.getMemory(), pin.getBitPosition())) {
+                            inputFragment.inputRequest_inputChanel(IOModule.HIGH_LEVEL, pin.getMemory(), pin.getBitPosition(), pin);
 
-                            } else {
-                                inputFragment.inputRequest_inputChanel(randomGenerator.nextInt(2), pin.getMemory(), pin.getBitPosition(), pin);
-                            }
+                        } else {
+                            inputFragment.inputRequest_inputChanel(randomGenerator.nextInt(2), pin.getMemory(), pin.getBitPosition(), pin);
+                        }
 //                        }
 
                     } else {
@@ -527,12 +528,12 @@ public class InputAdapter_ATmega328P extends BaseAdapter {
 
                             //Check if request HiZ was acepted
 //                            if (pin.getHiZ(pin.getPinSpinnerPosition())) {
-                                if (inputFragment.isPullUpEnabled() && inputFragment.isPinPullUPEnabled(pin.getMemory(), pin.getBitPosition())) {
-                                    inputFragment.inputRequest_inputChanel(IOModule.HIGH_LEVEL, pin.getMemory(), pin.getBitPosition(), pin);
+                            if (inputFragment.isPullUpEnabled() && inputFragment.isPinPullUPEnabled(pin.getMemory(), pin.getBitPosition())) {
+                                inputFragment.inputRequest_inputChanel(IOModule.HIGH_LEVEL, pin.getMemory(), pin.getBitPosition(), pin);
 
-                                } else {
-                                    inputFragment.inputRequest_inputChanel(randomGenerator.nextInt(2), pin.getMemory(), pin.getBitPosition(), pin);
-                                }
+                            } else {
+                                inputFragment.inputRequest_inputChanel(randomGenerator.nextInt(2), pin.getMemory(), pin.getBitPosition(), pin);
+                            }
 //                            }
 
                         } else {
@@ -559,5 +560,36 @@ public class InputAdapter_ATmega328P extends BaseAdapter {
                 Color.TRANSPARENT);
 
         return view;
+    }
+
+    private class WaitHiZPushButton extends AsyncTask<Void, Void, Void>{
+
+        private InputPin_ATmega328P waitPin;
+
+        public WaitHiZPushButton(InputPin_ATmega328P pin) {
+            this.waitPin = pin;
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            while (!waitPin.getHiZDone(waitPin.getPinSpinnerPosition())) {
+                try {
+                    Thread.sleep(10);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            //Check if request HiZ was acepted
+            if (waitPin.getHiZ(waitPin.getPinSpinnerPosition())) {
+
+                if (inputFragment.isPullUpEnabled() && inputFragment.isPinPullUPEnabled(waitPin.getMemory(), waitPin.getBitPosition())) {
+                    inputFragment.inputRequest_inputChanel(IOModule.HIGH_LEVEL, waitPin.getMemory(), waitPin.getBitPosition(), waitPin);
+                } else {
+                    inputFragment.inputRequest_inputChanel(randomGenerator.nextInt(2), waitPin.getMemory(), waitPin.getBitPosition(), waitPin);
+                }
+            }
+            return null;
+        }
     }
 }

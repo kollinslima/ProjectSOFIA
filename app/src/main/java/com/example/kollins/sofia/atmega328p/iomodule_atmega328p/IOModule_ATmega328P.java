@@ -144,7 +144,6 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
                 /****************Check short circuit between input and output*****************/
                 if (outputPins.size() > 0) {
                     if (checkInputOutputShortCircuit(inputPins, outputPins)) {
-
                         return true;
                     }
                 }
@@ -714,6 +713,7 @@ public class IOModule_ATmega328P extends Handler implements IOModule {
                             || (i == 1 && !USART_ATmega328P.usartOutputControl_Tx)) {
 
                         if (OutputFragment_ATmega328P.pinbuffer[i] != (0x01 & (valueRead_D >> bitPosition))) {
+
                             OutputFragment_ATmega328P.pinbuffer[i] = (0x01 & (valueRead_D >> bitPosition));
 
                             if (OutputFragment_ATmega328P.evalFreq[i]) {

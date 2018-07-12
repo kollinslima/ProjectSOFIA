@@ -27,6 +27,7 @@ import com.example.kollins.sofia.ucinterfaces.IOModule;
 public class InputPin_ATmega328P {
 
     private static boolean[] hiZInput = UCModule.getHiZInput();
+    private static boolean[] hiZRequestDone = UCModule.getHiZInput();
 
     public static final boolean DIGITAL_PIN = true;
     public static final boolean ANALOGIC_PIN = !DIGITAL_PIN;
@@ -141,5 +142,18 @@ public class InputPin_ATmega328P {
         } else {
             return IOModule.TRI_STATE;
         }
+    }
+
+    public synchronized void setHiZDone(boolean state, int position){
+        if (position >= 0) {
+            InputPin_ATmega328P.hiZRequestDone[position] = state;
+        }
+    }
+
+    public synchronized boolean getHiZDone(int position){
+        if (position < 0) {
+            return true;
+        }
+        return InputPin_ATmega328P.hiZRequestDone[position];
     }
 }

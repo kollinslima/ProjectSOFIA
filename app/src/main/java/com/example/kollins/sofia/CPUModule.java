@@ -97,7 +97,7 @@ public class CPUModule implements CPUInstructions {
             /******************************Fetch*****************************/
             //Load instruction and add PC;
             instruction = programMemory.loadInstruction();
-            Log.d(UCModule.MY_LOG_TAG, "Instruction loaded: " + Integer.toHexString(instruction));
+//            Log.d(UCModule.MY_LOG_TAG, "Instruction loaded: " + Integer.toHexString(instruction));
             decodeAndExecute();
         }
 
@@ -117,7 +117,7 @@ public class CPUModule implements CPUInstructions {
     }
 
     private void interruptionRoutinePrepare() {
-        Log.i(UCModule.MY_LOG_TAG, "Handle Interruption");
+//        Log.i(UCModule.MY_LOG_TAG, "Handle Interruption");
 
         //Virtual CALL - 4 clock cycles
         if (!clockCycleDone) {

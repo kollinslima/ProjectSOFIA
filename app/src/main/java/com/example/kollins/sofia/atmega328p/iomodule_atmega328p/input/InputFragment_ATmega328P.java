@@ -396,6 +396,7 @@ public class InputFragment_ATmega328P extends Fragment implements InputFragment,
                 //No duplicated itens
                 if (duplicatedInputs.size() == 1) {
                     request.setHiZ(params[0], request.getPinSpinnerPosition());
+                    request.setHiZDone(true, request.getPinSpinnerPosition());
                     return null;
                 }
 
@@ -404,12 +405,14 @@ public class InputFragment_ATmega328P extends Fragment implements InputFragment,
                         continue;
                     }
                     request.setHiZ(false, request.getPinSpinnerPosition());
+                    request.setHiZDone(true, request.getPinSpinnerPosition());
                     return null;
                 }
                 request.setHiZ(params[0], request.getPinSpinnerPosition());
 
             }
 
+            request.setHiZDone(true, request.getPinSpinnerPosition());
             return null;
         }
     }
