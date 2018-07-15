@@ -70,7 +70,8 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:backgroundTint="@color/serial_theme_chars"
-            android:textColor="@color/serial_theme_chars"/>
+            android:textColor="@color/serial_theme_chars"
+            android:textCursorDrawable="@null" />
 
         <Button
             android:id="@+id/serialSendButton"
