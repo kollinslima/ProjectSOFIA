@@ -124,4 +124,7 @@
     <string name="adc_cancel">Cancelar</string>
     <string name="AREF_current">AREF Atual = </string>
     <string name="arefError">Digite um valor positivo entre 1 e 5</string>
+    <string name="developer_email">kollins.lima@gmail.com</string>
+
+    <string name="action_help">Ajuda</string>
 </resources>

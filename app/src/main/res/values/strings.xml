@@ -121,5 +121,7 @@
     <string name="adc_cancel">Cancel</string>
     <string name="AREF_current">Current AREF = </string>
     <string name="arefError">Enter a positive value between 1 and 5</string>
+    <string name="developer_email">kollins.lima@gmail.com</string>
+    <string name="action_help">Help</string>
 
 </resources>

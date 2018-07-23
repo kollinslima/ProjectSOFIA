@@ -305,6 +305,12 @@ public class UCModule_View extends Fragment {
                     startInstructions.setVisibility(View.VISIBLE);
                     break;
 
+                case R.id.action_help:
+                    Intent browserIntent = new Intent(Intent.ACTION_VIEW,
+                            Uri.parse("https://project-sofia.gitbook.io/project/using-sofia"));
+                    startActivity(browserIntent);
+                    break;
+
                 case R.id.action_about:
                     startActivity(new Intent(getActivity().getBaseContext(), AboutPage.class));
                     break;

@@ -23,6 +23,7 @@ import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.text.method.ScrollingMovementMethod;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,6 +33,8 @@ import android.widget.TextView;
 
 import com.example.kollins.sofia.R;
 import com.example.kollins.sofia.UCModule_View;
+
+import static com.example.kollins.sofia.atmega328p.USART_ATmega328P.USART_LOG_TAG;
 
 public class SerialFragment extends Fragment {
 
