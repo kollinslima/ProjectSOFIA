@@ -29,7 +29,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
-        <activity android:name=".extra.SplashScreen"
+        <activity android:name="com.example.kollins.sofia.extra.SplashScreen"
             android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -37,11 +37,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".UCModule"
+        <activity android:name="com.example.kollins.sofia.UCModule"
             android:screenOrientation="portrait"/>
-        <activity android:name=".extra.AREF_Configuration"
+        <activity android:name="com.example.kollins.sofia.extra.AREF_Configuration"
             android:screenOrientation="portrait"/>
-        <activity android:name=".extra.AboutPage"
+        <activity android:name="com.example.kollins.sofia.extra.AboutPage"
             android:screenOrientation="portrait"/>
     </application>
 

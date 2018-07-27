@@ -92,7 +92,7 @@ sonarqube {
     properties {
         property "sonar.projectName", "SOFIA"
         property "sonar.projectKey", "com.example.kollins.sofia"
-        property "sonar.language","java"
+        property "sonar.language", "java"
         property "sonar.jacoco.reportPaths", "build/jacoco/testDebugUnitTest.exec"
     }
 }

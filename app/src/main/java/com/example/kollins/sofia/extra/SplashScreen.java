@@ -45,7 +45,6 @@ public class SplashScreen extends AppCompatActivity {
     private ImageView logo;
     private AlphaAnimation fadeInAnimation;
 
-
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
