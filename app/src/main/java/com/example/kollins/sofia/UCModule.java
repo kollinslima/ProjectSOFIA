@@ -63,7 +63,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class UCModule extends AppCompatActivity {
 
     //To calculate efective clock
-    private static int sum, n = 0;
+    public static int sum, n = 0;
     private static long time1 = 0, time2 = 0;
 
     private static Context context;
@@ -476,9 +476,9 @@ public class UCModule extends AppCompatActivity {
             while (!getResetFlag()){
 
                 //Measure efective clock
-//                time2 = SystemClock.elapsedRealtimeNanos();
-//                Log.i("Clock", String.valueOf(getAvgClock(Math.pow(10, 9) / (time2 - time1))));
-//                time1 = time2;
+                time2 = SystemClock.elapsedRealtimeNanos();
+                Log.i("Clock", String.valueOf(getAvgClock(Math.pow(10, 9) / (time2 - time1))));
+                time1 = time2;
 
                 timer0.run();
                 timer1.run();

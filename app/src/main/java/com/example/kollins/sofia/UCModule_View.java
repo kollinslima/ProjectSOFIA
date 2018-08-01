@@ -78,7 +78,7 @@ public class UCModule_View extends Fragment {
     public static final int OSCILATOR = 16 * ((int) Math.pow(10, 6));
     public static final long CLOCK_PERIOD = (long) ((1 / (double) OSCILATOR) * Math.pow(10, 10));
 
-    public static final short DELAY_SCREEN_UPDATE = 16;
+    public static final short DELAY_SCREEN_UPDATE = 100;
     private short delayScreenUpdateCount;
 
     private FragmentManager mFragmentManager;
@@ -285,6 +285,7 @@ public class UCModule_View extends Fragment {
                     break;
 
                 case R.id.action_memory_map:
+
                     mFragmentManager = (getActivity().getSupportFragmentManager());
                     mFragmentTransaction = mFragmentManager.beginTransaction();
 
