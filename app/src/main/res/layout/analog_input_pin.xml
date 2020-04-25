@@ -28,7 +28,7 @@
         android:id="@+id/pinSelectorAnalogInput"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_weight="1"/>
+        android:layout_weight="2.5" />
 
     <SeekBar
         android:id="@+id/voltageLevel"
@@ -36,7 +36,7 @@
         android:layout_height="wrap_content"
         android:min="0"
         android:max="100"
-        android:layout_weight="3"/>
+        android:layout_weight="4"/>
 
     <TextView
         android:id="@+id/voltageDisplay"
@@ -44,7 +44,7 @@
         android:layout_height="match_parent"
         android:textColor="@android:color/black"
         android:textStyle="bold"
-        android:layout_weight="0.7"/>
+        android:layout_weight="1"/>
 
 
 </LinearLayout>
