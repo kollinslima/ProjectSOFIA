@@ -20,6 +20,10 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 
+#-keep class com.example.kollins.sofia.atmega328p.*
+-keep class ** implements com.example.kollins.sofia.ucinterfaces.** { *; }
+
+
 -assumenosideeffects class android.util.Log {
   public static *** v(...);
   public static *** d(...);
@@ -28,3 +32,4 @@
   public static *** e(...);
 }
 -ignorewarnings
+#-addconfigurationdebugging
