@@ -21,7 +21,7 @@
 #-renamesourcefileattribute SourceFile
 
 #-keep class com.example.kollins.sofia.atmega328p.*
--keep class ** implements com.example.kollins.sofia.ucinterfaces.** { *; }
+-keep class ** implements com.kollins.project.sofia.ucinterfaces.** { *; }
 
 
 -assumenosideeffects class android.util.Log {
