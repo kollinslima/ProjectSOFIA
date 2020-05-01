@@ -103,6 +103,9 @@ public class SerialFragment extends Fragment {
         protected void onPostExecute(String message) {
             super.onPostExecute(message);
             if (serialMonitor != null) {
+                if (serialMonitor.length() > 1200) {
+                    serialMonitor.setText("");
+                }
                 serialMonitor.append(message);
             }
         }
