@@ -254,8 +254,8 @@ public class DataMemory_ATmega328P implements DataMemory {
         /***********************************************/
         sdramMemory[SPMCSR_ADDR] = 0x00;
         /***********************************************/
-        sdramMemory[SPL_ADDR] = 0x01;
-        sdramMemory[SPH_ADDR] = 0x00;
+        sdramMemory[SPL_ADDR] = (byte) 0xFF;
+        sdramMemory[SPH_ADDR] = 0x08;
         sdramMemory[SREG_ADDR] = 0x00;
         sdramMemory[WDTCSR_ADDR] = 0x00;
         sdramMemory[CLKPR_ADDR] = 0x00;
@@ -329,14 +329,6 @@ public class DataMemory_ATmega328P implements DataMemory {
 //        Log.d(UCModule.MY_LOG_TAG,
 //                String.format("Read byte SDRAM\nAddress: 0x%s, Data read: 0x%02X",
 //                        Integer.toHexString((int) byteAddress), sdramMemory[byteAddress]));
-
-        if (byteAddress >= SDRAM_SIZE_TOTAL) {
-            //We should not get here...
-            Log.w(UCModule.MY_LOG_TAG, "Trying to access invalid position");
-            Log.w(UCModule.MY_LOG_TAG, "SDRAM SIZE: " + SDRAM_SIZE_TOTAL);
-            Log.w(UCModule.MY_LOG_TAG, "Position: " + byteAddress);
-            return 0x00;
-        }
 
         if (byteAddress == TCCR0B_ADDR) {
             return (byte) (0x0F & sdramMemory[byteAddress]);    //Force math always read as 0

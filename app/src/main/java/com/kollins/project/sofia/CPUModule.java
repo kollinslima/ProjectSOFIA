@@ -133,11 +133,11 @@ public class CPUModule implements CPUInstructions {
 
 
         //Write PC low
-        stackPointer -= 1;
         dataMemory.writeByte(stackPointer, (byte) (0x000000FF & programMemory.getPC()));
         stackPointer -= 1;
         //Write PC high
         dataMemory.writeByte(stackPointer, (byte) (0x000000FF & (programMemory.getPC() >> 8)));
+        stackPointer -= 1;
 
         Log.d("CPU", "StackPointer_InterruptFinish: " + Integer.toHexString(stackPointer));
 
@@ -485,12 +485,14 @@ public class CPUModule implements CPUInstructions {
                 stackPointer = (dataMemory.readByte(DataMemory_ATmega328P.SPH_ADDR) << 8) |
                         (0x000000FF & dataMemory.readByte(DataMemory_ATmega328P.SPL_ADDR));
 
+//                Log.d("CALL", "STACK: " + Integer.toHexString(stackPointer));
+
                 //Write PC low
-                stackPointer -= 1;
                 dataMemory.writeByte(stackPointer, (byte) (0x000000FF & programMemory.getPC()));
                 stackPointer -= 1;
                 //Write PC high
                 dataMemory.writeByte(stackPointer, (byte) ((0x000000FF & (programMemory.getPC() >> 8))));
+                stackPointer -= 1;
 
                 //Update SPL
                 dataMemory.writeByte(DataMemory_ATmega328P.SPL_ADDR, (byte) (0x000000FF & stackPointer));
@@ -887,12 +889,14 @@ public class CPUModule implements CPUInstructions {
                 stackPointer = (dataMemory.readByte(DataMemory_ATmega328P.SPH_ADDR) << 8) |
                         (0x000000FF & dataMemory.readByte(DataMemory_ATmega328P.SPL_ADDR));
 
+//                Log.d("ICALL", "STACK: " + Integer.toHexString(stackPointer));
+
                 //Write PC low
-                stackPointer -= 1;
                 dataMemory.writeByte(stackPointer, (byte) (0x000000FF & programMemory.getPC()));
                 stackPointer -= 1;
                 //Write PC high
                 dataMemory.writeByte(stackPointer, (byte) ((0x000000FF & (programMemory.getPC() >> 8))));
+                stackPointer -= 1;
 
                 //Update SPL
                 dataMemory.writeByte(DataMemory_ATmega328P.SPL_ADDR, (byte) (0x000000FF & stackPointer));
@@ -1572,8 +1576,10 @@ public class CPUModule implements CPUInstructions {
                 stackPointer = (dataMemory.readByte(DataMemory_ATmega328P.SPH_ADDR) << 8) |
                         (0x000000FF & dataMemory.readByte(DataMemory_ATmega328P.SPL_ADDR));
 
-                result = dataMemory.readByte(stackPointer);
+//                Log.d("POP", "STACK: " + Integer.toHexString(stackPointer));
+
                 stackPointer += 1;
+                result = dataMemory.readByte(stackPointer);
 
                 dataMemory.writeByte((0x01F0 & instruction) >> 4, result);
 
@@ -1601,8 +1607,10 @@ public class CPUModule implements CPUInstructions {
                 stackPointer = (dataMemory.readByte(DataMemory_ATmega328P.SPH_ADDR) << 8) |
                         (0x000000FF & dataMemory.readByte(DataMemory_ATmega328P.SPL_ADDR));
 
-                stackPointer -= 1;
+//                Log.d("PUSH", "STACK: " + Integer.toHexString(stackPointer));
+
                 dataMemory.writeByte(stackPointer, result);
+                stackPointer -= 1;
 
                 //Update SPL
                 dataMemory.writeByte(DataMemory_ATmega328P.SPL_ADDR, (byte) (0x000000FF & stackPointer));
@@ -1628,12 +1636,14 @@ public class CPUModule implements CPUInstructions {
                 stackPointer = (dataMemory.readByte(DataMemory_ATmega328P.SPH_ADDR) << 8) |
                         (0x000000FF & dataMemory.readByte(DataMemory_ATmega328P.SPL_ADDR));
 
+//                Log.d("RCALL", "STACK: " + Integer.toHexString(stackPointer));
+
                 //Write PC low
-                stackPointer -= 1;
                 dataMemory.writeByte(stackPointer, (byte) (0x000000FF & programMemory.getPC()));
                 stackPointer -= 1;
                 //Write PC high
                 dataMemory.writeByte(stackPointer, (byte) ((0x000000FF & (programMemory.getPC() >> 8))));
+                stackPointer -= 1;
 
                 //Update SPL
                 dataMemory.writeByte(DataMemory_ATmega328P.SPL_ADDR, (byte) (0x000000FF & stackPointer));
@@ -1660,11 +1670,13 @@ public class CPUModule implements CPUInstructions {
                 stackPointer = (dataMemory.readByte(DataMemory_ATmega328P.SPH_ADDR) << 8) |
                         (0x000000FF & dataMemory.readByte(DataMemory_ATmega328P.SPL_ADDR));
 
+//                Log.d("RET", "STACK: " + Integer.toHexString(stackPointer));
+
                 //PC little endian read
+                stackPointer += 1;
                 dataH = dataMemory.readByte(stackPointer);
                 stackPointer += 1;
                 dataL = dataMemory.readByte(stackPointer);
-                stackPointer += 1;
 
                 programMemory.setPC(((0x000000FF & dataH) << 8) | (0x000000FF & dataL));
 
@@ -1691,13 +1703,13 @@ public class CPUModule implements CPUInstructions {
                 stackPointer = (dataMemory.readByte(DataMemory_ATmega328P.SPH_ADDR) << 8) |
                         (0x000000FF & dataMemory.readByte(DataMemory_ATmega328P.SPL_ADDR));
 
-                Log.d("CPU", "StackPointer_RETI: " + Integer.toHexString(stackPointer));
+//                Log.d("RETI", "STACK: " + Integer.toHexString(stackPointer));
 
                 //PC little endian read
+                stackPointer += 1;
                 dataH = dataMemory.readByte(stackPointer);
                 stackPointer += 1;
                 dataL = dataMemory.readByte(stackPointer);
-                stackPointer += 1;
 
                 programMemory.setPC(((0x000000FF & dataH) << 8) | (0x000000FF & dataL));
 
