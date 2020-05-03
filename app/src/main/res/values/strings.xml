@@ -123,6 +123,6 @@
     <string name="arefError">Enter a positive value between 1 and 5</string>
     <string name="developer_email">kollins.lima@gmail.com</string>
     <string name="action_help">Help</string>
-    <string name="app_version">v1.3</string>
+    <string name="app_version">v1.4</string>
 
 </resources>
