@@ -68,6 +68,10 @@ public class UCModule_View extends Fragment {
 
     public enum LED_STATUS {RUNNING, SHORT_CIRCUIT, HEX_FILE_ERROR}
 
+    private static final String DOCUMENTATION_URL = "https://project-sofia.gitbook.io/project/using-sofia";
+    private static final String REPORT_EMAIL = "kollins.lima@gmail.com";
+    private static final String REPORT_SUBJECT = "[SOFIA FEEDBACK]";
+
     private static final int FILE_IMPORT_CODE = 0;
     private static final int AREF_VALUE = 1;
 
@@ -320,8 +324,17 @@ public class UCModule_View extends Fragment {
 
                 case R.id.action_help:
                     Intent browserIntent = new Intent(Intent.ACTION_VIEW,
-                            Uri.parse("https://project-sofia.gitbook.io/project/using-sofia"));
+                            Uri.parse(DOCUMENTATION_URL));
                     startActivity(browserIntent);
+                    break;
+
+                case R.id.action_report_bug:
+                    Intent emailIntent = new Intent(Intent.ACTION_SENDTO,
+                            Uri.fromParts("mailto", "", null));
+                    emailIntent.putExtra(Intent.EXTRA_EMAIL, new String[] { REPORT_EMAIL });
+                    emailIntent.putExtra(Intent.EXTRA_SUBJECT, REPORT_SUBJECT);
+//                    emailIntent.putExtra(Intent.EXTRA_TEXT, "Body");
+                    startActivity(Intent.createChooser(emailIntent, ""));
                     break;
 
                 case R.id.action_about:
