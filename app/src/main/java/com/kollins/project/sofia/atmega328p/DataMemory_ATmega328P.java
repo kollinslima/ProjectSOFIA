@@ -377,10 +377,9 @@ public class DataMemory_ATmega328P implements DataMemory {
 
     private void updateMemoryUsage(int byteAddress) {
 
-        int memoryUsageAddress = byteAddress - 0x0100;
-
         //EXTERNAL SDRAM START FOR UNO
         if (byteAddress >= 0x0100) {
+            int memoryUsageAddress = byteAddress - 0x0100;
             if (!memoryUsage[memoryUsageAddress]) {
                 memoryUsage[memoryUsageAddress] = true;
                 memoryUsageMeasure += 1;
@@ -390,18 +389,15 @@ public class DataMemory_ATmega328P implements DataMemory {
         int stackPointer = (sdramMemory[SPH_ADDR] << 8) |
                 (0x000000FF & sdramMemory[SPL_ADDR]);
 
-        if (stackPointer == RAMEND) {
-            stackPointerReady = true;
-        }
-
-        if (stackPointerReady) {
+        if (stackPointer > oldStackPointer) {
             //POP
-            if (stackPointer > oldStackPointer) {
-                memoryUsage[oldStackPointer - 0x0100] = false;
+            int stackUsageAddress = oldStackPointer - 0x0100;
+            if (memoryUsage[stackUsageAddress]) {
+                memoryUsage[stackUsageAddress] = false;
                 memoryUsageMeasure -= 1;
             }
-            oldStackPointer = stackPointer;
         }
+        oldStackPointer = stackPointer;
     }
 
     @Override
