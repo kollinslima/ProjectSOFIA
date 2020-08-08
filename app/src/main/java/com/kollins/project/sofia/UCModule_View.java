@@ -295,19 +295,24 @@ public class UCModule_View extends Fragment {
                                 FILE_IMPORT_CODE);
                     } catch (android.content.ActivityNotFoundException ex) {
                         // Potentially direct the user to the Market with a Dialog
-                        Toast.makeText(getContext(), "Please install a File Manager.",
+                        Toast.makeText(getContext(), getString(R.string.filemanager_not_found),
                                 Toast.LENGTH_SHORT).show();
                     }
                     break;
 
                 case R.id.action_memory_map:
 
-                    mFragmentManager = (getActivity().getSupportFragmentManager());
-                    mFragmentTransaction = mFragmentManager.beginTransaction();
+                    if (memoryFragment.getDataMemory() == null) {
+                        Toast.makeText(getContext(), getString(R.string.action_memory_map_error),
+                                Toast.LENGTH_SHORT).show();
+                    } else {
+                        mFragmentManager = (getActivity().getSupportFragmentManager());
+                        mFragmentTransaction = mFragmentManager.beginTransaction();
 
-                    mFragmentTransaction.addToBackStack(null);
-                    mFragmentTransaction.add(R.id.fragment_memory, memoryFragment, MemoryFragment.TAG_MEM_FRAGMENT);
-                    mFragmentTransaction.commit();
+                        mFragmentTransaction.addToBackStack(null);
+                        mFragmentTransaction.add(R.id.fragment_memory, memoryFragment, MemoryFragment.TAG_MEM_FRAGMENT);
+                        mFragmentTransaction.commit();
+                    }
                     break;
 
                 case R.id.action_adc_adjust:

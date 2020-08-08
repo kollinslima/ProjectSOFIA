@@ -93,6 +93,10 @@ public class MemoryFragment extends Fragment {
         this.dataMemory = dataMemory;
     }
 
+    public DataMemory getDataMemory() {
+        return  this.dataMemory;
+    }
+
     public static void updateMemoryUsage(int memoryUsage, int memorySize) {
         new UpdateMemoryUsage().execute(memoryUsage, memorySize);
     }
