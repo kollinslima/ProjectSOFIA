@@ -25,6 +25,11 @@ import android.content.res.Resources;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.util.Log;
+import android.view.View;
+import android.widget.FrameLayout;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -32,12 +37,6 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
-
-import android.util.Log;
-import android.view.View;
-import android.widget.FrameLayout;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import com.kollins.project.sofia.atmega328p.iomodule_atmega328p.output.OutputFragment_ATmega328P;
 import com.kollins.project.sofia.ucinterfaces.ADCModule;
@@ -437,11 +436,16 @@ public class UCModule extends AppCompatActivity {
     }
 
     public void changeFileLocation(String newHexFileLocation) {
+        if (newHexFileLocation == null) {
+            Toast.makeText(this, getString(R.string.change_file_location_error), Toast.LENGTH_LONG).show();
+            return;
+        }
+
         if (newHexFileLocation.substring(newHexFileLocation.length() - 3).equals("hex")) {
             hexFileLocation = newHexFileLocation.replace("/storage/emulated/0/", "");
             Log.d("FileImporter", "New Path: " + hexFileLocation);
         } else {
-            Toast.makeText(this, "Not a .hex file", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.not_hex_error), Toast.LENGTH_LONG).show();
         }
     }
 
