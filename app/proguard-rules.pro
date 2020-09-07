@@ -19,17 +19,3 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
-
-#-keep class com.example.kollins.sofia.atmega328p.*
--keep class ** implements com.kollins.project.sofia.ucinterfaces.** { *; }
-
-
--assumenosideeffects class android.util.Log {
-  public static *** v(...);
-  public static *** d(...);
-  public static *** i(...);
-  public static *** w(...);
-  public static *** e(...);
-}
--ignorewarnings
-#-addconfigurationdebugging
