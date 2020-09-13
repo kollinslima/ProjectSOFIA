@@ -4,12 +4,16 @@
 
 #include <unistd.h>
 #include "../include/SofiaCoreController.h"
+#include "../include/devices/DeviceFactory.h"
 
-static const char *SOFIA_CORE_TAG = "SOFIA CORE";
+static const char *SOFIA_CORE_TAG = "SOFIA CORE CONTROLLER";
 
-SofiaCoreController::SofiaCoreController(Listener **listeners) {
+SofiaCoreController::SofiaCoreController(Device device, int fd) {
+    this->listeners = nullptr;
     this->schedulerThread = nullptr;
-    this->listeners = listeners;
+
+    this->device = DeviceFactory::createDevice(device);
+    this->device->loadFile(fd);
 }
 SofiaCoreController::~SofiaCoreController() {
     if (this->schedulerThread) {
@@ -17,6 +21,11 @@ SofiaCoreController::~SofiaCoreController() {
         delete this->schedulerThread;
         this->schedulerThread = nullptr;
     }
+    delete this->device;
+}
+
+void SofiaCoreController::setListeners(Listener **listeners) {
+    this->listeners = listeners;
 }
 
 void SofiaCoreController::start(JavaVM *vm, JNIEnv *env) {

@@ -18,7 +18,14 @@ add_library( # Sets the name of the library.
 
              # Provides a relative path to your source file(s).
             Core/src/main.cpp
-            Core/src/SofiaCoreController.cpp)
+            Core/src/SofiaCoreController.cpp
+            Core/src/devices/DeviceFactory.cpp
+            Core/src/devices/atmega328p/ATMega328P.cpp
+            Core/src/devices/atmega328p/ProgramMemory_ATMega328P.cpp
+            Core/src/devices/components/GenericMemory.cpp
+            Core/src/parsers/IntelParser.cpp
+            Core/src/utils/Functions.cpp
+        )
 
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by
