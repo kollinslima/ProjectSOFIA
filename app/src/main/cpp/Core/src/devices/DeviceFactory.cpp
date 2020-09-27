@@ -4,14 +4,15 @@
 
 #include "../../include/devices/DeviceFactory.h"
 #include "../../include/devices/atmega328p/ATMega328P.h"
+#include "../../include/SofiaCoreController.h"
 
-static const char *SOFIA_DEVICE_FACTORY_TAG = "SOFIA DEVICE FACTORY";
+#define SOFIA_DEVICE_FACTORY_TAG "SOFIA DEVICE FACTORY"
 
-GenericDevice * DeviceFactory::createDevice(Device device) {
+GenericDevice * DeviceFactory::createDevice(Device device, SofiaCoreController *scc) {
     GenericDevice *ret = nullptr;
     switch (device) {
         case Device::ARDUINO_UNO:
-            ret = new ATMega328P();
+            ret = new ATMega328P(scc);
             break;
         default:
             LOGE(SOFIA_DEVICE_FACTORY_TAG, "Device unknown (how did I get here?)");

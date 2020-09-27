@@ -10,8 +10,6 @@
 #include<string>
 using namespace std;
 
-#define MEMORY_SIZE (32*1024)   //32kB
-
 class ProgramMemory_ATMega328P : public GenericMemory {
 
     public:
@@ -19,6 +17,10 @@ class ProgramMemory_ATMega328P : public GenericMemory {
         ~ProgramMemory_ATMega328P();
 
         bool loadFile(int fd);
+
+        bool write(unsigned int addr, unsigned char data) override;
+        bool read(unsigned int addr, unsigned char *data) override;
+        unsigned int getSize() override;
 
         unsigned short int loadInstruction(unsigned int pc);
 };

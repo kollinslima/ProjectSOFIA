@@ -6,13 +6,18 @@
 #include "../../../include/CommonCore.h"
 #include "../../../include/parsers/IntelParser.h"
 
-static const char *SOFIA_PROGRAM_MEMORY_ATMEGA328P_TAG = "SOFIA PROGRAM MEMORY ATMEGA328P";
+#define SOFIA_PROGRAM_MEMORY_ATMEGA328P_TAG "SOFIA PROGRAM MEMORY ATMEGA328P"
 
-ProgramMemory_ATMega328P::ProgramMemory_ATMega328P() : GenericMemory(MEMORY_SIZE){
+#define MEMORY_SIZE (32*1024)   //32kB
 
+ProgramMemory_ATMega328P::ProgramMemory_ATMega328P() {
+    size = MEMORY_SIZE;
+    buffer = new unsigned char[size];
 }
 
-ProgramMemory_ATMega328P::~ProgramMemory_ATMega328P() = default;
+ProgramMemory_ATMega328P::~ProgramMemory_ATMega328P() {
+    delete [] buffer;
+};
 
 bool ProgramMemory_ATMega328P::loadFile(int fd) {
     LOGI(SOFIA_PROGRAM_MEMORY_ATMEGA328P_TAG, "Loading program memory...");
@@ -20,12 +25,29 @@ bool ProgramMemory_ATMega328P::loadFile(int fd) {
 }
 
 unsigned short int ProgramMemory_ATMega328P::loadInstruction(unsigned int pc) {
-    LOGD(SOFIA_PROGRAM_MEMORY_ATMEGA328P_TAG, "Loading instruction -> PC: %X", pc);
-    unsigned char byte1 = 0x00, byte2 = 0x00;
+//    LOGD(SOFIA_PROGRAM_MEMORY_ATMEGA328P_TAG, "Loading instruction -> PC: %X", pc);
     unsigned int instAddrBegin = pc*2;  //PC points to the next instruction, and each instruction has 2 bytes
-    read(instAddrBegin, &byte1);
-    read(instAddrBegin+1, &byte2);
-    return (byte2 << 8) | byte1;
+    return (buffer[instAddrBegin+1] << 8) | buffer[instAddrBegin];
+}
+
+bool ProgramMemory_ATMega328P::write(unsigned int addr, unsigned char data) {
+//    if (addr < this->size) {
+    buffer[addr] = data;
+    return true;
+//    }
+//    return false;
+}
+
+bool ProgramMemory_ATMega328P::read(unsigned int addr, unsigned char *data) {
+//    if (addr < this->size) {
+    (*data) = buffer[addr];
+    return true;
+//    }
+//    return false;
+}
+
+unsigned int ProgramMemory_ATMega328P::getSize() {
+    return size;
 }
 
 

@@ -6,7 +6,7 @@
 #include "../../include/utils/Functions.h"
 #include "../../include/CommonCore.h"
 
-static const char *SOFIA_FUNCTIONS_TAG = "SOFIA FUNCTIONS";
+#define SOFIA_FUNCTIONS_TAG "SOFIA FUNCTIONS"
 
 int Functions::hexStrToChar(const char* hexStr, unsigned char *bytes) {
     size_t len = strlen(hexStr);

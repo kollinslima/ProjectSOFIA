@@ -15,7 +15,7 @@
 
 #define MAX_READ_BUFFER 600
 
-static const char *SOFIA_INTEL_PARSER_TAG = "SOFIA INTEL PARSER";
+#define SOFIA_INTEL_PARSER_TAG "SOFIA INTEL PARSER"
 
 bool IntelParser::parse(int fd, GenericMemory *progMem) {
     FILE *fp = fdopen(fd, "r");
@@ -58,8 +58,8 @@ bool IntelParser::parse(int fd, GenericMemory *progMem) {
                     }
 
                     for (int i = 0; i < bytes[INTEL_DATA_SIZE]; ++i) {
-                        LOGD(SOFIA_INTEL_PARSER_TAG, "Loading byte %X to address %X",
-                                bytes[INTEL_DATA+i], (address+i));
+//                        LOGD(SOFIA_INTEL_PARSER_TAG, "Loading byte %X to address %X",
+//                                bytes[INTEL_DATA+i], (address+i));
                         progMem->write(address+i, bytes[INTEL_DATA+i]);
                     }
                     break;

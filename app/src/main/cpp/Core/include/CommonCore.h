@@ -14,6 +14,12 @@ typedef void Listener(JNIEnv *env, const char *msg);
 
 #define TIME_UPDATE_LISTENER 0
 
+#ifdef NDEBUG
+#define LOGD(TAG, ...)
+#define LOGI(TAG, ...)
+#define LOGW(TAG, ...)
+#define LOGE(TAG, ...)
+#else
 #define LOGD(TAG, ...)   \
     ((void)__android_log_print(ANDROID_LOG_DEBUG, TAG, __VA_ARGS__))
 #define LOGI(TAG, ...)   \
@@ -22,6 +28,7 @@ typedef void Listener(JNIEnv *env, const char *msg);
     ((void)__android_log_print(ANDROID_LOG_WARN, TAG, __VA_ARGS__))
 #define LOGE(TAG, ...)   \
     ((void)__android_log_print(ANDROID_LOG_ERROR, TAG, __VA_ARGS__))
+#endif
 
 enum Device {
         ARDUINO_UNO,

@@ -8,14 +8,13 @@
 class GenericMemory {
 
     public:
-        GenericMemory(unsigned int size);
-        virtual ~GenericMemory();
+        virtual ~GenericMemory() {}
 
-        virtual bool write(unsigned int addr, unsigned char data);
-        virtual bool read(unsigned int addr, unsigned char *data);
-        virtual unsigned int getSize();
+        virtual bool write(unsigned int addr, unsigned char data) = 0;
+        virtual bool read(unsigned int addr, unsigned char *data) = 0;
+        virtual unsigned int getSize() = 0;
 
-    private:
+    protected:
         unsigned int size;
         unsigned char *buffer;
 };

@@ -1,7 +1,7 @@
 #include "../include/CommonCore.h"
 #include "../include/SofiaCoreController.h"
 
-static const char *MAIN_CORE_TAG = "SOFIA CORE MAIN";
+#define MAIN_CORE_TAG "SOFIA CORE MAIN"
 
 typedef struct {
     JavaVM *vm;
@@ -9,7 +9,7 @@ typedef struct {
     jclass activityClz;
     jobject activityObj;
     SofiaCoreController *scc;
-    Listener *listeners[MAX_LISTENERS];
+    Listener *listeners[MAX_LISTENERS]; //TODO: Make it dynamic
 } MainCtx;
 
 MainCtx mainCtx;
@@ -96,6 +96,13 @@ Java_com_kollins_project_sofia_MainActivity_startCore(
         jobject instance) {
 
     LOGI(MAIN_CORE_TAG, "Starting SOFIA Core");
+
+    if (!mainCtx.activityObj) {
+        jclass clz = env->GetObjectClass(instance);
+        mainCtx.activityClz = reinterpret_cast<jclass>(env->NewGlobalRef(clz));
+        mainCtx.activityObj = env->NewGlobalRef(instance);
+    }
+
     if (mainCtx.scc) {
         mainCtx.scc->start(mainCtx.vm, mainCtx.env);
     }
@@ -118,6 +125,7 @@ Java_com_kollins_project_sofia_MainActivity_stopCore(
         env->DeleteGlobalRef(mainCtx.activityClz);
         env->DeleteGlobalRef(mainCtx.activityObj);
         mainCtx.activityObj = nullptr;
+        mainCtx.activityClz = nullptr;
     }
 }
 

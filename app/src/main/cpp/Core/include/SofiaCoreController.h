@@ -6,10 +6,14 @@
 #define PROJECTSOFIA_SOFIACORECONTROLLER_H
 
 #include "../include/CommonCore.h"
-#include "devices/GenericDevice.h"
 
 #include <thread>
+#include <mutex>
+#include <condition_variable>
+#include <list>
 using namespace std;
+
+class GenericDevice;
 
 class SofiaCoreController {
     public:
@@ -21,14 +25,22 @@ class SofiaCoreController {
         void start(JavaVM *vm, JNIEnv *env);
         void stop();
 
+        bool isDeviceRunning();
+
+        void addNotification(int notificationID, const string& message = "");
+
     private:
 
         GenericDevice *device;
+        bool isRunning;
 
-        void scheduler (JavaVM *vm, JNIEnv *env);
-
-        thread *schedulerThread;
         Listener **listeners;
+
+        thread dispatcherThread;
+        mutex notificationMutex;
+        condition_variable notificationCv;
+        list<pair<int, string>> notificationList;
+        void dispatcher (JavaVM *vm, JNIEnv *env);
 };
 
 

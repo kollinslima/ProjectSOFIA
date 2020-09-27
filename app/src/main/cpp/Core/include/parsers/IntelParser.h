@@ -5,8 +5,7 @@
 #ifndef PROJECTSOFIA_INTELPARSER_H
 #define PROJECTSOFIA_INTELPARSER_H
 
-
-#include "../devices/components/GenericMemory.h"
+class GenericMemory;
 
 class IntelParser {
 

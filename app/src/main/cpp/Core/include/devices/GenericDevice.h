@@ -6,7 +6,11 @@
 #define PROJECTSOFIA_GENERICDEVICE_H
 
 #include <string>
+#include "../CommonCore.h"
+
 using namespace std;
+
+class SofiaCoreController;
 
 class GenericDevice {
 
@@ -15,7 +19,6 @@ class GenericDevice {
 
         virtual bool loadFile(int fd)=0;
         virtual void run()=0;
-
 };
 
 
