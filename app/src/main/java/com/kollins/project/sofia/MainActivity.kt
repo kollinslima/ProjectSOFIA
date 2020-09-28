@@ -99,12 +99,12 @@ class MainActivity : AppCompatActivity() {
 
     //////////////////// LISTENERS ///////////////////////////
     fun timeUpdate() {
-//        seconds += 1
-//        runOnUiThread {sample_text.text = seconds.toString()}
-        val avg = getElapsed()
-        if (avg != 0L) {
-            runOnUiThread { sample_text.text = avg.toString() }
-        }
+        seconds += 1
+        runOnUiThread {sample_text.text = seconds.toString()}
+//        val avg = getElapsed()
+//        if (avg != 0L) {
+//            runOnUiThread { sample_text.text = avg.toString() }
+//        }
 
     }
 

@@ -10,12 +10,12 @@ class GenericMemory {
     public:
         virtual ~GenericMemory() {}
 
-        virtual bool write(unsigned int addr, unsigned char data) = 0;
-        virtual bool read(unsigned int addr, unsigned char *data) = 0;
-        virtual unsigned int getSize() = 0;
+        virtual bool write(unsigned long addr, void *data) = 0;
+        virtual bool read(unsigned long addr, void *data) = 0;
+        virtual unsigned long getSize() = 0;
 
     protected:
-        unsigned int size;
+        unsigned long size;
         unsigned char *buffer;
 };
 

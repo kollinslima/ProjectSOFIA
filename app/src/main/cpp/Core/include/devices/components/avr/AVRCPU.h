@@ -6,30 +6,35 @@
 #define PROJECTSOFIA_AVRCPU_H
 
 
-#include <thread>
-#include "../components/GenericCPU.h"
-#include "ProgramMemory_ATMega328P.h"
+#include "../generic/GenericCPU.h"
+#include "../generic/GenericMemory.h"
+#include "../generic/GenericProgramMemory.h"
+#include "GenericAVRDataMemory.h"
 
 #define INSTRUCTION_DECODER_SIZE 65536 //2^16
 
 class AVRCPU : public GenericCPU {
 
-    typedef void Instruction();
-
     public:
-        AVRCPU(const ProgramMemory_ATMega328P& programMemory);
-        ~AVRCPU();
+        AVRCPU(GenericProgramMemory *programMemory, GenericAVRDataMemory *dataMemory);
+        virtual ~AVRCPU();
 
         void run();
 
     private:
-        Instruction *instructionDecoder[INSTRUCTION_DECODER_SIZE];
+        typedef void (AVRCPU::*Instruction)();
+        Instruction instructionDecoder[INSTRUCTION_DECODER_SIZE];
 
-        ProgramMemory_ATMega328P progMem;
+        GenericProgramMemory *progMem;
+        GenericAVRDataMemory *datMem;
+
+        unsigned short instruction;
+        unsigned char sreg, sregAddr;
+        unsigned char regD, regR, result;
 
         void setupInstructionDecoder();
 
-        static void instructionADC ();
+        void instructionADC ();
         void instructionADD ();
         void instructionADIW ();
         void instructionAND ();     //AND - TST
@@ -135,7 +140,7 @@ class AVRCPU : public GenericCPU {
 
         void instructionWDR ();
 
-        static void unknownInstruction ();
+        void unknownInstruction ();
 };
 
 

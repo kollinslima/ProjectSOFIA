@@ -5,12 +5,12 @@
 #ifndef PROJECTSOFIA_INTELPARSER_H
 #define PROJECTSOFIA_INTELPARSER_H
 
-class GenericMemory;
+#include "../devices/components/generic/GenericProgramMemory.h"
 
 class IntelParser {
 
     public:
-        static bool parse(int fd, GenericMemory *progMem);
+        static bool parse(int fd, GenericProgramMemory *progMem);
 
     private:
         static bool checksum(unsigned char *bytes, int bytesLen);

@@ -8,7 +8,7 @@
 
 #define SOFIA_PROGRAM_MEMORY_ATMEGA328P_TAG "SOFIA PROGRAM MEMORY ATMEGA328P"
 
-#define MEMORY_SIZE (32*1024)   //32kB
+#define MEMORY_SIZE 32768   //32kB
 
 ProgramMemory_ATMega328P::ProgramMemory_ATMega328P() {
     size = MEMORY_SIZE;
@@ -24,29 +24,30 @@ bool ProgramMemory_ATMega328P::loadFile(int fd) {
     return IntelParser::parse(fd, this);
 }
 
-unsigned short int ProgramMemory_ATMega328P::loadInstruction(unsigned int pc) {
+bool ProgramMemory_ATMega328P::loadInstruction(unsigned long pc, void *data) {
 //    LOGD(SOFIA_PROGRAM_MEMORY_ATMEGA328P_TAG, "Loading instruction -> PC: %X", pc);
     unsigned int instAddrBegin = pc*2;  //PC points to the next instruction, and each instruction has 2 bytes
-    return (buffer[instAddrBegin+1] << 8) | buffer[instAddrBegin];
+    *(static_cast<unsigned short *>(data)) = (buffer[instAddrBegin+1] << 8) | buffer[instAddrBegin];
+    return true;
 }
 
-bool ProgramMemory_ATMega328P::write(unsigned int addr, unsigned char data) {
+bool ProgramMemory_ATMega328P::write(unsigned long addr, void *data) {
 //    if (addr < this->size) {
-    buffer[addr] = data;
+    buffer[addr] = *(static_cast<unsigned char *>(data));
     return true;
 //    }
 //    return false;
 }
 
-bool ProgramMemory_ATMega328P::read(unsigned int addr, unsigned char *data) {
+bool ProgramMemory_ATMega328P::read(unsigned long addr, void *data) {
 //    if (addr < this->size) {
-    (*data) = buffer[addr];
+    *(static_cast<unsigned char *>(data)) = buffer[addr];
     return true;
 //    }
 //    return false;
 }
 
-unsigned int ProgramMemory_ATMega328P::getSize() {
+unsigned long ProgramMemory_ATMega328P::getSize() {
     return size;
 }
 

@@ -5,12 +5,12 @@
 #ifndef PROJECTSOFIA_PROGRAMMEMORY_ATMEGA328P_H
 #define PROJECTSOFIA_PROGRAMMEMORY_ATMEGA328P_H
 
-#include "../components/GenericMemory.h"
+#include "../components/generic/GenericProgramMemory.h"
 
 #include<string>
 using namespace std;
 
-class ProgramMemory_ATMega328P : public GenericMemory {
+class ProgramMemory_ATMega328P : public GenericProgramMemory {
 
     public:
         ProgramMemory_ATMega328P();
@@ -18,11 +18,11 @@ class ProgramMemory_ATMega328P : public GenericMemory {
 
         bool loadFile(int fd);
 
-        bool write(unsigned int addr, unsigned char data) override;
-        bool read(unsigned int addr, unsigned char *data) override;
-        unsigned int getSize() override;
+        bool write(unsigned long addr, void *data) override;
+        bool read(unsigned long addr, void *data) override;
+        unsigned long getSize() override;
 
-        unsigned short int loadInstruction(unsigned int pc);
+        bool loadInstruction(unsigned long pc, void *data) override;
 };
 
 

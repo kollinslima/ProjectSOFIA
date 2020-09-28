@@ -4,7 +4,7 @@
 
 #include <cstdio>
 #include "../../include/parsers/IntelParser.h"
-#include "../../include/devices/components/GenericMemory.h"
+#include "../../include/devices/components/generic/GenericMemory.h"
 #include "../../include/CommonCore.h"
 #include "../../include/utils/Functions.h"
 
@@ -17,7 +17,7 @@
 
 #define SOFIA_INTEL_PARSER_TAG "SOFIA INTEL PARSER"
 
-bool IntelParser::parse(int fd, GenericMemory *progMem) {
+bool IntelParser::parse(int fd, GenericProgramMemory *progMem) {
     FILE *fp = fdopen(fd, "r");
     if (fp) {
         LOGD(SOFIA_INTEL_PARSER_TAG, "Hex file opened");
@@ -49,7 +49,7 @@ bool IntelParser::parse(int fd, GenericMemory *progMem) {
             switch (bytes[INTEL_RECORD_TYPE]) {
                 //Data
                 case 00: {
-                    unsigned int address = 0;
+                    unsigned long address = 0;
                     address = (bytes[INTEL_ADDRESS] << 8) | bytes[INTEL_ADDRESS + 1];
                     if (extendedSegmentAddress) {
                         address += extendedAddress;
@@ -60,7 +60,7 @@ bool IntelParser::parse(int fd, GenericMemory *progMem) {
                     for (int i = 0; i < bytes[INTEL_DATA_SIZE]; ++i) {
 //                        LOGD(SOFIA_INTEL_PARSER_TAG, "Loading byte %X to address %X",
 //                                bytes[INTEL_DATA+i], (address+i));
-                        progMem->write(address+i, bytes[INTEL_DATA+i]);
+                        progMem->write(address+i, &bytes[INTEL_DATA+i]);
                     }
                     break;
                 }

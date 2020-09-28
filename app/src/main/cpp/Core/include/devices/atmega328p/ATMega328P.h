@@ -10,7 +10,8 @@
 #include <condition_variable>
 #include "../GenericDevice.h"
 #include "ProgramMemory_ATMega328P.h"
-#include "AVRCPU.h"
+#include "DataMemory_ATMega328P.h"
+#include "../components/avr/AVRCPU.h"
 
 #define NUM_MODULES 1
 
@@ -35,7 +36,8 @@ private:
     unsigned int clockFreq;
 
     ProgramMemory_ATMega328P programMemory;
-    AVRCPU cpu = AVRCPU(programMemory);
+    DataMemory_ATMega328P dataMemory;
+    AVRCPU cpu = AVRCPU(&programMemory, &dataMemory);
 
     int syncCounter[NUM_MODULES];
     thread scheduler[NUM_MODULES];
