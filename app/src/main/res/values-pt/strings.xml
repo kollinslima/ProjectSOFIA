@@ -127,7 +127,7 @@
     <string name="developer_email">kollins.lima@gmail.com</string>
 
     <string name="action_help">Ajuda</string>
-    <string name="app_version">v1.8.1</string>
+    <string name="app_version">v1.9.1</string>
     <string name="action_report_bug">Reportar Erro</string>
     <string name="action_memory_map_error">Inicie a simulação primeiro.</string>
     <string name="filemanager_not_found">Instale um gerenciador de arquivos.</string>
