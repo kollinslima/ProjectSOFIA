@@ -27,7 +27,7 @@ bool ProgramMemory_ATMega328P::loadFile(int fd) {
 bool ProgramMemory_ATMega328P::loadInstruction(unsigned long pc, void *data) {
 //    LOGD(SOFIA_PROGRAM_MEMORY_ATMEGA328P_TAG, "Loading instruction -> PC: %X", pc);
     unsigned int instAddrBegin = pc*2;  //PC points to the next instruction, and each instruction has 2 bytes
-    *(static_cast<unsigned short *>(data)) = (buffer[instAddrBegin+1] << 8) | buffer[instAddrBegin];
+    *(static_cast<sword16 *>(data)) = (buffer[instAddrBegin+1] << 8) | buffer[instAddrBegin];
     return true;
 }
 
