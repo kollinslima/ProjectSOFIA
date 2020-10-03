@@ -10,7 +10,8 @@
 
 typedef void Listener(JNIEnv *env, const char *msg);
 
-typedef unsigned char sbyte;
+typedef __uint8_t sbyte;
+typedef __uint16_t sword16;
 
 #define MAX_LISTENERS 1
 #define TIME_UPDATE_LISTENER 0

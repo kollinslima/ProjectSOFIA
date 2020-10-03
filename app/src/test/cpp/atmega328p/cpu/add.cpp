@@ -1,4 +1,4 @@
-// Kollins G. Lima - 09/27/2020
+// Kollins G. Lima - 10/03/2020
 // UNIT TEST FOR ADD INSTRUCTION
 
 #include <stdio.h>
@@ -28,7 +28,7 @@ void testADD (sbyte regD, sbyte regR, sbyte initSreg) {
     sbyte result;
 
     result = regD + regR;
-    sreg = 0;
+    sreg &= 0xC0;
 
     sbyte regD_and_regR = regD & regR;
     sbyte not_result = ~result;
@@ -48,7 +48,7 @@ void testADD (sbyte regD, sbyte regR, sbyte initSreg) {
     sreg |= (((sreg<<1)^sreg)<<1)&S_FLAG_MASK;
 
     //Flag Z
-    sreg |= (((((((((((((not_result>>1)&not_result)>>1)&not_result)>>1)&not_result)>>1)&not_result)>>1)&not_result)>>1)&not_result)&(not_result<<1))&Z_FLAG_MASK;
+    sreg |= result?0x00:Z_FLAG_MASK;
 
     //Flag C
     sreg |= (hc_flag>>7)&C_FLAG_MASK;

@@ -35,6 +35,9 @@ private:
 
     //Auxiliar for processing
     sbyte regD, regR, sreg, result, wbAddr;
+    sbyte offset, dataL, dataH;
+    sword16 outData;
+
     sbyte regD_and_regR;
     sbyte not_result;
     sbyte hc_flag;

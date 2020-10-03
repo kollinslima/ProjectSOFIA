@@ -28,7 +28,7 @@ void testADC (sbyte regD, sbyte regR, sbyte initSreg) {
     sbyte result;
 
     result = regD + regR + (sreg & 0x01);
-    sreg = 0;
+    sreg &= 0xC0;
 
     sbyte regD_AND_regR = regD & regR;
     sbyte NOT_result = ~result;
@@ -47,7 +47,7 @@ void testADC (sbyte regD, sbyte regR, sbyte initSreg) {
     sreg |= (((sreg<<1)^sreg)<<1)&S_FLAG_MASK;
 
     //Flag Z
-    sreg |= (((((((((((((NOT_result>>1)&NOT_result)>>1)&NOT_result)>>1)&NOT_result)>>1)&NOT_result)>>1)&NOT_result)>>1)&NOT_result)&(NOT_result<<1))&Z_FLAG_MASK;
+    sreg |= result?0x00:Z_FLAG_MASK;
 
     //Flag C
     sreg |= (HC>>7)&C_FLAG_MASK; 
