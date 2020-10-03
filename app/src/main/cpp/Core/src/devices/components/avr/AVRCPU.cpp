@@ -10,7 +10,7 @@
 #define INSTRUCTION_ADC_MASK  0x1C00
 #define INSTRUCTION_ADD_MASK  0x0C00
 #define INSTRUCTION_ADIW_MASK  0x9600
-#define INSTRUCTION_AND_MASK  3
+#define INSTRUCTION_AND_TST_MASK  0x2000
 #define INSTRUCTION_ANDI_MASK  4
 #define INSTRUCTION_ASR_MASK  5
 #define INSTRUCTION_BCLR_MASK  6
@@ -130,6 +130,10 @@ void AVRCPU::setupInstructionDecoder() {
         }
         if (!((i & INSTRUCTION_ADIW_MASK) ^ INSTRUCTION_ADIW_MASK)) {
             instructionDecoder[i] = &AVRCPU::instructionADIW;
+            continue;
+        }
+        if (!((i & INSTRUCTION_AND_TST_MASK) ^ INSTRUCTION_AND_TST_MASK)) {
+            instructionDecoder[i] = &AVRCPU::instructionAND_TST;
             continue;
         }
         instructionDecoder[i] = &AVRCPU::unknownInstruction;
@@ -261,8 +265,30 @@ void AVRCPU::instructionADIW() {
     datMem->write(sregAddr, &sreg);
 }
 
-void AVRCPU::instructionAND() {
+void AVRCPU::instructionAND_TST() {
+    /*************************AND/TST***********************/
+//    LOGD(SOFIA_AVRCPU_TAG, "Instruction AND/TSL");
 
+    wbAddr = (0x01F0 & instruction) >> 4;
+
+    datMem->read(wbAddr, &regD);
+    datMem->read(((0x0200 & instruction) >> 5) | (0x000F & instruction), &regR);
+    datMem->read(sregAddr, &sreg);
+
+    result = regD & regR;
+    sreg &= 0xE1;
+
+    //Flag N
+    sreg |= (result >> 5) & N_FLAG_MASK;
+
+    //Flag S
+    sreg |= (((sreg << 1) ^ sreg) << 1) & S_FLAG_MASK;
+
+    //Flag Z
+    sreg |= result?0x00:Z_FLAG_MASK;
+
+    datMem->write(wbAddr, &result);
+    datMem->write(sregAddr, &sreg);
 }
 
 void AVRCPU::instructionANDI() {

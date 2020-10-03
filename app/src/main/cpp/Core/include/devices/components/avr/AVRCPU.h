@@ -30,7 +30,7 @@ private:
     GenericProgramMemory *progMem;
     GenericAVRDataMemory *datMem;
 
-    unsigned short instruction;
+    sword16 instruction;
     sbyte sregAddr;
 
     //Auxiliar for processing
@@ -50,7 +50,8 @@ private:
 
     void instructionADIW();
 
-    void instructionAND();     //AND - TST
+    void instructionAND_TST();     //AND - TST
+
     void instructionANDI();
 
     void instructionASR();
