@@ -439,6 +439,12 @@ public class UCModule_View extends Fragment {
                 case R.id.action_serial_monitor:
                     outputFrame.setVisibility(View.VISIBLE);
                     mFragmentManager = getActivity().getSupportFragmentManager();
+
+                    Fragment old_fragment = mFragmentManager.findFragmentByTag(SerialFragment.TAG_SERIAL_FRAGMENT);
+                    if (old_fragment != null){
+                        mFragmentManager.beginTransaction().remove(old_fragment).commit();
+                    }
+
                     mFragmentTransaction = mFragmentManager.beginTransaction();
 
                     mFragmentTransaction.add(R.id.outputPins, serialFragment, SerialFragment.TAG_SERIAL_FRAGMENT);
