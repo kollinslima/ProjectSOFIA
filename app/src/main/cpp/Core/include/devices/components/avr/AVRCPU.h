@@ -15,132 +15,207 @@
 
 class AVRCPU : public GenericCPU {
 
-    public:
-        AVRCPU(GenericProgramMemory *programMemory, GenericAVRDataMemory *dataMemory);
-        virtual ~AVRCPU();
+public:
+    AVRCPU(GenericProgramMemory *programMemory, GenericAVRDataMemory *dataMemory);
 
-        void run();
+    virtual ~AVRCPU();
 
-    private:
-        typedef void (AVRCPU::*Instruction)();
-        Instruction instructionDecoder[INSTRUCTION_DECODER_SIZE];
+    void run();
 
-        GenericProgramMemory *progMem;
-        GenericAVRDataMemory *datMem;
+private:
+    typedef void (AVRCPU::*Instruction)();
 
-        unsigned short instruction;
-        unsigned char sreg, sregAddr;
-        unsigned char regD, regR, result;
+    Instruction instructionDecoder[INSTRUCTION_DECODER_SIZE];
 
-        void setupInstructionDecoder();
+    GenericProgramMemory *progMem;
+    GenericAVRDataMemory *datMem;
 
-        void instructionADC ();
-        void instructionADD ();
-        void instructionADIW ();
-        void instructionAND ();     //AND - TST
-        void instructionANDI ();
-        void instructionASR ();
+    unsigned short instruction;
+    sbyte sregAddr;
 
-        void instructionBCLR ();
-        void instructionBLD ();
-        void instructionBRBC ();
-        void instructionBRBS ();
-        void instructionBREAK ();
-        void instructionBSET ();
-        void instructionBST ();
+    //Auxiliar for processing
+    sbyte regD, regR, sreg, result, wbAddr;
 
-        void instructionCALL ();
-        void instructionCBI ();
-        void instructionCOM ();
-        void instructionCP ();
-        void instructionCPC ();
-        void instructionCPI ();
-        void instructionCPSE ();
+    void setupInstructionDecoder();
 
-        void instructionDEC ();
+    void instructionADC();
 
-        void instructionEOR (); //EOR - CLR
+    void instructionADD();
 
-        void instructionFMUL ();
-        void instructionFMULS ();
-        void instructionFMULSU ();
+    void instructionADIW();
 
-        void instructionICALL ();
-        void instructionIJMP ();
-        void instructionIN ();
-        void instructionINC ();
+    void instructionAND();     //AND - TST
+    void instructionANDI();
 
-        void instructionJMP ();
+    void instructionASR();
 
-        void instructionLD_X_POST_INCREMENT ();
-        void instructionLD_X_PRE_INCREMENT ();
-        void instructionLD_X_UNCHANGED ();
-        void instructionLD_Y_POST_INCREMENT ();
-        void instructionLD_Y_PRE_INCREMENT ();
-        void instructionLD_Y_UNCHANGED ();
-        void instructionLD_Z_POST_INCREMENT ();
-        void instructionLD_Z_PRE_INCREMENT ();
-        void instructionLD_Z_UNCHANGED ();
-        void instructionLDD_Y ();
-        void instructionLDD_Z ();
-        void instructionLDI (); //LDI - SER
-        void instructionLDS ();
-        void instructionLPM_Z_POST_INCREMENT ();
-        void instructionLPM_Z_UNCHANGED_DEST_R ();
-        void instructionLPM_Z_UNCHANGED ();
-        void instructionLSR ();
+    void instructionBCLR();
 
-        void instructionMOV ();
-        void instructionMOVW ();
-        void instructionMUL ();
-        void instructionMULS ();
-        void instructionMULSU ();
+    void instructionBLD();
 
-        void instructionNEG ();
-        void instructionNOP ();
+    void instructionBRBC();
 
-        void instructionOR ();
-        void instructionORI ();   //ORI - SBR
-        void instructionOUT ();
+    void instructionBRBS();
 
-        void instructionPOP ();
-        void instructionPUSH ();
+    void instructionBREAK();
 
-        void instructionRCALL ();
-        void instructionRET ();
-        void instructionRETI ();
-        void instructionRJMP ();
-        void instructionROR ();
+    void instructionBSET();
 
-        void instructionSBC ();
-        void instructionSBCI ();
-        void instructionSBI ();
-        void instructionSBIC ();
-        void instructionSBIS ();
-        void instructionSBIW ();
-        void instructionSBRC ();
-        void instructionSBRS ();
-        void instructionSLEEP ();
-        void instructionSPM ();
-        void instructionST_X_POST_INCREMENT ();
-        void instructionST_X_PRE_INCREMENT ();
-        void instructionST_X_UNCHANGED ();
-        void instructionST_Y_POST_INCREMENT ();
-        void instructionST_Y_PRE_INCREMENT ();
-        void instructionST_Y_UNCHANGED ();
-        void instructionST_Z_POST_INCREMENT ();
-        void instructionST_Z_PRE_INCREMENT ();
-        void instructionST_Z_UNCHANGED ();
-        void instructionSTD_Y ();
-        void instructionSTD_Z ();
-        void instructionSTS ();
-        void instructionSUB ();
-        void instructionSUBI ();
-        void instructionSWAP ();
+    void instructionBST();
 
-        void instructionWDR ();
+    void instructionCALL();
 
-        void unknownInstruction ();
+    void instructionCBI();
+
+    void instructionCOM();
+
+    void instructionCP();
+
+    void instructionCPC();
+
+    void instructionCPI();
+
+    void instructionCPSE();
+
+    void instructionDEC();
+
+    void instructionEOR(); //EOR - CLR
+
+    void instructionFMUL();
+
+    void instructionFMULS();
+
+    void instructionFMULSU();
+
+    void instructionICALL();
+
+    void instructionIJMP();
+
+    void instructionIN();
+
+    void instructionINC();
+
+    void instructionJMP();
+
+    void instructionLD_X_POST_INCREMENT();
+
+    void instructionLD_X_PRE_INCREMENT();
+
+    void instructionLD_X_UNCHANGED();
+
+    void instructionLD_Y_POST_INCREMENT();
+
+    void instructionLD_Y_PRE_INCREMENT();
+
+    void instructionLD_Y_UNCHANGED();
+
+    void instructionLD_Z_POST_INCREMENT();
+
+    void instructionLD_Z_PRE_INCREMENT();
+
+    void instructionLD_Z_UNCHANGED();
+
+    void instructionLDD_Y();
+
+    void instructionLDD_Z();
+
+    void instructionLDI(); //LDI - SER
+    void instructionLDS();
+
+    void instructionLPM_Z_POST_INCREMENT();
+
+    void instructionLPM_Z_UNCHANGED_DEST_R();
+
+    void instructionLPM_Z_UNCHANGED();
+
+    void instructionLSR();
+
+    void instructionMOV();
+
+    void instructionMOVW();
+
+    void instructionMUL();
+
+    void instructionMULS();
+
+    void instructionMULSU();
+
+    void instructionNEG();
+
+    void instructionNOP();
+
+    void instructionOR();
+
+    void instructionORI();   //ORI - SBR
+    void instructionOUT();
+
+    void instructionPOP();
+
+    void instructionPUSH();
+
+    void instructionRCALL();
+
+    void instructionRET();
+
+    void instructionRETI();
+
+    void instructionRJMP();
+
+    void instructionROR();
+
+    void instructionSBC();
+
+    void instructionSBCI();
+
+    void instructionSBI();
+
+    void instructionSBIC();
+
+    void instructionSBIS();
+
+    void instructionSBIW();
+
+    void instructionSBRC();
+
+    void instructionSBRS();
+
+    void instructionSLEEP();
+
+    void instructionSPM();
+
+    void instructionST_X_POST_INCREMENT();
+
+    void instructionST_X_PRE_INCREMENT();
+
+    void instructionST_X_UNCHANGED();
+
+    void instructionST_Y_POST_INCREMENT();
+
+    void instructionST_Y_PRE_INCREMENT();
+
+    void instructionST_Y_UNCHANGED();
+
+    void instructionST_Z_POST_INCREMENT();
+
+    void instructionST_Z_PRE_INCREMENT();
+
+    void instructionST_Z_UNCHANGED();
+
+    void instructionSTD_Y();
+
+    void instructionSTD_Z();
+
+    void instructionSTS();
+
+    void instructionSUB();
+
+    void instructionSUBI();
+
+    void instructionSWAP();
+
+    void instructionWDR();
+
+    void unknownInstruction();
 };
 
 

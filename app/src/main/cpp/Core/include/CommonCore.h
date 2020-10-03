@@ -10,8 +10,9 @@
 
 typedef void Listener(JNIEnv *env, const char *msg);
 
-#define MAX_LISTENERS 1
+typedef unsigned char sbyte;
 
+#define MAX_LISTENERS 1
 #define TIME_UPDATE_LISTENER 0
 
 #ifdef NDEBUG

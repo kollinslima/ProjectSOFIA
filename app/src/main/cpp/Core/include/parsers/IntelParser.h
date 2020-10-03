@@ -13,7 +13,7 @@ class IntelParser {
         static bool parse(int fd, GenericProgramMemory *progMem);
 
     private:
-        static bool checksum(unsigned char *bytes, int bytesLen);
+        static bool checksum(sbyte *bytes, int bytesLen);
 };
 
 

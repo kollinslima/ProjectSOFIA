@@ -5,6 +5,8 @@
 #ifndef PROJECTSOFIA_GENERICMEMORY_H
 #define PROJECTSOFIA_GENERICMEMORY_H
 
+#include "../../../CommonCore.h"
+
 class GenericMemory {
 
     public:
@@ -16,7 +18,7 @@ class GenericMemory {
 
     protected:
         unsigned long size;
-        unsigned char *buffer;
+        sbyte *buffer;
 };
 
 

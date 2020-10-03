@@ -138,7 +138,7 @@ void AVRCPU::instructionADC() {
     /*************************ADC***********************/
     LOGD(SOFIA_AVRCPU_TAG, "Instruction ADC");
 
-    unsigned char wbAddr = (0x01F0 & instruction) >> 4;
+    wbAddr = (0x01F0 & instruction) >> 4;
 
     datMem->read(wbAddr, &regD);
     datMem->read(((0x0200 & instruction) >> 5) | (0x000F & instruction), &regR);
@@ -147,10 +147,11 @@ void AVRCPU::instructionADC() {
     result = regD + regR + (sreg & 0x01);
     sreg = 0;
 
-    unsigned char regD_AND_regR = regD & regR;
-    unsigned char NOT_result = ~result;
+    sbyte regD_AND_regR = regD & regR;
+    sbyte NOT_result = ~result;
 
-    unsigned char HC = regD_AND_regR | (regR&NOT_result) | (NOT_result&regD);
+    sbyte HC = regD_AND_regR | (regR&NOT_result) | (NOT_result&regD);
+
     //Flag H
     sreg |= (HC<<2)&H_FLAG_MASK;
 

@@ -5,9 +5,11 @@
 #ifndef PROJECTSOFIA_FUNCTIONS_H
 #define PROJECTSOFIA_FUNCTIONS_H
 
+#include "../CommonCore.h"
+
 class Functions {
     public:
-        static int hexStrToChar(const char* hexStr, unsigned char *byes);
+        static int hexStrToByte(const char* hexStr, sbyte *byes);
 };
 
 

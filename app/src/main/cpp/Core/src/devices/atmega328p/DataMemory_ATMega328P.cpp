@@ -15,7 +15,7 @@
 
 DataMemory_ATMega328P::DataMemory_ATMega328P() {
     size = MEMORY_SIZE;
-    buffer = new unsigned char[size];
+    buffer = new sbyte[size];
 }
 
 DataMemory_ATMega328P::~DataMemory_ATMega328P() {
@@ -24,7 +24,7 @@ DataMemory_ATMega328P::~DataMemory_ATMega328P() {
 
 bool DataMemory_ATMega328P::write(unsigned long addr, void *data) {
 //    if (addr < this->size) {
-    buffer[addr] = *(static_cast<unsigned char *>(data));
+    buffer[addr] = *(static_cast<sbyte *>(data));
     return true;
 //    }
 //    return false;
@@ -32,7 +32,7 @@ bool DataMemory_ATMega328P::write(unsigned long addr, void *data) {
 
 bool DataMemory_ATMega328P::read(unsigned long addr, void *data) {
 //    if (addr < this->size) {
-    *(static_cast<unsigned char *>(data)) = buffer[addr];
+    *(static_cast<sbyte *>(data)) = buffer[addr];
     return true;
 //    }
 //    return false;

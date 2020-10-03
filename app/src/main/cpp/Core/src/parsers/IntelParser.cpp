@@ -29,11 +29,11 @@ bool IntelParser::parse(int fd, GenericProgramMemory *progMem) {
         unsigned int extendedAddress = 0;
 
         while (fscanf(fp, "%s", line) == 1){
-            unsigned char bytes[MAX_READ_BUFFER/2];
+            sbyte bytes[MAX_READ_BUFFER/2];
             char *cleanLine = line + 1; //skip colon
             LOGD(SOFIA_INTEL_PARSER_TAG, "%s", cleanLine);
 
-            int bytesLen = Functions::hexStrToChar(cleanLine, bytes);
+            int bytesLen = Functions::hexStrToByte(cleanLine, bytes);
             if (bytesLen < 0) {
                 LOGE(SOFIA_INTEL_PARSER_TAG, "Error reading file");
                 parseFail = true;
@@ -102,7 +102,7 @@ bool IntelParser::parse(int fd, GenericProgramMemory *progMem) {
     return false;
 }
 
-bool IntelParser::checksum(unsigned char *bytes, int bytesLen) {
+bool IntelParser::checksum(sbyte *bytes, int bytesLen) {
     unsigned int sum = 0;
     for (int i = 0; i < bytesLen-1; ++i) {
         sum += bytes[i];
