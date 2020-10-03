@@ -35,6 +35,9 @@ private:
 
     //Auxiliar for processing
     sbyte regD, regR, sreg, result, wbAddr;
+    sbyte regD_and_regR;
+    sbyte not_result;
+    sbyte hc_flag;
 
     void setupInstructionDecoder();
 

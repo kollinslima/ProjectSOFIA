@@ -8,7 +8,7 @@
 #include "../../../../include/devices/components/avr/GenericAVRDataMemory.h"
 
 #define INSTRUCTION_ADC_MASK  0x1C00
-#define INSTRUCTION_ADD_MASK  1
+#define INSTRUCTION_ADD_MASK  0x0C00
 #define INSTRUCTION_ADIW_MASK  2
 #define INSTRUCTION_AND_MASK  3
 #define INSTRUCTION_ANDI_MASK  4
@@ -124,6 +124,10 @@ void AVRCPU::setupInstructionDecoder() {
             instructionDecoder[i] = &AVRCPU::instructionADC;
             continue;
         }
+        if (!((i & INSTRUCTION_ADD_MASK) ^ INSTRUCTION_ADD_MASK)) {
+            instructionDecoder[i] = &AVRCPU::instructionADD;
+            continue;
+        }
         instructionDecoder[i] = &AVRCPU::unknownInstruction;
     }
 }
@@ -147,16 +151,16 @@ void AVRCPU::instructionADC() {
     result = regD + regR + (sreg & 0x01);
     sreg = 0;
 
-    sbyte regD_AND_regR = regD & regR;
-    sbyte NOT_result = ~result;
+    regD_and_regR = regD & regR;
+    not_result = ~result;
 
-    sbyte HC = regD_AND_regR | (regR&NOT_result) | (NOT_result&regD);
+    hc_flag = regD_and_regR | (regR & not_result) | (not_result & regD);
 
     //Flag H
-    sreg |= (HC<<2)&H_FLAG_MASK;
+    sreg |= (hc_flag << 2) & H_FLAG_MASK;
 
     //Flag V
-    sreg |= (((regD_AND_regR & result) | ((~regD) & (~regR) & result) )>>4)&V_FLAG_MASK;
+    sreg |= (((regD_and_regR & result) | ((~regD) & (~regR) & result) ) >> 4) & V_FLAG_MASK;
 
     //Flag N
     sreg |= (result>>5)&N_FLAG_MASK;
@@ -165,10 +169,10 @@ void AVRCPU::instructionADC() {
     sreg |= (((sreg<<1)^sreg)<<1)&S_FLAG_MASK;
 
     //Flag Z
-    sreg |= (((((((((((((NOT_result>>1)&NOT_result)>>1)&NOT_result)>>1)&NOT_result)>>1)&NOT_result)>>1)&NOT_result)>>1)&NOT_result)&(NOT_result<<1))&Z_FLAG_MASK;
+    sreg |= (((((((((((((not_result >> 1) & not_result) >> 1) & not_result) >> 1) & not_result) >> 1) & not_result) >> 1) & not_result) >> 1) & not_result) & (not_result << 1)) & Z_FLAG_MASK;
 
     //Flag C
-    sreg |= (HC>>7)&C_FLAG_MASK;
+    sreg |= (hc_flag >> 7) & C_FLAG_MASK;
 
     datMem->write(wbAddr, &result);
     datMem->write(sregAddr, &sreg);
@@ -176,7 +180,42 @@ void AVRCPU::instructionADC() {
 }
 
 void AVRCPU::instructionADD() {
+/*************************ADD***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction ADD");
 
+    wbAddr = (0x01F0 & instruction) >> 4;
+
+    datMem->read(wbAddr, &regD);
+    datMem->read(((0x0200 & instruction) >> 5) | (0x000F & instruction), &regR);
+
+    result = regD + regR;
+    sreg = 0;
+
+    regD_and_regR = regD & regR;
+    not_result = ~result;
+
+    hc_flag = regD_and_regR | (regR&not_result) | (not_result&regD);
+
+    //Flag H
+    sreg |= (hc_flag<<2)&H_FLAG_MASK;
+
+    //Flag V
+    sreg |= (((regD_and_regR & result) | ((~regD) & (~regR) & result) )>>4)&V_FLAG_MASK;
+
+    //Flag N
+    sreg |= (result>>5)&N_FLAG_MASK;
+
+    //Flag S
+    sreg |= (((sreg<<1)^sreg)<<1)&S_FLAG_MASK;
+
+    //Flag Z
+    sreg |= (((((((((((((not_result>>1)&not_result)>>1)&not_result)>>1)&not_result)>>1)&not_result)>>1)&not_result)>>1)&not_result)&(not_result<<1))&Z_FLAG_MASK;
+
+    //Flag C
+    sreg |= (hc_flag>>7)&C_FLAG_MASK;
+
+    datMem->write(wbAddr, &result);
+    datMem->write(sregAddr, &sreg);
 }
 
 void AVRCPU::instructionADIW() {
