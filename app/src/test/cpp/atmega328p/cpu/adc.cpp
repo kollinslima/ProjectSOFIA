@@ -2,7 +2,10 @@
 // UNIT TEST FOR ADC INSTRUCTION
 
 #include <stdio.h>
+#include <iostream>
 #include <assert.h>
+
+using namespace std;
 
 #define H_FLAG_MASK 0x20
 #define S_FLAG_MASK 0x10
@@ -11,11 +14,11 @@
 #define Z_FLAG_MASK 0x02
 #define C_FLAG_MASK 0x01
 
-typedef unsigned char byte;
+typedef unsigned char sbyte;
 
 typedef struct {
-    byte result;
-    byte sreg;
+    sbyte result;
+    sbyte sreg;
 } Out;
 
 Out output;
@@ -23,16 +26,14 @@ Out output;
 void testADC (byte regD, byte regR, byte initSreg) {
     byte sreg = initSreg;
     byte result;
-    printf("REGD: %X\n", regD);
-    printf("REGR: %X\n", regR);
 
     result = regD + regR + (sreg & 0x01);
     sreg = 0;
 
-    unsigned char regD_AND_regR = regD & regR;
-    unsigned char NOT_result = ~result;
+    sbyte regD_AND_regR = regD & regR;
+    sbyte NOT_result = ~result;
 
-    unsigned char HC = regD_AND_regR | (regR&NOT_result) | (NOT_result&regD);
+    sbyte HC = regD_AND_regR | (regR&NOT_result) | (NOT_result&regD);
     //Flag H
     sreg |= (HC<<2)&H_FLAG_MASK;
 
@@ -57,13 +58,6 @@ void testADC (byte regD, byte regR, byte initSreg) {
 
 int main(int argc, char *argv[])
 {
-    printf("RandomSum\n");
-    testADC(13,29,0x00);
-    printf("Result: %X\n", output.result);
-    assert(output.result == 0x2A);
-    printf("SREG: %X\n", output.sreg);
-    assert(output.sreg == 0x20);
-
     printf("SumZeroNoCarry - Return 0\n");
     testADC(0,0,0x00);
     printf("Result: %X\n", output.result);
@@ -98,6 +92,13 @@ int main(int argc, char *argv[])
     assert(output.result == 0x81);
     printf("SREG: %X\n", output.sreg);
     assert(output.sreg == 0x14);
+
+    printf("RandomSum\n");
+    testADC(13,29,0x00);
+    printf("Result: %X\n", output.result);
+    assert(output.result == 0x2A);
+    printf("SREG: %X\n", output.sreg);
+    assert(output.sreg == 0x20);
 
     return 0;
 }
