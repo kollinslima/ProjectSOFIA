@@ -23,9 +23,9 @@ typedef struct {
 
 Out output;
 
-void testADC (byte regD, byte regR, byte initSreg) {
-    byte sreg = initSreg;
-    byte result;
+void testADC (sbyte regD, sbyte regR, sbyte initSreg) {
+    sbyte sreg = initSreg;
+    sbyte result;
 
     result = regD + regR + (sreg & 0x01);
     sreg = 0;
