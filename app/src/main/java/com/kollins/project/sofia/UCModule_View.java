@@ -372,7 +372,7 @@ public class UCModule_View extends Fragment {
             case FILE_IMPORT_CODE:
                 if (resultCode == RESULT_OK) {
                     Uri uri = data.getData();
-                    Log.d("FileImporter", "Path: " + PathUtil.getPath(getContext(), uri));
+//                    Log.d("FileImporter", "Path: " + PathUtil.getPath(getContext(), uri));
                     ucModule.changeFileLocation(PathUtil.getPath(getContext(), uri));
                     uCHandler.sendEmptyMessage(UCModule.RESET_ACTION);
                 }
