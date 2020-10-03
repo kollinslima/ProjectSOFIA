@@ -45,6 +45,9 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.kollins.project.sofia.atmega328p.ADC_ATmega328P;
+import com.kollins.project.sofia.atmega328p.iomodule_atmega328p.IOModule_ATmega328P;
+import com.kollins.project.sofia.atmega328p.iomodule_atmega328p.input.InputFragment_ATmega328P;
+import com.kollins.project.sofia.atmega328p.iomodule_atmega328p.output.OutputFragment_ATmega328P;
 import com.kollins.project.sofia.extra.AREF_Configuration;
 import com.kollins.project.sofia.extra.AboutPage;
 import com.kollins.project.sofia.extra.PathUtil;
@@ -122,31 +125,39 @@ public class UCModule_View extends Fragment {
         simulatedTime = 0;
         delayScreenUpdateCount = 0;
 
-        try {
-            Class outputFragmentDevice = Class.forName(UCModule.PACKAGE_NAME + "." + UCModule.device.toLowerCase() + ".iomodule_" +
-                    UCModule.device.toLowerCase() + ".output.OutputFragment_" + UCModule.device);
-            outputFragment = (OutputFragment) outputFragmentDevice.newInstance();
+//        try {
+//            Class outputFragmentDevice = Class.forName(UCModule.PACKAGE_NAME + "." + UCModule.device.toLowerCase() + ".iomodule_" +
+//                    UCModule.device.toLowerCase() + ".output.OutputFragment_" + UCModule.device);
+//            outputFragment = (OutputFragment) outputFragmentDevice.newInstance();
+//            outputFragment.setScreenUpdater(screenUpdater);
+//
+//            Class inputFragmentDevice = Class.forName(UCModule.PACKAGE_NAME + "." + UCModule.device.toLowerCase() + ".iomodule_" +
+//                    UCModule.device.toLowerCase() + ".input.InputFragment_" + UCModule.device);
+//            inputFragment = (InputFragment) inputFragmentDevice.newInstance();
+//            inputFragment.setScreenUpdater(screenUpdater);
+//
+//            Class ioModuleDevice = Class.forName(UCModule.PACKAGE_NAME + "." + UCModule.device.toLowerCase() + ".iomodule_" +
+//                    UCModule.device.toLowerCase() + ".IOModule_" + UCModule.device);
+//            ioModule = (IOModule) ioModuleDevice
+//                    .getDeclaredConstructor(OutputFragment.class, InputFragment.class)
+//                    .newInstance(outputFragment, inputFragment);
+
+            outputFragment = new OutputFragment_ATmega328P();
             outputFragment.setScreenUpdater(screenUpdater);
 
-            Class inputFragmentDevice = Class.forName(UCModule.PACKAGE_NAME + "." + UCModule.device.toLowerCase() + ".iomodule_" +
-                    UCModule.device.toLowerCase() + ".input.InputFragment_" + UCModule.device);
-            inputFragment = (InputFragment) inputFragmentDevice.newInstance();
+            inputFragment = new InputFragment_ATmega328P();
             inputFragment.setScreenUpdater(screenUpdater);
 
-            Class ioModuleDevice = Class.forName(UCModule.PACKAGE_NAME + "." + UCModule.device.toLowerCase() + ".iomodule_" +
-                    UCModule.device.toLowerCase() + ".IOModule_" + UCModule.device);
-            ioModule = (IOModule) ioModuleDevice
-                    .getDeclaredConstructor(OutputFragment.class, InputFragment.class)
-                    .newInstance(outputFragment, inputFragment);
+            ioModule = new IOModule_ATmega328P(outputFragment, inputFragment);
 
             memoryFragment = new MemoryFragment();
             serialFragment = new SerialFragment();
             serialFragment.setScreenUpdater(screenUpdater);
 
-        } catch (ClassNotFoundException | IllegalAccessException | java.lang.InstantiationException
-                | NoSuchMethodException | InvocationTargetException e) {
-            Log.e(UCModule.MY_LOG_TAG, "Error Starting UCModule_View", e);
-        }
+//        } catch (ClassNotFoundException | IllegalAccessException | java.lang.InstantiationException
+//                | NoSuchMethodException | InvocationTargetException e) {
+//            Log.e(UCModule.MY_LOG_TAG, "Error Starting UCModule_View", e);
+//        }
     }
 
     @Nullable
