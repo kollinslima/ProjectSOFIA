@@ -20,7 +20,6 @@ package com.kollins.project.sofia.atmega328p;
 import android.os.Environment;
 import android.os.FileObserver;
 import android.os.Handler;
-
 import android.util.Log;
 
 import androidx.annotation.Nullable;

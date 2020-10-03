@@ -20,7 +20,6 @@ package com.kollins.project.sofia.atmega328p.iomodule_atmega328p.input;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
-
 import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;

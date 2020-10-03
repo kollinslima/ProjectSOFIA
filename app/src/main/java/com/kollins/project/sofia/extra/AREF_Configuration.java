@@ -19,7 +19,6 @@ package com.kollins.project.sofia.extra;
 
 import android.content.Intent;
 import android.os.Bundle;
-
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;

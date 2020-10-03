@@ -19,8 +19,8 @@ package com.kollins.project.sofia.atmega328p;
 
 import com.kollins.project.sofia.ucinterfaces.IOModule;
 
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.powermock.core.classloader.annotations.PrepareForTest;

@@ -18,7 +18,6 @@
 package com.kollins.project.sofia.atmega328p.iomodule_atmega328p.input;
 
 import android.content.Context;
-
 import android.widget.ArrayAdapter;
 
 import androidx.annotation.NonNull;

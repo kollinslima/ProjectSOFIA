@@ -19,7 +19,6 @@ package com.kollins.project.sofia.extra.memory_map;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
-
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;

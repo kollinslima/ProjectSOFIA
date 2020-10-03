@@ -25,7 +25,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -58,7 +57,6 @@ import com.kollins.project.sofia.ucinterfaces.IOModule;
 import com.kollins.project.sofia.ucinterfaces.InputFragment;
 import com.kollins.project.sofia.ucinterfaces.OutputFragment;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.TimeUnit;
 
 import static android.app.Activity.RESULT_OK;
@@ -446,7 +444,6 @@ public class UCModule_View extends Fragment {
                     }
 
                     mFragmentTransaction = mFragmentManager.beginTransaction();
-
                     mFragmentTransaction.add(R.id.outputPins, serialFragment, SerialFragment.TAG_SERIAL_FRAGMENT);
                     mFragmentTransaction.addToBackStack(null);
                     mFragmentTransaction.commit();

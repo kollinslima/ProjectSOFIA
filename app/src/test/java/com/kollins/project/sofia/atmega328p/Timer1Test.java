@@ -21,8 +21,8 @@ import com.kollins.project.sofia.UCModule;
 import com.kollins.project.sofia.atmega328p.iomodule_atmega328p.IOModule_ATmega328P;
 import com.kollins.project.sofia.ucinterfaces.IOModule;
 
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Matchers;
 import org.powermock.api.mockito.PowerMockito;
