@@ -7,10 +7,13 @@
 #include "../../../../include/CommonCore.h"
 #include "../../../../include/devices/components/avr/GenericAVRDataMemory.h"
 
-#define INSTRUCTION_ADC_MASK  0x1C00
-#define INSTRUCTION_ADD_MASK  0x0C00
-#define INSTRUCTION_ADIW_MASK  0x9600
-#define INSTRUCTION_AND_TST_MASK  0x2000
+#define GROUP1_MASK  0xFC00 //ADC, ADD, AND, TST
+#define GROUP2_MASK  0xFF00 //ADIW
+
+#define ADC_OPCODE  0x1C00
+#define ADD_OPCODE  0x0C00
+#define ADIW_OPCODE  0x9600
+#define AND_TST_OPCODE  0x2000
 #define INSTRUCTION_ANDI_MASK  4
 #define INSTRUCTION_ASR_MASK  5
 #define INSTRUCTION_BCLR_MASK  6
@@ -120,21 +123,21 @@ AVRCPU::~AVRCPU() {
 
 void AVRCPU::setupInstructionDecoder() {
     for (int i = 0; i < INSTRUCTION_DECODER_SIZE; ++i) {
-        if (!((i & INSTRUCTION_ADC_MASK) ^ INSTRUCTION_ADC_MASK)) {
-            instructionDecoder[i] = &AVRCPU::instructionADC;
-            continue;
+        switch (i&GROUP1_MASK) {
+            case ADC_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instructionADC;
+                continue;
+            case ADD_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instructionADD;
+                continue;
+            case AND_TST_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instructionAND_TST;
+                continue;
         }
-        if (!((i & INSTRUCTION_ADD_MASK) ^ INSTRUCTION_ADD_MASK)) {
-            instructionDecoder[i] = &AVRCPU::instructionADD;
-            continue;
-        }
-        if (!((i & INSTRUCTION_ADIW_MASK) ^ INSTRUCTION_ADIW_MASK)) {
-            instructionDecoder[i] = &AVRCPU::instructionADIW;
-            continue;
-        }
-        if (!((i & INSTRUCTION_AND_TST_MASK) ^ INSTRUCTION_AND_TST_MASK)) {
-            instructionDecoder[i] = &AVRCPU::instructionAND_TST;
-            continue;
+        switch (i&GROUP2_MASK) {
+            case ADIW_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instructionADIW;
+                continue;
         }
         instructionDecoder[i] = &AVRCPU::unknownInstruction;
     }
