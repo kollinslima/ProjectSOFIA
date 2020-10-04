@@ -12,6 +12,7 @@
 #define GROUP3_MASK  0xF000 //ANDI
 #define GROUP4_MASK  0xFE0F //ASR
 #define GROUP5_MASK  0xFF8F //BCLR
+#define GROUP6_MASK  0xFE08 //BLD
 
 #define ADC_OPCODE  0x1C00
 #define ADD_OPCODE  0x0C00
@@ -20,7 +21,7 @@
 #define ANDI_OPCODE  0x7000
 #define ASR_OPCODE  0x9405
 #define BCLR_OPCODE  0x9488
-#define INSTRUCTION_BLD_MASK  7
+#define BLD_OPCODE  0xF800
 #define INSTRUCTION_BRBC_MASK  8
 #define INSTRUCTION_BRBS_MASK  9
 #define INSTRUCTION_BREAK_MASK  10
@@ -104,6 +105,7 @@
 #define INSTRUCTION_SWAP_MASK  88
 #define INSTRUCTION_WDR_MASK  89
 
+#define T_FLAG_MASK 0x40
 #define H_FLAG_MASK 0x20
 #define S_FLAG_MASK 0x10
 #define V_FLAG_MASK 0x08
@@ -159,6 +161,11 @@ void AVRCPU::setupInstructionDecoder() {
         switch (i&GROUP5_MASK) {
             case BCLR_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instructionBCLR;
+                continue;
+        }
+        switch (i&GROUP6_MASK) {
+            case BLD_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instructionBLD;
                 continue;
         }
         instructionDecoder[i] = &AVRCPU::unknownInstruction;
@@ -382,7 +389,18 @@ void AVRCPU::instructionBCLR() {
 }
 
 void AVRCPU::instructionBLD() {
+    /*************************BLD***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction BLD");
 
+    wbAddr = (0x01F0 & instruction) >> 4;
+    datMem->read(wbAddr, &regD);
+    datMem->read(sregAddr, &sreg);
+
+    offset = instruction&0x0007;
+    regD &= ~(0x01 << offset);
+    regD |= ((sreg&T_FLAG_MASK)>>6)<<offset;
+
+    datMem->write(wbAddr, &regD);
 }
 
 void AVRCPU::instructionBRBC() {
