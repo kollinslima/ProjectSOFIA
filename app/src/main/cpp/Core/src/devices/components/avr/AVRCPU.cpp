@@ -8,8 +8,8 @@
 #include "../../../../include/devices/components/avr/GenericAVRDataMemory.h"
 
 //ADC, ADD, AND,
-// BRBC/BRCC/BRGE/BRHC/BRID/BRNE/BRPL/BRSH/BRTC/BRVC,
-// BRBS/BRCS/BREQ/BRHS/BRIE/BRLO/BRLT/BRMI/BRTS/BRVS,
+//BRBC/BRCC/BRGE/BRHC/BRID/BRNE/BRPL/BRSH/BRTC/BRVC,
+//BRBS/BRCS/BREQ/BRHS/BRIE/BRLO/BRLT/BRMI/BRTS/BRVS,
 // TST
 #define GROUP1_MASK  0xFC00
 //ADIW
@@ -423,8 +423,8 @@ void AVRCPU::instruction_BLD() {
 }
 
 void AVRCPU::instruction_BRBC_BRCC_BRGE_BRHC_BRID_BRNE_BRPL_BRSH_BRTC_BRVC() {
-    /*************************BRBC/BRCC***********************/
-    LOGD(SOFIA_AVRCPU_TAG, "Instruction BRBC/BRCC");
+    /****BRBC/BRCC/BRGE/BRHC/BRID/BRNE/BRPL/BRSH/BRTC/BRVC****/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction BRBC/BRCC/BRGE/BRHC/BRID/BRNE/BRPL/BRSH/BRTC/BRVC");
 
     datMem->read(sregAddr, &sreg);
 
@@ -433,8 +433,8 @@ void AVRCPU::instruction_BRBC_BRCC_BRGE_BRHC_BRID_BRNE_BRPL_BRSH_BRTC_BRVC() {
 }
 
 void AVRCPU::instruction_BRBS_BRCS_BREQ_BRHS_BRIE_BRLO_BRLT_BRMI_BRTS_BRVS() {
-    /*************************BRBS/BRCS***********************/
-    LOGD(SOFIA_AVRCPU_TAG, "Instruction BRBS/BRCS");
+    /****BRBS/BRCS/BREQ/BRHS/BRIE/BRLO/BRLT/BRMI/BRTS/BRVS****/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction BRBS/BRCS/BREQ/BRHS/BRIE/BRLO/BRLT/BRMI/BRTS/BRVS");
 
     datMem->read(sregAddr, &sreg);
 
@@ -448,7 +448,12 @@ void AVRCPU::instruction_BREAK() {
 }
 
 void AVRCPU::instructionBSET() {
+    /*************************BSET***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction BSET");
 
+    datMem->read(sregAddr, &sreg);
+    sreg |= (0x01 << ((instruction>>4)&0x0007));
+    datMem->write(sregAddr, &sreg);
 }
 
 void AVRCPU::instructionBST() {
