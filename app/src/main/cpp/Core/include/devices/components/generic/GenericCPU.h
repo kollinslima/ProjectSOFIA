@@ -5,13 +5,15 @@
 #ifndef PROJECTSOFIA_GENERICCPU_H
 #define PROJECTSOFIA_GENERICCPU_H
 
+#include "../../../CommonCore.h"
+
 class GenericCPU {
 
     public:
         virtual ~GenericCPU() {};
 
     protected:
-        unsigned long pc;
+        spc pc;
 };
 
 

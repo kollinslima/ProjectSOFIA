@@ -12,6 +12,8 @@
 #define MEMORY_SIZE (SDRAM_EXTERNAL_SIZE + REGISTERS + IO_REGISTERS + EXT_IO_REGISTERS)
 
 #define SREG_ADDR 0x5F
+#define SPL_ADDR 0x5D
+#define SPH_ADDR 0x5E
 
 DataMemory_ATMega328P::DataMemory_ATMega328P() {
     size = MEMORY_SIZE;
@@ -22,7 +24,7 @@ DataMemory_ATMega328P::~DataMemory_ATMega328P() {
     delete [] buffer;
 }
 
-bool DataMemory_ATMega328P::write(unsigned long addr, void *data) {
+bool DataMemory_ATMega328P::write(smemaddr addr, void *data) {
 //    if (addr < this->size) {
     buffer[addr] = *(static_cast<sbyte *>(data));
     return true;
@@ -30,7 +32,7 @@ bool DataMemory_ATMega328P::write(unsigned long addr, void *data) {
 //    return false;
 }
 
-bool DataMemory_ATMega328P::read(unsigned long addr, void *data) {
+bool DataMemory_ATMega328P::read(smemaddr addr, void *data) {
 //    if (addr < this->size) {
     *(static_cast<sbyte *>(data)) = buffer[addr];
     return true;
@@ -38,10 +40,18 @@ bool DataMemory_ATMega328P::read(unsigned long addr, void *data) {
 //    return false;
 }
 
-unsigned long DataMemory_ATMega328P::getSize() {
+smemaddr DataMemory_ATMega328P::getSize() {
     return size;
 }
 
-unsigned long DataMemory_ATMega328P::getSREGAddres() {
-    return 0;
+smemaddr DataMemory_ATMega328P::getSREGAddres() {
+    return SREG_ADDR;
+}
+
+smemaddr DataMemory_ATMega328P::getSPLAddres() {
+    return SPL_ADDR;
+}
+
+smemaddr DataMemory_ATMega328P::getSPHAddres() {
+    return SPH_ADDR;
 }

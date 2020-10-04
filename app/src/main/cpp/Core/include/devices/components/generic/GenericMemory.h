@@ -12,12 +12,12 @@ class GenericMemory {
     public:
         virtual ~GenericMemory() {}
 
-        virtual bool write(unsigned long addr, void *data) = 0;
-        virtual bool read(unsigned long addr, void *data) = 0;
-        virtual unsigned long getSize() = 0;
+        virtual bool write(smemaddr addr, void *data) = 0;
+        virtual bool read(smemaddr addr, void *data) = 0;
+        virtual smemaddr getSize() = 0;
 
     protected:
-        unsigned long size;
+        smemaddr size;
         sbyte *buffer;
 };
 

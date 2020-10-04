@@ -12,13 +12,20 @@ class DataMemory_ATMega328P : public GenericAVRDataMemory {
 
 public:
     DataMemory_ATMega328P();
+
     ~DataMemory_ATMega328P();
 
-    bool write(unsigned long addr, void *data) override;
-    bool read(unsigned long addr, void *data) override;
-    unsigned long getSize() override;
+    bool write(smemaddr addr, void *data) override;
 
-    unsigned long getSREGAddres() override ;
+    bool read(smemaddr addr, void *data) override;
+
+    smemaddr getSize() override;
+
+    smemaddr getSREGAddres() override;
+
+    smemaddr getSPLAddres() override;
+
+    smemaddr getSPHAddres() override;
 };
 
 

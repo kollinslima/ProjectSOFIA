@@ -12,10 +12,10 @@ class GenericProgramMemory : public GenericMemory {
     public:
         virtual ~GenericProgramMemory() {}
 
-        virtual bool loadInstruction(unsigned long pc, void *data) = 0;
-        virtual bool write(unsigned long addr, void *data) = 0;
-        virtual bool read(unsigned long addr, void *data) = 0;
-        virtual unsigned long getSize() = 0;
+        virtual bool loadInstruction(spc pc, void *data) = 0;
+        virtual bool write(smemaddr addr, void *data) = 0;
+        virtual bool read(smemaddr addr, void *data) = 0;
+        virtual smemaddr getSize() = 0;
 };
 
 

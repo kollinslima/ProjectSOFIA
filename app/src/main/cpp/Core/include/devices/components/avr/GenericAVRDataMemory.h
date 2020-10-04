@@ -9,14 +9,20 @@
 
 class GenericAVRDataMemory : public GenericMemory {
 
-    public:
-        virtual ~GenericAVRDataMemory() {}
+public:
+    virtual ~GenericAVRDataMemory() {}
 
-        virtual bool write(unsigned long addr, void *data) = 0;
-        virtual bool read(unsigned long addr, void *data) = 0;
-        virtual unsigned long getSize() = 0;
+    virtual bool write(smemaddr addr, void *data) = 0;
 
-        virtual unsigned long getSREGAddres() = 0;
+    virtual bool read(smemaddr addr, void *data) = 0;
+
+    virtual smemaddr getSize() = 0;
+
+    virtual smemaddr getSREGAddres() = 0;
+
+    virtual smemaddr getSPLAddres() = 0;
+
+    virtual smemaddr getSPHAddres() = 0;
 };
 
 
