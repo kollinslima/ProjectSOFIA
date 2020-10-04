@@ -18,7 +18,7 @@
 #define GROUP3_MASK  0xF000
 //ASR
 #define GROUP4_MASK  0xFE0F
-//BCLR, BSET
+//BCLR/CLC/CLH/CLI/CLN/CLS/CLT/CLV/CLZ, BSET
 #define GROUP5_MASK  0xFF8F
 //BLD/BST
 #define GROUP6_MASK  0xFE08
@@ -31,7 +31,7 @@
 #define AND_TST_OPCODE  0x2000
 #define ANDI_CBR_OPCODE  0x7000
 #define ASR_OPCODE  0x9405
-#define BCLR_OPCODE  0x9488
+#define BCLR_CLC_CLH_CLI_CLN_CLS_CLT_CLV_CLZ_OPCODE  0x9488
 #define BLD_OPCODE  0xF800
 #define BRBC_BRCC_BRGE_BRHC_BRID_BRNE_BRPL_BRSH_BRTC_BRVC_OPCODE  0xF400
 #define BRBS_BRCS_BREQ_BRHS_BRIE_BRLO_BRLT_BRMI_BRTS_BRVS_OPCODE  0xF000
@@ -185,8 +185,8 @@ void AVRCPU::setupInstructionDecoder() {
                 continue;
         }
         switch (i&GROUP5_MASK) {
-            case BCLR_OPCODE:
-                instructionDecoder[i] = &AVRCPU::instruction_BCLR;
+            case BCLR_CLC_CLH_CLI_CLN_CLS_CLT_CLV_CLZ_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_BCLR_CLC_CLH_CLI_CLN_CLS_CLT_CLV_CLZ;
                 continue;
             case BSET_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_BSET;
@@ -420,7 +420,7 @@ void AVRCPU::instruction_ASR() {
     datMem->write(sregAddr, &sreg);
 }
 
-void AVRCPU::instruction_BCLR() {
+void AVRCPU::instruction_BCLR_CLC_CLH_CLI_CLN_CLS_CLT_CLV_CLZ() {
     /*************************BCLR***********************/
     LOGD(SOFIA_AVRCPU_TAG, "Instruction BCLR");
 

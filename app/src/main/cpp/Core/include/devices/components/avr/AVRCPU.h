@@ -62,7 +62,7 @@ private:
 
     void instruction_ASR();
 
-    void instruction_BCLR();
+    void instruction_BCLR_CLC_CLH_CLI_CLN_CLS_CLT_CLV_CLZ();
 
     void instruction_BLD();
 
