@@ -22,6 +22,8 @@
 #define GROUP5_MASK  0xFF8F
 //BLD/BST
 #define GROUP6_MASK  0xFE08
+//CALL
+#define GROUP7_MASK  0xFE0E
 
 #define ADC_OPCODE  0x1C00
 #define ADD_OPCODE  0x0C00
@@ -36,7 +38,7 @@
 #define BREAK_OPCODE  0x9698
 #define BSET_OPCODE  0x9408
 #define BST_OPCODE  0xFA00
-#define INSTRUCTION_CALL_MASK  13
+#define CALL_OPCODE  0x940E
 #define INSTRUCTION_CBI_MASK  14
 #define INSTRUCTION_COM_MASK  15
 #define INSTRUCTION_CP_MASK  16
@@ -132,7 +134,11 @@ AVRCPU::AVRCPU(GenericProgramMemory *programMemory, GenericAVRDataMemory *dataMe
     pc = 0;
     progMem = programMemory;
     datMem = dataMemory;
+
     sregAddr = datMem->getSREGAddres();
+    stackLAddr = datMem->getSPLAddres();
+    stackHAddr = datMem->getSPHAddres();
+
     setupInstructionDecoder();
 }
 
@@ -187,6 +193,11 @@ void AVRCPU::setupInstructionDecoder() {
                 continue;
             case BST_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_BST;
+                continue;
+        }
+        switch (i&GROUP7_MASK) {
+            case CALL_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_CALL;
                 continue;
         }
         if (i == BREAK_OPCODE) {
@@ -476,8 +487,29 @@ void AVRCPU::instruction_BST() {
     datMem->write(sregAddr, &sreg);
 }
 
-void AVRCPU::instructionCALL() {
+void AVRCPU::instruction_CALL() {
+    /*************************CALL***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction CALL");
 
+    jumpValue = ((instruction&0x01F0)>>3) | (instruction&0x0001);
+    progMem->loadInstruction(pc++, &instruction);
+    jumpValue = (jumpValue<<16) | instruction;
+
+    datMem->read(stackLAddr, &dataL);
+    datMem->read(stackHAddr, &dataH);
+    stackPointer = (dataH<<8)|dataL;
+
+    //PC is already in position to go to stack (write little-endian)
+    datMem->write(stackPointer--, &pc);
+    pc = pc >> 8;
+    datMem->write(stackPointer--, &pc);
+
+    //Update SPL and SPH
+    datMem->write(stackLAddr, &stackPointer);
+    stackPointer = stackPointer >> 8;
+    datMem->write(stackHAddr, &stackPointer);
+
+    pc = jumpValue;
 }
 
 void AVRCPU::instructionCBI() {

@@ -31,12 +31,18 @@ private:
     GenericAVRDataMemory *datMem;
 
     sword16 instruction;
-    sbyte sregAddr;
+    smemaddr sregAddr;
+    smemaddr stackLAddr, stackHAddr;
 
     //Auxiliar for processing
-    sbyte regD, regR, sreg, result, wbAddr;
+    sbyte regD, regR, sreg, result;
+    smemaddr wbAddr;
+
     sbyte offset, dataL, dataH;
     sword16 outData;
+
+    smemaddr stackPointer;
+    spc jumpValue;
 
     sbyte regD_and_regR;
     sbyte not_result;
@@ -70,7 +76,7 @@ private:
 
     void instruction_BST();
 
-    void instructionCALL();
+    void instruction_CALL();
 
     void instructionCBI();
 
