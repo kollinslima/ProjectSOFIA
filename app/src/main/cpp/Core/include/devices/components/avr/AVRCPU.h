@@ -68,7 +68,7 @@ private:
 
     void instruction_BSET();
 
-    void instructionBST();
+    void instruction_BST();
 
     void instructionCALL();
 

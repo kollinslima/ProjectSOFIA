@@ -20,7 +20,7 @@
 #define GROUP4_MASK  0xFE0F
 //BCLR/BSET
 #define GROUP5_MASK  0xFF8F
-//BLD
+//BLD/BST
 #define GROUP6_MASK  0xFE08
 
 #define ADC_OPCODE  0x1C00
@@ -35,7 +35,7 @@
 #define BRBS_BRCS_BREQ_BRHS_BRIE_BRLO_BRLT_BRMI_BRTS_BRVS_OPCODE  0xF000
 #define BREAK_OPCODE  0x9698
 #define BSET_OPCODE  0x9408
-#define INSTRUCTION_BST_MASK  12
+#define BST_OPCODE  0xFA00
 #define INSTRUCTION_CALL_MASK  13
 #define INSTRUCTION_CBI_MASK  14
 #define INSTRUCTION_COM_MASK  15
@@ -184,6 +184,9 @@ void AVRCPU::setupInstructionDecoder() {
         switch (i&GROUP6_MASK) {
             case BLD_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_BLD;
+                continue;
+            case BST_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_BST;
                 continue;
         }
         if (i == BREAK_OPCODE) {
@@ -459,8 +462,18 @@ void AVRCPU::instruction_BSET() {
     datMem->write(sregAddr, &sreg);
 }
 
-void AVRCPU::instructionBST() {
+void AVRCPU::instruction_BST() {
+    /*************************BST***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction BST");
 
+    datMem->read((0x01F0 & instruction) >> 4, &regD);
+    datMem->read(sregAddr, &sreg);
+
+    offset = instruction&0x0007;
+    sreg &= ~T_FLAG_MASK;
+    sreg |= ((regD>>offset)&0x01)<<6;
+
+    datMem->write(sregAddr, &sreg);
 }
 
 void AVRCPU::instructionCALL() {
