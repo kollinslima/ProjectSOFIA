@@ -44,27 +44,27 @@ private:
 
     void setupInstructionDecoder();
 
-    void instructionADC();
+    void instruction_ADC();
 
-    void instructionADD();
+    void instruction_ADD();
 
-    void instructionADIW();
+    void instruction_ADIW();
 
-    void instructionAND_TST();     //AND - TST
+    void instruction_AND_TST();     //AND - TST
 
-    void instructionANDI();
+    void instruction_ANDI();
 
-    void instructionASR();
+    void instruction_ASR();
 
-    void instructionBCLR();
+    void instruction_BCLR();
 
-    void instructionBLD();
+    void instruction_BLD();
 
-    void instructionBRBC_BRCC_BRGE_BRHC_BRID_BRNE_BRPL_BRSH_BRTC_BRVC();
+    void instruction_BREAK();
 
-    void instructionBRBS_BRCS_BREQ_BRHS_BRIE_BRLO_BRLT_BRMI_BRTS_BRVS();
+    void instruction_BRBC_BRCC_BRGE_BRHC_BRID_BRNE_BRPL_BRSH_BRTC_BRVC();
 
-    void instructionBREAK();
+    void instruction_BRBS_BRCS_BREQ_BRHS_BRIE_BRLO_BRLT_BRMI_BRTS_BRVS();
 
     void instructionBSET();
 

@@ -143,48 +143,48 @@ void AVRCPU::setupInstructionDecoder() {
     for (int i = 0; i < INSTRUCTION_DECODER_SIZE; ++i) {
         switch (i&GROUP1_MASK) {
             case ADC_OPCODE:
-                instructionDecoder[i] = &AVRCPU::instructionADC;
+                instructionDecoder[i] = &AVRCPU::instruction_ADC;
                 continue;
             case ADD_OPCODE:
-                instructionDecoder[i] = &AVRCPU::instructionADD;
+                instructionDecoder[i] = &AVRCPU::instruction_ADD;
                 continue;
             case AND_TST_OPCODE:
-                instructionDecoder[i] = &AVRCPU::instructionAND_TST;
+                instructionDecoder[i] = &AVRCPU::instruction_AND_TST;
                 continue;
             case BRBC_BRCC_BRGE_BRHC_BRID_BRNE_BRPL_BRSH_BRTC_BRVC_OPCODE:
-                instructionDecoder[i] = &AVRCPU::instructionBRBC_BRCC_BRGE_BRHC_BRID_BRNE_BRPL_BRSH_BRTC_BRVC;
+                instructionDecoder[i] = &AVRCPU::instruction_BRBC_BRCC_BRGE_BRHC_BRID_BRNE_BRPL_BRSH_BRTC_BRVC;
                 continue;
             case BRBS_BRCS_BREQ_BRHS_BRIE_BRLO_BRLT_BRMI_BRTS_BRVS_OPCODE:
-                instructionDecoder[i] = &AVRCPU::instructionBRBS_BRCS_BREQ_BRHS_BRIE_BRLO_BRLT_BRMI_BRTS_BRVS;
+                instructionDecoder[i] = &AVRCPU::instruction_BRBS_BRCS_BREQ_BRHS_BRIE_BRLO_BRLT_BRMI_BRTS_BRVS;
                 continue;
         }
         switch (i&GROUP2_MASK) {
             case ADIW_OPCODE:
-                instructionDecoder[i] = &AVRCPU::instructionADIW;
+                instructionDecoder[i] = &AVRCPU::instruction_ADIW;
                 continue;
         }
         switch (i&GROUP3_MASK) {
             case ANDI_OPCODE:
-                instructionDecoder[i] = &AVRCPU::instructionANDI;
+                instructionDecoder[i] = &AVRCPU::instruction_ANDI;
                 continue;
         }
         switch (i&GROUP4_MASK) {
             case ASR_OPCODE:
-                instructionDecoder[i] = &AVRCPU::instructionASR;
+                instructionDecoder[i] = &AVRCPU::instruction_ASR;
                 continue;
         }
         switch (i&GROUP5_MASK) {
             case BCLR_OPCODE:
-                instructionDecoder[i] = &AVRCPU::instructionBCLR;
+                instructionDecoder[i] = &AVRCPU::instruction_BCLR;
                 continue;
         }
         switch (i&GROUP6_MASK) {
             case BLD_OPCODE:
-                instructionDecoder[i] = &AVRCPU::instructionBLD;
+                instructionDecoder[i] = &AVRCPU::instruction_BLD;
                 continue;
         }
         if (i == BREAK_OPCODE) {
-            instructionDecoder[i] = &AVRCPU::instructionBREAK;
+            instructionDecoder[i] = &AVRCPU::instruction_BREAK;
             continue;
         }
         instructionDecoder[i] = &AVRCPU::unknownInstruction;
@@ -197,7 +197,7 @@ void AVRCPU::run() {
     pc = 0;
 }
 
-void AVRCPU::instructionADC() {
+void AVRCPU::instruction_ADC() {
     /*************************ADC***********************/
     LOGD(SOFIA_AVRCPU_TAG, "Instruction ADC");
 
@@ -238,7 +238,7 @@ void AVRCPU::instructionADC() {
 
 }
 
-void AVRCPU::instructionADD() {
+void AVRCPU::instruction_ADD() {
     /*************************ADD***********************/
     LOGD(SOFIA_AVRCPU_TAG, "Instruction ADD");
 
@@ -278,7 +278,7 @@ void AVRCPU::instructionADD() {
     datMem->write(sregAddr, &sreg);
 }
 
-void AVRCPU::instructionADIW() {
+void AVRCPU::instruction_ADIW() {
     /*************************ADIW***********************/
     LOGD(SOFIA_AVRCPU_TAG, "Instruction ADIW");
 
@@ -316,7 +316,7 @@ void AVRCPU::instructionADIW() {
     datMem->write(sregAddr, &sreg);
 }
 
-void AVRCPU::instructionAND_TST() {
+void AVRCPU::instruction_AND_TST() {
     /*************************AND/TST***********************/
     LOGD(SOFIA_AVRCPU_TAG, "Instruction AND/TSL");
 
@@ -342,7 +342,7 @@ void AVRCPU::instructionAND_TST() {
     datMem->write(sregAddr, &sreg);
 }
 
-void AVRCPU::instructionANDI() {
+void AVRCPU::instruction_ANDI() {
     /*************************ANDI***********************/
     LOGD(SOFIA_AVRCPU_TAG, "Instruction ANDI");
 
@@ -367,7 +367,7 @@ void AVRCPU::instructionANDI() {
     datMem->write(sregAddr, &sreg);
 }
 
-void AVRCPU::instructionASR() {
+void AVRCPU::instruction_ASR() {
     /*************************ASR***********************/
     LOGD(SOFIA_AVRCPU_TAG, "Instruction ASR");
 
@@ -376,7 +376,7 @@ void AVRCPU::instructionASR() {
     datMem->read(wbAddr, &regD);
     datMem->read(sregAddr, &sreg);
 
-    result = (0x80&regD)|(regD>>1);
+    result = ((__int8_t)regD)>>1; //Cast to make sign extension
     sreg &= 0xE0;
 
     //Flag N
@@ -398,7 +398,7 @@ void AVRCPU::instructionASR() {
     datMem->write(sregAddr, &sreg);
 }
 
-void AVRCPU::instructionBCLR() {
+void AVRCPU::instruction_BCLR() {
     /*************************BCLR***********************/
     LOGD(SOFIA_AVRCPU_TAG, "Instruction BCLR");
 
@@ -407,7 +407,7 @@ void AVRCPU::instructionBCLR() {
     datMem->write(sregAddr, &sreg);
 }
 
-void AVRCPU::instructionBLD() {
+void AVRCPU::instruction_BLD() {
     /*************************BLD***********************/
     LOGD(SOFIA_AVRCPU_TAG, "Instruction BLD");
 
@@ -422,7 +422,7 @@ void AVRCPU::instructionBLD() {
     datMem->write(wbAddr, &regD);
 }
 
-void AVRCPU::instructionBRBC_BRCC_BRGE_BRHC_BRID_BRNE_BRPL_BRSH_BRTC_BRVC() {
+void AVRCPU::instruction_BRBC_BRCC_BRGE_BRHC_BRID_BRNE_BRPL_BRSH_BRTC_BRVC() {
     /*************************BRBC/BRCC***********************/
     LOGD(SOFIA_AVRCPU_TAG, "Instruction BRBC/BRCC");
 
@@ -432,7 +432,7 @@ void AVRCPU::instructionBRBC_BRCC_BRGE_BRHC_BRID_BRNE_BRPL_BRSH_BRTC_BRVC() {
     pc += (((__int8_t)(instruction&0x03F8))<<6>>9)&(~(((__int8_t )(sreg<<(7-offset)))>>7)); //Cast to make sign extension
 }
 
-void AVRCPU::instructionBRBS_BRCS_BREQ_BRHS_BRIE_BRLO_BRLT_BRMI_BRTS_BRVS() {
+void AVRCPU::instruction_BRBS_BRCS_BREQ_BRHS_BRIE_BRLO_BRLT_BRMI_BRTS_BRVS() {
     /*************************BRBS/BRCS***********************/
     LOGD(SOFIA_AVRCPU_TAG, "Instruction BRBS/BRCS");
 
@@ -442,7 +442,7 @@ void AVRCPU::instructionBRBS_BRCS_BREQ_BRHS_BRIE_BRLO_BRLT_BRMI_BRTS_BRVS() {
     pc += (((__int8_t)(instruction&0x03F8))<<6>>9)&(((__int8_t )(sreg<<(7-offset)))>>7); //Cast to make sign extension
 }
 
-void AVRCPU::instructionBREAK() {
+void AVRCPU::instruction_BREAK() {
     /*************************BREAK***********************/
     LOGD(SOFIA_AVRCPU_TAG, "Instruction BREAK - NOT IMPLEMENTED");
 }

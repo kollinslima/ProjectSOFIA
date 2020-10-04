@@ -27,7 +27,8 @@ void testASR (sbyte regD, sbyte regR, sbyte initSreg) {
     sbyte sreg = initSreg;
     sbyte result;
 
-    result = (0x80&regD)|(regD>>1);
+    // result = (0x80&regD)|(regD>>1);
+    result = ((__int8_t)regD)>>1;
     sreg &= 0xE0;
 
     //Flag N
