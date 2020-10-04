@@ -7,7 +7,7 @@
 #include "../../../../include/CommonCore.h"
 #include "../../../../include/devices/components/avr/GenericAVRDataMemory.h"
 
-#define GROUP1_MASK  0xFC00 //ADC, ADD, AND, TST
+#define GROUP1_MASK  0xFC00 //ADC, ADD, AND, BRBC, TST
 #define GROUP2_MASK  0xFF00 //ADIW
 #define GROUP3_MASK  0xF000 //ANDI
 #define GROUP4_MASK  0xFE0F //ASR
@@ -22,7 +22,7 @@
 #define ASR_OPCODE  0x9405
 #define BCLR_OPCODE  0x9488
 #define BLD_OPCODE  0xF800
-#define INSTRUCTION_BRBC_MASK  8
+#define BRBC_OPCODE  0xF400
 #define INSTRUCTION_BRBS_MASK  9
 #define INSTRUCTION_BREAK_MASK  10
 #define INSTRUCTION_BSET_MASK  11
@@ -141,6 +141,9 @@ void AVRCPU::setupInstructionDecoder() {
                 continue;
             case AND_TST_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instructionAND_TST;
+                continue;
+            case BRBC_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instructionBRBC;
                 continue;
         }
         switch (i&GROUP2_MASK) {
@@ -404,7 +407,13 @@ void AVRCPU::instructionBLD() {
 }
 
 void AVRCPU::instructionBRBC() {
+    /*************************BRBC***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction BRBC");
 
+    datMem->read(sregAddr, &sreg);
+
+    offset = instruction&0x0007;
+    pc += (((__int8_t)(instruction&0x03F8))<<6>>9)&(~(((__int8_t )(sreg<<(7-offset)))>>7)); //Cast to make sign extension
 }
 
 void AVRCPU::instructionBRBS() {
