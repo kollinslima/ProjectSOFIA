@@ -66,7 +66,7 @@ private:
 
     void instruction_BRBS_BRCS_BREQ_BRHS_BRIE_BRLO_BRLT_BRMI_BRTS_BRVS();
 
-    void instructionBSET();
+    void instruction_BSET();
 
     void instructionBST();
 
