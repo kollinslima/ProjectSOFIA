@@ -14,7 +14,7 @@
 #define GROUP1_MASK  0xFC00
 //ADIW, CBI
 #define GROUP2_MASK  0xFF00
-//ANDI
+//ANDI/CBR
 #define GROUP3_MASK  0xF000
 //ASR
 #define GROUP4_MASK  0xFE0F
@@ -29,7 +29,7 @@
 #define ADD_OPCODE  0x0C00
 #define ADIW_OPCODE  0x9600
 #define AND_TST_OPCODE  0x2000
-#define ANDI_OPCODE  0x7000
+#define ANDI_CBR_OPCODE  0x7000
 #define ASR_OPCODE  0x9405
 #define BCLR_OPCODE  0x9488
 #define BLD_OPCODE  0xF800
@@ -175,8 +175,8 @@ void AVRCPU::setupInstructionDecoder() {
                 continue;
         }
         switch (i&GROUP3_MASK) {
-            case ANDI_OPCODE:
-                instructionDecoder[i] = &AVRCPU::instruction_ANDI;
+            case ANDI_CBR_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_ANDI_CBR;
                 continue;
         }
         switch (i&GROUP4_MASK) {
@@ -364,7 +364,7 @@ void AVRCPU::instruction_AND_TST() {
     datMem->write(sregAddr, &sreg);
 }
 
-void AVRCPU::instruction_ANDI() {
+void AVRCPU::instruction_ANDI_CBR() {
     /*************************ANDI***********************/
     LOGD(SOFIA_AVRCPU_TAG, "Instruction ANDI");
 

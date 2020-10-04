@@ -58,7 +58,7 @@ private:
 
     void instruction_AND_TST();     //AND - TST
 
-    void instruction_ANDI();
+    void instruction_ANDI_CBR();
 
     void instruction_ASR();
 
