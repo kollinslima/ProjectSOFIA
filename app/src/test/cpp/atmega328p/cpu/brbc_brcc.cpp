@@ -1,5 +1,5 @@
 // Kollins G. Lima - 10/04/2020
-// UNIT TEST FOR BRBC INSTRUCTION
+// UNIT TEST FOR BRBC/BRCC INSTRUCTION
 
 #include <stdio.h>
 #include <iostream>

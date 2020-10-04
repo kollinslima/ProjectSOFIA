@@ -7,7 +7,7 @@
 #include "../../../../include/CommonCore.h"
 #include "../../../../include/devices/components/avr/GenericAVRDataMemory.h"
 
-#define GROUP1_MASK  0xFC00 //ADC, ADD, AND, BRBC, BRBS, TST
+#define GROUP1_MASK  0xFC00 //ADC, ADD, AND, BRBC/BRCC, BRBS/BRCS, TST
 #define GROUP2_MASK  0xFF00 //ADIW
 #define GROUP3_MASK  0xF000 //ANDI
 #define GROUP4_MASK  0xFE0F //ASR
@@ -22,8 +22,8 @@
 #define ASR_OPCODE  0x9405
 #define BCLR_OPCODE  0x9488
 #define BLD_OPCODE  0xF800
-#define BRBC_OPCODE  0xF400
-#define BRBS_OPCODE  0xF000
+#define BRBC_BRCC_OPCODE  0xF400
+#define BRBS_BRCS_OPCODE  0xF000
 #define INSTRUCTION_BREAK_MASK  10
 #define INSTRUCTION_BSET_MASK  11
 #define INSTRUCTION_BST_MASK  12
@@ -142,11 +142,11 @@ void AVRCPU::setupInstructionDecoder() {
             case AND_TST_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instructionAND_TST;
                 continue;
-            case BRBC_OPCODE:
-                instructionDecoder[i] = &AVRCPU::instructionBRBC;
+            case BRBC_BRCC_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instructionBRBC_BRCC;
                 continue;
-            case BRBS_OPCODE:
-                instructionDecoder[i] = &AVRCPU::instructionBRBS;
+            case BRBS_BRCS_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instructionBRBS_BRCS;
                 continue;
         }
         switch (i&GROUP2_MASK) {
@@ -409,9 +409,9 @@ void AVRCPU::instructionBLD() {
     datMem->write(wbAddr, &regD);
 }
 
-void AVRCPU::instructionBRBC() {
-    /*************************BRBC***********************/
-    LOGD(SOFIA_AVRCPU_TAG, "Instruction BRBC");
+void AVRCPU::instructionBRBC_BRCC() {
+    /*************************BRBC/BRCC***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction BRBC/BRCC");
 
     datMem->read(sregAddr, &sreg);
 
@@ -419,9 +419,9 @@ void AVRCPU::instructionBRBC() {
     pc += (((__int8_t)(instruction&0x03F8))<<6>>9)&(~(((__int8_t )(sreg<<(7-offset)))>>7)); //Cast to make sign extension
 }
 
-void AVRCPU::instructionBRBS() {
-    /*************************BRBS***********************/
-    LOGD(SOFIA_AVRCPU_TAG, "Instruction BRBS");
+void AVRCPU::instructionBRBS_BRCS() {
+    /*************************BRBS/BRCS***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction BRBS/BRCS");
 
     datMem->read(sregAddr, &sreg);
 

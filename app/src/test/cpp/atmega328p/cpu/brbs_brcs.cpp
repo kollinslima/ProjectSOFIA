@@ -1,5 +1,5 @@
 // Kollins G. Lima - 10/04/2020
-// UNIT TEST FOR BRBS INSTRUCTION
+// UNIT TEST FOR BRBS/BRCS INSTRUCTION
 
 #include <stdio.h>
 #include <iostream>
