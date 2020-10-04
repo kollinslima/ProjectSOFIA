@@ -31,7 +31,7 @@ void testBRBC (unsigned long initPC, sbyte initSreg, sword16 instruction) {
 
     sbyte offset = instruction&0x0007;
     printf("OFFSET: %d\n", (((__int8_t)(instruction&0x03F8))<<6>>9));
-    printf("MASK: %X\n", (((__int8_t )(sreg<<(7-offset)))>>7));
+    printf("MASK: %X\n", ~(((__int8_t )(sreg<<(7-offset)))>>7));
     result += (((__int8_t)(instruction&0x03F8))<<6>>9)&(~(((__int8_t )(sreg<<(7-offset)))>>7)); //Cast to make sign extension
 
     output.result = result;
@@ -120,7 +120,7 @@ int main(int argc, char *argv[])
     assert(output.result == 0x00);
 
     printf("BranchWithCNegative ReturnPC 0\n");
-    testBRBC(0x01, 0x00, 0x01FF);
+    testBRBC(0x01, 0x00, 0x02F8);
     printf("Result: %X\n", output.result);
     assert(output.result == 0x00);
 
