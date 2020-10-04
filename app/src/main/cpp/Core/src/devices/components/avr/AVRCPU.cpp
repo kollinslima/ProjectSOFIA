@@ -9,12 +9,13 @@
 
 #define GROUP1_MASK  0xFC00 //ADC, ADD, AND, TST
 #define GROUP2_MASK  0xFF00 //ADIW
+#define GROUP3_MASK  0xF000 //ANDI
 
 #define ADC_OPCODE  0x1C00
 #define ADD_OPCODE  0x0C00
 #define ADIW_OPCODE  0x9600
 #define AND_TST_OPCODE  0x2000
-#define INSTRUCTION_ANDI_MASK  4
+#define ANDI_OPCODE  0x7000
 #define INSTRUCTION_ASR_MASK  5
 #define INSTRUCTION_BCLR_MASK  6
 #define INSTRUCTION_BLD_MASK  7
@@ -108,6 +109,10 @@
 #define Z_FLAG_MASK 0x02
 #define C_FLAG_MASK 0x01
 
+#define REG16ADDR 0x10
+#define REG24ADDR 0x18
+#define REG25ADDR 0x19
+
 #define SOFIA_AVRCPU_TAG "SOFIA AVRCPU CONTROLLER"
 
 AVRCPU::AVRCPU(GenericProgramMemory *programMemory, GenericAVRDataMemory *dataMemory) {
@@ -139,6 +144,11 @@ void AVRCPU::setupInstructionDecoder() {
                 instructionDecoder[i] = &AVRCPU::instructionADIW;
                 continue;
         }
+        switch (i&GROUP3_MASK) {
+            case ANDI_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instructionANDI;
+                continue;
+        }
         instructionDecoder[i] = &AVRCPU::unknownInstruction;
     }
 }
@@ -151,7 +161,7 @@ void AVRCPU::run() {
 
 void AVRCPU::instructionADC() {
     /*************************ADC***********************/
-//    LOGD(SOFIA_AVRCPU_TAG, "Instruction ADC");
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction ADC");
 
     wbAddr = (0x01F0 & instruction) >> 4;
 
@@ -192,7 +202,7 @@ void AVRCPU::instructionADC() {
 
 void AVRCPU::instructionADD() {
     /*************************ADD***********************/
-//    LOGD(SOFIA_AVRCPU_TAG, "Instruction ADD");
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction ADD");
 
     wbAddr = (0x01F0 & instruction) >> 4;
 
@@ -232,13 +242,13 @@ void AVRCPU::instructionADD() {
 
 void AVRCPU::instructionADIW() {
     /*************************ADIW***********************/
-//    LOGD(SOFIA_AVRCPU_TAG, "Instruction ADIW");
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction ADIW");
 
     offset = ((0x0030&instruction)>>3); //(>>4)*2 = >>3
 
     //ADIW operates on the upper four registers pairs
-    sbyte dataLAddr = 0x18 + offset;
-    sbyte dataHAddr = 0x19 + offset;
+    sbyte dataLAddr = REG24ADDR + offset;
+    sbyte dataHAddr = REG25ADDR + offset;
 
     datMem->read(dataLAddr, &dataL);
     datMem->read(dataHAddr + offset, &dataH);
@@ -270,7 +280,7 @@ void AVRCPU::instructionADIW() {
 
 void AVRCPU::instructionAND_TST() {
     /*************************AND/TST***********************/
-//    LOGD(SOFIA_AVRCPU_TAG, "Instruction AND/TSL");
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction AND/TSL");
 
     wbAddr = (0x01F0 & instruction) >> 4;
 
@@ -295,7 +305,28 @@ void AVRCPU::instructionAND_TST() {
 }
 
 void AVRCPU::instructionANDI() {
+    /*************************ANDI***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction ANDI");
 
+    wbAddr = REG16ADDR | ((0x00F0 & instruction) >> 4);
+
+    datMem->read(wbAddr, &regD);
+    datMem->read(sregAddr, &sreg);
+
+    result = regD & (((0x0F00&instruction)>>4)|(0x000F&instruction));
+    sreg &= 0xE1;
+
+    //Flag N
+    sreg |= (result >> 5) & N_FLAG_MASK;
+
+    //Flag S
+    sreg |= (((sreg << 1) ^ sreg) << 1) & S_FLAG_MASK;
+
+    //Flag Z
+    sreg |= result?0x00:Z_FLAG_MASK;
+
+    datMem->write(wbAddr, &result);
+    datMem->write(sregAddr, &sreg);
 }
 
 void AVRCPU::instructionASR() {

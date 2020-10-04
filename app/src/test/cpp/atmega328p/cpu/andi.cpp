@@ -1,5 +1,5 @@
-// Kollins G. Lima - 10/03/2020
-// UNIT TEST FOR AND/TST INSTRUCTION
+// Kollins G. Lima - 10/04/2020
+// UNIT TEST FOR ANDI INSTRUCTION
 
 #include <stdio.h>
 #include <iostream>
@@ -14,20 +14,23 @@ using namespace std;
 #define Z_FLAG_MASK 0x02
 #define C_FLAG_MASK 0x01
 
-typedef unsigned char sbyte;
+typedef uint8_t sbyte;
+typedef uint16_t sword16;
 
 typedef struct {
     sbyte result;
+    sbyte outL;
+    sbyte outH;
     sbyte sreg;
 } Out;
 
 Out output;
 
-void testAND (sbyte regD, sbyte regR, sbyte initSreg) {
+void testANDI (sbyte regD, sbyte initSreg, sword16 instruction) {
     sbyte sreg = initSreg;
     sbyte result;
 
-    result = regD & regR;
+    result =  regD & (((0x0F00&instruction)>>4)|(0x000F&instruction));
     sreg &= 0xE1;
 
     //Flag N
@@ -45,27 +48,26 @@ void testAND (sbyte regD, sbyte regR, sbyte initSreg) {
 
 int main(int argc, char *argv[])
 {
-    printf("ZeroAndZero - Return 0\n");
-    testAND(0,0,0x00);
+    printf("ZeroAndZero- Return 0\n");
+    testANDI(0,0x00,0x00F0);
     printf("Result: %X\n", output.result);
     assert(output.result == 0);
     printf("SREG: %X\n", output.sreg);
     assert(output.sreg == 0x02);
 
-    printf("ZeroAndFF - Return 0\n");
-    testAND(0,0xFF,0x00);
+    printf("ZeroAndFF- Return 0\n");
+    testANDI(0,0x00,0x0FFF);
     printf("Result: %X\n", output.result);
     assert(output.result == 0);
     printf("SREG: %X\n", output.sreg);
     assert(output.sreg == 0x02);
 
-    printf("FFAndF0 - Return 0xF0\n");
-    testAND(0xFF,0xF0,0x00);
+    printf("FFAndF0- Return F0\n");
+    testANDI(0xFF,0x00,0x0FF0);
     printf("Result: %X\n", output.result);
     assert(output.result == 0xF0);
     printf("SREG: %X\n", output.sreg);
     assert(output.sreg == 0x14);
-
 
     return 0;
 }
