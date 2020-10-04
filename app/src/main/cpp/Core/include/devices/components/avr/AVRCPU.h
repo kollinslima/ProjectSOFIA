@@ -56,7 +56,7 @@ private:
 
     void instruction_ADIW();
 
-    void instruction_AND_TST();     //AND - TST
+    void instruction_AND_TST();
 
     void instruction_ANDI_CBR();
 
@@ -80,6 +80,8 @@ private:
 
     void instruction_CBI();
 
+    void instruction_CLR_EOR();
+
     void instructionCOM();
 
     void instructionCP();
@@ -91,8 +93,6 @@ private:
     void instructionCPSE();
 
     void instructionDEC();
-
-    void instructionEOR(); //EOR - CLR
 
     void instructionFMUL();
 

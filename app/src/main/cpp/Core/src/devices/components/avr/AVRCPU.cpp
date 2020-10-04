@@ -10,7 +10,8 @@
 //ADC, ADD, AND,
 //BRBC/BRCC/BRGE/BRHC/BRID/BRNE/BRPL/BRSH/BRTC/BRVC,
 //BRBS/BRCS/BREQ/BRHS/BRIE/BRLO/BRLT/BRMI/BRTS/BRVS,
-// TST
+//CLR/EOR,
+//TST
 #define GROUP1_MASK  0xFC00
 //ADIW, CBI
 #define GROUP2_MASK  0xFF00
@@ -40,13 +41,13 @@
 #define BST_OPCODE  0xFA00
 #define CALL_OPCODE  0x940E
 #define CBI_OPCODE  0x9800
+#define CLR_EOR_OPCODE  0x2400
 #define INSTRUCTION_COM_MASK  15
 #define INSTRUCTION_CP_MASK  16
 #define INSTRUCTION_CPC_MASK  17
 #define INSTRUCTION_CPI_MASK  18
 #define INSTRUCTION_CPSE_MASK  19
 #define INSTRUCTION_DEC_MASK  20
-#define INSTRUCTION_EOR_MASK  21
 #define INSTRUCTION_FMUL_MASK  22
 #define INSTRUCTION_FMULS_MASK  23
 #define INSTRUCTION_FMULSU_MASK  24
@@ -164,6 +165,9 @@ void AVRCPU::setupInstructionDecoder() {
                 continue;
             case BRBS_BRCS_BREQ_BRHS_BRIE_BRLO_BRLT_BRMI_BRTS_BRVS_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_BRBS_BRCS_BREQ_BRHS_BRIE_BRLO_BRLT_BRMI_BRTS_BRVS;
+                continue;
+            case CLR_EOR_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_CLR_EOR;
                 continue;
         }
         switch (i&GROUP2_MASK) {
@@ -527,6 +531,32 @@ void AVRCPU::instruction_CBI() {
     datMem->write(wbAddr, &result);
 }
 
+void AVRCPU::instruction_CLR_EOR() {
+    /*************************CLR/EOR***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction CLR/EOR");
+
+    wbAddr = (0x01F0 & instruction) >> 4;
+
+    datMem->read(wbAddr, &regD);
+    datMem->read(((0x0200 & instruction) >> 5) | (0x000F & instruction), &regR);
+    datMem->read(sregAddr, &sreg);
+
+    result = regD ^ regR;
+    sreg &= 0xE1;
+
+    //Flag N
+    sreg |= (result >> 5) & N_FLAG_MASK;
+
+    //Flag S
+    sreg |= (((sreg << 1) ^ sreg) << 1) & S_FLAG_MASK;
+
+    //Flag Z
+    sreg |= result?0x00:Z_FLAG_MASK;
+
+    datMem->write(wbAddr, &result);
+    datMem->write(sregAddr, &sreg);
+}
+
 void AVRCPU::instructionCOM() {
 
 }
@@ -548,10 +578,6 @@ void AVRCPU::instructionCPSE() {
 }
 
 void AVRCPU::instructionDEC() {
-
-}
-
-void AVRCPU::instructionEOR() {
 
 }
 
