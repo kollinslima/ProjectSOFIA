@@ -1,5 +1,5 @@
 // Kollins G. Lima - 10/04/2020
-// UNIT TEST FOR BRBS/BRCS INSTRUCTION
+// UNIT TEST FOR BRBC/BRCC/BRGE/BRHC/BRID/BRNE/BRPL/BRSH/BRTC/BRVC INSTRUCTION
 
 #include <stdio.h>
 #include <iostream>
@@ -25,14 +25,14 @@ typedef struct {
 
 Out output;
 
-void testBRBS (unsigned long initPC, sbyte initSreg, sword16 instruction) {
+void testBRBC (unsigned long initPC, sbyte initSreg, sword16 instruction) {
     sbyte sreg = initSreg;
     unsigned long result = initPC;
 
     sbyte offset = instruction&0x0007;
     printf("OFFSET: %d\n", (((__int8_t)(instruction&0x03F8))<<6>>9));
-    printf("MASK: %X\n", (((__int8_t )(sreg<<(7-offset)))>>7));
-    result += (((__int8_t)(instruction&0x03F8))<<6>>9)&((((__int8_t )(sreg<<(7-offset)))>>7)); //Cast to make sign extension
+    printf("MASK: %X\n", ~(((__int8_t )(sreg<<(7-offset)))>>7));
+    result += (((__int8_t)(instruction&0x03F8))<<6>>9)&(~(((__int8_t )(sreg<<(7-offset)))>>7)); //Cast to make sign extension
 
     output.result = result;
 }
@@ -40,87 +40,87 @@ void testBRBS (unsigned long initPC, sbyte initSreg, sword16 instruction) {
 int main(int argc, char *argv[])
 {
     printf("BranchWithI ReturnPC 1\n");
-    testBRBS(0x00, 0x80, 0x000F);
+    testBRBC(0x00, 0x00, 0x000F);
     printf("Result: %X\n", output.result);
     assert(output.result == 0x01);
 
     printf("NoBranchWithI ReturnPC 0\n");
-    testBRBS(0x00, 0x00, 0x000F);
+    testBRBC(0x00, 0x80, 0x000F);
     printf("Result: %X\n", output.result);
     assert(output.result == 0x00);
 
     printf("BranchWithT ReturnPC 2\n");
-    testBRBS(0x00, 0x40, 0x0016);
+    testBRBC(0x00, 0x00, 0x0016);
     printf("Result: %X\n", output.result);
     assert(output.result == 0x02);
 
     printf("NoBranchWithT ReturnPC 0\n");
-    testBRBS(0x00, 0x00, 0x0016);
+    testBRBC(0x00, 0x40, 0x0016);
     printf("Result: %X\n", output.result);
     assert(output.result == 0x00);
 
     printf("BranchWithH ReturnPC 3\n");
-    testBRBS(0x00, 0x20, 0x001D);
+    testBRBC(0x00, 0x00, 0x001D);
     printf("Result: %X\n", output.result);
     assert(output.result == 0x03);
 
     printf("NoBranchWithH ReturnPC 0\n");
-    testBRBS(0x00, 0x00, 0x001D);
+    testBRBC(0x00, 0x20, 0x001D);
     printf("Result: %X\n", output.result);
     assert(output.result == 0x00);
 
     printf("BranchWithS ReturnPC 4\n");
-    testBRBS(0x00, 0x10, 0x0024);
+    testBRBC(0x00, 0x00, 0x0024);
     printf("Result: %X\n", output.result);
     assert(output.result == 0x04);
 
     printf("NoBranchWithS ReturnPC 0\n");
-    testBRBS(0x00, 0x00, 0x0024);
+    testBRBC(0x00, 0x10, 0x0024);
     printf("Result: %X\n", output.result);
     assert(output.result == 0x00);
 
     printf("BranchWithV ReturnPC 5\n");
-    testBRBS(0x00, 0x08, 0x002B);
+    testBRBC(0x00, 0x00, 0x002B);
     printf("Result: %X\n", output.result);
     assert(output.result == 0x05);
 
     printf("NoBranchWithV ReturnPC 0\n");
-    testBRBS(0x00, 0x00, 0x002B);
+    testBRBC(0x00, 0x08, 0x002B);
     printf("Result: %X\n", output.result);
     assert(output.result == 0x00);
 
     printf("BranchWithN ReturnPC 6\n");
-    testBRBS(0x00, 0x04, 0x0032);
+    testBRBC(0x00, 0x00, 0x0032);
     printf("Result: %X\n", output.result);
     assert(output.result == 0x06);
 
     printf("NoBranchWithN ReturnPC 0\n");
-    testBRBS(0x00, 0x00, 0x0032);
+    testBRBC(0x00, 0x04, 0x0032);
     printf("Result: %X\n", output.result);
     assert(output.result == 0x00);
 
     printf("BranchWithZ ReturnPC 7\n");
-    testBRBS(0x00, 0x02, 0x0039);
+    testBRBC(0x00, 0x00, 0x0039);
     printf("Result: %X\n", output.result);
     assert(output.result == 0x07);
 
     printf("NoBranchWithZ ReturnPC 0\n");
-    testBRBS(0x00, 0x00, 0x0039);
+    testBRBC(0x00, 0x02, 0x0039);
     printf("Result: %X\n", output.result);
     assert(output.result == 0x00);
 
     printf("BranchWithC ReturnPC 8\n");
-    testBRBS(0x00, 0x01, 0x0040);
+    testBRBC(0x00, 0x00, 0x0040);
     printf("Result: %X\n", output.result);
     assert(output.result == 0x08);
 
     printf("NoBranchWithC ReturnPC 0\n");
-    testBRBS(0x00, 0x00, 0x0040);
+    testBRBC(0x00, 0x01, 0x0040);
     printf("Result: %X\n", output.result);
     assert(output.result == 0x00);
 
     printf("BranchWithCNegative ReturnPC 0\n");
-    testBRBS(0x01, 0x01, 0x02F8);
+    testBRBC(0x01, 0x00, 0x02F8);
     printf("Result: %X\n", output.result);
     assert(output.result == 0x00);
 

@@ -7,12 +7,21 @@
 #include "../../../../include/CommonCore.h"
 #include "../../../../include/devices/components/avr/GenericAVRDataMemory.h"
 
-#define GROUP1_MASK  0xFC00 //ADC, ADD, AND, BRBC/BRCC, BRBS/BRCS, TST
-#define GROUP2_MASK  0xFF00 //ADIW
-#define GROUP3_MASK  0xF000 //ANDI
-#define GROUP4_MASK  0xFE0F //ASR
-#define GROUP5_MASK  0xFF8F //BCLR
-#define GROUP6_MASK  0xFE08 //BLD
+//ADC, ADD, AND,
+// BRBC/BRCC/BRGE/BRHC/BRID/BRNE/BRPL/BRSH/BRTC/BRVC,
+// BRBS/BRCS/BREQ/BRHS/BRIE/BRLO/BRLT/BRMI/BRTS/BRVS,
+// TST
+#define GROUP1_MASK  0xFC00
+//ADIW
+#define GROUP2_MASK  0xFF00
+//ANDI
+#define GROUP3_MASK  0xF000
+//ASR
+#define GROUP4_MASK  0xFE0F
+//BCLR
+#define GROUP5_MASK  0xFF8F
+//BLD
+#define GROUP6_MASK  0xFE08
 
 #define ADC_OPCODE  0x1C00
 #define ADD_OPCODE  0x0C00
@@ -22,9 +31,9 @@
 #define ASR_OPCODE  0x9405
 #define BCLR_OPCODE  0x9488
 #define BLD_OPCODE  0xF800
-#define BRBC_BRCC_OPCODE  0xF400
-#define BRBS_BRCS_OPCODE  0xF000
-#define INSTRUCTION_BREAK_MASK  10
+#define BRBC_BRCC_BRGE_BRHC_BRID_BRNE_BRPL_BRSH_BRTC_BRVC_OPCODE  0xF400
+#define BRBS_BRCS_BREQ_BRHS_BRIE_BRLO_BRLT_BRMI_BRTS_BRVS_OPCODE  0xF000
+#define BREAK_OPCODE  0x9698
 #define INSTRUCTION_BSET_MASK  11
 #define INSTRUCTION_BST_MASK  12
 #define INSTRUCTION_CALL_MASK  13
@@ -142,11 +151,11 @@ void AVRCPU::setupInstructionDecoder() {
             case AND_TST_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instructionAND_TST;
                 continue;
-            case BRBC_BRCC_OPCODE:
-                instructionDecoder[i] = &AVRCPU::instructionBRBC_BRCC;
+            case BRBC_BRCC_BRGE_BRHC_BRID_BRNE_BRPL_BRSH_BRTC_BRVC_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instructionBRBC_BRCC_BRGE_BRHC_BRID_BRNE_BRPL_BRSH_BRTC_BRVC;
                 continue;
-            case BRBS_BRCS_OPCODE:
-                instructionDecoder[i] = &AVRCPU::instructionBRBS_BRCS;
+            case BRBS_BRCS_BREQ_BRHS_BRIE_BRLO_BRLT_BRMI_BRTS_BRVS_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instructionBRBS_BRCS_BREQ_BRHS_BRIE_BRLO_BRLT_BRMI_BRTS_BRVS;
                 continue;
         }
         switch (i&GROUP2_MASK) {
@@ -173,6 +182,10 @@ void AVRCPU::setupInstructionDecoder() {
             case BLD_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instructionBLD;
                 continue;
+        }
+        if (i == BREAK_OPCODE) {
+            instructionDecoder[i] = &AVRCPU::instructionBREAK;
+            continue;
         }
         instructionDecoder[i] = &AVRCPU::unknownInstruction;
     }
@@ -409,7 +422,7 @@ void AVRCPU::instructionBLD() {
     datMem->write(wbAddr, &regD);
 }
 
-void AVRCPU::instructionBRBC_BRCC() {
+void AVRCPU::instructionBRBC_BRCC_BRGE_BRHC_BRID_BRNE_BRPL_BRSH_BRTC_BRVC() {
     /*************************BRBC/BRCC***********************/
     LOGD(SOFIA_AVRCPU_TAG, "Instruction BRBC/BRCC");
 
@@ -419,7 +432,7 @@ void AVRCPU::instructionBRBC_BRCC() {
     pc += (((__int8_t)(instruction&0x03F8))<<6>>9)&(~(((__int8_t )(sreg<<(7-offset)))>>7)); //Cast to make sign extension
 }
 
-void AVRCPU::instructionBRBS_BRCS() {
+void AVRCPU::instructionBRBS_BRCS_BREQ_BRHS_BRIE_BRLO_BRLT_BRMI_BRTS_BRVS() {
     /*************************BRBS/BRCS***********************/
     LOGD(SOFIA_AVRCPU_TAG, "Instruction BRBS/BRCS");
 
@@ -430,7 +443,8 @@ void AVRCPU::instructionBRBS_BRCS() {
 }
 
 void AVRCPU::instructionBREAK() {
-
+    /*************************BREAK***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction BREAK - NOT IMPLEMENTED");
 }
 
 void AVRCPU::instructionBSET() {

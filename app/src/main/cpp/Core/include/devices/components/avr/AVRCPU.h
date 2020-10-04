@@ -60,9 +60,9 @@ private:
 
     void instructionBLD();
 
-    void instructionBRBC_BRCC();
+    void instructionBRBC_BRCC_BRGE_BRHC_BRID_BRNE_BRPL_BRSH_BRTC_BRVC();
 
-    void instructionBRBS_BRCS();
+    void instructionBRBS_BRCS_BREQ_BRHS_BRIE_BRLO_BRLT_BRMI_BRTS_BRVS();
 
     void instructionBREAK();
 
