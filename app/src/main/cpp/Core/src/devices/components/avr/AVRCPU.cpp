@@ -12,13 +12,13 @@
 //BRBS/BRCS/BREQ/BRHS/BRIE/BRLO/BRLT/BRMI/BRTS/BRVS,
 // TST
 #define GROUP1_MASK  0xFC00
-//ADIW
+//ADIW, CBI
 #define GROUP2_MASK  0xFF00
 //ANDI
 #define GROUP3_MASK  0xF000
 //ASR
 #define GROUP4_MASK  0xFE0F
-//BCLR/BSET
+//BCLR, BSET
 #define GROUP5_MASK  0xFF8F
 //BLD/BST
 #define GROUP6_MASK  0xFE08
@@ -39,7 +39,7 @@
 #define BSET_OPCODE  0x9408
 #define BST_OPCODE  0xFA00
 #define CALL_OPCODE  0x940E
-#define INSTRUCTION_CBI_MASK  14
+#define CBI_OPCODE  0x9800
 #define INSTRUCTION_COM_MASK  15
 #define INSTRUCTION_CP_MASK  16
 #define INSTRUCTION_CPC_MASK  17
@@ -124,9 +124,11 @@
 #define Z_FLAG_MASK 0x02
 #define C_FLAG_MASK 0x01
 
-#define REG16ADDR 0x10
-#define REG24ADDR 0x18
-#define REG25ADDR 0x19
+#define REG16_ADDR 0x10
+#define REG24_ADDR 0x18
+#define REG25_ADDR 0x19
+
+#define IOREG_BASEADDR 0x20
 
 #define SOFIA_AVRCPU_TAG "SOFIA AVRCPU CONTROLLER"
 
@@ -167,6 +169,9 @@ void AVRCPU::setupInstructionDecoder() {
         switch (i&GROUP2_MASK) {
             case ADIW_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_ADIW;
+                continue;
+            case CBI_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_CBI;
                 continue;
         }
         switch (i&GROUP3_MASK) {
@@ -302,8 +307,8 @@ void AVRCPU::instruction_ADIW() {
     offset = ((0x0030&instruction)>>3); //(>>4)*2 = >>3
 
     //ADIW operates on the upper four registers pairs
-    sbyte dataLAddr = REG24ADDR + offset;
-    sbyte dataHAddr = REG25ADDR + offset;
+    sbyte dataLAddr = REG24_ADDR + offset;
+    sbyte dataHAddr = REG25_ADDR + offset;
 
     datMem->read(dataLAddr, &dataL);
     datMem->read(dataHAddr + offset, &dataH);
@@ -363,7 +368,7 @@ void AVRCPU::instruction_ANDI() {
     /*************************ANDI***********************/
     LOGD(SOFIA_AVRCPU_TAG, "Instruction ANDI");
 
-    wbAddr = REG16ADDR | ((0x00F0 & instruction) >> 4);
+    wbAddr = REG16_ADDR | ((0x00F0 & instruction) >> 4);
 
     datMem->read(wbAddr, &regD);
     datMem->read(sregAddr, &sreg);
@@ -512,8 +517,14 @@ void AVRCPU::instruction_CALL() {
     pc = jumpValue;
 }
 
-void AVRCPU::instructionCBI() {
+void AVRCPU::instruction_CBI() {
+    /*************************CBI***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction CBI");
 
+    wbAddr = ((instruction&0x00F8)>>3) + IOREG_BASEADDR;
+    datMem->read(wbAddr, &result);
+    result &= ~(0x01 << (instruction&0x0007));
+    datMem->write(wbAddr, &result);
 }
 
 void AVRCPU::instructionCOM() {

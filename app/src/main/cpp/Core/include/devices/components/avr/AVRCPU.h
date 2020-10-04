@@ -78,7 +78,7 @@ private:
 
     void instruction_CALL();
 
-    void instructionCBI();
+    void instruction_CBI();
 
     void instructionCOM();
 
