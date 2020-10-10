@@ -1,5 +1,5 @@
 // Kollins G. Lima - 10/10/2020
-// UNIT TEST FOR ADD INSTRUCTION
+// UNIT TEST FOR CPC INSTRUCTION
 
 #include <stdio.h>
 #include <iostream>

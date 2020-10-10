@@ -1,5 +1,5 @@
-// Kollins G. Lima - 10/04/2020
-// UNIT TEST FOR ANDI INSTRUCTION
+// Kollins G. Lima - 10/10/2020
+// UNIT TEST FOR CPI INSTRUCTION
 
 #include <stdio.h>
 #include <iostream>

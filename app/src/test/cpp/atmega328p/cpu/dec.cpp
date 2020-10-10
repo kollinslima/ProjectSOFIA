@@ -1,5 +1,5 @@
-// Kollins G. Lima - 10/03/2020
-// UNIT TEST FOR ADD INSTRUCTION
+// Kollins G. Lima - 10/10/2020
+// UNIT TEST FOR DEC INSTRUCTION
 
 #include <stdio.h>
 #include <iostream>
