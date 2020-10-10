@@ -110,7 +110,7 @@ private:
 
     void instruction_FMUL();
 
-    void instructionFMULS();
+    void instruction_FMULS();
 
     void instructionFMULSU();
 

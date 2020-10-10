@@ -36,7 +36,7 @@
 #define INSTRUCTION_GROUP8_MASK  0xFE0F
 //DES
 #define INSTRUCTION_GROUP9_MASK  0xFF0F
-//FMUL
+//FMUL, FMULS
 #define INSTRUCTION_GROUP10_MASK  0xFF88
 
 #define ADC_OPCODE                                                  0x1C00
@@ -68,7 +68,7 @@
 #define ELPM2_OPCODE                                                0x9006
 #define ELPM3_OPCODE                                                0x9007
 #define FMUL_OPCODE                                                 0x0308
-#define INSTRUCTION_FMULS_MASK  23
+#define FMULS_OPCODE                                                0x0380
 #define INSTRUCTION_FMULSU_MASK  24
 #define INSTRUCTION_ICALL_MASK  25
 #define INSTRUCTION_IJMP_MASK  26
@@ -264,6 +264,9 @@ void AVRCPU::setupInstructionDecoder() {
         switch (i & INSTRUCTION_GROUP10_MASK) {
             case FMUL_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_FMUL;
+                continue;
+            case FMULS_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_FMULS;
                 continue;
         }
         if (i == BREAK_OPCODE) {
@@ -855,7 +858,7 @@ void AVRCPU::instruction_FMUL() {
     datMem->read(REG16_ADDR|(0x0007&instruction), &regR);
     datMem->read(sregAddr, &sreg);
 
-    outData = ((0x00FF & regD) * (0x00FF & regR));
+    outData = regD * regR;
     sreg &= 0xFC;
 
     //Flag Z
@@ -864,7 +867,8 @@ void AVRCPU::instruction_FMUL() {
     //Flag C
     sreg |= (outData>>15)&C_FLAG_MASK;
 
-    //A left shift is necessary according to the documentation
+    //"A left shift is necessary for the high byte of the product to be
+    //in the same format as the inputs"
     outData = outData << 1;
 
     datMem->write(REG00_ADDR, &outData);
@@ -873,8 +877,31 @@ void AVRCPU::instruction_FMUL() {
     datMem->write(sregAddr, &sreg);
 }
 
-void AVRCPU::instructionFMULS() {
+void AVRCPU::instruction_FMULS() {
+    /*************************FMULS***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction FMULS");
 
+    datMem->read(REG16_ADDR|((0x0070&instruction)>>4), &regD);
+    datMem->read(REG16_ADDR|(0x0007&instruction), &regR);
+    datMem->read(sregAddr, &sreg);
+
+    outData = ((__int8_t)regD) * ((__int8_t)regR); //signed multiplication
+    sreg &= 0xFC;
+
+    //Flag Z
+    sreg |= outData?0x00:Z_FLAG_MASK;
+
+    //Flag C
+    sreg |= (outData>>15)&C_FLAG_MASK;
+
+    //"A left shift is necessary for the high byte of the product to be
+    //in the same format as the inputs"
+    outData = outData << 1;
+
+    datMem->write(REG00_ADDR, &outData);
+    outData = outData >> 8;
+    datMem->write(REG01_ADDR, &outData);
+    datMem->write(sregAddr, &sreg);
 }
 
 void AVRCPU::instructionFMULSU() {
