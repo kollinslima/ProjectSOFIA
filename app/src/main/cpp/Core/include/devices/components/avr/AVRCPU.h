@@ -82,7 +82,7 @@ private:
 
     void instruction_CLR_EOR();
 
-    void instructionCOM();
+    void instruction_COM();
 
     void instructionCP();
 
