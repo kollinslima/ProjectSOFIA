@@ -30,7 +30,7 @@ void testFMUL (sbyte regD, sbyte regR, sbyte initSreg) {
     sbyte sreg = initSreg;
     sbyte result;
 
-    sword16 outData = ((0x00FF & regD) * (0x00FF & regR));
+    sword16 outData = regD * regR;
     sreg &= 0xFC;
 
     //Flag Z
@@ -86,7 +86,7 @@ int main(int argc, char *argv[])
     assert(output.sreg == 0x01);
 
     printf("0xABTimes0x55 - Return 0x718E\n");
-    testFMUL(0xAB,0x55,0x00);
+    testFMUL(0xAB,0x55,0x00); //1,3359375*0,6640625 = 0,887145996
     printf("DataL: %X\n", output.outL);
     printf("DataH: %X\n", output.outH);
     assert(output.outL == 0x8E);
