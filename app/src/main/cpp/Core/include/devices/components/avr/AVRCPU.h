@@ -88,7 +88,7 @@ private:
 
     void instruction_CP();
 
-    void instructionCPC();
+    void instruction_CPC();
 
     void instructionCPI();
 
