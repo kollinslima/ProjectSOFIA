@@ -10,7 +10,7 @@
 //ADC, ADD, AND,
 //BRBC/BRCC/BRGE/BRHC/BRID/BRNE/BRPL/BRSH/BRTC/BRVC,
 //BRBS/BRCS/BREQ/BRHS/BRIE/BRLO/BRLT/BRMI/BRTS/BRVS,
-//CLR/EOR, CP, CPC
+//CLR/EOR, CP, CPC, CPSE
 //TST
 #define INSTRUCTION_GROUP1_MASK  0xFC00
 //ADIW,
@@ -27,7 +27,11 @@
 //BLD/BST
 #define INSTRUCTION_GROUP6_MASK  0xFE08
 //CALL
+//JMP
 #define INSTRUCTION_GROUP7_MASK  0xFE0E
+//LDS
+//STS
+#define INSTRUCTION_GROUP8_MASK  0xFE0F
 
 #define ADC_OPCODE  0x1C00
 #define ADD_OPCODE  0x0C00
@@ -49,7 +53,7 @@
 #define CP_OPCODE  0x1400
 #define CPC_OPCODE  0x0400
 #define CPI_OPCODE  0x3000
-#define INSTRUCTION_CPSE_MASK  19
+#define CPSE_OPCODE  0x1000
 #define INSTRUCTION_DEC_MASK  20
 #define INSTRUCTION_FMUL_MASK  22
 #define INSTRUCTION_FMULS_MASK  23
@@ -58,7 +62,7 @@
 #define INSTRUCTION_IJMP_MASK  26
 #define INSTRUCTION_IN_MASK  27
 #define INSTRUCTION_INC_MASK  28
-#define INSTRUCTION_JMP_MASK  29
+#define JMP_OPCODE  0x940C
 #define INSTRUCTION_LD_X_POST_INCREMENT_MASK  30
 #define INSTRUCTION_LD_X_PRE_INCREMENT_MASK  31
 #define INSTRUCTION_LD_X_UNCHANGED_MASK  32
@@ -71,7 +75,7 @@
 #define INSTRUCTION_LDD_Y_MASK  39
 #define INSTRUCTION_LDD_Z_MASK  40
 #define INSTRUCTION_LDI_MASK  41 //LDI - SER
-#define INSTRUCTION_LDS_MASK  42
+#define LDS_OPCODE  0x9000
 #define INSTRUCTION_LPM_Z_POST_INCREMENT_MASK  43
 #define INSTRUCTION_LPM_Z_UNCHANGED_DEST_R0_MASK  44
 #define INSTRUCTION_LPM_Z_UNCHANGED_MASK  45
@@ -114,7 +118,7 @@
 #define INSTRUCTION_ST_Z_UNCHANGED_MASK  82
 #define INSTRUCTION_STD_Y_MASK  83
 #define INSTRUCTION_STD_Z_MASK  84
-#define INSTRUCTION_STS_MASK  85
+#define STS_OPCODE  0x9200
 #define INSTRUCTION_SUB_MASK  86
 #define INSTRUCTION_SUBI_MASK  87
 #define INSTRUCTION_SWAP_MASK  88
@@ -177,6 +181,9 @@ void AVRCPU::setupInstructionDecoder() {
                 continue;
             case CPC_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_CPC;
+                continue;
+            case CPSE_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_CPSE;
                 continue;
         }
         switch (i & INSTRUCTION_GROUP2_MASK) {
@@ -600,7 +607,7 @@ void AVRCPU::instruction_COM() {
 }
 
 void AVRCPU::instruction_CP() {
-/*************************CP***********************/
+    /*************************CP***********************/
     LOGD(SOFIA_AVRCPU_TAG, "Instruction CP");
 
     datMem->read((0x01F0 & instruction) >> 4, &regD);
@@ -713,8 +720,26 @@ void AVRCPU::instruction_CPI() {
     datMem->write(sregAddr, &sreg);
 }
 
-void AVRCPU::instructionCPSE() {
+void AVRCPU::instruction_CPSE() {
+    /*************************CPSE***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction CPSE");
 
+    datMem->read((0x01F0 & instruction) >> 4, &regD);
+    datMem->read(((0x0200 & instruction) >> 5) | (0x000F & instruction), &regR);
+
+    if (regD == regR) {
+        progMem->loadInstruction(pc++, &instruction);
+
+        //Test 2 word instruction
+        testJMP_CALL = instruction & INSTRUCTION_GROUP7_MASK;
+        testLDS_STS = instruction & INSTRUCTION_GROUP8_MASK;
+        if (testJMP_CALL == JMP_OPCODE ||
+            testJMP_CALL == CALL_OPCODE||
+            testLDS_STS  == LDS_OPCODE ||
+            testLDS_STS  == STS_OPCODE) {
+            pc += 1;
+        }
+    }
 }
 
 void AVRCPU::instructionDEC() {

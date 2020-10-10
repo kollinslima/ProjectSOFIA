@@ -40,6 +40,7 @@ private:
 
     sbyte offset, dataL, dataH;
     sword16 outData, immediate;
+    sword16 testJMP_CALL, testLDS_STS;
 
     smemaddr stackPointer;
     spc jumpValue;
@@ -93,7 +94,7 @@ private:
 
     void instruction_CPI();
 
-    void instructionCPSE();
+    void instruction_CPSE();
 
     void instructionDEC();
 
