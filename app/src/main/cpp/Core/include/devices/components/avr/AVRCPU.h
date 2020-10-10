@@ -108,7 +108,7 @@ private:
     void instruction_ELPM2();
     void instruction_ELPM3();
 
-    void instructionFMUL();
+    void instruction_FMUL();
 
     void instructionFMULS();
 

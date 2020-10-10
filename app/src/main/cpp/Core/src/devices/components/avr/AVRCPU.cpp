@@ -36,6 +36,8 @@
 #define INSTRUCTION_GROUP8_MASK  0xFE0F
 //DES
 #define INSTRUCTION_GROUP9_MASK  0xFF0F
+//FMUL
+#define INSTRUCTION_GROUP10_MASK  0xFF88
 
 #define ADC_OPCODE                                                  0x1C00
 #define ADD_OPCODE                                                  0x0C00
@@ -65,7 +67,7 @@
 #define ELPM1_OPCODE                                                0x95D8
 #define ELPM2_OPCODE                                                0x9006
 #define ELPM3_OPCODE                                                0x9007
-#define INSTRUCTION_FMUL_MASK  22
+#define FMUL_OPCODE                                                 0x0308
 #define INSTRUCTION_FMULS_MASK  23
 #define INSTRUCTION_FMULSU_MASK  24
 #define INSTRUCTION_ICALL_MASK  25
@@ -142,6 +144,8 @@
 #define Z_FLAG_MASK 0x02
 #define C_FLAG_MASK 0x01
 
+#define REG00_ADDR 0x00
+#define REG01_ADDR 0x01
 #define REG16_ADDR 0x10
 #define REG24_ADDR 0x18
 #define REG25_ADDR 0x19
@@ -255,6 +259,11 @@ void AVRCPU::setupInstructionDecoder() {
         switch (i & INSTRUCTION_GROUP9_MASK) {
             case DES_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_DES;
+                continue;
+        }
+        switch (i & INSTRUCTION_GROUP10_MASK) {
+            case FMUL_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_FMUL;
                 continue;
         }
         if (i == BREAK_OPCODE) {
@@ -838,8 +847,30 @@ void AVRCPU::instruction_ELPM3() {
     LOGD(SOFIA_AVRCPU_TAG, "Instruction ELPM3 - NOT IMPLEMENTED");
 }
 
-void AVRCPU::instructionFMUL() {
+void AVRCPU::instruction_FMUL() {
+    /*************************FMUL***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction FMUL");
 
+    datMem->read(REG16_ADDR|((0x0070&instruction)>>4), &regD);
+    datMem->read(REG16_ADDR|(0x0007&instruction), &regR);
+    datMem->read(sregAddr, &sreg);
+
+    outData = ((0x00FF & regD) * (0x00FF & regR));
+    sreg &= 0xFC;
+
+    //Flag Z
+    sreg |= outData?0x00:Z_FLAG_MASK;
+
+    //Flag C
+    sreg |= (outData>>15)&C_FLAG_MASK;
+
+    //A left shift is necessary according to the documentation
+    outData = outData << 1;
+
+    datMem->write(REG00_ADDR, &outData);
+    outData = outData >> 8;
+    datMem->write(REG01_ADDR, &outData);
+    datMem->write(sregAddr, &sreg);
 }
 
 void AVRCPU::instructionFMULS() {
