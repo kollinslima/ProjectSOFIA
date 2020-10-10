@@ -39,13 +39,14 @@ private:
     smemaddr wbAddr;
 
     sbyte offset, dataL, dataH;
-    sword16 outData;
+    sword16 outData, immediate;
 
     smemaddr stackPointer;
     spc jumpValue;
 
     sbyte regD_and_regR;
     sbyte regR_and_result;
+    sbyte immediate_and_result;
     sbyte not_result, not_regD;
     sbyte hc_flag;
     /*********************************************/
@@ -90,7 +91,7 @@ private:
 
     void instruction_CPC();
 
-    void instructionCPI();
+    void instruction_CPI();
 
     void instructionCPSE();
 
