@@ -23,7 +23,7 @@ typedef struct {
 
 Out output;
 
-void testADD (sbyte regD, sbyte regR, sbyte initSreg) {
+void testCLR_EOR (sbyte regD, sbyte regR, sbyte initSreg) {
     sbyte sreg = initSreg;
     sbyte result;
 
@@ -46,21 +46,21 @@ void testADD (sbyte regD, sbyte regR, sbyte initSreg) {
 int main(int argc, char *argv[])
 {
     printf("ClearRegister\n");
-    testADD(0x0F,0x0F,0x00);
+    testCLR_EOR(0x0F,0x0F,0x00);
     printf("Result: %X\n", output.result);
     assert(output.result == 0);
     printf("SREG: %X\n", output.sreg);
     assert(output.sreg == 0x02);
 
     printf("ZeroXor85 - Return 85\n");
-    testADD(85,0x00,0x01);
+    testCLR_EOR(85,0x00,0x01);
     printf("Result: %X\n", output.result);
     assert(output.result == 85);
     printf("SREG: %X\n", output.sreg);
     assert(output.sreg == 0x01);
 
     printf("FFXor85 - Return -86\n");
-    testADD(85,0xFF,0x00);
+    testCLR_EOR(85,0xFF,0x00);
     printf("Result: %X\n", output.result);
     assert(output.result == 0xAA);
     printf("SREG: %X\n", output.sreg);

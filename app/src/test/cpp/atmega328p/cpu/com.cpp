@@ -23,7 +23,7 @@ typedef struct {
 
 Out output;
 
-void testADD (sbyte regD, sbyte regR, sbyte initSreg) {
+void testCOM (sbyte regD, sbyte regR, sbyte initSreg) {
     sbyte sreg = initSreg;
     sbyte result;
 
@@ -49,21 +49,21 @@ void testADD (sbyte regD, sbyte regR, sbyte initSreg) {
 int main(int argc, char *argv[])
 {
     printf("ComplementAllZero - Return -1\n");
-    testADD(0x00,0x00,0x00);
+    testCOM(0x00,0x00,0x00);
     printf("Result: %X\n", output.result);
     assert(output.result == 0xFF);
     printf("SREG: %X\n", output.sreg);
     assert(output.sreg == 0x15);
 
     printf("ComplementAllOne - Return 0\n");
-    testADD(0xFF,0x00,0x00);
+    testCOM(0xFF,0x00,0x00);
     printf("Result: %X\n", output.result);
     assert(output.result == 0x0);
     printf("SREG: %X\n", output.sreg);
     assert(output.sreg == 0x03);
 
     printf("ComplementHalf - Return 15\n");
-    testADD(0xF0,0x00,0x00);
+    testCOM(0xF0,0x00,0x00);
     printf("Result: %X\n", output.result);
     assert(output.result == 0x0F);
     printf("SREG: %X\n", output.sreg);
