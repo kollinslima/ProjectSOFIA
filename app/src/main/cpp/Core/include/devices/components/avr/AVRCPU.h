@@ -96,7 +96,7 @@ private:
 
     void instruction_CPSE();
 
-    void instructionDEC();
+    void instruction_DEC();
 
     void instructionFMUL();
 

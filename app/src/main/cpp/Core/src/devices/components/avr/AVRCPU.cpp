@@ -29,32 +29,33 @@
 //CALL
 //JMP
 #define INSTRUCTION_GROUP7_MASK  0xFE0E
+//DEC
 //LDS
 //STS
 #define INSTRUCTION_GROUP8_MASK  0xFE0F
 
-#define ADC_OPCODE  0x1C00
-#define ADD_OPCODE  0x0C00
-#define ADIW_OPCODE  0x9600
-#define AND_TST_OPCODE  0x2000
-#define ANDI_CBR_OPCODE  0x7000
-#define ASR_OPCODE  0x9405
-#define BCLR_CLC_CLH_CLI_CLN_CLS_CLT_CLV_CLZ_OPCODE  0x9488
-#define BLD_OPCODE  0xF800
-#define BRBC_BRCC_BRGE_BRHC_BRID_BRNE_BRPL_BRSH_BRTC_BRVC_OPCODE  0xF400
-#define BRBS_BRCS_BREQ_BRHS_BRIE_BRLO_BRLT_BRMI_BRTS_BRVS_OPCODE  0xF000
-#define BREAK_OPCODE  0x9698
-#define BSET_OPCODE  0x9408
-#define BST_OPCODE  0xFA00
-#define CALL_OPCODE  0x940E
-#define CBI_OPCODE  0x9800
-#define CLR_EOR_OPCODE  0x2400
-#define COM_OPCODE  0x9400
-#define CP_OPCODE  0x1400
-#define CPC_OPCODE  0x0400
-#define CPI_OPCODE  0x3000
-#define CPSE_OPCODE  0x1000
-#define INSTRUCTION_DEC_MASK  20
+#define ADC_OPCODE                                                  0x1C00
+#define ADD_OPCODE                                                  0x0C00
+#define ADIW_OPCODE                                                 0x9600
+#define AND_TST_OPCODE                                              0x2000
+#define ANDI_CBR_OPCODE                                             0x7000
+#define ASR_OPCODE                                                  0x9405
+#define BCLR_CLC_CLH_CLI_CLN_CLS_CLT_CLV_CLZ_OPCODE                 0x9488
+#define BLD_OPCODE                                                  0xF800
+#define BRBC_BRCC_BRGE_BRHC_BRID_BRNE_BRPL_BRSH_BRTC_BRVC_OPCODE    0xF400
+#define BRBS_BRCS_BREQ_BRHS_BRIE_BRLO_BRLT_BRMI_BRTS_BRVS_OPCODE    0xF000
+#define BREAK_OPCODE                                                0x9698
+#define BSET_OPCODE                                                 0x9408
+#define BST_OPCODE                                                  0xFA00
+#define CALL_OPCODE                                                 0x940E
+#define CBI_OPCODE                                                  0x9800
+#define CLR_EOR_OPCODE                                              0x2400
+#define COM_OPCODE                                                  0x9400
+#define CP_OPCODE                                                   0x1400
+#define CPC_OPCODE                                                  0x0400
+#define CPI_OPCODE                                                  0x3000
+#define CPSE_OPCODE                                                 0x1000
+#define DEC_OPCODE                                                  0x940A
 #define INSTRUCTION_FMUL_MASK  22
 #define INSTRUCTION_FMULS_MASK  23
 #define INSTRUCTION_FMULSU_MASK  24
@@ -229,6 +230,11 @@ void AVRCPU::setupInstructionDecoder() {
         switch (i & INSTRUCTION_GROUP7_MASK) {
             case CALL_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_CALL;
+                continue;
+        }
+        switch (i & INSTRUCTION_GROUP8_MASK) {
+            case DEC_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_DEC;
                 continue;
         }
         if (i == BREAK_OPCODE) {
@@ -742,8 +748,32 @@ void AVRCPU::instruction_CPSE() {
     }
 }
 
-void AVRCPU::instructionDEC() {
+void AVRCPU::instruction_DEC() {
+    /*************************DEC***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction DEC");
 
+    wbAddr = (0x01F0 & instruction) >> 4;
+
+    datMem->read(wbAddr, &regD);
+    datMem->read(sregAddr, &sreg);
+
+    result = regD - 1;
+    sreg &= 0xE1;
+
+    //Flag V
+    sreg |= (regD == 0x80)?V_FLAG_MASK:0x00;
+
+    //Flag N
+    sreg |= (result >> 5) & N_FLAG_MASK;
+
+    //Flag S
+    sreg |= (((sreg << 1) ^ sreg) << 1) & S_FLAG_MASK;
+
+    //Flag Z
+    sreg |= result?0x00:Z_FLAG_MASK;
+
+    datMem->write(wbAddr, &result);
+    datMem->write(sregAddr, &sreg);
 }
 
 void AVRCPU::instructionFMUL() {
