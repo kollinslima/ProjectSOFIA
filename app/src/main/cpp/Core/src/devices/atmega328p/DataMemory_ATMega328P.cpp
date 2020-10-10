@@ -10,6 +10,7 @@
 #define EXT_IO_REGISTERS 160        //160 External I/O Registers
 
 #define MEMORY_SIZE (SDRAM_EXTERNAL_SIZE + REGISTERS + IO_REGISTERS + EXT_IO_REGISTERS)
+#define LAST_ADDR 0x08FF
 
 #define SREG_ADDR 0x5F
 #define SPL_ADDR 0x5D
@@ -25,19 +26,13 @@ DataMemory_ATMega328P::~DataMemory_ATMega328P() {
 }
 
 bool DataMemory_ATMega328P::write(smemaddr addr, void *data) {
-//    if (addr < this->size) {
-    buffer[addr] = *(static_cast<sbyte *>(data));
+    buffer[SAFE_ADDR(addr, LAST_ADDR)] = *(static_cast<sbyte *>(data));
     return true;
-//    }
-//    return false;
 }
 
 bool DataMemory_ATMega328P::read(smemaddr addr, void *data) {
-//    if (addr < this->size) {
-    *(static_cast<sbyte *>(data)) = buffer[addr];
+    *(static_cast<sbyte *>(data)) = buffer[SAFE_ADDR(addr, LAST_ADDR)];
     return true;
-//    }
-//    return false;
 }
 
 smemaddr DataMemory_ATMega328P::getSize() {

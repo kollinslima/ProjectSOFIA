@@ -7,6 +7,8 @@
 
 #include "../../../CommonCore.h"
 
+#define SAFE_ADDR(ADDR, LIMIT) (ADDR&LIMIT)
+
 class GenericMemory {
 
     public:
