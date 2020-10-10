@@ -98,6 +98,16 @@ private:
 
     void instruction_DEC();
 
+    void instruction_DES();
+
+    void instruction_EICALL();
+
+    void instruction_EIJMP();
+
+    void instruction_ELPM1();
+    void instruction_ELPM2();
+    void instruction_ELPM3();
+
     void instructionFMUL();
 
     void instructionFMULS();

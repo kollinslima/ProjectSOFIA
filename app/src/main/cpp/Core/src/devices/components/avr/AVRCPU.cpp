@@ -30,9 +30,12 @@
 //JMP
 #define INSTRUCTION_GROUP7_MASK  0xFE0E
 //DEC
+//ELPM2/ELPM3
 //LDS
 //STS
 #define INSTRUCTION_GROUP8_MASK  0xFE0F
+//DES
+#define INSTRUCTION_GROUP9_MASK  0xFF0F
 
 #define ADC_OPCODE                                                  0x1C00
 #define ADD_OPCODE                                                  0x0C00
@@ -56,6 +59,12 @@
 #define CPI_OPCODE                                                  0x3000
 #define CPSE_OPCODE                                                 0x1000
 #define DEC_OPCODE                                                  0x940A
+#define DES_OPCODE                                                  0x940B
+#define EICALL_OPCODE                                               0x9519
+#define EIJMP_OPCODE                                                0x9419
+#define ELPM1_OPCODE                                                0x95D8
+#define ELPM2_OPCODE                                                0x9006
+#define ELPM3_OPCODE                                                0x9007
 #define INSTRUCTION_FMUL_MASK  22
 #define INSTRUCTION_FMULS_MASK  23
 #define INSTRUCTION_FMULSU_MASK  24
@@ -236,9 +245,32 @@ void AVRCPU::setupInstructionDecoder() {
             case DEC_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_DEC;
                 continue;
+            case ELPM2_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_ELPM2;
+                continue;
+            case ELPM3_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_ELPM3;
+                continue;
+        }
+        switch (i & INSTRUCTION_GROUP9_MASK) {
+            case DES_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_DES;
+                continue;
         }
         if (i == BREAK_OPCODE) {
             instructionDecoder[i] = &AVRCPU::instruction_BREAK;
+            continue;
+        }
+        if (i == EICALL_OPCODE) {
+            instructionDecoder[i] = &AVRCPU::instruction_EICALL;
+            continue;
+        }
+        if (i == EIJMP_OPCODE) {
+            instructionDecoder[i] = &AVRCPU::instruction_EIJMP;
+            continue;
+        }
+        if (i == ELPM1_OPCODE) {
+            instructionDecoder[i] = &AVRCPU::instruction_ELPM1;
             continue;
         }
         instructionDecoder[i] = &AVRCPU::unknownInstruction;
@@ -774,6 +806,36 @@ void AVRCPU::instruction_DEC() {
 
     datMem->write(wbAddr, &result);
     datMem->write(sregAddr, &sreg);
+}
+
+void AVRCPU::instruction_DES() {
+    /*************************DES***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction DES - NOT IMPLEMENTED");
+}
+
+void AVRCPU::instruction_EICALL() {
+    /*************************EICALL***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction EICALL - NOT IMPLEMENTED");
+}
+
+void AVRCPU::instruction_EIJMP() {
+    /*************************EIJMP***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction EIJMP - NOT IMPLEMENTED");
+}
+
+void AVRCPU::instruction_ELPM1() {
+    /*************************ELPM1***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction ELPM1 - NOT IMPLEMENTED");
+}
+
+void AVRCPU::instruction_ELPM2() {
+    /*************************ELPM2***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction ELPM2 - NOT IMPLEMENTED");
+}
+
+void AVRCPU::instruction_ELPM3() {
+    /*************************ELPM3***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction ELPM3 - NOT IMPLEMENTED");
 }
 
 void AVRCPU::instructionFMUL() {
