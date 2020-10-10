@@ -34,7 +34,7 @@ private:
     smemaddr sregAddr;
     smemaddr stackLAddr, stackHAddr;
 
-    //Auxiliar for processing
+    /**********Auxiliar for processing************/
     sbyte regD, regR, sreg, result;
     smemaddr wbAddr;
 
@@ -45,8 +45,10 @@ private:
     spc jumpValue;
 
     sbyte regD_and_regR;
-    sbyte not_result;
+    sbyte regR_and_result;
+    sbyte not_result, not_regD;
     sbyte hc_flag;
+    /*********************************************/
 
     void setupInstructionDecoder();
 
@@ -84,7 +86,7 @@ private:
 
     void instruction_COM();
 
-    void instructionCP();
+    void instruction_CP();
 
     void instructionCPC();
 

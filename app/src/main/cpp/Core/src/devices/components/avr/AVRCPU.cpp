@@ -10,7 +10,7 @@
 //ADC, ADD, AND,
 //BRBC/BRCC/BRGE/BRHC/BRID/BRNE/BRPL/BRSH/BRTC/BRVC,
 //BRBS/BRCS/BREQ/BRHS/BRIE/BRLO/BRLT/BRMI/BRTS/BRVS,
-//CLR/EOR,
+//CLR/EOR, CP
 //TST
 #define GROUP1_MASK  0xFC00
 //ADIW, CBI
@@ -43,7 +43,7 @@
 #define CBI_OPCODE  0x9800
 #define CLR_EOR_OPCODE  0x2400
 #define COM_OPCODE  0x9400
-#define INSTRUCTION_CP_MASK  16
+#define CP_OPCODE  0x1400
 #define INSTRUCTION_CPC_MASK  17
 #define INSTRUCTION_CPI_MASK  18
 #define INSTRUCTION_CPSE_MASK  19
@@ -168,6 +168,9 @@ void AVRCPU::setupInstructionDecoder() {
                 continue;
             case CLR_EOR_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_CLR_EOR;
+                continue;
+            case CP_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_CP;
                 continue;
         }
         switch (i&GROUP2_MASK) {
@@ -587,8 +590,44 @@ void AVRCPU::instruction_COM() {
     datMem->write(sregAddr, &sreg);
 }
 
-void AVRCPU::instructionCP() {
+void AVRCPU::instruction_CP() {
+    /*************************CP***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction CP");
 
+    wbAddr = (0x01F0 & instruction) >> 4;
+
+    datMem->read(wbAddr, &regD);
+    datMem->read(((0x0200 & instruction) >> 5) | (0x000F & instruction), &regR);
+    datMem->read(sregAddr, &sreg);
+
+    result = regD - regR;
+    sreg &= 0xC0;
+
+    regR_and_result = regR & result;
+    not_result = ~result;
+    not_regD = ~regD;
+
+    hc_flag = (not_regD & regR) | regR_and_result | (result & not_regD);
+
+    //Flag H
+    sreg |= (hc_flag << 2) & H_FLAG_MASK;
+
+    //Flag V
+    sreg |= (((regD & (~regR) & not_result) | (not_regD & regR_and_result)) >> 4) & V_FLAG_MASK;
+
+    //Flag N
+    sreg |= (result >> 5) & N_FLAG_MASK;
+
+    //Flag S
+    sreg |= (((sreg << 1) ^ sreg) << 1) & S_FLAG_MASK;
+
+    //Flag Z
+    sreg |= result?0x00:Z_FLAG_MASK;
+
+    //Flag C
+    sreg |= (hc_flag >> 7) & C_FLAG_MASK;
+
+    datMem->write(sregAddr, &sreg);
 }
 
 void AVRCPU::instructionCPC() {
