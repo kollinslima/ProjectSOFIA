@@ -41,7 +41,7 @@
 #define INSTRUCTION_GROUP8_MASK  0xFE0F
 //DES
 #define INSTRUCTION_GROUP9_MASK  0xFF0F
-//FMUL, FMULS, FMULSU
+//FMUL, FMULS, FMULSU, MULSU
 #define INSTRUCTION_GROUP10_MASK  0xFF88
 //IN
 #define INSTRUCTION_GROUP11_MASK  0xF800
@@ -109,7 +109,7 @@
 #define MOVW_OPCODE                                                 0x0100
 #define MUL_OPCODE                                                  0x9C00
 #define MULS_OPCODE                                                 0x0200
-#define INSTRUCTION_MULSU_MASK  51
+#define MULSU_OPCODE                                                0x0300
 #define INSTRUCTION_NEG_MASK  52
 #define INSTRUCTION_NOP_MASK  53
 #define INSTRUCTION_OR_MASK  54
@@ -364,6 +364,9 @@ void AVRCPU::setupInstructionDecoder() {
                 continue;
             case FMULSU_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_FMULSU;
+                continue;
+            case MULSU_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_MULSU;
                 continue;
         }
         switch (i & INSTRUCTION_GROUP11_MASK) {
@@ -1492,8 +1495,26 @@ void AVRCPU::instruction_MULS() {
     datMem->write(sregAddr, &sreg);
 }
 
-void AVRCPU::instructionMULSU() {
+void AVRCPU::instruction_MULSU() {
+    /*************************MULSU***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction MULSU");
 
+    datMem->read(REG16_ADDR | ((0x0070 & instruction) >> 4), &regD);
+    datMem->read(REG16_ADDR | (0x0007 & instruction), &regR);
+
+    outData = ((__int8_t)regD) * regR; //signed * unsigned
+    sreg &= 0xFC;
+
+    //Flag Z
+    sreg |= outData?0x0000:Z_FLAG_MASK;
+
+    //Flag C
+    sreg |= (outData>>15)&C_FLAG_MASK;
+
+    datMem->write(REG00_ADDR, &outData);
+    outData = outData >> 8;
+    datMem->write(REG01_ADDR, &outData);
+    datMem->write(sregAddr, &sreg);
 }
 
 void AVRCPU::instructionNEG() {
