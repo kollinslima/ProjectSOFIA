@@ -23,7 +23,7 @@
 //CPI
 //LDI, LDS (16-bit)
 //ORI
-//RCALL
+//RCALL, RJMP
 #define INSTRUCTION_GROUP3_MASK  0xF000
 //ASR
 //COM
@@ -126,7 +126,7 @@
 #define RCALL_OPCODE                                                0xD000
 #define RET_OPCODE                                                  0x9508
 #define RETI_OPCODE                                                 0x9518
-#define INSTRUCTION_RJMP_MASK  62
+#define RJMP_OPCODE                                                 0xC000
 #define INSTRUCTION_ROR_MASK  63
 #define INSTRUCTION_SBC_MASK  64
 #define INSTRUCTION_SBCI_MASK  65
@@ -270,6 +270,9 @@ void AVRCPU::setupInstructionDecoder() {
                 continue;
             case RCALL_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_RCALL;
+                continue;
+            case RJMP_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_RJMP;
                 continue;
         }
         switch (i & INSTRUCTION_GROUP4_MASK) {
@@ -1752,8 +1755,12 @@ void AVRCPU::instruction_RETI() {
     datMem->write(stackHAddr, &stackPointer);
 }
 
-void AVRCPU::instructionRJMP() {
+void AVRCPU::instruction_RJMP() {
+    /*************************RJMP***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction RJMP");
 
+    jumpValue = 0x0FFF&instruction;
+    pc += (((__int32_t)jumpValue)<<20)>>20; //Cast to make sign extension
 }
 
 void AVRCPU::instructionROR() {

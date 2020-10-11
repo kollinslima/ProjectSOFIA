@@ -185,7 +185,7 @@ private:
 
     void instruction_RETI();
 
-    void instructionRJMP();
+    void instruction_RJMP();
 
     void instructionROR();
 
