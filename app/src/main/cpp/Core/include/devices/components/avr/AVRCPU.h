@@ -124,7 +124,13 @@ private:
 
     void instruction_JMP();
 
-    void instructionLD_X_POST_INCREMENT();
+    void instruction_LAC();
+
+    void instruction_LAS();
+
+    void instruction_LAT();
+
+    void instruction_LD_X_POST_INCREMENT();
 
     void instructionLD_X_PRE_INCREMENT();
 

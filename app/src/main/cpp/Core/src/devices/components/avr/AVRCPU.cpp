@@ -32,7 +32,7 @@
 //DEC
 //ELPM2/ELPM3
 //INC
-//LDS
+//LAC, LAS, LAT, LDS
 //STS
 #define INSTRUCTION_GROUP8_MASK  0xFE0F
 //DES
@@ -78,6 +78,9 @@
 #define IN_OPCODE                                                   0xB000
 #define INC_OPCODE                                                  0x9403
 #define JMP_OPCODE                                                  0x940C
+#define LAC_OPCODE                                                  0x9206
+#define LAS_OPCODE                                                  0x9205
+#define LAT_OPCODE                                                  0x9207
 #define INSTRUCTION_LD_X_POST_INCREMENT_MASK  30
 #define INSTRUCTION_LD_X_PRE_INCREMENT_MASK  31
 #define INSTRUCTION_LD_X_UNCHANGED_MASK  32
@@ -265,6 +268,15 @@ void AVRCPU::setupInstructionDecoder() {
                 continue;
             case INC_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_INC;
+                continue;
+            case LAC_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_LAC;
+                continue;
+            case LAS_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_LAS;
+                continue;
+            case LAT_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_LAT;
                 continue;
         }
         switch (i & INSTRUCTION_GROUP9_MASK) {
@@ -1045,7 +1057,22 @@ void AVRCPU::instruction_JMP() {
     pc = jumpValue;
 }
 
-void AVRCPU::instructionLD_X_POST_INCREMENT() {
+void AVRCPU::instruction_LAC() {
+    /*************************LAC***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction LAC - NOT IMPLEMENTED");
+}
+
+void AVRCPU::instruction_LAS() {
+    /*************************LAS***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction LAS - NOT IMPLEMENTED");
+}
+
+void AVRCPU::instruction_LAT() {
+    /*************************LAT***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction LAT - NOT IMPLEMENTED");
+}
+
+void AVRCPU::instruction_LD_X_POST_INCREMENT() {
 
 }
 
