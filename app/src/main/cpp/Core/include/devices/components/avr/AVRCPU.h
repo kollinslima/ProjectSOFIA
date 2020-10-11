@@ -56,7 +56,7 @@ private:
 
     void instruction_ADC();
 
-    void instruction_ADD();
+    void instruction_ADD_LSL();
 
     void instruction_ADIW();
 

@@ -7,7 +7,7 @@
 #include "../../../../include/CommonCore.h"
 #include "../../../../include/devices/components/avr/GenericAVRDataMemory.h"
 
-//ADC, ADD, AND,
+//ADC, ADD/LSL, AND,
 //BRBC/BRCC/BRGE/BRHC/BRID/BRNE/BRPL/BRSH/BRTC/BRVC,
 //BRBS/BRCS/BREQ/BRHS/BRIE/BRLO/BRLT/BRMI/BRTS/BRVS,
 //CLR/EOR, CP, CPC, CPSE
@@ -46,7 +46,7 @@
 #define INSTRUCTION_GROUP12_MASK  0xD208
 
 #define ADC_OPCODE                                                  0x1C00
-#define ADD_OPCODE                                                  0x0C00
+#define ADD_LSL_OPCODE                                              0x0C00
 #define ADIW_OPCODE                                                 0x9600
 #define AND_TST_OPCODE                                              0x2000
 #define ANDI_CBR_OPCODE                                             0x7000
@@ -194,8 +194,8 @@ void AVRCPU::setupInstructionDecoder() {
             case ADC_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_ADC;
                 continue;
-            case ADD_OPCODE:
-                instructionDecoder[i] = &AVRCPU::instruction_ADD;
+            case ADD_LSL_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_ADD_LSL;
                 continue;
             case AND_TST_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_AND_TST;
@@ -440,7 +440,7 @@ void AVRCPU::instruction_ADC() {
 
 }
 
-void AVRCPU::instruction_ADD() {
+void AVRCPU::instruction_ADD_LSL() {
     /*************************ADD***********************/
     LOGD(SOFIA_AVRCPU_TAG, "Instruction ADD");
 
