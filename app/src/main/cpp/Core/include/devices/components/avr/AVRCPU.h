@@ -183,7 +183,7 @@ private:
 
     void instruction_RET();
 
-    void instructionRETI();
+    void instruction_RETI();
 
     void instructionRJMP();
 

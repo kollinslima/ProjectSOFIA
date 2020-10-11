@@ -125,7 +125,7 @@
 #define PUSH_OPCODE                                                 0x920F
 #define RCALL_OPCODE                                                0xD000
 #define RET_OPCODE                                                  0x9508
-#define INSTRUCTION_RETI_MASK  61
+#define RETI_OPCODE                                                 0x9518
 #define INSTRUCTION_RJMP_MASK  62
 #define INSTRUCTION_ROR_MASK  63
 #define INSTRUCTION_SBC_MASK  64
@@ -155,6 +155,7 @@
 #define INSTRUCTION_SWAP_MASK  88
 #define INSTRUCTION_WDR_MASK  89
 
+#define I_FLAG_MASK 0x80
 #define T_FLAG_MASK 0x40
 #define H_FLAG_MASK 0x20
 #define S_FLAG_MASK 0x10
@@ -443,6 +444,10 @@ void AVRCPU::setupInstructionDecoder() {
         }
         if (i == RET_OPCODE) {
             instructionDecoder[i] = &AVRCPU::instruction_RET;
+            continue;
+        }
+        if (i == RETI_OPCODE) {
+            instructionDecoder[i] = &AVRCPU::instruction_RETI;
             continue;
         }
         instructionDecoder[i] = &AVRCPU::unknownInstruction;
@@ -1724,8 +1729,27 @@ void AVRCPU::instruction_RET() {
     datMem->write(stackHAddr, &stackPointer);
 }
 
-void AVRCPU::instructionRETI() {
+void AVRCPU::instruction_RETI() {
+    /*************************RETI***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction RETI");
 
+    datMem->read(stackLAddr, &dataL);
+    datMem->read(stackHAddr, &dataH);
+    stackPointer = (dataH<<8)|dataL;
+
+    //PC (read little-endian)
+    datMem->read(++stackPointer, &dataH);
+    datMem->read(++stackPointer, &dataL);
+    pc = (dataH<<8)|dataL;
+
+    datMem->read(sregAddr, &sreg);
+    sreg |= I_FLAG_MASK; //FIXME: AVR XMEGA will not perform this set
+    datMem->write(sregAddr, &sreg);
+
+    //Update SPL and SPH
+    datMem->write(stackLAddr, &stackPointer);
+    stackPointer = stackPointer >> 8;
+    datMem->write(stackHAddr, &stackPointer);
 }
 
 void AVRCPU::instructionRJMP() {
