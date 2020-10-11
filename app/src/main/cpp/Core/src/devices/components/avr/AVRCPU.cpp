@@ -112,7 +112,7 @@
 #define MULS_OPCODE                                                 0x0200
 #define MULSU_OPCODE                                                0x0300
 #define NEG_OPCODE                                                  0x9401
-#define INSTRUCTION_NOP_MASK  53
+#define NOP_OPCODE                                                  0x0000
 #define INSTRUCTION_OR_MASK  54
 #define INSTRUCTION_ORI_MASK  55
 #define INSTRUCTION_OUT_MASK  56
@@ -412,6 +412,10 @@ void AVRCPU::setupInstructionDecoder() {
         }
         if (i == LPM_Z_UNCHANGED_DEST_R0_OPCODE) {
             instructionDecoder[i] = &AVRCPU::instruction_LPM_Z_UNCHANGED_DEST_R0;
+            continue;
+        }
+        if (i == NOP_OPCODE) {
+            instructionDecoder[i] = &AVRCPU::instruction_NOP;
             continue;
         }
         instructionDecoder[i] = &AVRCPU::unknownInstruction;
@@ -1553,8 +1557,9 @@ void AVRCPU::instruction_NEG() {
     datMem->write(sregAddr, &sreg);
 }
 
-void AVRCPU::instructionNOP() {
-
+void AVRCPU::instruction_NOP() {
+    /*************************NOP***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction NOP");
 }
 
 void AVRCPU::instructionOR() {

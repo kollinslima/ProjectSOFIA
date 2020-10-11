@@ -167,7 +167,7 @@ private:
 
     void instruction_NEG();
 
-    void instructionNOP();
+    void instruction_NOP();
 
     void instructionOR();
 
