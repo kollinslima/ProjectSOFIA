@@ -142,7 +142,7 @@ private:
     void instruction_LD_Z_UNCHANGED();
     void instruction_LD_Z_POST_INCREMENT();
     void instruction_LD_Z_PRE_DECREMENT();
-    void instructionLDD_Z();
+    void instruction_LDD_Z();
 
     void instructionLDI(); //LDI - SER
     void instructionLDS();

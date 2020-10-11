@@ -32,7 +32,7 @@
 //DEC
 //ELPM2/ELPM3
 //INC
-//LAC, LAS, LAT, LD(X), LD(Y), LDS
+//LAC, LAS, LAT, LD(X), LD(Y), LD(Z), LDS
 //STS
 #define INSTRUCTION_GROUP8_MASK  0xFE0F
 //DES
@@ -41,7 +41,7 @@
 #define INSTRUCTION_GROUP10_MASK  0xFF88
 //IN
 #define INSTRUCTION_GROUP11_MASK  0xF800
-//LDD(Y)
+//LDD(Y), LDD(Z)
 #define INSTRUCTION_GROUP12_MASK  0xD208
 
 #define ADC_OPCODE                                                  0x1C00
@@ -90,10 +90,10 @@
 #define LD_Y_POST_INCREMENT_OPCODE                                  0x9009
 #define LD_Y_PRE_DECREMENT_OPCODE                                   0x900A
 #define LDD_Y_OPCODE                                                0x8008
-#define INSTRUCTION_LD_Z_POST_INCREMENT_MASK  36
-#define INSTRUCTION_LD_Z_PRE_INCREMENT_MASK  37
-#define INSTRUCTION_LD_Z_UNCHANGED_MASK  38
-#define INSTRUCTION_LDD_Z_MASK  40
+#define LD_Z_UNCHANGED_OPCODE                                       0x8000
+#define LD_Z_POST_INCREMENT_OPCODE                                  0x9001
+#define LD_Z_PRE_DECREMENT_OPCODE                                   0x9002
+#define LDD_Z_OPCODE                                                0x8000
 #define INSTRUCTION_LDI_MASK  41 //LDI - SER
 #define LDS_OPCODE  0x9000
 #define INSTRUCTION_LPM_Z_POST_INCREMENT_MASK  43
@@ -305,6 +305,15 @@ void AVRCPU::setupInstructionDecoder() {
             case LD_Y_PRE_DECREMENT_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_LD_Y_PRE_DECREMENT;
                 continue;
+            case LD_Z_UNCHANGED_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_LD_Z_UNCHANGED;
+                continue;
+            case LD_Z_POST_INCREMENT_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_LD_Z_POST_INCREMENT;
+                continue;
+            case LD_Z_PRE_DECREMENT_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_LD_Z_PRE_DECREMENT;
+                continue;
         }
         switch (i & INSTRUCTION_GROUP9_MASK) {
             case DES_OPCODE:
@@ -330,6 +339,9 @@ void AVRCPU::setupInstructionDecoder() {
         switch (i & INSTRUCTION_GROUP12_MASK) {
             case LDD_Y_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_LDD_Y;
+                continue;
+            case LDD_Z_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_LDD_Z;
                 continue;
         }
         if (i == BREAK_OPCODE) {
@@ -1215,19 +1227,65 @@ void AVRCPU::instruction_LDD_Y() {
 }
 
 void AVRCPU::instruction_LD_Z_UNCHANGED() {
+    /*************************LD (Z UNCHANGED)***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction LD (Z UNCHANGED)");
 
+    //Read Z Register
+    datMem->read(REG30_ADDR, &dataL);
+    datMem->read(REG31_ADDR, &dataH);
+
+    outData = (dataH<<8) | dataL;
+
+    datMem->read(outData, &result);
+    datMem->write((0x01F0 & instruction)>>4, &result);
 }
 
 void AVRCPU::instruction_LD_Z_POST_INCREMENT() {
+    /*************************LD (Z POST INCREMENT)***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction LD (Z POST INCREMENT)");
 
+    //Read Z Register
+    datMem->read(REG30_ADDR, &dataL);
+    datMem->read(REG31_ADDR, &dataH);
+
+    outData = (dataH<<8) | dataL;
+
+    datMem->read(outData++, &result);
+    datMem->write((0x01F0 & instruction)>>4, &result);
+    datMem->write(REG30_ADDR, &outData);
+    outData = outData >> 8;
+    datMem->write(REG31_ADDR, &outData);
 }
 
 void AVRCPU::instruction_LD_Z_PRE_DECREMENT() {
+    /*************************LD (Z PRE DECREMENT)***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction LD (Z PRE DECREMENT)");
 
+    //Read Z Register
+    datMem->read(REG30_ADDR, &dataL);
+    datMem->read(REG31_ADDR, &dataH);
+
+    outData = (dataH<<8) | dataL;
+
+    datMem->read(--outData, &result);
+    datMem->write((0x01F0 & instruction)>>4, &result);
+    datMem->write(REG30_ADDR, &outData);
+    outData = outData >> 8;
+    datMem->write(REG31_ADDR, &outData);
 }
 
 void AVRCPU::instruction_LDD_Z() {
+    /*************************LDD (Z)***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction LDD (Z)");
 
+    //Read Z Register
+    datMem->read(REG30_ADDR, &dataL);
+    datMem->read(REG31_ADDR, &dataH);
+
+    outData = ((dataH<<8) | dataL) + (((0x2000 & instruction)>>8) | ((0x0C00 & instruction)>>7)| (0x0007 & instruction));
+
+    datMem->read(outData, &result);
+    datMem->write((0x01F0 & instruction)>>4, &result);
 }
 
 void AVRCPU::instructionLDI() {
