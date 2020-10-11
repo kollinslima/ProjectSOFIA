@@ -134,20 +134,14 @@ private:
     void instruction_LD_X_POST_INCREMENT();
     void instruction_LD_X_PRE_DECREMENT();
 
-    void instructionLD_Y_POST_INCREMENT();
+    void instruction_LD_Y_UNCHANGED();
+    void instruction_LD_Y_POST_INCREMENT();
+    void instruction_LD_Y_PRE_DECREMENT();
+    void instruction_LDD_Y();
 
-    void instructionLD_Y_PRE_INCREMENT();
-
-    void instructionLD_Y_UNCHANGED();
-
-    void instructionLD_Z_POST_INCREMENT();
-
-    void instructionLD_Z_PRE_INCREMENT();
-
-    void instructionLD_Z_UNCHANGED();
-
-    void instructionLDD_Y();
-
+    void instruction_LD_Z_UNCHANGED();
+    void instruction_LD_Z_POST_INCREMENT();
+    void instruction_LD_Z_PRE_DECREMENT();
     void instructionLDD_Z();
 
     void instructionLDI(); //LDI - SER
