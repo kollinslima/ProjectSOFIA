@@ -31,6 +31,7 @@
 #define INSTRUCTION_GROUP7_MASK  0xFE0E
 //DEC
 //ELPM2/ELPM3
+//INC
 //LDS
 //STS
 #define INSTRUCTION_GROUP8_MASK  0xFE0F
@@ -75,7 +76,7 @@
 #define ICALL_OPCODE                                                0x9509
 #define IJMP_OPCODE                                                 0x9409
 #define IN_OPCODE                                                   0xB000
-#define INSTRUCTION_INC_MASK  28
+#define INC_OPCODE                                                  0x9403
 #define JMP_OPCODE  0x940C
 #define INSTRUCTION_LD_X_POST_INCREMENT_MASK  30
 #define INSTRUCTION_LD_X_PRE_INCREMENT_MASK  31
@@ -258,6 +259,9 @@ void AVRCPU::setupInstructionDecoder() {
                 continue;
             case ELPM3_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_ELPM3;
+                continue;
+            case INC_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_INC;
                 continue;
         }
         switch (i & INSTRUCTION_GROUP9_MASK) {
@@ -999,8 +1003,32 @@ void AVRCPU::instruction_IN() {
     datMem->write((0x01F0&instruction)>>4, &result);
 }
 
-void AVRCPU::instructionINC() {
+void AVRCPU::instruction_INC() {
+    /*************************INC***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction INC");
 
+    wbAddr = (0x01F0 & instruction) >> 4;
+
+    datMem->read(wbAddr, &regD);
+    datMem->read(sregAddr, &sreg);
+
+    result = regD + 1;
+    sreg &= 0xE1;
+
+    //Flag V
+    sreg |= (regD == 0x7F)?V_FLAG_MASK:0x00;
+
+    //Flag N
+    sreg |= (result >> 5) & N_FLAG_MASK;
+
+    //Flag S
+    sreg |= (((sreg << 1) ^ sreg) << 1) & S_FLAG_MASK;
+
+    //Flag Z
+    sreg |= result?0x00:Z_FLAG_MASK;
+
+    datMem->write(wbAddr, &result);
+    datMem->write(sregAddr, &sreg);
 }
 
 void AVRCPU::instructionJMP() {

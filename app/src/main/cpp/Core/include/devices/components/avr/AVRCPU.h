@@ -120,7 +120,7 @@ private:
 
     void instruction_IN();
 
-    void instructionINC();
+    void instruction_INC();
 
     void instructionJMP();
 
