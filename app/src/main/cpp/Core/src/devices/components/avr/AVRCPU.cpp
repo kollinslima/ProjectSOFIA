@@ -12,6 +12,7 @@
 //BRBS/BRCS/BREQ/BRHS/BRIE/BRLO/BRLT/BRMI/BRTS/BRVS
 //CLR/EOR, CP, CPC, CPSE
 //MOV, MUL
+//OR
 //TST
 #define INSTRUCTION_GROUP1_MASK  0xFC00
 //ADIW
@@ -113,7 +114,7 @@
 #define MULSU_OPCODE                                                0x0300
 #define NEG_OPCODE                                                  0x9401
 #define NOP_OPCODE                                                  0x0000
-#define INSTRUCTION_OR_MASK  54
+#define OR_OPCODE                                                   0x2800
 #define INSTRUCTION_ORI_MASK  55
 #define INSTRUCTION_OUT_MASK  56
 #define INSTRUCTION_POP_MASK  57
@@ -227,6 +228,9 @@ void AVRCPU::setupInstructionDecoder() {
                 continue;
             case MUL_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_MUL;
+                continue;
+            case OR_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_OR;
                 continue;
         }
         switch (i & INSTRUCTION_GROUP2_MASK) {
@@ -1562,8 +1566,30 @@ void AVRCPU::instruction_NOP() {
     LOGD(SOFIA_AVRCPU_TAG, "Instruction NOP");
 }
 
-void AVRCPU::instructionOR() {
+void AVRCPU::instruction_OR() {
+    /*************************OR***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction OR");
 
+    wbAddr = (0x01F0 & instruction) >> 4;
+
+    datMem->read(wbAddr, &regD);
+    datMem->read(((0x0200 & instruction) >> 5) | (0x000F & instruction), &regR);
+    datMem->read(sregAddr, &sreg);
+
+    result = regD | regR;
+    sreg &= 0xE1;
+
+    //Flag N
+    sreg |= (result >> 5) & N_FLAG_MASK;
+
+    //Flag S
+    sreg |= (((sreg << 1) ^ sreg) << 1) & S_FLAG_MASK;
+
+    //Flag Z
+    sreg |= result?0x00:Z_FLAG_MASK;
+
+    datMem->write(wbAddr, &result);
+    datMem->write(sregAddr, &sreg);
 }
 
 void AVRCPU::instructionORI() {

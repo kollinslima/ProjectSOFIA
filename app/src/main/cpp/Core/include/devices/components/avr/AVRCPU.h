@@ -169,7 +169,7 @@ private:
 
     void instruction_NOP();
 
-    void instructionOR();
+    void instruction_OR();
 
     void instructionORI();   //ORI - SBR
     void instructionOUT();
