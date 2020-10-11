@@ -54,7 +54,7 @@ private:
 
     void setupInstructionDecoder();
 
-    void instruction_ADC();
+    void instruction_ADC_ROL();
 
     void instruction_ADD_LSL();
 
@@ -187,7 +187,7 @@ private:
 
     void instruction_RJMP();
 
-    void instructionROR();
+    void instruction_ROR();
 
     void instructionSBC();
 

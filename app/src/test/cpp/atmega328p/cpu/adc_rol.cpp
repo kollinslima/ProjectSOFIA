@@ -1,5 +1,5 @@
 // Kollins G. Lima - 09/27/2020
-// UNIT TEST FOR ADC INSTRUCTION
+// UNIT TEST FOR ADC/ROL INSTRUCTION
 
 #include <stdio.h>
 #include <iostream>

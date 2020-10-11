@@ -54,7 +54,7 @@
 //LDD(Y), LDD(Z)
 #define INSTRUCTION_GROUP12_MASK  0xD208
 
-#define ADC_OPCODE                                                  0x1C00
+#define ADC_ROL_OPCODE                                                  0x1C00
 #define ADD_LSL_OPCODE                                              0x0C00
 #define ADIW_OPCODE                                                 0x9600
 #define AND_TST_OPCODE                                              0x2000
@@ -201,8 +201,8 @@ AVRCPU::~AVRCPU() {
 void AVRCPU::setupInstructionDecoder() {
     for (int i = 0; i < INSTRUCTION_DECODER_SIZE; ++i) {
         switch (i & INSTRUCTION_GROUP1_MASK) {
-            case ADC_OPCODE:
-                instructionDecoder[i] = &AVRCPU::instruction_ADC;
+            case ADC_ROL_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_ADC_ROL;
                 continue;
             case ADD_LSL_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_ADD_LSL;
@@ -463,9 +463,9 @@ void AVRCPU::run() {
     pc = 0;
 }
 
-void AVRCPU::instruction_ADC() {
-    /*************************ADC***********************/
-    LOGD(SOFIA_AVRCPU_TAG, "Instruction ADC");
+void AVRCPU::instruction_ADC_ROL() {
+    /*************************ADC/ROL***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction ADC/ROL");
 
     wbAddr = (0x01F0 & instruction) >> 4;
 
@@ -1763,7 +1763,7 @@ void AVRCPU::instruction_RJMP() {
     pc += (((__int32_t)jumpValue)<<20)>>20; //Cast to make sign extension
 }
 
-void AVRCPU::instructionROR() {
+void AVRCPU::instruction_ROR() {
 
 }
 
