@@ -11,6 +11,7 @@
 //BRBC/BRCC/BRGE/BRHC/BRID/BRNE/BRPL/BRSH/BRTC/BRVC,
 //BRBS/BRCS/BREQ/BRHS/BRIE/BRLO/BRLT/BRMI/BRTS/BRVS,
 //CLR/EOR, CP, CPC, CPSE
+//MOV
 //TST
 #define INSTRUCTION_GROUP1_MASK  0xFC00
 //ADIW,
@@ -103,7 +104,7 @@
 #define LPM_Z_UNCHANGED_OPCODE                                      0x9004
 #define LPM_Z_POST_INCREMENT_OPCODE                                 0x9005
 #define LSR_OPCODE                                                  0x9406
-#define INSTRUCTION_MOV_MASK  47
+#define MOV_OPCODE                                                  0x2C00
 #define INSTRUCTION_MOVW_MASK  48
 #define INSTRUCTION_MUL_MASK  49
 #define INSTRUCTION_MULS_MASK  50
@@ -218,6 +219,9 @@ void AVRCPU::setupInstructionDecoder() {
                 continue;
             case CPSE_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_CPSE;
+                continue;
+            case MOV_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_MOV;
                 continue;
         }
         switch (i & INSTRUCTION_GROUP2_MASK) {
@@ -1411,8 +1415,12 @@ void AVRCPU::instruction_LSR() {
     datMem->write(sregAddr, &sreg);
 }
 
-void AVRCPU::instructionMOV() {
+void AVRCPU::instruction_MOV() {
+    /*************************MOV***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction MOV");
 
+    datMem->read((((0x0200&instruction)>>5) | (0x000F&instruction)), &result);
+    datMem->write((0x01F0 & instruction) >> 4, &result);
 }
 
 void AVRCPU::instructionMOVW() {

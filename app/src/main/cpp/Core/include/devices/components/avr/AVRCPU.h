@@ -155,7 +155,7 @@ private:
 
     void instruction_LSR();
 
-    void instructionMOV();
+    void instruction_MOV();
 
     void instructionMOVW();
 
