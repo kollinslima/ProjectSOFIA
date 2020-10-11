@@ -46,6 +46,7 @@ private:
     spc32 jumpValue;
 
     sbyte regD_and_regR;
+    sbyte notRegD_and_regR;
     sbyte regR_and_result;
     sbyte immediate_and_result;
     sbyte not_result, not_regD;
@@ -189,7 +190,7 @@ private:
 
     void instruction_ROR();
 
-    void instructionSBC();
+    void instruction_SBC();
 
     void instructionSBCI();
 
