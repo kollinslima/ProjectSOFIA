@@ -22,7 +22,12 @@ int main(int argc, char *argv[])
     sbyte dataL = 0xCD;
     sbyte dataH = 0xAB;
     sword16 outData = (dataH<<8) | dataL;
-    assert(outData = 0xABCD);
+    assert(outData == 0xABCD);
+
+    //Test two complement
+    sbyte data = 0x01;
+    data = 0x00 - data;
+    assert(data == 0xFF);
 
     return 0;
 }

@@ -165,7 +165,7 @@ private:
 
     void instruction_MULSU();
 
-    void instructionNEG();
+    void instruction_NEG();
 
     void instructionNOP();
 
