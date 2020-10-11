@@ -149,11 +149,9 @@ private:
     void instruction_LDS();
     void instruction_LDS16();
 
-    void instructionLPM_Z_POST_INCREMENT();
-
-    void instructionLPM_Z_UNCHANGED_DEST_R();
-
-    void instructionLPM_Z_UNCHANGED();
+    void instruction_LPM_Z_UNCHANGED_DEST_R0();
+    void instruction_LPM_Z_UNCHANGED();
+    void instruction_LPM_Z_POST_INCREMENT();
 
     void instructionLSR();
 

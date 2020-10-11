@@ -33,7 +33,7 @@
 //DEC
 //ELPM2/ELPM3
 //INC
-//LAC, LAS, LAT, LD(X), LD(Y), LD(Z), LDS
+//LAC, LAS, LAT, LD(X), LD(Y), LD(Z), LDS, LPM
 //STS
 #define INSTRUCTION_GROUP8_MASK  0xFE0F
 //DES
@@ -98,9 +98,9 @@
 #define LDI_OPCODE                                                  0xE000
 #define LDS_OPCODE                                                  0x9000
 #define LDS_16_OPCODE                                               0xA000
-#define INSTRUCTION_LPM_Z_POST_INCREMENT_MASK  43
-#define INSTRUCTION_LPM_Z_UNCHANGED_DEST_R0_MASK  44
-#define INSTRUCTION_LPM_Z_UNCHANGED_MASK  45
+#define LPM_Z_UNCHANGED_DEST_R0_OPCODE                              0x95C8
+#define LPM_Z_UNCHANGED_OPCODE                                      0x9004
+#define LPM_Z_POST_INCREMENT_OPCODE                                 0x9005
 #define INSTRUCTION_LSR_MASK  46
 #define INSTRUCTION_MOV_MASK  47
 #define INSTRUCTION_MOVW_MASK  48
@@ -325,6 +325,12 @@ void AVRCPU::setupInstructionDecoder() {
             case LDS_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_LDS;
                 continue;
+            case LPM_Z_UNCHANGED_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_LPM_Z_UNCHANGED;
+                continue;
+            case LPM_Z_POST_INCREMENT_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_LPM_Z_POST_INCREMENT;
+                continue;
         }
         switch (i & INSTRUCTION_GROUP9_MASK) {
             case DES_OPCODE:
@@ -377,6 +383,10 @@ void AVRCPU::setupInstructionDecoder() {
         }
         if (i == IJMP_OPCODE) {
             instructionDecoder[i] = &AVRCPU::instruction_IJMP;
+            continue;
+        }
+        if (i == LPM_Z_UNCHANGED_DEST_R0_OPCODE) {
+            instructionDecoder[i] = &AVRCPU::instruction_LPM_Z_UNCHANGED_DEST_R0;
             continue;
         }
         instructionDecoder[i] = &AVRCPU::unknownInstruction;
@@ -1324,16 +1334,49 @@ void AVRCPU::instruction_LDS16() {
     LOGD(SOFIA_AVRCPU_TAG, "Instruction LDS (16-bit) - NOT IMPLEMENTED");
 }
 
-void AVRCPU::instructionLPM_Z_POST_INCREMENT() {
+void AVRCPU::instruction_LPM_Z_UNCHANGED_DEST_R0() {
+    /*************************LPM (Z UNCHANGED - DEST RO)***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction LPM (Z UNCHANGED - DEST RO)");
 
+    //Read Z Register
+    datMem->read(REG30_ADDR, &dataL);
+    datMem->read(REG31_ADDR, &dataH);
+
+    outData = (dataH<<8) | dataL;
+
+    progMem->read(outData, &result);
+    datMem->write(REG00_ADDR, &result);
 }
 
-void AVRCPU::instructionLPM_Z_UNCHANGED_DEST_R() {
+void AVRCPU::instruction_LPM_Z_UNCHANGED() {
+    /*************************LPM (Z UNCHANGED)***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction LPM (Z UNCHANGED)");
 
+    //Read Z Register
+    datMem->read(REG30_ADDR, &dataL);
+    datMem->read(REG31_ADDR, &dataH);
+
+    outData = (dataH<<8) | dataL;
+
+    progMem->read(outData, &result);
+    datMem->write((0x01F0 & instruction)>>4, &result);
 }
 
-void AVRCPU::instructionLPM_Z_UNCHANGED() {
+void AVRCPU::instruction_LPM_Z_POST_INCREMENT() {
+    /*************************LPM (Z POST INCREMENT)***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction LPM (Z POST INCREMENT)");
 
+    //Read Z Register
+    datMem->read(REG30_ADDR, &dataL);
+    datMem->read(REG31_ADDR, &dataH);
+
+    outData = (dataH<<8) | dataL;
+
+    progMem->read(outData++, &result);
+    datMem->write((0x01F0 & instruction)>>4, &result);
+    datMem->write(REG30_ADDR, &outData);
+    outData = outData >> 8;
+    datMem->write(REG31_ADDR, &outData);
 }
 
 void AVRCPU::instructionLSR() {
