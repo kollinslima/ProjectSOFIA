@@ -15,17 +15,17 @@ public:
 
     ~DataMemory_ATMega328P();
 
-    bool write(smemaddr addr, void *data) override;
+    bool write(smemaddr16 addr, void *data) override;
 
-    bool read(smemaddr addr, void *data) override;
+    bool read(smemaddr16 addr, void *data) override;
 
-    smemaddr getSize() override;
+    smemaddr16 getSize() override;
 
-    smemaddr getSREGAddres() override;
+    smemaddr16 getSREGAddres() override;
 
-    smemaddr getSPLAddres() override;
+    smemaddr16 getSPLAddres() override;
 
-    smemaddr getSPHAddres() override;
+    smemaddr16 getSPHAddres() override;
 };
 
 

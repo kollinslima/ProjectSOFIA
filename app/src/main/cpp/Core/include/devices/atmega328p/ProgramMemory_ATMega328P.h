@@ -18,11 +18,11 @@ class ProgramMemory_ATMega328P : public GenericProgramMemory {
 
         bool loadFile(int fd);
 
-        bool write(smemaddr addr, void *data) override;
-        bool read(smemaddr addr, void *data) override;
-        smemaddr getSize() override;
+        bool write(smemaddr16 addr, void *data) override;
+        bool read(smemaddr16 addr, void *data) override;
+        smemaddr16 getSize() override;
 
-        bool loadInstruction(spc pc, void *data) override;
+        bool loadInstruction(spc32 pc, void *data) override;
 };
 
 

@@ -10,8 +10,8 @@
 
 typedef void Listener(JNIEnv *env, const char *msg);
 
-typedef __uint32_t spc;
-typedef __uint16_t smemaddr;
+typedef __uint32_t spc32;
+typedef __uint16_t smemaddr16;
 typedef __uint8_t sbyte;
 typedef __uint16_t sword16;
 

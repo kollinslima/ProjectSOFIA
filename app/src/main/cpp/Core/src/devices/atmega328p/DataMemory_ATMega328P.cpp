@@ -25,28 +25,28 @@ DataMemory_ATMega328P::~DataMemory_ATMega328P() {
     delete [] buffer;
 }
 
-bool DataMemory_ATMega328P::write(smemaddr addr, void *data) {
+bool DataMemory_ATMega328P::write(smemaddr16 addr, void *data) {
     buffer[SAFE_ADDR(addr, LAST_ADDR)] = *(static_cast<sbyte *>(data));
     return true;
 }
 
-bool DataMemory_ATMega328P::read(smemaddr addr, void *data) {
+bool DataMemory_ATMega328P::read(smemaddr16 addr, void *data) {
     *(static_cast<sbyte *>(data)) = buffer[SAFE_ADDR(addr, LAST_ADDR)];
     return true;
 }
 
-smemaddr DataMemory_ATMega328P::getSize() {
+smemaddr16 DataMemory_ATMega328P::getSize() {
     return size;
 }
 
-smemaddr DataMemory_ATMega328P::getSREGAddres() {
+smemaddr16 DataMemory_ATMega328P::getSREGAddres() {
     return SREG_ADDR;
 }
 
-smemaddr DataMemory_ATMega328P::getSPLAddres() {
+smemaddr16 DataMemory_ATMega328P::getSPLAddres() {
     return SPL_ADDR;
 }
 
-smemaddr DataMemory_ATMega328P::getSPHAddres() {
+smemaddr16 DataMemory_ATMega328P::getSPHAddres() {
     return SPH_ADDR;
 }

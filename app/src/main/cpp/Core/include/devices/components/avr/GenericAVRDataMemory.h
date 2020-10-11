@@ -12,17 +12,17 @@ class GenericAVRDataMemory : public GenericMemory {
 public:
     virtual ~GenericAVRDataMemory() {}
 
-    virtual bool write(smemaddr addr, void *data) = 0;
+    virtual bool write(smemaddr16 addr, void *data) = 0;
 
-    virtual bool read(smemaddr addr, void *data) = 0;
+    virtual bool read(smemaddr16 addr, void *data) = 0;
 
-    virtual smemaddr getSize() = 0;
+    virtual smemaddr16 getSize() = 0;
 
-    virtual smemaddr getSREGAddres() = 0;
+    virtual smemaddr16 getSREGAddres() = 0;
 
-    virtual smemaddr getSPLAddres() = 0;
+    virtual smemaddr16 getSPLAddres() = 0;
 
-    virtual smemaddr getSPHAddres() = 0;
+    virtual smemaddr16 getSPHAddres() = 0;
 };
 
 

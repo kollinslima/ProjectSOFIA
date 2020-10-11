@@ -13,7 +13,7 @@ class GenericCPU {
         virtual ~GenericCPU() {};
 
     protected:
-        spc pc;
+        spc32 pc;
 };
 
 
