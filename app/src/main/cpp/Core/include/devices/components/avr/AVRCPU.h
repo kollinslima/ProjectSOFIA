@@ -173,7 +173,7 @@ private:
 
     void instruction_ORI();
 
-    void instructionOUT();
+    void instruction_OUT();
 
     void instructionPOP();
 

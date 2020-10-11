@@ -47,6 +47,7 @@
 //FMUL, FMULS, FMULSU, MULSU
 #define INSTRUCTION_GROUP10_MASK  0xFF88
 //IN
+//OUT
 #define INSTRUCTION_GROUP11_MASK  0xF800
 //LDD(Y), LDD(Z)
 #define INSTRUCTION_GROUP12_MASK  0xD208
@@ -117,7 +118,7 @@
 #define NOP_OPCODE                                                  0x0000
 #define OR_OPCODE                                                   0x2800
 #define ORI_OPCODE                                                  0x6000
-#define INSTRUCTION_OUT_MASK  56
+#define OUT_OPCODE                                                  0xB800
 #define INSTRUCTION_POP_MASK  57
 #define INSTRUCTION_PUSH_MASK  58
 #define INSTRUCTION_RCALL_MASK  59
@@ -384,6 +385,9 @@ void AVRCPU::setupInstructionDecoder() {
         switch (i & INSTRUCTION_GROUP11_MASK) {
             case IN_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_IN;
+                continue;
+            case OUT_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_OUT;
                 continue;
         }
         switch (i & INSTRUCTION_GROUP12_MASK) {
@@ -1621,8 +1625,12 @@ void AVRCPU::instruction_ORI() {
     datMem->write(sregAddr, &sreg);
 }
 
-void AVRCPU::instructionOUT() {
+void AVRCPU::instruction_OUT() {
+    /*************************OUT***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction OUT");
 
+    datMem->read((0x01F0&instruction)>>4, &result);
+    datMem->write(IOREG_BASEADDR + (((0x0600&instruction)>>5)|(0x000F&instruction)), &result);
 }
 
 void AVRCPU::instructionPOP() {
