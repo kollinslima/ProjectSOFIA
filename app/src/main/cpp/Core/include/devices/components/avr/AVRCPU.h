@@ -161,7 +161,7 @@ private:
 
     void instruction_MUL();
 
-    void instructionMULS();
+    void instruction_MULS();
 
     void instructionMULSU();
 

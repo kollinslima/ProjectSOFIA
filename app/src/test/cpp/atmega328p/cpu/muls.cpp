@@ -1,5 +1,5 @@
 // Kollins G. Lima - 10/11/2020
-// UNIT TEST FOR MUL INSTRUCTION
+// UNIT TEST FOR MULS INSTRUCTION
 
 #include <stdio.h>
 #include <iostream>
@@ -26,11 +26,11 @@ typedef struct {
 
 Out output;
 
-void testMUL (sbyte regD, sbyte regR, sbyte initSreg) {
+void testMULS (sbyte regD, sbyte regR, sbyte initSreg) {
     sbyte sreg = initSreg;
     sbyte result;
 
-    sword16 outData = regD * regR;
+    sword16 outData = ((__int8_t)regD) * ((__int8_t)regR); //signed multiplication
     sreg &= 0xFC;
 
     //Flag Z
@@ -47,7 +47,7 @@ void testMUL (sbyte regD, sbyte regR, sbyte initSreg) {
 int main(int argc, char *argv[])
 {
     printf("0x40Times0x40 - Return 0x1000\n");
-    testMUL(0x40,0x40,0x00);
+    testMULS(0x40,0x40,0x00);
     printf("DataL: %X\n", output.outL);
     printf("DataH: %X\n", output.outH);
     assert(output.outL == 0x00);
@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
     assert(output.sreg == 0x00);
 
     printf("0x40Times0 - Return 0x0000\n");
-    testMUL(0x40,0,0x00);
+    testMULS(0x40,0x00,0x00);
     printf("DataL: %X\n", output.outL);
     printf("DataH: %X\n", output.outH);
     assert(output.outL == 0x00);
@@ -64,12 +64,21 @@ int main(int argc, char *argv[])
     printf("SREG: %X\n", output.sreg);
     assert(output.sreg == 0x02);
 
-    printf("0xFFTimes0xFF - Return 0xFE01\n");
-    testMUL(0xFF,0xFF,0x00);
+    printf("0xFFTimes0xFF - Return 0x0001\n");
+    testMULS(0xFF,0xFF,0x00);
     printf("DataL: %X\n", output.outL);
     printf("DataH: %X\n", output.outH);
     assert(output.outL == 0x01);
-    assert(output.outH == 0xFE);
+    assert(output.outH == 0x00);
+    printf("SREG: %X\n", output.sreg);
+    assert(output.sreg == 0x00);
+
+    printf("0xFFTimes0x7F - Return 0xFF81\n");
+    testMULS(0xFF,0x7F,0x00);
+    printf("DataL: %X\n", output.outL);
+    printf("DataH: %X\n", output.outH);
+    assert(output.outL == 0x81);
+    assert(output.outH == 0xFF);
     printf("SREG: %X\n", output.sreg);
     assert(output.sreg == 0x01);
 

@@ -16,7 +16,7 @@
 #define INSTRUCTION_GROUP1_MASK  0xFC00
 //ADIW,
 //CBI
-//MOVW
+//MOVW, MULS
 #define INSTRUCTION_GROUP2_MASK  0xFF00
 //ANDI/CBR,
 //CPI
@@ -108,7 +108,7 @@
 #define MOV_OPCODE                                                  0x2C00
 #define MOVW_OPCODE                                                 0x0100
 #define MUL_OPCODE                                                  0x9C00
-#define INSTRUCTION_MULS_MASK  50
+#define MULS_OPCODE                                                 0x0200
 #define INSTRUCTION_MULSU_MASK  51
 #define INSTRUCTION_NEG_MASK  52
 #define INSTRUCTION_NOP_MASK  53
@@ -237,6 +237,9 @@ void AVRCPU::setupInstructionDecoder() {
                 continue;
             case MOVW_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_MOVW;
+                continue;
+            case MULS_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_MULS;
                 continue;
         }
         switch (i & INSTRUCTION_GROUP3_MASK) {
@@ -1467,8 +1470,26 @@ void AVRCPU::instruction_MUL() {
     datMem->write(sregAddr, &sreg);
 }
 
-void AVRCPU::instructionMULS() {
+void AVRCPU::instruction_MULS() {
+    /*************************MULS***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction MULS");
 
+    datMem->read(REG16_ADDR | ((0x00F0 & instruction) >> 4), &regD);
+    datMem->read(REG16_ADDR | (0x000F & instruction), &regR);
+
+    outData = ((__int8_t)regD) * ((__int8_t)regR); //signed multiplication
+    sreg &= 0xFC;
+
+    //Flag Z
+    sreg |= outData?0x0000:Z_FLAG_MASK;
+
+    //Flag C
+    sreg |= (outData>>15)&C_FLAG_MASK;
+
+    datMem->write(REG00_ADDR, &outData);
+    outData = outData >> 8;
+    datMem->write(REG01_ADDR, &outData);
+    datMem->write(sregAddr, &sreg);
 }
 
 void AVRCPU::instructionMULSU() {
