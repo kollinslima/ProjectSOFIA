@@ -177,7 +177,7 @@ private:
 
     void instruction_POP();
 
-    void instructionPUSH();
+    void instruction_PUSH();
 
     void instructionRCALL();
 
