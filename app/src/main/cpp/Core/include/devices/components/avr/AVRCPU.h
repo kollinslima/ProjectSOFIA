@@ -36,7 +36,7 @@ private:
 
     /**********Auxiliar for processing************/
     sbyte regD, regR, sreg, result;
-    smemaddr wbAddr;
+    smemaddr regDAddr, regRAddr, wbAddr;
 
     sbyte offset, dataL, dataH;
     sword16 outData, immediate;
@@ -157,7 +157,7 @@ private:
 
     void instruction_MOV();
 
-    void instructionMOVW();
+    void instruction_MOVW();
 
     void instructionMUL();
 

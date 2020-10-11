@@ -16,6 +16,7 @@
 #define INSTRUCTION_GROUP1_MASK  0xFC00
 //ADIW,
 //CBI
+//MOVW
 #define INSTRUCTION_GROUP2_MASK  0xFF00
 //ANDI/CBR,
 //CPI
@@ -105,7 +106,7 @@
 #define LPM_Z_POST_INCREMENT_OPCODE                                 0x9005
 #define LSR_OPCODE                                                  0x9406
 #define MOV_OPCODE                                                  0x2C00
-#define INSTRUCTION_MOVW_MASK  48
+#define MOVW_OPCODE                                                 0x0100
 #define INSTRUCTION_MUL_MASK  49
 #define INSTRUCTION_MULS_MASK  50
 #define INSTRUCTION_MULSU_MASK  51
@@ -230,6 +231,9 @@ void AVRCPU::setupInstructionDecoder() {
                 continue;
             case CBI_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_CBI;
+                continue;
+            case MOVW_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_MOVW;
                 continue;
         }
         switch (i & INSTRUCTION_GROUP3_MASK) {
@@ -1423,8 +1427,18 @@ void AVRCPU::instruction_MOV() {
     datMem->write((0x01F0 & instruction) >> 4, &result);
 }
 
-void AVRCPU::instructionMOVW() {
+void AVRCPU::instruction_MOVW() {
+    /*************************MOVW***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction MOVW");
 
+    regRAddr = (0x000F&instruction)<<1;
+    regDAddr = (0x00F0&instruction)>>3;
+
+    datMem->read(regRAddr, &result);
+    datMem->write(regDAddr, &result);
+
+    datMem->read(regRAddr+1, &result);
+    datMem->write(regDAddr+1, &result);
 }
 
 void AVRCPU::instructionMUL() {
