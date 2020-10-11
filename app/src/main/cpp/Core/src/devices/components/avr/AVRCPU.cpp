@@ -11,7 +11,7 @@
 //BRBC/BRCC/BRGE/BRHC/BRID/BRNE/BRPL/BRSH/BRTC/BRVC,
 //BRBS/BRCS/BREQ/BRHS/BRIE/BRLO/BRLT/BRMI/BRTS/BRVS,
 //CLR/EOR, CP, CPC, CPSE
-//MOV
+//MOV, MUL
 //TST
 #define INSTRUCTION_GROUP1_MASK  0xFC00
 //ADIW,
@@ -107,7 +107,7 @@
 #define LSR_OPCODE                                                  0x9406
 #define MOV_OPCODE                                                  0x2C00
 #define MOVW_OPCODE                                                 0x0100
-#define INSTRUCTION_MUL_MASK  49
+#define MUL_OPCODE                                                  0x9C00
 #define INSTRUCTION_MULS_MASK  50
 #define INSTRUCTION_MULSU_MASK  51
 #define INSTRUCTION_NEG_MASK  52
@@ -223,6 +223,9 @@ void AVRCPU::setupInstructionDecoder() {
                 continue;
             case MOV_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_MOV;
+                continue;
+            case MUL_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_MUL;
                 continue;
         }
         switch (i & INSTRUCTION_GROUP2_MASK) {
@@ -978,7 +981,7 @@ void AVRCPU::instruction_FMUL() {
     sreg &= 0xFC;
 
     //Flag Z
-    sreg |= outData?0x00:Z_FLAG_MASK;
+    sreg |= outData?0x0000:Z_FLAG_MASK;
 
     //Flag C
     sreg |= (outData>>15)&C_FLAG_MASK;
@@ -1005,7 +1008,7 @@ void AVRCPU::instruction_FMULS() {
     sreg &= 0xFC;
 
     //Flag Z
-    sreg |= outData?0x00:Z_FLAG_MASK;
+    sreg |= outData?0x0000:Z_FLAG_MASK;
 
     //Flag C
     sreg |= (outData>>15)&C_FLAG_MASK;
@@ -1032,7 +1035,7 @@ void AVRCPU::instruction_FMULSU() {
     sreg &= 0xFC;
 
     //Flag Z
-    sreg |= outData?0x00:Z_FLAG_MASK;
+    sreg |= outData?0x0000:Z_FLAG_MASK;
 
     //Flag C
     sreg |= (outData>>15)&C_FLAG_MASK;
@@ -1441,8 +1444,27 @@ void AVRCPU::instruction_MOVW() {
     datMem->write(regDAddr+1, &result);
 }
 
-void AVRCPU::instructionMUL() {
+void AVRCPU::instruction_MUL() {
+    /*************************MUL***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction MUL");
 
+    datMem->read((0x01F0&instruction)>>4, &regD);
+    datMem->read(((0x0200&instruction)>>5) | (0x000F&instruction), &regR);
+    datMem->read(sregAddr, &sreg);
+
+    outData = regD * regR;
+    sreg &= 0xFC;
+
+    //Flag Z
+    sreg |= outData?0x0000:Z_FLAG_MASK;
+
+    //Flag C
+    sreg |= (outData>>15)&C_FLAG_MASK;
+
+    datMem->write(REG00_ADDR, &outData);
+    outData = outData >> 8;
+    datMem->write(REG01_ADDR, &outData);
+    datMem->write(sregAddr, &sreg);
 }
 
 void AVRCPU::instructionMULS() {

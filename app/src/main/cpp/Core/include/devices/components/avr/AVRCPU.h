@@ -159,7 +159,7 @@ private:
 
     void instruction_MOVW();
 
-    void instructionMUL();
+    void instruction_MUL();
 
     void instructionMULS();
 

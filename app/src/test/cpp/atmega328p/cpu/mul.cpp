@@ -26,7 +26,7 @@ typedef struct {
 
 Out output;
 
-void testFMUL (sbyte regD, sbyte regR, sbyte initSreg) {
+void testMUL (sbyte regD, sbyte regR, sbyte initSreg) {
     sbyte sreg = initSreg;
     sbyte result;
 
@@ -39,9 +39,6 @@ void testFMUL (sbyte regD, sbyte regR, sbyte initSreg) {
     //Flag C
     sreg |= (outData>>15)&C_FLAG_MASK;
 
-    //A left shift is necessary according to the documentation
-    outData = outData << 1;
-
     output.outL = outData;
     output.outH = outData >> 8;
     output.sreg = sreg;
@@ -49,17 +46,17 @@ void testFMUL (sbyte regD, sbyte regR, sbyte initSreg) {
 
 int main(int argc, char *argv[])
 {
-    printf("SquareHalf - Return 20 and 0\n");
-    testFMUL(0x40,0x40,0x00); //0,5*0,5 = 0,25
+    printf("0x40Times0x40 - Return 0x1000\n");
+    testMUL(0x40,0x40,0x00);
     printf("DataL: %X\n", output.outL);
     printf("DataH: %X\n", output.outH);
     assert(output.outL == 0x00);
-    assert(output.outH == 0x20);
+    assert(output.outH == 0x10);
     printf("SREG: %X\n", output.sreg);
     assert(output.sreg == 0x00);
 
-    printf("HalfTimesZero - Return 0 and 0\n");
-    testFMUL(0x40,0,0x00); //0,5*0 = 0
+    printf("0x40Times0 - Return 0x0000\n");
+    testMUL(0x40,0,0x00);
     printf("DataL: %X\n", output.outL);
     printf("DataH: %X\n", output.outH);
     assert(output.outL == 0x00);
@@ -67,32 +64,14 @@ int main(int argc, char *argv[])
     printf("SREG: %X\n", output.sreg);
     assert(output.sreg == 0x02);
 
-    printf("OneTimesOneandThreeQuarters - Return E0 and 0\n");
-    testFMUL(0x80,0xE0,0x00); //1 * 1,75 = 1,75
+    printf("0xFFTimes0xFF - Return 0xFE01\n");
+    testMUL(0xFF,0xFF,0x00);
     printf("DataL: %X\n", output.outL);
     printf("DataH: %X\n", output.outH);
-    assert(output.outL == 0x00);
-    assert(output.outH == 0xE0);
-    printf("SREG: %X\n", output.sreg);
-    assert(output.sreg == 0x00);
-
-    printf("OneandThreeQuartersTimesOneandThreeQuarters - Return E0 and 0\n");
-    testFMUL(0xE0,0xE0,0x00); //1,75 * 1,75 = 1,0625 + carry
-    printf("DataL: %X\n", output.outL);
-    printf("DataH: %X\n", output.outH);
-    assert(output.outL == 0x00);
-    assert(output.outH == 0x88);
+    assert(output.outL == 0x01);
+    assert(output.outH == 0xFE);
     printf("SREG: %X\n", output.sreg);
     assert(output.sreg == 0x01);
-
-    printf("0xABTimes0x55 - Return 0x718E\n");
-    testFMUL(0xAB,0x55,0x00); //1,3359375*0,6640625 = 0,887145996
-    printf("DataL: %X\n", output.outL);
-    printf("DataH: %X\n", output.outH);
-    assert(output.outL == 0x8E);
-    assert(output.outH == 0x71);
-    printf("SREG: %X\n", output.sreg);
-    assert(output.sreg == 0x00);
 
     return 0;
 }

@@ -34,7 +34,7 @@ void testFMULSU (sbyte regD, sbyte regR, sbyte initSreg) {
     sreg &= 0xFC;
 
     //Flag Z
-    sreg |= outData?0x00:Z_FLAG_MASK;
+    sreg |= outData?0x0000:Z_FLAG_MASK;
 
     //Flag C
     sreg |= (outData>>15)&C_FLAG_MASK;
