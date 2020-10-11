@@ -130,11 +130,9 @@ private:
 
     void instruction_LAT();
 
+    void instruction_LD_X_UNCHANGED();
     void instruction_LD_X_POST_INCREMENT();
-
-    void instructionLD_X_PRE_INCREMENT();
-
-    void instructionLD_X_UNCHANGED();
+    void instruction_LD_X_PRE_DECREMENT();
 
     void instructionLD_Y_POST_INCREMENT();
 

@@ -32,7 +32,7 @@
 //DEC
 //ELPM2/ELPM3
 //INC
-//LAC, LAS, LAT, LDS
+//LAC, LAS, LAT, LD (X), LDS
 //STS
 #define INSTRUCTION_GROUP8_MASK  0xFE0F
 //DES
@@ -81,9 +81,9 @@
 #define LAC_OPCODE                                                  0x9206
 #define LAS_OPCODE                                                  0x9205
 #define LAT_OPCODE                                                  0x9207
-#define INSTRUCTION_LD_X_POST_INCREMENT_MASK  30
-#define INSTRUCTION_LD_X_PRE_INCREMENT_MASK  31
-#define INSTRUCTION_LD_X_UNCHANGED_MASK  32
+#define LD_X_POST_INCREMENT_OPCODE                                  0x900D
+#define LD_X_PRE_DECREMENT_OPCODE                                   0x900E
+#define LD_X_UNCHANGED_OPCODE                                       0x900C
 #define INSTRUCTION_LD_Y_POST_INCREMENT_MASK  33
 #define INSTRUCTION_LD_Y_PRE_INCREMENT_MASK  34
 #define INSTRUCTION_LD_Y_UNCHANGED_MASK  35
@@ -155,6 +155,13 @@
 #define REG16_ADDR 0x10
 #define REG24_ADDR 0x18
 #define REG25_ADDR 0x19
+//X Register
+#define REG26_ADDR 0x1A
+#define REG27_ADDR 0x1B
+//Y Register
+#define REG28_ADDR 0x1C
+#define REG29_ADDR 0x1D
+//Z Register
 #define REG30_ADDR 0x1E
 #define REG31_ADDR 0x1F
 
@@ -277,6 +284,15 @@ void AVRCPU::setupInstructionDecoder() {
                 continue;
             case LAT_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_LAT;
+                continue;
+            case LD_X_UNCHANGED_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_LD_X_UNCHANGED;
+                continue;
+            case LD_X_POST_INCREMENT_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_LD_X_POST_INCREMENT;
+                continue;
+            case LD_X_PRE_DECREMENT_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_LD_X_PRE_DECREMENT;
                 continue;
         }
         switch (i & INSTRUCTION_GROUP9_MASK) {
@@ -1072,16 +1088,52 @@ void AVRCPU::instruction_LAT() {
     LOGD(SOFIA_AVRCPU_TAG, "Instruction LAT - NOT IMPLEMENTED");
 }
 
+void AVRCPU::instruction_LD_X_UNCHANGED() {
+    /*************************LD (X UNCHANGED)***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction LD (X UNCHANGED)");
+
+    //Read X Register
+    datMem->read(REG26_ADDR, &dataL);
+    datMem->read(REG27_ADDR, &dataH);
+
+    outData = (dataH<<8) | dataL;
+
+    datMem->read(outData, &result);
+    datMem->write((0x01F0 & instruction)>>4, &result);
+}
+
 void AVRCPU::instruction_LD_X_POST_INCREMENT() {
+    /*************************LD (X POST INCREMENT)***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction LD (X POST INCREMENT)");
 
+    //Read X Register
+    datMem->read(REG26_ADDR, &dataL);
+    datMem->read(REG27_ADDR, &dataH);
+
+    outData = (dataH<<8) | dataL;
+
+    datMem->read(outData++, &result);
+    datMem->write((0x01F0 & instruction)>>4, &result);
+    datMem->write(REG26_ADDR, &outData);
+    outData = outData >> 8;
+    datMem->write(REG27_ADDR, &outData);
 }
 
-void AVRCPU::instructionLD_X_PRE_INCREMENT() {
+void AVRCPU::instruction_LD_X_PRE_DECREMENT() {
+    /*************************LD (X PRE DECREMENT)***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction LD (X PRE DECREMENT)");
 
-}
+    //Read X Register
+    datMem->read(REG26_ADDR, &dataL);
+    datMem->read(REG27_ADDR, &dataH);
 
-void AVRCPU::instructionLD_X_UNCHANGED() {
+    outData = (dataH<<8) | dataL;
 
+    datMem->read(--outData, &result);
+    datMem->write((0x01F0 & instruction)>>4, &result);
+    datMem->write(REG26_ADDR, &outData);
+    outData = outData >> 8;
+    datMem->write(REG27_ADDR, &outData);
 }
 
 void AVRCPU::instructionLD_Y_POST_INCREMENT() {
