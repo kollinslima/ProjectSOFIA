@@ -144,7 +144,7 @@ private:
     void instruction_LD_Z_PRE_DECREMENT();
     void instruction_LDD_Z();
 
-    void instructionLDI(); //LDI - SER
+    void instruction_LDI(); //LDI - SER
     void instructionLDS();
 
     void instructionLPM_Z_POST_INCREMENT();
