@@ -7,7 +7,7 @@
 #include "../../../../include/CommonCore.h"
 #include "../../../../include/devices/components/avr/GenericAVRDataMemory.h"
 
-//ADC, ADD/LSL, AND
+//ADC/ROL, ADD/LSL, AND
 //BRBC/BRCC/BRGE/BRHC/BRID/BRNE/BRPL/BRSH/BRTC/BRVC
 //BRBS/BRCS/BREQ/BRHS/BRIE/BRLO/BRLT/BRMI/BRTS/BRVS
 //CLR/EOR, CP, CPC, CPSE
@@ -28,6 +28,7 @@
 //ASR
 //COM
 //NEG
+//ROL
 #define INSTRUCTION_GROUP4_MASK  0xFE0F
 //BCLR/CLC/CLH/CLI/CLN/CLS/CLT/CLV/CLZ, BSET
 #define INSTRUCTION_GROUP5_MASK  0xFF8F
@@ -54,7 +55,7 @@
 //LDD(Y), LDD(Z)
 #define INSTRUCTION_GROUP12_MASK  0xD208
 
-#define ADC_ROL_OPCODE                                                  0x1C00
+#define ADC_ROL_OPCODE                                              0x1C00
 #define ADD_LSL_OPCODE                                              0x0C00
 #define ADIW_OPCODE                                                 0x9600
 #define AND_TST_OPCODE                                              0x2000
@@ -127,7 +128,7 @@
 #define RET_OPCODE                                                  0x9508
 #define RETI_OPCODE                                                 0x9518
 #define RJMP_OPCODE                                                 0xC000
-#define INSTRUCTION_ROR_MASK  63
+#define ROR_OPCODE                                                  0x9407
 #define INSTRUCTION_SBC_MASK  64
 #define INSTRUCTION_SBCI_MASK  65
 #define INSTRUCTION_SBI_MASK  66
@@ -284,6 +285,9 @@ void AVRCPU::setupInstructionDecoder() {
                 continue;
             case NEG_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_NEG;
+                continue;
+            case ROR_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_ROR;
                 continue;
         }
         switch (i & INSTRUCTION_GROUP5_MASK) {
@@ -1764,7 +1768,34 @@ void AVRCPU::instruction_RJMP() {
 }
 
 void AVRCPU::instruction_ROR() {
+    /*************************ROR***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction ROR");
 
+    wbAddr = (0x01F0 & instruction) >> 4;
+
+    datMem->read(wbAddr, &regD);
+    datMem->read(sregAddr, &sreg);
+
+    result = (sreg << 7) | (regD >> 1);
+    sreg &= 0xE0;
+
+    //Flag C
+    sreg |= regD & C_FLAG_MASK;
+
+    //Flag N
+    sreg |= (result >> 5) & N_FLAG_MASK;
+
+    //Flag V
+    sreg |= (((sreg << 2) ^ sreg) << 1) & V_FLAG_MASK;
+
+    //Flag S
+    sreg |= (((sreg << 1) ^ sreg) << 1) & S_FLAG_MASK;
+
+    //Flag Z
+    sreg |= result?0x00:Z_FLAG_MASK;
+
+    datMem->write(wbAddr, &result);
+    datMem->write(sregAddr, &sreg);
 }
 
 void AVRCPU::instructionSBC() {
