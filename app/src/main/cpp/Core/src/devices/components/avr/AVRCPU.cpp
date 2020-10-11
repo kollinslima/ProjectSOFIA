@@ -40,6 +40,7 @@
 //ELPM2/ELPM3
 //INC
 //LAC, LAS, LAT, LD(X), LD(Y), LD(Z), LDS, LPM
+//POP
 //STS
 #define INSTRUCTION_GROUP8_MASK  0xFE0F
 //DES
@@ -119,7 +120,7 @@
 #define OR_OPCODE                                                   0x2800
 #define ORI_OPCODE                                                  0x6000
 #define OUT_OPCODE                                                  0xB800
-#define INSTRUCTION_POP_MASK  57
+#define POP_OPCODE                                                  0x900F
 #define INSTRUCTION_PUSH_MASK  58
 #define INSTRUCTION_RCALL_MASK  59
 #define INSTRUCTION_RET_MASK  60
@@ -361,6 +362,9 @@ void AVRCPU::setupInstructionDecoder() {
                 continue;
             case LPM_Z_POST_INCREMENT_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_LPM_Z_POST_INCREMENT;
+                continue;
+            case POP_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_POP;
                 continue;
         }
         switch (i & INSTRUCTION_GROUP9_MASK) {
@@ -1633,8 +1637,21 @@ void AVRCPU::instruction_OUT() {
     datMem->write(IOREG_BASEADDR + (((0x0600&instruction)>>5)|(0x000F&instruction)), &result);
 }
 
-void AVRCPU::instructionPOP() {
+void AVRCPU::instruction_POP() {
+    /*************************POP***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction POP");
 
+    datMem->read(stackLAddr, &dataL);
+    datMem->read(stackHAddr, &dataH);
+    stackPointer = (dataH<<8)|dataL;
+
+    datMem->read(++stackPointer, &result);
+    datMem->write((0x01F0&instruction)>>4, &result);
+
+    //Update SPL and SPH
+    datMem->write(stackLAddr, &stackPointer);
+    stackPointer = stackPointer >> 8;
+    datMem->write(stackHAddr, &stackPointer);
 }
 
 void AVRCPU::instructionPUSH() {
