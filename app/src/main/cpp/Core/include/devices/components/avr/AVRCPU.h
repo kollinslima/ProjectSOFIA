@@ -192,7 +192,7 @@ private:
 
     void instruction_SBC();
 
-    void instructionSBCI();
+    void instruction_SBCI();
 
     void instructionSBI();
 

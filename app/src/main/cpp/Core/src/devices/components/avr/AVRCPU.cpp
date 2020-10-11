@@ -25,6 +25,7 @@
 //LDI, LDS (16-bit)
 //ORI
 //RCALL, RJMP
+//SBCI
 #define INSTRUCTION_GROUP3_MASK  0xF000
 //ASR
 //COM
@@ -131,7 +132,7 @@
 #define RJMP_OPCODE                                                 0xC000
 #define ROR_OPCODE                                                  0x9407
 #define SBC_OPCODE                                                  0x0800
-#define INSTRUCTION_SBCI_MASK  65
+#define SBCI_OPCODE                                                 0x4000
 #define INSTRUCTION_SBI_MASK  66
 #define INSTRUCTION_SBIC_MASK  67
 #define INSTRUCTION_SBIS_MASK  68
@@ -278,6 +279,9 @@ void AVRCPU::setupInstructionDecoder() {
                 continue;
             case RJMP_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_RJMP;
+                continue;
+            case SBCI_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_SBCI;
                 continue;
         }
         switch (i & INSTRUCTION_GROUP4_MASK) {
@@ -1812,7 +1816,7 @@ void AVRCPU::instruction_SBC() {
     datMem->read(sregAddr, &sreg);
 
     result = regD - regR - (sreg & C_FLAG_MASK);
-    sreg &= 0xC0;
+    sreg &= 0xC2; //Do not clear previous Z flag
 
     not_regD = (~regD);
     notRegD_and_regR = not_regD & regR;
@@ -1832,7 +1836,7 @@ void AVRCPU::instruction_SBC() {
     sreg |= (((sreg << 1) ^ sreg) << 1) & S_FLAG_MASK;
 
     //Flag Z
-    sreg |= result?0x00:Z_FLAG_MASK;
+    sreg &= result?(~Z_FLAG_MASK):sreg;
 
     //Flag C
     sreg |= (hc_flag >> 7) & C_FLAG_MASK;
@@ -1841,8 +1845,45 @@ void AVRCPU::instruction_SBC() {
     datMem->write(sregAddr, &sreg);
 }
 
-void AVRCPU::instructionSBCI() {
+void AVRCPU::instruction_SBCI() {
+    /*************************SBCI***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction SBCI");
 
+    wbAddr = REG16_ADDR | ((0x00F0 & instruction) >> 4);
+    immediate = ((0x0F00 & instruction) >> 4) | (0x000F & instruction);
+
+    datMem->read(wbAddr, &regD);
+    datMem->read(sregAddr, &sreg);
+
+    result = regD - immediate - (sreg & C_FLAG_MASK);
+    sreg &= 0xC2; //Do not clear previous Z flag
+
+    immediate_and_result = immediate & result;
+    not_result = ~result;
+    not_regD = ~regD;
+
+    hc_flag = (not_regD & immediate) | immediate_and_result | (result & not_regD);
+
+    //Flag H
+    sreg |= (hc_flag << 2) & H_FLAG_MASK;
+
+    //Flag V
+    sreg |= (((regD & (~immediate) & not_result) | (not_regD & immediate_and_result)) >> 4) & V_FLAG_MASK;
+
+    //Flag N
+    sreg |= (result >> 5) & N_FLAG_MASK;
+
+    //Flag S
+    sreg |= (((sreg << 1) ^ sreg) << 1) & S_FLAG_MASK;
+
+    //Flag Z
+    sreg &= result?(~Z_FLAG_MASK):sreg;
+
+    //Flag C
+    sreg |= (hc_flag >> 7) & C_FLAG_MASK;
+
+    datMem->write(wbAddr, &result);
+    datMem->write(sregAddr, &sreg);
 }
 
 void AVRCPU::instructionSBI() {
