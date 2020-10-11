@@ -118,7 +118,7 @@ private:
 
     void instruction_IJMP();
 
-    void instructionIN();
+    void instruction_IN();
 
     void instructionINC();
 

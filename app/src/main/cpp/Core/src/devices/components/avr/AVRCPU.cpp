@@ -38,6 +38,8 @@
 #define INSTRUCTION_GROUP9_MASK  0xFF0F
 //FMUL, FMULS, FMULSU
 #define INSTRUCTION_GROUP10_MASK  0xFF88
+//IN
+#define INSTRUCTION_GROUP11_MASK  0xF800
 
 #define ADC_OPCODE                                                  0x1C00
 #define ADD_OPCODE                                                  0x0C00
@@ -72,7 +74,7 @@
 #define FMULSU_OPCODE                                               0x0388
 #define ICALL_OPCODE                                                0x9509
 #define IJMP_OPCODE                                                 0x9409
-#define INSTRUCTION_IN_MASK  27
+#define IN_OPCODE                                                   0xB000
 #define INSTRUCTION_INC_MASK  28
 #define JMP_OPCODE  0x940C
 #define INSTRUCTION_LD_X_POST_INCREMENT_MASK  30
@@ -272,6 +274,11 @@ void AVRCPU::setupInstructionDecoder() {
                 continue;
             case FMULSU_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_FMULSU;
+                continue;
+        }
+        switch (i & INSTRUCTION_GROUP11_MASK) {
+            case IN_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_IN;
                 continue;
         }
         if (i == BREAK_OPCODE) {
@@ -984,8 +991,12 @@ void AVRCPU::instruction_IJMP() {
     pc = jumpValue;
 }
 
-void AVRCPU::instructionIN() {
+void AVRCPU::instruction_IN() {
+    /*************************IN***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction IN");
 
+    datMem->read(IOREG_BASEADDR + (((0x0600&instruction)>>5)|(0x000F&instruction)), &result);
+    datMem->write((0x01F0&instruction)>>4, &result);
 }
 
 void AVRCPU::instructionINC() {
