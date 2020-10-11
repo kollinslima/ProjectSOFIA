@@ -77,7 +77,7 @@
 #define IJMP_OPCODE                                                 0x9409
 #define IN_OPCODE                                                   0xB000
 #define INC_OPCODE                                                  0x9403
-#define JMP_OPCODE  0x940C
+#define JMP_OPCODE                                                  0x940C
 #define INSTRUCTION_LD_X_POST_INCREMENT_MASK  30
 #define INSTRUCTION_LD_X_PRE_INCREMENT_MASK  31
 #define INSTRUCTION_LD_X_UNCHANGED_MASK  32
@@ -248,6 +248,9 @@ void AVRCPU::setupInstructionDecoder() {
         switch (i & INSTRUCTION_GROUP7_MASK) {
             case CALL_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_CALL;
+                continue;
+            case JMP_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_JMP;
                 continue;
         }
         switch (i & INSTRUCTION_GROUP8_MASK) {
@@ -1031,8 +1034,15 @@ void AVRCPU::instruction_INC() {
     datMem->write(sregAddr, &sreg);
 }
 
-void AVRCPU::instructionJMP() {
+void AVRCPU::instruction_JMP() {
+    /*************************JMP***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction JMP");
 
+    jumpValue = ((instruction&0x01F0)>>3) | (instruction&0x0001);
+    progMem->loadInstruction(pc++, &instruction);
+    jumpValue = (jumpValue<<16) | instruction;
+
+    pc = jumpValue;
 }
 
 void AVRCPU::instructionLD_X_POST_INCREMENT() {

@@ -122,7 +122,7 @@ private:
 
     void instruction_INC();
 
-    void instructionJMP();
+    void instruction_JMP();
 
     void instructionLD_X_POST_INCREMENT();
 
