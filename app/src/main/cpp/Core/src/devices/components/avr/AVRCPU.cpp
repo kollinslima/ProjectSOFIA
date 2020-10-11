@@ -29,6 +29,7 @@
 #define INSTRUCTION_GROUP6_MASK  0xFE08
 //CALL
 //JMP
+//LSR
 #define INSTRUCTION_GROUP7_MASK  0xFE0E
 //DEC
 //ELPM2/ELPM3
@@ -101,7 +102,7 @@
 #define LPM_Z_UNCHANGED_DEST_R0_OPCODE                              0x95C8
 #define LPM_Z_UNCHANGED_OPCODE                                      0x9004
 #define LPM_Z_POST_INCREMENT_OPCODE                                 0x9005
-#define INSTRUCTION_LSR_MASK  46
+#define LSR_OPCODE                                                  0x9406
 #define INSTRUCTION_MOV_MASK  47
 #define INSTRUCTION_MOVW_MASK  48
 #define INSTRUCTION_MUL_MASK  49
@@ -272,6 +273,9 @@ void AVRCPU::setupInstructionDecoder() {
             case JMP_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_JMP;
                 continue;
+            case LSR_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_LSR;
+                continue;
         }
         switch (i & INSTRUCTION_GROUP8_MASK) {
             case DEC_OPCODE:
@@ -441,8 +445,8 @@ void AVRCPU::instruction_ADC() {
 }
 
 void AVRCPU::instruction_ADD_LSL() {
-    /*************************ADD***********************/
-    LOGD(SOFIA_AVRCPU_TAG, "Instruction ADD");
+    /*************************ADD/LSL***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction ADD/LSL");
 
     wbAddr = (0x01F0 & instruction) >> 4;
 
@@ -1379,8 +1383,32 @@ void AVRCPU::instruction_LPM_Z_POST_INCREMENT() {
     datMem->write(REG31_ADDR, &outData);
 }
 
-void AVRCPU::instructionLSR() {
+void AVRCPU::instruction_LSR() {
+    /*************************LSR***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction LSR");
 
+    wbAddr = (0x01F0 & instruction) >> 4;
+
+    datMem->read(wbAddr, &regD);
+    datMem->read(sregAddr, &sreg);
+
+    result = regD >> 1;
+    sreg &= 0xE0;
+
+    //Flag C
+    sreg |= regD & C_FLAG_MASK;
+
+    //Flag V
+    sreg |= (((sreg << 2) ^ sreg) << 1) & V_FLAG_MASK;
+
+    //Flag S
+    sreg |= (((sreg << 1) ^ sreg) << 1) & S_FLAG_MASK;
+
+    //Flag Z
+    sreg |= result?0x00:Z_FLAG_MASK;
+
+    datMem->write(wbAddr, &result);
+    datMem->write(sregAddr, &sreg);
 }
 
 void AVRCPU::instructionMOV() {

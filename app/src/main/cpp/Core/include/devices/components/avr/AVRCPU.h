@@ -153,7 +153,7 @@ private:
     void instruction_LPM_Z_UNCHANGED();
     void instruction_LPM_Z_POST_INCREMENT();
 
-    void instructionLSR();
+    void instruction_LSR();
 
     void instructionMOV();
 
