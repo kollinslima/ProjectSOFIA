@@ -181,7 +181,7 @@ private:
 
     void instruction_RCALL();
 
-    void instructionRET();
+    void instruction_RET();
 
     void instructionRETI();
 

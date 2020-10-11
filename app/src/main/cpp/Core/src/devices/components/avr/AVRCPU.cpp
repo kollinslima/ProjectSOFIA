@@ -124,7 +124,7 @@
 #define POP_OPCODE                                                  0x900F
 #define PUSH_OPCODE                                                 0x920F
 #define RCALL_OPCODE                                                0xD000
-#define INSTRUCTION_RET_MASK  60
+#define RET_OPCODE                                                  0x9508
 #define INSTRUCTION_RETI_MASK  61
 #define INSTRUCTION_RJMP_MASK  62
 #define INSTRUCTION_ROR_MASK  63
@@ -439,6 +439,10 @@ void AVRCPU::setupInstructionDecoder() {
         }
         if (i == NOP_OPCODE) {
             instructionDecoder[i] = &AVRCPU::instruction_NOP;
+            continue;
+        }
+        if (i == RET_OPCODE) {
+            instructionDecoder[i] = &AVRCPU::instruction_RET;
             continue;
         }
         instructionDecoder[i] = &AVRCPU::unknownInstruction;
@@ -1701,8 +1705,23 @@ void AVRCPU::instruction_RCALL() {
     pc += (((__int32_t)jumpValue)<<20)>>20; //Cast to make sign extension
 }
 
-void AVRCPU::instructionRET() {
+void AVRCPU::instruction_RET() {
+    /*************************RET***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction RET");
 
+    datMem->read(stackLAddr, &dataL);
+    datMem->read(stackHAddr, &dataH);
+    stackPointer = (dataH<<8)|dataL;
+
+    //PC (read little-endian)
+    datMem->read(++stackPointer, &dataH);
+    datMem->read(++stackPointer, &dataL);
+    pc = (dataH<<8)|dataL;
+
+    //Update SPL and SPH
+    datMem->write(stackLAddr, &stackPointer);
+    stackPointer = stackPointer >> 8;
+    datMem->write(stackHAddr, &stackPointer);
 }
 
 void AVRCPU::instructionRETI() {
