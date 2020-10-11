@@ -36,7 +36,7 @@
 #define INSTRUCTION_GROUP8_MASK  0xFE0F
 //DES
 #define INSTRUCTION_GROUP9_MASK  0xFF0F
-//FMUL, FMULS
+//FMUL, FMULS, FMULSU
 #define INSTRUCTION_GROUP10_MASK  0xFF88
 
 #define ADC_OPCODE                                                  0x1C00
@@ -69,7 +69,7 @@
 #define ELPM3_OPCODE                                                0x9007
 #define FMUL_OPCODE                                                 0x0308
 #define FMULS_OPCODE                                                0x0380
-#define INSTRUCTION_FMULSU_MASK  24
+#define FMULSU_OPCODE                                               0x0388
 #define INSTRUCTION_ICALL_MASK  25
 #define INSTRUCTION_IJMP_MASK  26
 #define INSTRUCTION_IN_MASK  27
@@ -267,6 +267,9 @@ void AVRCPU::setupInstructionDecoder() {
                 continue;
             case FMULS_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_FMULS;
+                continue;
+            case FMULSU_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_FMULSU;
                 continue;
         }
         if (i == BREAK_OPCODE) {
@@ -904,8 +907,31 @@ void AVRCPU::instruction_FMULS() {
     datMem->write(sregAddr, &sreg);
 }
 
-void AVRCPU::instructionFMULSU() {
+void AVRCPU::instruction_FMULSU() {
+    /*************************FMULSU***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction FMULSU");
 
+    datMem->read(REG16_ADDR|((0x0070&instruction)>>4), &regD);
+    datMem->read(REG16_ADDR|(0x0007&instruction), &regR);
+    datMem->read(sregAddr, &sreg);
+
+    outData = ((__int8_t)regD) * regR; //signed * unsigned
+    sreg &= 0xFC;
+
+    //Flag Z
+    sreg |= outData?0x00:Z_FLAG_MASK;
+
+    //Flag C
+    sreg |= (outData>>15)&C_FLAG_MASK;
+
+    //"A left shift is necessary for the high byte of the product to be
+    //in the same format as the inputs"
+    outData = outData << 1;
+
+    datMem->write(REG00_ADDR, &outData);
+    outData = outData >> 8;
+    datMem->write(REG01_ADDR, &outData);
+    datMem->write(sregAddr, &sreg);
 }
 
 void AVRCPU::instructionICALL() {

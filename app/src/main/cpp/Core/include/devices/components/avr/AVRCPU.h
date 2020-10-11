@@ -112,7 +112,7 @@ private:
 
     void instruction_FMULS();
 
-    void instructionFMULSU();
+    void instruction_FMULSU();
 
     void instructionICALL();
 
