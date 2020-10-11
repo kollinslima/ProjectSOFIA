@@ -18,7 +18,7 @@
 #define INSTRUCTION_GROUP2_MASK  0xFF00
 //ANDI/CBR,
 //CPI
-//LDI
+//LDI, LDS (16-bit)
 #define INSTRUCTION_GROUP3_MASK  0xF000
 //ASR,
 //COM
@@ -97,6 +97,7 @@
 #define LDD_Z_OPCODE                                                0x8000
 #define LDI_OPCODE                                                  0xE000
 #define LDS_OPCODE                                                  0x9000
+#define LDS_16_OPCODE                                               0xA000
 #define INSTRUCTION_LPM_Z_POST_INCREMENT_MASK  43
 #define INSTRUCTION_LPM_Z_UNCHANGED_DEST_R0_MASK  44
 #define INSTRUCTION_LPM_Z_UNCHANGED_MASK  45
@@ -235,6 +236,9 @@ void AVRCPU::setupInstructionDecoder() {
                 continue;
             case LDI_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_LDI;
+                continue;
+            case LDS_16_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_LDS16;
                 continue;
         }
         switch (i & INSTRUCTION_GROUP4_MASK) {
@@ -1313,6 +1317,11 @@ void AVRCPU::instruction_LDS() {
 
     datMem->read(instruction, &result);
     datMem->write(wbAddr, &result);
+}
+
+void AVRCPU::instruction_LDS16() {
+    /*************************LDS (16-bit)***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction LDS (16-bit) - NOT IMPLEMENTED");
 }
 
 void AVRCPU::instructionLPM_Z_POST_INCREMENT() {

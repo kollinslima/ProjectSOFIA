@@ -147,6 +147,7 @@ private:
     void instruction_LDI();
 
     void instruction_LDS();
+    void instruction_LDS16();
 
     void instructionLPM_Z_POST_INCREMENT();
 
