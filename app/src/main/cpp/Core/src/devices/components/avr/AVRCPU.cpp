@@ -70,7 +70,7 @@
 #define FMUL_OPCODE                                                 0x0308
 #define FMULS_OPCODE                                                0x0380
 #define FMULSU_OPCODE                                               0x0388
-#define INSTRUCTION_ICALL_MASK  25
+#define ICALL_OPCODE                                                0x9509
 #define INSTRUCTION_IJMP_MASK  26
 #define INSTRUCTION_IN_MASK  27
 #define INSTRUCTION_INC_MASK  28
@@ -149,6 +149,8 @@
 #define REG16_ADDR 0x10
 #define REG24_ADDR 0x18
 #define REG25_ADDR 0x19
+#define REG30_ADDR 0x1E
+#define REG31_ADDR 0x1F
 
 #define IOREG_BASEADDR 0x20
 
@@ -286,6 +288,10 @@ void AVRCPU::setupInstructionDecoder() {
         }
         if (i == ELPM1_OPCODE) {
             instructionDecoder[i] = &AVRCPU::instruction_ELPM1;
+            continue;
+        }
+        if (i == ICALL_OPCODE) {
+            instructionDecoder[i] = &AVRCPU::instruction_ICALL;
             continue;
         }
         instructionDecoder[i] = &AVRCPU::unknownInstruction;
@@ -934,8 +940,31 @@ void AVRCPU::instruction_FMULSU() {
     datMem->write(sregAddr, &sreg);
 }
 
-void AVRCPU::instructionICALL() {
+void AVRCPU::instruction_ICALL() {
+    /*************************ICALL***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction ICALL");
 
+    //Read Z Register
+    datMem->read(REG30_ADDR, &dataL);
+    datMem->read(REG31_ADDR, &dataH);
+
+    jumpValue = (dataH<<8) | dataL;
+
+    datMem->read(stackLAddr, &dataL);
+    datMem->read(stackHAddr, &dataH);
+    stackPointer = (dataH<<8)|dataL;
+
+    //PC is already in position to go to stack (write little-endian)
+    datMem->write(stackPointer--, &pc);
+    pc = pc >> 8;
+    datMem->write(stackPointer--, &pc);
+
+    //Update SPL and SPH
+    datMem->write(stackLAddr, &stackPointer);
+    stackPointer = stackPointer >> 8;
+    datMem->write(stackHAddr, &stackPointer);
+
+    pc = jumpValue;
 }
 
 void AVRCPU::instructionIJMP() {

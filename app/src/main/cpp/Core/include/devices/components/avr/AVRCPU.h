@@ -114,7 +114,7 @@ private:
 
     void instruction_FMULSU();
 
-    void instructionICALL();
+    void instruction_ICALL();
 
     void instructionIJMP();
 
