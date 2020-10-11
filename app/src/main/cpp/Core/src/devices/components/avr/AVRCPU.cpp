@@ -22,6 +22,7 @@
 //ANDI/CBR
 //CPI
 //LDI, LDS (16-bit)
+//ORI
 #define INSTRUCTION_GROUP3_MASK  0xF000
 //ASR
 //COM
@@ -115,7 +116,7 @@
 #define NEG_OPCODE                                                  0x9401
 #define NOP_OPCODE                                                  0x0000
 #define OR_OPCODE                                                   0x2800
-#define INSTRUCTION_ORI_MASK  55
+#define ORI_OPCODE                                                  0x6000
 #define INSTRUCTION_OUT_MASK  56
 #define INSTRUCTION_POP_MASK  57
 #define INSTRUCTION_PUSH_MASK  58
@@ -259,6 +260,9 @@ void AVRCPU::setupInstructionDecoder() {
                 continue;
             case LDS_16_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_LDS16;
+                continue;
+            case ORI_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_ORI;
                 continue;
         }
         switch (i & INSTRUCTION_GROUP4_MASK) {
@@ -578,8 +582,8 @@ void AVRCPU::instruction_AND_TST() {
 }
 
 void AVRCPU::instruction_ANDI_CBR() {
-    /*************************ANDI***********************/
-    LOGD(SOFIA_AVRCPU_TAG, "Instruction ANDI");
+    /*************************ANDI/CBR***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction ANDI/CBR");
 
     wbAddr = REG16_ADDR | ((0x00F0 & instruction) >> 4);
 
@@ -1592,8 +1596,29 @@ void AVRCPU::instruction_OR() {
     datMem->write(sregAddr, &sreg);
 }
 
-void AVRCPU::instructionORI() {
+void AVRCPU::instruction_ORI() {
+    /*************************ORI***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction ORI");
 
+    wbAddr = REG16_ADDR | ((0x00F0 & instruction) >> 4);
+
+    datMem->read(wbAddr, &regD);
+    datMem->read(sregAddr, &sreg);
+
+    result = regD | (((0x0F00&instruction)>>4)|(0x000F&instruction));
+    sreg &= 0xE1;
+
+    //Flag N
+    sreg |= (result >> 5) & N_FLAG_MASK;
+
+    //Flag S
+    sreg |= (((sreg << 1) ^ sreg) << 1) & S_FLAG_MASK;
+
+    //Flag Z
+    sreg |= result?0x00:Z_FLAG_MASK;
+
+    datMem->write(wbAddr, &result);
+    datMem->write(sregAddr, &sreg);
 }
 
 void AVRCPU::instructionOUT() {

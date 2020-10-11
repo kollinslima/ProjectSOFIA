@@ -171,7 +171,8 @@ private:
 
     void instruction_OR();
 
-    void instructionORI();   //ORI - SBR
+    void instruction_ORI();
+
     void instructionOUT();
 
     void instructionPOP();
