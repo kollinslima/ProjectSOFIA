@@ -15,6 +15,7 @@ using namespace std;
 
 typedef uint8_t sbyte;
 typedef uint16_t sword16;
+typedef __uint32_t spc;
 
 int main(int argc, char *argv[])
 {
@@ -28,6 +29,17 @@ int main(int argc, char *argv[])
     sbyte data = 0x01;
     data = 0x00 - data;
     assert(data == 0xFF);
+
+    //Test relative call
+    spc pc = 0x0800;
+    spc jmpValue = 0x0001;
+    pc += (((__int32_t)jmpValue)<<20)>>20;
+    assert(pc == 0x0801);
+
+    pc = 0x0800;
+    jmpValue = 0x0FFF;
+    pc += (((__int32_t)jmpValue)<<20)>>20;
+    assert(pc == 0x07FF);
 
     return 0;
 }

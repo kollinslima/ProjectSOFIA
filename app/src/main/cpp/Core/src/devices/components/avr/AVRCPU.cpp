@@ -23,6 +23,7 @@
 //CPI
 //LDI, LDS (16-bit)
 //ORI
+//RCALL
 #define INSTRUCTION_GROUP3_MASK  0xF000
 //ASR
 //COM
@@ -122,7 +123,7 @@
 #define OUT_OPCODE                                                  0xB800
 #define POP_OPCODE                                                  0x900F
 #define PUSH_OPCODE                                                 0x920F
-#define INSTRUCTION_RCALL_MASK  59
+#define RCALL_OPCODE                                                0xD000
 #define INSTRUCTION_RET_MASK  60
 #define INSTRUCTION_RETI_MASK  61
 #define INSTRUCTION_RJMP_MASK  62
@@ -265,6 +266,9 @@ void AVRCPU::setupInstructionDecoder() {
                 continue;
             case ORI_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_ORI;
+                continue;
+            case RCALL_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_RCALL;
                 continue;
         }
         switch (i & INSTRUCTION_GROUP4_MASK) {
@@ -1674,8 +1678,27 @@ void AVRCPU::instruction_PUSH() {
     datMem->write(stackHAddr, &stackPointer);
 }
 
-void AVRCPU::instructionRCALL() {
+void AVRCPU::instruction_RCALL() {
+    /*************************RCALL***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction RCALL");
 
+    jumpValue = 0x0FFF&instruction;
+
+    datMem->read(stackLAddr, &dataL);
+    datMem->read(stackHAddr, &dataH);
+    stackPointer = (dataH<<8)|dataL;
+
+    //PC is already in position to go to stack (write little-endian)
+    datMem->write(stackPointer--, &pc);
+    pc = pc >> 8;
+    datMem->write(stackPointer--, &pc);
+
+    //Update SPL and SPH
+    datMem->write(stackLAddr, &stackPointer);
+    stackPointer = stackPointer >> 8;
+    datMem->write(stackHAddr, &stackPointer);
+
+    pc += (((__int32_t)jumpValue)<<20)>>20; //Cast to make sign extension
 }
 
 void AVRCPU::instructionRET() {
