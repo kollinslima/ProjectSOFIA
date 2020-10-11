@@ -116,7 +116,7 @@ private:
 
     void instruction_ICALL();
 
-    void instructionIJMP();
+    void instruction_IJMP();
 
     void instructionIN();
 

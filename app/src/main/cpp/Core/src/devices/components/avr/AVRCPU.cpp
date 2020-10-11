@@ -71,7 +71,7 @@
 #define FMULS_OPCODE                                                0x0380
 #define FMULSU_OPCODE                                               0x0388
 #define ICALL_OPCODE                                                0x9509
-#define INSTRUCTION_IJMP_MASK  26
+#define IJMP_OPCODE                                                 0x9409
 #define INSTRUCTION_IN_MASK  27
 #define INSTRUCTION_INC_MASK  28
 #define JMP_OPCODE  0x940C
@@ -292,6 +292,10 @@ void AVRCPU::setupInstructionDecoder() {
         }
         if (i == ICALL_OPCODE) {
             instructionDecoder[i] = &AVRCPU::instruction_ICALL;
+            continue;
+        }
+        if (i == IJMP_OPCODE) {
+            instructionDecoder[i] = &AVRCPU::instruction_IJMP;
             continue;
         }
         instructionDecoder[i] = &AVRCPU::unknownInstruction;
@@ -967,8 +971,17 @@ void AVRCPU::instruction_ICALL() {
     pc = jumpValue;
 }
 
-void AVRCPU::instructionIJMP() {
+void AVRCPU::instruction_IJMP() {
+    /*************************IJMP***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction IJMP");
 
+    //Read Z Register
+    datMem->read(REG30_ADDR, &dataL);
+    datMem->read(REG31_ADDR, &dataH);
+
+    jumpValue = (dataH<<8) | dataL;
+
+    pc = jumpValue;
 }
 
 void AVRCPU::instructionIN() {
