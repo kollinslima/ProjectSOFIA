@@ -96,7 +96,7 @@
 #define LD_Z_PRE_DECREMENT_OPCODE                                   0x9002
 #define LDD_Z_OPCODE                                                0x8000
 #define LDI_OPCODE                                                  0xE000
-#define LDS_OPCODE  0x9000
+#define LDS_OPCODE                                                  0x9000
 #define INSTRUCTION_LPM_Z_POST_INCREMENT_MASK  43
 #define INSTRUCTION_LPM_Z_UNCHANGED_DEST_R0_MASK  44
 #define INSTRUCTION_LPM_Z_UNCHANGED_MASK  45
@@ -317,6 +317,9 @@ void AVRCPU::setupInstructionDecoder() {
                 continue;
             case LD_Z_PRE_DECREMENT_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_LD_Z_PRE_DECREMENT;
+                continue;
+            case LDS_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_LDS;
                 continue;
         }
         switch (i & INSTRUCTION_GROUP9_MASK) {
@@ -1300,8 +1303,16 @@ void AVRCPU::instruction_LDI() {
     datMem->write(REG16_ADDR | ((0x00F0 & instruction) >> 4), &result);
 }
 
-void AVRCPU::instructionLDS() {
+void AVRCPU::instruction_LDS() {
+    /*************************LDS***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction LDS");
 
+    wbAddr = (0x01F0 & instruction) >> 4;
+
+    progMem->loadInstruction(pc++, &instruction);
+
+    datMem->read(instruction, &result);
+    datMem->write(wbAddr, &result);
 }
 
 void AVRCPU::instructionLPM_Z_POST_INCREMENT() {
