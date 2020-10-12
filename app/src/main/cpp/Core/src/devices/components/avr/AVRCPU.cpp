@@ -156,7 +156,7 @@
 #define ST_Z_POST_INCREMENT_OPCODE                                  0x9201
 #define ST_Z_PRE_DECREMENT_OPCODE                                   0x9202
 #define STD_Z_OPCODE                                                0x8200
-#define STS_OPCODE  0x9200
+#define STS_OPCODE                                                  0x9200
 #define INSTRUCTION_SUB_MASK  86
 #define INSTRUCTION_SUBI_MASK  87
 #define INSTRUCTION_SWAP_MASK  88
@@ -402,6 +402,9 @@ void AVRCPU::setupInstructionDecoder() {
                 continue;
             case ST_Z_PRE_DECREMENT_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_ST_Z_PRE_DECREMENT;
+                continue;
+            case STS_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_STS;
                 continue;
         }
         switch (i & INSTRUCTION_GROUP5_MASK) {
@@ -2269,8 +2272,16 @@ void AVRCPU::instruction_STD_Z() {
     datMem->write(wbAddr, &result);
 }
 
-void AVRCPU::instructionSTS() {
+void AVRCPU::instruction_STS() {
+    /*************************STS***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction STS");
 
+    wbAddr = (0x01F0 & instruction) >> 4;
+
+    progMem->loadInstruction(pc++, &instruction);
+
+    datMem->read(wbAddr, &result);
+    datMem->write(instruction, &result);
 }
 
 void AVRCPU::instructionSUB() {

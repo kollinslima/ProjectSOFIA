@@ -226,7 +226,7 @@ private:
     void instruction_ST_Z_PRE_DECREMENT();
     void instruction_STD_Z();
 
-    void instructionSTS();
+    void instruction_STS();
 
     void instructionSUB();
 
