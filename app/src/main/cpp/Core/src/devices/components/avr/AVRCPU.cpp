@@ -1253,10 +1253,9 @@ void AVRCPU::instruction_LD_X_UNCHANGED() {
     //Read X Register
     datMem->read(REG26_ADDR, &dataL);
     datMem->read(REG27_ADDR, &dataH);
+    wbAddr = (dataH<<8) | dataL;
 
-    outData = (dataH<<8) | dataL;
-
-    datMem->read(outData, &result);
+    datMem->read(wbAddr, &result);
     datMem->write((0x01F0 & instruction)>>4, &result);
 }
 
@@ -1267,14 +1266,13 @@ void AVRCPU::instruction_LD_X_POST_INCREMENT() {
     //Read X Register
     datMem->read(REG26_ADDR, &dataL);
     datMem->read(REG27_ADDR, &dataH);
+    wbAddr = (dataH<<8) | dataL;
 
-    outData = (dataH<<8) | dataL;
-
-    datMem->read(outData++, &result);
+    datMem->read(wbAddr++, &result);
     datMem->write((0x01F0 & instruction)>>4, &result);
-    datMem->write(REG26_ADDR, &outData);
-    outData = outData >> 8;
-    datMem->write(REG27_ADDR, &outData);
+    datMem->write(REG26_ADDR, &wbAddr);
+    wbAddr = wbAddr >> 8;
+    datMem->write(REG27_ADDR, &wbAddr);
 }
 
 void AVRCPU::instruction_LD_X_PRE_DECREMENT() {
@@ -1284,14 +1282,13 @@ void AVRCPU::instruction_LD_X_PRE_DECREMENT() {
     //Read X Register
     datMem->read(REG26_ADDR, &dataL);
     datMem->read(REG27_ADDR, &dataH);
+    wbAddr = (dataH<<8) | dataL;
 
-    outData = (dataH<<8) | dataL;
-
-    datMem->read(--outData, &result);
+    datMem->read(--wbAddr, &result);
     datMem->write((0x01F0 & instruction)>>4, &result);
-    datMem->write(REG26_ADDR, &outData);
-    outData = outData >> 8;
-    datMem->write(REG27_ADDR, &outData);
+    datMem->write(REG26_ADDR, &wbAddr);
+    wbAddr = wbAddr >> 8;
+    datMem->write(REG27_ADDR, &wbAddr);
 }
 
 void AVRCPU::instruction_LD_Y_UNCHANGED() {
@@ -1301,10 +1298,9 @@ void AVRCPU::instruction_LD_Y_UNCHANGED() {
     //Read Y Register
     datMem->read(REG28_ADDR, &dataL);
     datMem->read(REG29_ADDR, &dataH);
+    wbAddr = (dataH<<8) | dataL;
 
-    outData = (dataH<<8) | dataL;
-
-    datMem->read(outData, &result);
+    datMem->read(wbAddr, &result);
     datMem->write((0x01F0 & instruction)>>4, &result);
 }
 
@@ -1315,14 +1311,13 @@ void AVRCPU::instruction_LD_Y_POST_INCREMENT() {
     //Read Y Register
     datMem->read(REG28_ADDR, &dataL);
     datMem->read(REG29_ADDR, &dataH);
+    wbAddr = (dataH<<8) | dataL;
 
-    outData = (dataH<<8) | dataL;
-
-    datMem->read(outData++, &result);
+    datMem->read(wbAddr++, &result);
     datMem->write((0x01F0 & instruction)>>4, &result);
-    datMem->write(REG28_ADDR, &outData);
-    outData = outData >> 8;
-    datMem->write(REG29_ADDR, &outData);
+    datMem->write(REG28_ADDR, &wbAddr);
+    wbAddr = wbAddr >> 8;
+    datMem->write(REG29_ADDR, &wbAddr);
 }
 
 void AVRCPU::instruction_LD_Y_PRE_DECREMENT() {
@@ -1332,14 +1327,13 @@ void AVRCPU::instruction_LD_Y_PRE_DECREMENT() {
     //Read Y Register
     datMem->read(REG28_ADDR, &dataL);
     datMem->read(REG29_ADDR, &dataH);
+    wbAddr = (dataH<<8) | dataL;
 
-    outData = (dataH<<8) | dataL;
-
-    datMem->read(--outData, &result);
+    datMem->read(--wbAddr, &result);
     datMem->write((0x01F0 & instruction)>>4, &result);
-    datMem->write(REG28_ADDR, &outData);
-    outData = outData >> 8;
-    datMem->write(REG29_ADDR, &outData);
+    datMem->write(REG28_ADDR, &wbAddr);
+    wbAddr = wbAddr >> 8;
+    datMem->write(REG29_ADDR, &wbAddr);
 }
 
 void AVRCPU::instruction_LDD_Y() {
@@ -1349,10 +1343,9 @@ void AVRCPU::instruction_LDD_Y() {
     //Read Y Register
     datMem->read(REG28_ADDR, &dataL);
     datMem->read(REG29_ADDR, &dataH);
+    wbAddr = ((dataH<<8) | dataL) + (((0x2000 & instruction)>>8) | ((0x0C00 & instruction)>>7)| (0x0007 & instruction));
 
-    outData = ((dataH<<8) | dataL) + (((0x2000 & instruction)>>8) | ((0x0C00 & instruction)>>7)| (0x0007 & instruction));
-
-    datMem->read(outData, &result);
+    datMem->read(wbAddr, &result);
     datMem->write((0x01F0 & instruction)>>4, &result);
 }
 
@@ -1363,10 +1356,9 @@ void AVRCPU::instruction_LD_Z_UNCHANGED() {
     //Read Z Register
     datMem->read(REG30_ADDR, &dataL);
     datMem->read(REG31_ADDR, &dataH);
+    wbAddr = (dataH<<8) | dataL;
 
-    outData = (dataH<<8) | dataL;
-
-    datMem->read(outData, &result);
+    datMem->read(wbAddr, &result);
     datMem->write((0x01F0 & instruction)>>4, &result);
 }
 
@@ -1377,14 +1369,13 @@ void AVRCPU::instruction_LD_Z_POST_INCREMENT() {
     //Read Z Register
     datMem->read(REG30_ADDR, &dataL);
     datMem->read(REG31_ADDR, &dataH);
+    wbAddr = (dataH<<8) | dataL;
 
-    outData = (dataH<<8) | dataL;
-
-    datMem->read(outData++, &result);
+    datMem->read(wbAddr++, &result);
     datMem->write((0x01F0 & instruction)>>4, &result);
-    datMem->write(REG30_ADDR, &outData);
-    outData = outData >> 8;
-    datMem->write(REG31_ADDR, &outData);
+    datMem->write(REG30_ADDR, &wbAddr);
+    wbAddr = wbAddr >> 8;
+    datMem->write(REG31_ADDR, &wbAddr);
 }
 
 void AVRCPU::instruction_LD_Z_PRE_DECREMENT() {
@@ -1394,14 +1385,13 @@ void AVRCPU::instruction_LD_Z_PRE_DECREMENT() {
     //Read Z Register
     datMem->read(REG30_ADDR, &dataL);
     datMem->read(REG31_ADDR, &dataH);
+    wbAddr = (dataH<<8) | dataL;
 
-    outData = (dataH<<8) | dataL;
-
-    datMem->read(--outData, &result);
+    datMem->read(--wbAddr, &result);
     datMem->write((0x01F0 & instruction)>>4, &result);
-    datMem->write(REG30_ADDR, &outData);
-    outData = outData >> 8;
-    datMem->write(REG31_ADDR, &outData);
+    datMem->write(REG30_ADDR, &wbAddr);
+    wbAddr = wbAddr >> 8;
+    datMem->write(REG31_ADDR, &wbAddr);
 }
 
 void AVRCPU::instruction_LDD_Z() {
@@ -1411,10 +1401,9 @@ void AVRCPU::instruction_LDD_Z() {
     //Read Z Register
     datMem->read(REG30_ADDR, &dataL);
     datMem->read(REG31_ADDR, &dataH);
+    wbAddr = ((dataH<<8) | dataL) + (((0x2000 & instruction)>>8) | ((0x0C00 & instruction)>>7)| (0x0007 & instruction));
 
-    outData = ((dataH<<8) | dataL) + (((0x2000 & instruction)>>8) | ((0x0C00 & instruction)>>7)| (0x0007 & instruction));
-
-    datMem->read(outData, &result);
+    datMem->read(wbAddr, &result);
     datMem->write((0x01F0 & instruction)>>4, &result);
 }
 
@@ -1451,9 +1440,9 @@ void AVRCPU::instruction_LPM_Z_UNCHANGED_DEST_R0() {
     datMem->read(REG30_ADDR, &dataL);
     datMem->read(REG31_ADDR, &dataH);
 
-    outData = (dataH<<8) | dataL;
+    wbAddr = (dataH<<8) | dataL;
 
-    progMem->read(outData, &result);
+    progMem->read(wbAddr, &result);
     datMem->write(REG00_ADDR, &result);
 }
 
@@ -1465,9 +1454,9 @@ void AVRCPU::instruction_LPM_Z_UNCHANGED() {
     datMem->read(REG30_ADDR, &dataL);
     datMem->read(REG31_ADDR, &dataH);
 
-    outData = (dataH<<8) | dataL;
+    wbAddr = (dataH<<8) | dataL;
 
-    progMem->read(outData, &result);
+    progMem->read(wbAddr, &result);
     datMem->write((0x01F0 & instruction)>>4, &result);
 }
 
@@ -1479,13 +1468,13 @@ void AVRCPU::instruction_LPM_Z_POST_INCREMENT() {
     datMem->read(REG30_ADDR, &dataL);
     datMem->read(REG31_ADDR, &dataH);
 
-    outData = (dataH<<8) | dataL;
+    wbAddr = (dataH<<8) | dataL;
 
-    progMem->read(outData++, &result);
+    progMem->read(wbAddr++, &result);
     datMem->write((0x01F0 & instruction)>>4, &result);
-    datMem->write(REG30_ADDR, &outData);
-    outData = outData >> 8;
-    datMem->write(REG31_ADDR, &outData);
+    datMem->write(REG30_ADDR, &wbAddr);
+    wbAddr = wbAddr >> 8;
+    datMem->write(REG31_ADDR, &wbAddr);
 }
 
 void AVRCPU::instruction_LSR() {
@@ -2088,15 +2077,15 @@ void AVRCPU::instruction_SPM_POST_INCREMENT(){
     LOGD(SOFIA_AVRCPU_TAG, "Instruction SPM (Z POST INCREMENT) - NOT IMPLEMENTED");
 }
 
-void AVRCPU::instructionST_X_POST_INCREMENT() {
+void AVRCPU::instruction_ST_X_UNCHANGED() {
 
 }
 
-void AVRCPU::instructionST_X_PRE_INCREMENT() {
+void AVRCPU::instruction_ST_X_POST_INCREMENT() {
 
 }
 
-void AVRCPU::instructionST_X_UNCHANGED() {
+void AVRCPU::instruction_ST_X_PRE_DECREMENT() {
 
 }
 

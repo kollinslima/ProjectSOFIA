@@ -212,11 +212,9 @@ private:
     void instruction_SPM_Z_UNCHANGED();
     void instruction_SPM_POST_INCREMENT();
 
-    void instructionST_X_POST_INCREMENT();
-
-    void instructionST_X_PRE_INCREMENT();
-
-    void instructionST_X_UNCHANGED();
+    void instruction_ST_X_UNCHANGED();
+    void instruction_ST_X_POST_INCREMENT();
+    void instruction_ST_X_PRE_DECREMENT();
 
     void instructionST_Y_POST_INCREMENT();
 
