@@ -14,19 +14,19 @@
 //MOV, MUL
 //OR
 //SBC, SUB
-#define INSTRUCTION_GROUP1_MASK  0xFC00
+#define INSTRUCTION_GROUP1_MASK     0xFC00
 //ADIW
 //CBI
 //MOVW, MULS
 //SBI, SBIC, SBIS, SBIW
-#define INSTRUCTION_GROUP2_MASK  0xFF00
+#define INSTRUCTION_GROUP2_MASK     0xFF00
 //ANDI/CBR
 //CPI
 //LDI/SER,
 //ORI/SBR
 //RCALL, RJMP
 //SBCI, SUBI
-#define INSTRUCTION_GROUP3_MASK  0xF000
+#define INSTRUCTION_GROUP3_MASK     0xF000
 //ASR
 //COM
 //DEC
@@ -38,28 +38,28 @@
 //ROL
 //ST(X), ST(Y), ST(Z), STS, SWAP
 //XCH
-#define INSTRUCTION_GROUP4_MASK  0xFE0F
+#define INSTRUCTION_GROUP4_MASK     0xFE0F
 //BCLR/CLC/CLH/CLI/CLN/CLS/CLT/CLV/CLZ,
 //BSET/SEC/SEH/SEI/SEN/SES/SET/SEV/SEZ
-#define INSTRUCTION_GROUP5_MASK  0xFF8F
+#define INSTRUCTION_GROUP5_MASK     0xFF8F
 //BLD/BST
 //SBRC/SBRS
-#define INSTRUCTION_GROUP6_MASK  0xFE08
+#define INSTRUCTION_GROUP6_MASK     0xFE08
 //CALL
 //JMP
 //LSR
-#define INSTRUCTION_GROUP7_MASK  0xFE0E
+#define INSTRUCTION_GROUP7_MASK     0xFE0E
 //DES
-#define INSTRUCTION_GROUP8_MASK  0xFF0F
+#define INSTRUCTION_GROUP8_MASK     0xFF0F
 //FMUL, FMULS, FMULSU, MULSU
-#define INSTRUCTION_GROUP9_MASK  0xFF88
+#define INSTRUCTION_GROUP9_MASK     0xFF88
 //IN
 //OUT
 //LDS (16-bit)
-#define INSTRUCTION_GROUP10_MASK  0xF800
+#define INSTRUCTION_GROUP10_MASK    0xF800
 //LDD(Y), LDD(Z)
 //STD(Y), STD(Z)
-#define INSTRUCTION_GROUP11_MASK  0xD208
+#define INSTRUCTION_GROUP11_MASK    0xD208
 
 #define ADC_ROL_OPCODE                                              0x1C00
 #define ADD_LSL_OPCODE                                              0x0C00
@@ -165,31 +165,31 @@
 #define WDR_OPCODE                                                  0x95A8
 #define XCH_OPCODE                                                  0x9204
 
-#define I_FLAG_MASK 0x80
-#define T_FLAG_MASK 0x40
-#define H_FLAG_MASK 0x20
-#define S_FLAG_MASK 0x10
-#define V_FLAG_MASK 0x08
-#define N_FLAG_MASK 0x04
-#define Z_FLAG_MASK 0x02
-#define C_FLAG_MASK 0x01
+#define I_FLAG_MASK     0x80
+#define T_FLAG_MASK     0x40
+#define H_FLAG_MASK     0x20
+#define S_FLAG_MASK     0x10
+#define V_FLAG_MASK     0x08
+#define N_FLAG_MASK     0x04
+#define Z_FLAG_MASK     0x02
+#define C_FLAG_MASK     0x01
 
-#define REG00_ADDR 0x00
-#define REG01_ADDR 0x01
-#define REG16_ADDR 0x10
-#define REG24_ADDR 0x18
-#define REG25_ADDR 0x19
+#define REG00_ADDR      0x00
+#define REG01_ADDR      0x01
+#define REG16_ADDR      0x10
+#define REG24_ADDR      0x18
+#define REG25_ADDR      0x19
 //X Register
-#define REG26_ADDR 0x1A
-#define REG27_ADDR 0x1B
+#define REG26_ADDR      0x1A
+#define REG27_ADDR      0x1B
 //Y Register
-#define REG28_ADDR 0x1C
-#define REG29_ADDR 0x1D
+#define REG28_ADDR      0x1C
+#define REG29_ADDR      0x1D
 //Z Register
-#define REG30_ADDR 0x1E
-#define REG31_ADDR 0x1F
+#define REG30_ADDR      0x1E
+#define REG31_ADDR      0x1F
 
-#define IOREG_BASEADDR 0x20
+#define IOREG_BASEADDR  0x20
 
 #define SOFIA_AVRCPU_TAG "SOFIA AVRCPU CONTROLLER"
 
@@ -562,7 +562,6 @@ void AVRCPU::setupInstructionDecoder() {
 void AVRCPU::run() {
     progMem->loadInstruction(pc++, &instruction);
     (this->*instructionDecoder[instruction])();
-    pc = 0;
 }
 
 void AVRCPU::instruction_ADC_ROL() {
