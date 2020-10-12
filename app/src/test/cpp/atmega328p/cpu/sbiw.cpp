@@ -1,5 +1,5 @@
-// Kollins G. Lima - 10/03/2020
-// UNIT TEST FOR ADIW INSTRUCTION
+// Kollins G. Lima - 10/12/2020
+// UNIT TEST FOR SBIW INSTRUCTION
 
 #include <stdio.h>
 #include <iostream>
@@ -26,15 +26,15 @@ typedef struct {
 
 Out output;
 
-void testADIW (sbyte dataL, sbyte dataH, sbyte initSreg, sword16 instruction) {
+void testSBIW (sbyte dataL, sbyte dataH, sbyte initSreg, sword16 instruction) {
     sbyte sreg = initSreg;
     sbyte result;
 
-    sword16 outData = ((dataH<<8) | dataL) + (((0x00C0 & instruction)>>2) | (0x000F & instruction));
+    sword16 outData = ((dataH<<8) | dataL) - (((0x00C0 & instruction)>>2) | (0x000F & instruction));
     sreg &= 0xE0;
 
     //Flag V
-    sreg |= (((~dataH)>>4)&(outData>>12))&V_FLAG_MASK;
+    sreg |= ((dataH>>4)&((~outData)>>12))&V_FLAG_MASK;
 
     //Flag N
     sreg |= (outData>>13)&N_FLAG_MASK;
@@ -46,7 +46,7 @@ void testADIW (sbyte dataL, sbyte dataH, sbyte initSreg, sword16 instruction) {
     sreg |= outData?0x0000:Z_FLAG_MASK;
 
     //Flag C
-    sreg |= ((dataH>>7)&((~outData)>>15))&C_FLAG_MASK;
+    sreg |= (((~dataH)>>7)&(outData>>15))&C_FLAG_MASK;
 
     output.outL = outData;
     output.outH = outData >> 8;
@@ -55,8 +55,8 @@ void testADIW (sbyte dataL, sbyte dataH, sbyte initSreg, sword16 instruction) {
 
 int main(int argc, char *argv[])
 {
-    printf("SumZero24And25 - Return 0 and 0\n");
-    testADIW(0,0,0x00,0x0000);
+    printf("SubZero24And25 - Return 0 and 0\n");
+    testSBIW(0,0,0x00,0x0000);
     printf("DataL: %X\n", output.outL);
     printf("DataH: %X\n", output.outH);
     assert(output.outL == 0);
@@ -64,29 +64,29 @@ int main(int argc, char *argv[])
     printf("SREG: %X\n", output.sreg);
     assert(output.sreg == 0x02);
 
-    printf("SumTwoComplementOverflow26And27 - Return 128 and 0\n");
-    testADIW(0xFF,0x7F,0x00,0x0011);
+    printf("SubOneTwoComplementOverflow26And27 - Return 0x7FFF\n");
+    testSBIW(0x00,0x80,0x00,0x0011);
     printf("DataL: %X\n", output.outL);
     printf("DataH: %X\n", output.outH);
-    assert(output.outL == 0);
-    assert(output.outH == 0x80);
+    assert(output.outL == 0xFF);
+    assert(output.outH == 0x7F);
     printf("SREG: %X\n", output.sreg);
-    assert(output.sreg == 0x0C);
+    assert(output.sreg == 0x18);
 
-    printf("SumOverflow28And29 - Return 0 and 0\n");
-    testADIW(0xFF,0xFF,0x00,0x0021);
+    printf("SubOneUnderflow28And29 - Return 0xFFFF\n");
+    testSBIW(0x00,0x00,0x00,0x0021);
     printf("DataL: %X\n", output.outL);
     printf("DataH: %X\n", output.outH);
-    assert(output.outL == 0);
-    assert(output.outH == 0);
+    assert(output.outL == 0xFF);
+    assert(output.outH == 0xFF);
     printf("SREG: %X\n", output.sreg);
-    assert(output.sreg == 0x03);
+    assert(output.sreg == 0x15);
 
-    printf("SumTen30And31 - Return 128 and 10\n");
-    testADIW(0x00,0xFF,0x00,0x003A);
+    printf("SubTen30And31 - Return 0xFF14\n");
+    testSBIW(0x0A,0xFF,0x00,0x003A);
     printf("DataL: %X\n", output.outL);
     printf("DataH: %X\n", output.outH);
-    assert(output.outL == 10);
+    assert(output.outL == 0x00);
     assert(output.outH == 0xFF);
     printf("SREG: %X\n", output.sreg);
     assert(output.sreg == 0x14);

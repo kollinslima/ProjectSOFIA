@@ -19,7 +19,7 @@
 //ADIW
 //CBI
 //MOVW, MULS
-//SBI, SBIC, SBIS
+//SBI, SBIC, SBIS, SBIW
 #define INSTRUCTION_GROUP2_MASK  0xFF00
 //ANDI/CBR
 //CPI
@@ -137,7 +137,7 @@
 #define SBI_OPCODE                                                  0x9A00
 #define SBIC_OPCODE                                                 0x9900
 #define SBIS_OPCODE                                                 0x9B00
-#define INSTRUCTION_SBIW_MASK  69
+#define SBIW_OPCODE                                                 0x9700
 #define INSTRUCTION_SBRC_MASK  70
 #define INSTRUCTION_SBRS_MASK  71
 #define INSTRUCTION_SLEEP_MASK  72
@@ -266,6 +266,9 @@ void AVRCPU::setupInstructionDecoder() {
                 continue;
             case SBIS_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_SBIS;
+                continue;
+            case SBIW_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_SBIW;
                 continue;
         }
         switch (i & INSTRUCTION_GROUP3_MASK) {
@@ -572,14 +575,14 @@ void AVRCPU::instruction_ADIW() {
     offset = ((0x0030&instruction)>>3); //(>>4)*2 = >>3
 
     //ADIW operates on the upper four registers pairs
-    sbyte dataLAddr = REG24_ADDR + offset;
-    sbyte dataHAddr = REG25_ADDR + offset;
+    dataLAddr = REG24_ADDR + offset;
+    dataHAddr = REG25_ADDR + offset;
 
     datMem->read(dataLAddr, &dataL);
-    datMem->read(dataHAddr + offset, &dataH);
+    datMem->read(dataHAddr, &dataH);
     datMem->read(sregAddr, &sreg);
 
-    outData = (((0x00FF & dataH)<<8) | dataL) + (((0x00C0 & instruction)>>2) | (0x000F & instruction));
+    outData = ((dataH<<8) | dataL) + (((0x00C0 & instruction)>>2) | (0x000F & instruction));
     sreg &= 0xE0;
 
     //Flag V
@@ -592,7 +595,7 @@ void AVRCPU::instruction_ADIW() {
     sreg |= (((sreg << 1) ^ sreg) << 1) & S_FLAG_MASK;
 
     //Flag Z
-    sreg |= outData?0x00:Z_FLAG_MASK;
+    sreg |= outData?0x0000:Z_FLAG_MASK;
 
     //Flag C
     sreg |= ((dataH>>7)&((~outData)>>15))&C_FLAG_MASK;
@@ -1952,8 +1955,42 @@ void AVRCPU::instruction_SBIS() {
     }
 }
 
-void AVRCPU::instructionSBIW() {
+void AVRCPU::instruction_SBIW() {
+    /*************************SBIW***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction SBIW");
 
+    offset = ((0x0030&instruction)>>3); //(>>4)*2 = >>3
+
+    //SBIW operates on the upper four registers pairs
+    dataLAddr = REG24_ADDR + offset;
+    dataHAddr = REG25_ADDR + offset;
+
+    datMem->read(dataLAddr, &dataL);
+    datMem->read(dataHAddr, &dataH);
+    datMem->read(sregAddr, &sreg);
+
+    outData = ((dataH<<8) | dataL) - (((0x00C0 & instruction)>>2) | (0x000F & instruction));
+    sreg &= 0xE0;
+
+    //Flag V
+    sreg |= ((dataH>>4)&((~outData)>>12))&V_FLAG_MASK;
+
+    //Flag N
+    sreg |= (outData>>13)&N_FLAG_MASK;
+
+    //Flag S
+    sreg |= (((sreg << 1) ^ sreg) << 1) & S_FLAG_MASK;
+
+    //Flag Z
+    sreg |= outData?0x0000:Z_FLAG_MASK;
+
+    //Flag C
+    sreg |= (((~dataH)>>7)&(outData>>15))&C_FLAG_MASK;
+
+    datMem->write(dataLAddr, &outData);
+    outData = outData>>8;
+    datMem->write(dataHAddr, &outData);
+    datMem->write(sregAddr, &sreg);
 }
 
 void AVRCPU::instructionSBRC() {

@@ -39,6 +39,7 @@ private:
     smemaddr16 regDAddr, regRAddr, wbAddr;
 
     sbyte offset, dataL, dataH;
+    smemaddr16 dataLAddr, dataHAddr;
     sword16 outData, immediate;
     sword16 testJMP_CALL, testLDS_STS;
 
@@ -200,7 +201,7 @@ private:
 
     void instruction_SBIS();
 
-    void instructionSBIW();
+    void instruction_SBIW();
 
     void instructionSBRC();
 
