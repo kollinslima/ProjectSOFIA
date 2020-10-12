@@ -36,7 +36,7 @@
 //BCLR/CLC/CLH/CLI/CLN/CLS/CLT/CLV/CLZ, BSET
 #define INSTRUCTION_GROUP5_MASK  0xFF8F
 //BLD/BST
-//SBRC
+//SBRC/SBRS
 #define INSTRUCTION_GROUP6_MASK  0xFE08
 //CALL
 //JMP
@@ -140,7 +140,7 @@
 #define SBIS_OPCODE                                                 0x9B00
 #define SBIW_OPCODE                                                 0x9700
 #define SBRC_OPCODE                                                 0xFC00
-#define INSTRUCTION_SBRS_MASK  71
+#define SBRS_OPCODE                                                 0xFE00
 #define INSTRUCTION_SLEEP_MASK  72
 #define INSTRUCTION_SPM_MASK  73
 #define INSTRUCTION_ST_X_POST_INCREMENT_MASK  74
@@ -329,6 +329,9 @@ void AVRCPU::setupInstructionDecoder() {
                 continue;
             case SBRC_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_SBRC;
+                continue;
+            case SBRS_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_SBRS;
                 continue;
         }
         switch (i & INSTRUCTION_GROUP7_MASK) {
@@ -2020,8 +2023,27 @@ void AVRCPU::instruction_SBRC() {
     }
 }
 
-void AVRCPU::instructionSBRS() {
+void AVRCPU::instruction_SBRS() {
+    /*************************SBRS***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction SBRS");
 
+    datMem->read((instruction&0x01F0)>>4, &result);
+
+    result &= (0x01 << (instruction&0x0007));
+
+    if (result) {
+        progMem->loadInstruction(pc++, &instruction);
+
+        //Test 2 word instruction
+        testJMP_CALL = instruction & INSTRUCTION_GROUP7_MASK;
+        testLDS_STS = instruction & INSTRUCTION_GROUP8_MASK;
+        if (testJMP_CALL == JMP_OPCODE ||
+            testJMP_CALL == CALL_OPCODE||
+            testLDS_STS  == LDS_OPCODE ||
+            testLDS_STS  == STS_OPCODE) {
+            pc += 1;
+        }
+    }
 }
 
 void AVRCPU::instructionSLEEP() {

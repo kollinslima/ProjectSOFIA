@@ -205,7 +205,7 @@ private:
 
     void instruction_SBRC();
 
-    void instructionSBRS();
+    void instruction_SBRS();
 
     void instructionSLEEP();
 
