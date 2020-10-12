@@ -209,7 +209,8 @@ private:
 
     void instruction_SLEEP();
 
-    void instructionSPM();
+    void instruction_SPM_Z_UNCHANGED();
+    void instruction_SPM_POST_INCREMENT();
 
     void instructionST_X_POST_INCREMENT();
 

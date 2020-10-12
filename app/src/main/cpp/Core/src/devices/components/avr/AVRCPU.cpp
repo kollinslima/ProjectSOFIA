@@ -143,7 +143,8 @@
 #define SBRC_OPCODE                                                 0xFC00
 #define SBRS_OPCODE                                                 0xFE00
 #define SLEEP_OPCODE                                                0x9588
-#define INSTRUCTION_SPM_MASK  73
+#define SPM_Z_UNCHANGED_OPCODE                                      0x95E8
+#define SPM_Z_POST_INCREMENT_OPCODE                                 0x95F8
 #define INSTRUCTION_ST_X_POST_INCREMENT_MASK  74
 #define INSTRUCTION_ST_X_PRE_INCREMENT_MASK  75
 #define INSTRUCTION_ST_X_UNCHANGED_MASK  76
@@ -488,6 +489,14 @@ void AVRCPU::setupInstructionDecoder() {
         }
         if (i == SLEEP_OPCODE) {
             instructionDecoder[i] = &AVRCPU::instruction_SLEEP;
+            continue;
+        }
+        if (i == SPM_Z_UNCHANGED_OPCODE) {
+            instructionDecoder[i] = &AVRCPU::instruction_SPM_Z_UNCHANGED;
+            continue;
+        }
+        if (i == SPM_Z_POST_INCREMENT_OPCODE) {
+            instructionDecoder[i] = &AVRCPU::instruction_SPM_POST_INCREMENT;
             continue;
         }
         instructionDecoder[i] = &AVRCPU::unknownInstruction;
@@ -2056,8 +2065,27 @@ void AVRCPU::instruction_SLEEP() {
     LOGD(SOFIA_AVRCPU_TAG, "Instruction SLEEP - NOT IMPLEMENTED");
 }
 
-void AVRCPU::instructionSPM() {
+void AVRCPU::instruction_SPM_Z_UNCHANGED() {
+    /*************************SPM (Z UNCHANGED)***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction SPM (Z UNCHANGED)");
 
+    datMem->read(REG00_ADDR, &dataL);
+    datMem->read(REG01_ADDR, &dataH);
+    outData = (dataH<<8) | dataL;
+
+    //Read Z Register
+    datMem->read(REG30_ADDR, &dataL);
+    datMem->read(REG31_ADDR, &dataH);
+    wbAddr = ((dataH<<8) | dataL)<<1; //Z is a page/word address
+
+    progMem->write(wbAddr, &outData);
+    outData = outData >> 8;
+    progMem->write(wbAddr+1, &outData);
+}
+
+void AVRCPU::instruction_SPM_POST_INCREMENT(){
+    /*************************SPM (Z POST INCREMENT)***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction SPM (Z POST INCREMENT) - NOT IMPLEMENTED");
 }
 
 void AVRCPU::instructionST_X_POST_INCREMENT() {
