@@ -196,7 +196,7 @@ private:
 
     void instruction_SBI();
 
-    void instructionSBIC();
+    void instruction_SBIC();
 
     void instructionSBIS();
 
