@@ -78,7 +78,7 @@ private:
 
     void instruction_BRBS_BRCS_BREQ_BRHS_BRIE_BRLO_BRLT_BRMI_BRTS_BRVS();
 
-    void instruction_BSET_SEC_SEH_SEI_SEN();
+    void instruction_BSET_SEC_SEH_SEI_SEN_SES();
 
     void instruction_BST();
 
