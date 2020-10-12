@@ -233,9 +233,11 @@ private:
 
     void instruction_SUBI();
 
-    void instructionSWAP();
+    void instruction_SWAP();
 
-    void instructionWDR();
+    void instruction_WDR();
+
+    void instruction_XCH();
 
     void unknownInstruction();
 };

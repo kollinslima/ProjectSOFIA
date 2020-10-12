@@ -7,14 +7,13 @@
 #include "../../../../include/CommonCore.h"
 #include "../../../../include/devices/components/avr/GenericAVRDataMemory.h"
 
-//ADC/ROL, ADD/LSL, AND
+//ADC/ROL, ADD/LSL, AND/TST
 //BRBC/BRCC/BRGE/BRHC/BRID/BRNE/BRPL/BRSH/BRTC/BRVC
 //BRBS/BRCS/BREQ/BRHS/BRIE/BRLO/BRLT/BRMI/BRTS/BRVS
 //CLR/EOR, CP, CPC, CPSE
 //MOV, MUL
 //OR
 //SBC, SUB
-//TST
 #define INSTRUCTION_GROUP1_MASK  0xFC00
 //ADIW
 //CBI
@@ -37,7 +36,8 @@
 //NEG
 //POP, PUSH
 //ROL
-//ST(X), ST(Y), ST(Z), STS
+//ST(X), ST(Y), ST(Z), STS, SWAP
+//XCH
 #define INSTRUCTION_GROUP4_MASK  0xFE0F
 //BCLR/CLC/CLH/CLI/CLN/CLS/CLT/CLV/CLZ,
 //BSET/SEC/SEH/SEI/SEN/SES/SET/SEV/SEZ
@@ -161,8 +161,9 @@
 #define STS_16_OPCODE                                               0xA800
 #define SUB_OPCODE                                                  0x1800
 #define SUBI_OPCODE                                                 0x5000
-#define INSTRUCTION_SWAP_MASK  88
-#define INSTRUCTION_WDR_MASK  89
+#define SWAP_OPCODE                                                 0x9402
+#define WDR_OPCODE                                                  0x95A8
+#define XCH_OPCODE                                                  0x9204
 
 #define I_FLAG_MASK 0x80
 #define T_FLAG_MASK 0x40
@@ -411,6 +412,12 @@ void AVRCPU::setupInstructionDecoder() {
             case STS_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_STS;
                 continue;
+            case SWAP_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_SWAP;
+                continue;
+            case XCH_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_XCH;
+                continue;
         }
         switch (i & INSTRUCTION_GROUP5_MASK) {
             case BCLR_CLC_CLH_CLI_CLN_CLS_CLT_CLV_CLZ_OPCODE:
@@ -542,6 +549,10 @@ void AVRCPU::setupInstructionDecoder() {
         }
         if (i == SPM_Z_POST_INCREMENT_OPCODE) {
             instructionDecoder[i] = &AVRCPU::instruction_SPM_POST_INCREMENT;
+            continue;
+        }
+        if (i == WDR_OPCODE) {
+            instructionDecoder[i] = &AVRCPU::instruction_WDR;
             continue;
         }
         instructionDecoder[i] = &AVRCPU::unknownInstruction;
@@ -2381,12 +2392,26 @@ void AVRCPU::instruction_SUBI() {
     datMem->write(wbAddr, &result);
 }
 
-void AVRCPU::instructionSWAP() {
+void AVRCPU::instruction_SWAP() {
+    /*************************SWAP***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction SWAP");
 
+    wbAddr = (0x01F0 & instruction) >> 4;
+    datMem->read(wbAddr, &regD);
+
+    result = (regD<<4)|(regD>>4);
+
+    datMem->write(wbAddr, &result);
 }
 
-void AVRCPU::instructionWDR() {
+void AVRCPU::instruction_WDR() {
+    /*************************WDR***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction WDR - NOT IMPLEMENTED");
+}
 
+void AVRCPU::instruction_XCH() {
+    /*************************XCH***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction XCH - NOT IMPLEMENTED");
 }
 
 void AVRCPU::unknownInstruction() {
