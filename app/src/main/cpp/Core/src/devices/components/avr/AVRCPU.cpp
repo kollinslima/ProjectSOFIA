@@ -23,7 +23,7 @@
 #define INSTRUCTION_GROUP2_MASK  0xFF00
 //ANDI/CBR
 //CPI
-//LDI/SER, LDS (16-bit)
+//LDI/SER,
 //ORI/SBR
 //RCALL, RJMP
 //SBCI
@@ -55,6 +55,7 @@
 #define INSTRUCTION_GROUP9_MASK  0xFF88
 //IN
 //OUT
+//LDS (16-bit)
 #define INSTRUCTION_GROUP10_MASK  0xF800
 //LDD(Y), LDD(Z)
 //STD(Y), STD(Z)
@@ -157,6 +158,7 @@
 #define ST_Z_PRE_DECREMENT_OPCODE                                   0x9202
 #define STD_Z_OPCODE                                                0x8200
 #define STS_OPCODE                                                  0x9200
+#define STS_16_OPCODE                                               0xA800
 #define INSTRUCTION_SUB_MASK  86
 #define INSTRUCTION_SUBI_MASK  87
 #define INSTRUCTION_SWAP_MASK  88
@@ -283,9 +285,6 @@ void AVRCPU::setupInstructionDecoder() {
                 continue;
             case LDI_SER_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_LDI_SER;
-                continue;
-            case LDS_16_OPCODE:
-                instructionDecoder[i] = &AVRCPU::instruction_LDS16;
                 continue;
             case ORI_SBR_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_ORI_SBR;
@@ -463,8 +462,14 @@ void AVRCPU::setupInstructionDecoder() {
             case IN_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_IN;
                 continue;
+            case LDS_16_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_LDS16;
+                continue;
             case OUT_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_OUT;
+                continue;
+            case STS_16_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_STS16;
                 continue;
         }
         switch (i & INSTRUCTION_GROUP11_MASK) {
@@ -2282,6 +2287,11 @@ void AVRCPU::instruction_STS() {
 
     datMem->read(wbAddr, &result);
     datMem->write(instruction, &result);
+}
+
+void AVRCPU::instruction_STS16() {
+    /*************************STS (16-bit)***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction STS (16-bit) - NOT IMPLEMENTED");
 }
 
 void AVRCPU::instructionSUB() {

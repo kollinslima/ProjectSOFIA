@@ -227,6 +227,7 @@ private:
     void instruction_STD_Z();
 
     void instruction_STS();
+    void instruction_STS16();
 
     void instructionSUB();
 
