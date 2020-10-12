@@ -173,7 +173,7 @@ private:
 
     void instruction_OR();
 
-    void instruction_ORI();
+    void instruction_ORI_SBR();
 
     void instruction_OUT();
 
@@ -203,7 +203,7 @@ private:
 
     void instruction_SBIW();
 
-    void instructionSBRC();
+    void instruction_SBRC();
 
     void instructionSBRS();
 

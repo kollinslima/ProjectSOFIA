@@ -24,7 +24,7 @@
 //ANDI/CBR
 //CPI
 //LDI, LDS (16-bit)
-//ORI
+//ORI/SBR
 //RCALL, RJMP
 //SBCI
 #define INSTRUCTION_GROUP3_MASK  0xF000
@@ -123,7 +123,7 @@
 #define NEG_OPCODE                                                  0x9401
 #define NOP_OPCODE                                                  0x0000
 #define OR_OPCODE                                                   0x2800
-#define ORI_OPCODE                                                  0x6000
+#define ORI_SBR_OPCODE                                              0x6000
 #define OUT_OPCODE                                                  0xB800
 #define POP_OPCODE                                                  0x900F
 #define PUSH_OPCODE                                                 0x920F
@@ -284,8 +284,8 @@ void AVRCPU::setupInstructionDecoder() {
             case LDS_16_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_LDS16;
                 continue;
-            case ORI_OPCODE:
-                instructionDecoder[i] = &AVRCPU::instruction_ORI;
+            case ORI_SBR_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_ORI_SBR;
                 continue;
             case RCALL_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_RCALL;
@@ -1647,9 +1647,9 @@ void AVRCPU::instruction_OR() {
     datMem->write(sregAddr, &sreg);
 }
 
-void AVRCPU::instruction_ORI() {
-    /*************************ORI***********************/
-    LOGD(SOFIA_AVRCPU_TAG, "Instruction ORI");
+void AVRCPU::instruction_ORI_SBR() {
+    /*************************ORI/SBR***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction ORI/SBR");
 
     wbAddr = REG16_ADDR | ((0x00F0 & instruction) >> 4);
 
@@ -1993,7 +1993,7 @@ void AVRCPU::instruction_SBIW() {
     datMem->write(sregAddr, &sreg);
 }
 
-void AVRCPU::instructionSBRC() {
+void AVRCPU::instruction_SBRC() {
 
 }
 
