@@ -26,7 +26,7 @@
 //LDI/SER,
 //ORI/SBR
 //RCALL, RJMP
-//SBCI
+//SBCI, SUBI
 #define INSTRUCTION_GROUP3_MASK  0xF000
 //ASR
 //COM
@@ -160,7 +160,7 @@
 #define STS_OPCODE                                                  0x9200
 #define STS_16_OPCODE                                               0xA800
 #define SUB_OPCODE                                                  0x1800
-#define INSTRUCTION_SUBI_MASK  87
+#define SUBI_OPCODE                                                 0x5000
 #define INSTRUCTION_SWAP_MASK  88
 #define INSTRUCTION_WDR_MASK  89
 
@@ -300,6 +300,9 @@ void AVRCPU::setupInstructionDecoder() {
                 continue;
             case SBCI_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_SBCI;
+                continue;
+            case SUBI_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_SUBI;
                 continue;
         }
         switch (i & INSTRUCTION_GROUP4_MASK) {
@@ -2337,8 +2340,45 @@ void AVRCPU::instruction_SUB() {
     datMem->write(sregAddr, &sreg);
 }
 
-void AVRCPU::instructionSUBI() {
+void AVRCPU::instruction_SUBI() {
+    /*************************SUBI***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction SUBI");
 
+    immediate = ((0x0F00 & instruction) >> 4) | (0x000F & instruction);
+    wbAddr = REG16_ADDR | ((0x00F0 & instruction) >> 4);
+
+    datMem->read(wbAddr, &regD);
+    datMem->read(sregAddr, &sreg);
+
+    result = regD - immediate;
+    sreg &= 0xC0;
+
+    immediate_and_result = immediate & result;
+    not_result = ~result;
+    not_regD = ~regD;
+
+    hc_flag = (not_regD & immediate) | immediate_and_result | (result & not_regD);
+
+    //Flag H
+    sreg |= (hc_flag << 2) & H_FLAG_MASK;
+
+    //Flag V
+    sreg |= (((regD & (~immediate) & not_result) | (not_regD & immediate_and_result)) >> 4) & V_FLAG_MASK;
+
+    //Flag N
+    sreg |= (result >> 5) & N_FLAG_MASK;
+
+    //Flag S
+    sreg |= (((sreg << 1) ^ sreg) << 1) & S_FLAG_MASK;
+
+    //Flag Z
+    sreg |= result?0x00:Z_FLAG_MASK;
+
+    //Flag C
+    sreg |= (hc_flag >> 7) & C_FLAG_MASK;
+
+    datMem->write(sregAddr, &sreg);
+    datMem->write(wbAddr, &result);
 }
 
 void AVRCPU::instructionSWAP() {

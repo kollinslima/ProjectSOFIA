@@ -231,7 +231,7 @@ private:
 
     void instruction_SUB();
 
-    void instructionSUBI();
+    void instruction_SUBI();
 
     void instructionSWAP();
 
