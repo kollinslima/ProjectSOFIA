@@ -198,7 +198,7 @@ private:
 
     void instruction_SBIC();
 
-    void instructionSBIS();
+    void instruction_SBIS();
 
     void instructionSBIW();
 
