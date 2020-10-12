@@ -23,7 +23,7 @@
 #define INSTRUCTION_GROUP2_MASK  0xFF00
 //ANDI/CBR
 //CPI
-//LDI, LDS (16-bit)
+//LDI/SER, LDS (16-bit)
 //ORI/SBR
 //RCALL, RJMP
 //SBCI
@@ -110,7 +110,7 @@
 #define LD_Z_POST_INCREMENT_OPCODE                                  0x9001
 #define LD_Z_PRE_DECREMENT_OPCODE                                   0x9002
 #define LDD_Z_OPCODE                                                0x8000
-#define LDI_OPCODE                                                  0xE000
+#define LDI_SER_OPCODE                                              0xE000
 #define LDS_OPCODE                                                  0x9000
 #define LDS_16_OPCODE                                               0xA000
 #define LPM_Z_UNCHANGED_DEST_R0_OPCODE                              0x95C8
@@ -280,8 +280,8 @@ void AVRCPU::setupInstructionDecoder() {
             case CPI_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_CPI;
                 continue;
-            case LDI_OPCODE:
-                instructionDecoder[i] = &AVRCPU::instruction_LDI;
+            case LDI_SER_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_LDI_SER;
                 continue;
             case LDS_16_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_LDS16;
@@ -1405,9 +1405,9 @@ void AVRCPU::instruction_LDD_Z() {
     datMem->write((0x01F0 & instruction)>>4, &result);
 }
 
-void AVRCPU::instruction_LDI() {
-    /*************************LDI***********************/
-    LOGD(SOFIA_AVRCPU_TAG, "Instruction LDI");
+void AVRCPU::instruction_LDI_SER() {
+    /*************************LDI/SER***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction LDI/SER");
 
     result = ((0x0F00 & instruction)>>4) | (0x000F & instruction);
     datMem->write(REG16_ADDR | ((0x00F0 & instruction) >> 4), &result);

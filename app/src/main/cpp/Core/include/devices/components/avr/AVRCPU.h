@@ -146,7 +146,7 @@ private:
     void instruction_LD_Z_PRE_DECREMENT();
     void instruction_LDD_Z();
 
-    void instruction_LDI();
+    void instruction_LDI_SER();
 
     void instruction_LDS();
     void instruction_LDS16();
