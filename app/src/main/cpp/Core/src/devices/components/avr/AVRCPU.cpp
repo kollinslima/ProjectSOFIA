@@ -19,6 +19,7 @@
 //ADIW
 //CBI
 //MOVW, MULS
+//SBI
 #define INSTRUCTION_GROUP2_MASK  0xFF00
 //ANDI/CBR
 //CPI
@@ -133,7 +134,7 @@
 #define ROR_OPCODE                                                  0x9407
 #define SBC_OPCODE                                                  0x0800
 #define SBCI_OPCODE                                                 0x4000
-#define INSTRUCTION_SBI_MASK  66
+#define SBI_OPCODE                                                  0x9A00
 #define INSTRUCTION_SBIC_MASK  67
 #define INSTRUCTION_SBIS_MASK  68
 #define INSTRUCTION_SBIW_MASK  69
@@ -256,6 +257,9 @@ void AVRCPU::setupInstructionDecoder() {
                 continue;
             case MULS_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_MULS;
+                continue;
+            case SBI_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_SBI;
                 continue;
         }
         switch (i & INSTRUCTION_GROUP3_MASK) {
@@ -1886,8 +1890,14 @@ void AVRCPU::instruction_SBCI() {
     datMem->write(sregAddr, &sreg);
 }
 
-void AVRCPU::instructionSBI() {
+void AVRCPU::instruction_SBI() {
+    /*************************SBI***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction SBI");
 
+    wbAddr = ((instruction&0x00F8)>>3) + IOREG_BASEADDR;
+    datMem->read(wbAddr, &result);
+    result |= (0x01 << (instruction&0x0007));
+    datMem->write(wbAddr, &result);
 }
 
 void AVRCPU::instructionSBIC() {
