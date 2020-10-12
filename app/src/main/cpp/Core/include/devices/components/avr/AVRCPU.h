@@ -229,7 +229,7 @@ private:
     void instruction_STS();
     void instruction_STS16();
 
-    void instructionSUB();
+    void instruction_SUB();
 
     void instructionSUBI();
 
