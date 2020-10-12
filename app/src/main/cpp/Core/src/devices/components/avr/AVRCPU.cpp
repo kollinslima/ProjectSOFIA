@@ -33,7 +33,7 @@
 //NEG
 //ROL
 #define INSTRUCTION_GROUP4_MASK  0xFE0F
-//BCLR/CLC/CLH/CLI/CLN/CLS/CLT/CLV/CLZ, BSET
+//BCLR/CLC/CLH/CLI/CLN/CLS/CLT/CLV/CLZ, BSET/SEC
 #define INSTRUCTION_GROUP5_MASK  0xFF8F
 //BLD/BST
 //SBRC/SBRS
@@ -70,7 +70,7 @@
 #define BRBC_BRCC_BRGE_BRHC_BRID_BRNE_BRPL_BRSH_BRTC_BRVC_OPCODE    0xF400
 #define BRBS_BRCS_BREQ_BRHS_BRIE_BRLO_BRLT_BRMI_BRTS_BRVS_OPCODE    0xF000
 #define BREAK_OPCODE                                                0x9698
-#define BSET_OPCODE                                                 0x9408
+#define BSET_SEC_OPCODE                                             0x9408
 #define BST_OPCODE                                                  0xFA00
 #define CALL_OPCODE                                                 0x940E
 #define CBI_OPCODE                                                  0x9800
@@ -316,8 +316,8 @@ void AVRCPU::setupInstructionDecoder() {
             case BCLR_CLC_CLH_CLI_CLN_CLS_CLT_CLV_CLZ_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_BCLR_CLC_CLH_CLI_CLN_CLS_CLT_CLV_CLZ;
                 continue;
-            case BSET_OPCODE:
-                instructionDecoder[i] = &AVRCPU::instruction_BSET;
+            case BSET_SEC_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_BSET_SEC;
                 continue;
         }
         switch (i & INSTRUCTION_GROUP6_MASK) {
@@ -744,7 +744,7 @@ void AVRCPU::instruction_BREAK() {
     LOGD(SOFIA_AVRCPU_TAG, "Instruction BREAK - NOT IMPLEMENTED");
 }
 
-void AVRCPU::instruction_BSET() {
+void AVRCPU::instruction_BSET_SEC() {
     /*************************BSET***********************/
     LOGD(SOFIA_AVRCPU_TAG, "Instruction BSET");
 
@@ -2046,7 +2046,7 @@ void AVRCPU::instruction_SBRS() {
     }
 }
 
-void AVRCPU::instructionSLEEP() {
+void AVRCPU::instruction_SLEEP() {
 
 }
 
