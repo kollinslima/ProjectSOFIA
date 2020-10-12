@@ -30,8 +30,14 @@
 #define INSTRUCTION_GROUP3_MASK  0xF000
 //ASR
 //COM
+//DEC
+//ELPM2/ELPM3
+//INC
+//LAC, LAS, LAT, LD(X), LD(Y), LD(Z), LDS, LPM
 //NEG
+//POP, PUSH
 //ROL
+//ST (X), STS
 #define INSTRUCTION_GROUP4_MASK  0xFE0F
 //BCLR/CLC/CLH/CLI/CLN/CLS/CLT/CLV/CLZ,
 //BSET/SEC/SEH/SEI/SEN/SES/SET/SEV/SEZ
@@ -43,22 +49,15 @@
 //JMP
 //LSR
 #define INSTRUCTION_GROUP7_MASK  0xFE0E
-//DEC
-//ELPM2/ELPM3
-//INC
-//LAC, LAS, LAT, LD(X), LD(Y), LD(Z), LDS, LPM
-//POP, PUSH
-//STS
-#define INSTRUCTION_GROUP8_MASK  0xFE0F
 //DES
-#define INSTRUCTION_GROUP9_MASK  0xFF0F
+#define INSTRUCTION_GROUP8_MASK  0xFF0F
 //FMUL, FMULS, FMULSU, MULSU
-#define INSTRUCTION_GROUP10_MASK  0xFF88
+#define INSTRUCTION_GROUP9_MASK  0xFF88
 //IN
 //OUT
-#define INSTRUCTION_GROUP11_MASK  0xF800
+#define INSTRUCTION_GROUP10_MASK  0xF800
 //LDD(Y), LDD(Z)
-#define INSTRUCTION_GROUP12_MASK  0xD208
+#define INSTRUCTION_GROUP11_MASK  0xD208
 
 #define ADC_ROL_OPCODE                                              0x1C00
 #define ADD_LSL_OPCODE                                              0x0C00
@@ -145,9 +144,9 @@
 #define SLEEP_OPCODE                                                0x9588
 #define SPM_Z_UNCHANGED_OPCODE                                      0x95E8
 #define SPM_Z_POST_INCREMENT_OPCODE                                 0x95F8
-#define INSTRUCTION_ST_X_POST_INCREMENT_MASK  74
-#define INSTRUCTION_ST_X_PRE_INCREMENT_MASK  75
-#define INSTRUCTION_ST_X_UNCHANGED_MASK  76
+#define ST_X_UNCHANGED_OPCODE                                       0x920C
+#define ST_X_POST_INCREMENT_OPCODE                                  0x920D
+#define ST_X_PRE_DECREMENT_OPCODE                                   0x920E
 #define INSTRUCTION_ST_Y_POST_INCREMENT_MASK  77
 #define INSTRUCTION_ST_Y_PRE_INCREMENT_MASK  78
 #define INSTRUCTION_ST_Y_UNCHANGED_MASK  79
@@ -307,47 +306,6 @@ void AVRCPU::setupInstructionDecoder() {
             case COM_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_COM;
                 continue;
-            case NEG_OPCODE:
-                instructionDecoder[i] = &AVRCPU::instruction_NEG;
-                continue;
-            case ROR_OPCODE:
-                instructionDecoder[i] = &AVRCPU::instruction_ROR;
-                continue;
-        }
-        switch (i & INSTRUCTION_GROUP5_MASK) {
-            case BCLR_CLC_CLH_CLI_CLN_CLS_CLT_CLV_CLZ_OPCODE:
-                instructionDecoder[i] = &AVRCPU::instruction_BCLR_CLC_CLH_CLI_CLN_CLS_CLT_CLV_CLZ;
-                continue;
-            case BSET_SEC_SEH_SEI_SEN_SES_SET_SEV_SEZ_OPCODE:
-                instructionDecoder[i] = &AVRCPU::instruction_BSET_SEC_SEH_SEI_SEN_SES_SET_SEV_SEZ;
-                continue;
-        }
-        switch (i & INSTRUCTION_GROUP6_MASK) {
-            case BLD_OPCODE:
-                instructionDecoder[i] = &AVRCPU::instruction_BLD;
-                continue;
-            case BST_OPCODE:
-                instructionDecoder[i] = &AVRCPU::instruction_BST;
-                continue;
-            case SBRC_OPCODE:
-                instructionDecoder[i] = &AVRCPU::instruction_SBRC;
-                continue;
-            case SBRS_OPCODE:
-                instructionDecoder[i] = &AVRCPU::instruction_SBRS;
-                continue;
-        }
-        switch (i & INSTRUCTION_GROUP7_MASK) {
-            case CALL_OPCODE:
-                instructionDecoder[i] = &AVRCPU::instruction_CALL;
-                continue;
-            case JMP_OPCODE:
-                instructionDecoder[i] = &AVRCPU::instruction_JMP;
-                continue;
-            case LSR_OPCODE:
-                instructionDecoder[i] = &AVRCPU::instruction_LSR;
-                continue;
-        }
-        switch (i & INSTRUCTION_GROUP8_MASK) {
             case DEC_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_DEC;
                 continue;
@@ -405,19 +363,67 @@ void AVRCPU::setupInstructionDecoder() {
             case LPM_Z_POST_INCREMENT_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_LPM_Z_POST_INCREMENT;
                 continue;
+            case NEG_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_NEG;
+                continue;
             case POP_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_POP;
                 continue;
             case PUSH_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_PUSH;
                 continue;
+            case ROR_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_ROR;
+                continue;
+            case ST_X_UNCHANGED_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_ST_X_UNCHANGED;
+                continue;
+            case ST_X_POST_INCREMENT_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_ST_X_POST_INCREMENT;
+                continue;
+            case ST_X_PRE_DECREMENT_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_ST_X_PRE_DECREMENT;
+                continue;
         }
-        switch (i & INSTRUCTION_GROUP9_MASK) {
+        switch (i & INSTRUCTION_GROUP5_MASK) {
+            case BCLR_CLC_CLH_CLI_CLN_CLS_CLT_CLV_CLZ_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_BCLR_CLC_CLH_CLI_CLN_CLS_CLT_CLV_CLZ;
+                continue;
+            case BSET_SEC_SEH_SEI_SEN_SES_SET_SEV_SEZ_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_BSET_SEC_SEH_SEI_SEN_SES_SET_SEV_SEZ;
+                continue;
+        }
+        switch (i & INSTRUCTION_GROUP6_MASK) {
+            case BLD_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_BLD;
+                continue;
+            case BST_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_BST;
+                continue;
+            case SBRC_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_SBRC;
+                continue;
+            case SBRS_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_SBRS;
+                continue;
+        }
+        switch (i & INSTRUCTION_GROUP7_MASK) {
+            case CALL_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_CALL;
+                continue;
+            case JMP_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_JMP;
+                continue;
+            case LSR_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_LSR;
+                continue;
+        }
+        switch (i & INSTRUCTION_GROUP8_MASK) {
             case DES_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_DES;
                 continue;
         }
-        switch (i & INSTRUCTION_GROUP10_MASK) {
+        switch (i & INSTRUCTION_GROUP9_MASK) {
             case FMUL_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_FMUL;
                 continue;
@@ -431,7 +437,7 @@ void AVRCPU::setupInstructionDecoder() {
                 instructionDecoder[i] = &AVRCPU::instruction_MULSU;
                 continue;
         }
-        switch (i & INSTRUCTION_GROUP11_MASK) {
+        switch (i & INSTRUCTION_GROUP10_MASK) {
             case IN_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_IN;
                 continue;
@@ -439,7 +445,7 @@ void AVRCPU::setupInstructionDecoder() {
                 instructionDecoder[i] = &AVRCPU::instruction_OUT;
                 continue;
         }
-        switch (i & INSTRUCTION_GROUP12_MASK) {
+        switch (i & INSTRUCTION_GROUP11_MASK) {
             case LDD_Y_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_LDD_Y;
                 continue;
@@ -2078,15 +2084,48 @@ void AVRCPU::instruction_SPM_POST_INCREMENT(){
 }
 
 void AVRCPU::instruction_ST_X_UNCHANGED() {
+    /*************************ST (X UNCHANGED)***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction ST (X UNCHANGED)");
 
+    //Read X Register
+    datMem->read(REG26_ADDR, &dataL);
+    datMem->read(REG27_ADDR, &dataH);
+    wbAddr = (dataH<<8) | dataL;
+
+    datMem->read((0x01F0 & instruction)>>4, &result);
+    datMem->write(wbAddr, &result);
 }
 
 void AVRCPU::instruction_ST_X_POST_INCREMENT() {
+    /*************************ST (X POST INCREMENT)***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction ST (X POST INCREMENT)");
 
+    //Read X Register
+    datMem->read(REG26_ADDR, &dataL);
+    datMem->read(REG27_ADDR, &dataH);
+    wbAddr = (dataH<<8) | dataL;
+
+    datMem->read((0x01F0 & instruction)>>4, &result);
+    datMem->write(wbAddr++, &result);
+    datMem->write(REG26_ADDR, &wbAddr);
+    wbAddr = wbAddr >> 8;
+    datMem->write(REG27_ADDR, &wbAddr);
 }
 
 void AVRCPU::instruction_ST_X_PRE_DECREMENT() {
+    /*************************ST (X PRE DECREMENT)***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction ST (X PRE DECREMENT)");
 
+    //Read X Register
+    datMem->read(REG26_ADDR, &dataL);
+    datMem->read(REG27_ADDR, &dataH);
+    wbAddr = (dataH<<8) | dataL;
+
+    datMem->read((0x01F0 & instruction)>>4, &result);
+    datMem->write(--wbAddr, &result);
+    datMem->write(REG26_ADDR, &wbAddr);
+    wbAddr = wbAddr >> 8;
+    datMem->write(REG27_ADDR, &wbAddr);
 }
 
 void AVRCPU::instructionST_Y_POST_INCREMENT() {
