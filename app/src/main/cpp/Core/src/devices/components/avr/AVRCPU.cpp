@@ -142,7 +142,7 @@
 #define SBIW_OPCODE                                                 0x9700
 #define SBRC_OPCODE                                                 0xFC00
 #define SBRS_OPCODE                                                 0xFE00
-#define INSTRUCTION_SLEEP_MASK  72
+#define SLEEP_OPCODE                                                0x9588
 #define INSTRUCTION_SPM_MASK  73
 #define INSTRUCTION_ST_X_POST_INCREMENT_MASK  74
 #define INSTRUCTION_ST_X_PRE_INCREMENT_MASK  75
@@ -484,6 +484,10 @@ void AVRCPU::setupInstructionDecoder() {
         }
         if (i == RETI_OPCODE) {
             instructionDecoder[i] = &AVRCPU::instruction_RETI;
+            continue;
+        }
+        if (i == SLEEP_OPCODE) {
+            instructionDecoder[i] = &AVRCPU::instruction_SLEEP;
             continue;
         }
         instructionDecoder[i] = &AVRCPU::unknownInstruction;
@@ -2048,7 +2052,8 @@ void AVRCPU::instruction_SBRS() {
 }
 
 void AVRCPU::instruction_SLEEP() {
-
+    /*************************SLEEP***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction SLEEP - NOT IMPLEMENTED");
 }
 
 void AVRCPU::instructionSPM() {
