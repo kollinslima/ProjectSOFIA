@@ -26,6 +26,9 @@ public:
     smemaddr16 getSPLAddres() override;
 
     smemaddr16 getSPHAddres() override;
+
+private:
+    void setupDataMemory();
 };
 
 
