@@ -37,7 +37,7 @@
 //NEG
 //POP, PUSH
 //ROL
-//ST(X), LD(Y) STS
+//ST(X), ST(Y), ST(Z), STS
 #define INSTRUCTION_GROUP4_MASK  0xFE0F
 //BCLR/CLC/CLH/CLI/CLN/CLS/CLT/CLV/CLZ,
 //BSET/SEC/SEH/SEI/SEN/SES/SET/SEV/SEZ
@@ -57,7 +57,7 @@
 //OUT
 #define INSTRUCTION_GROUP10_MASK  0xF800
 //LDD(Y), LDD(Z)
-//STD(Y)
+//STD(Y), STD(Z)
 #define INSTRUCTION_GROUP11_MASK  0xD208
 
 #define ADC_ROL_OPCODE                                              0x1C00
@@ -152,10 +152,10 @@
 #define ST_Y_POST_INCREMENT_OPCODE                                  0x9209
 #define ST_Y_PRE_DECREMENT_OPCODE                                   0x920A
 #define STD_Y_OPCODE                                                0x8208
-#define INSTRUCTION_ST_Z_POST_INCREMENT_MASK  80
-#define INSTRUCTION_ST_Z_PRE_INCREMENT_MASK  81
-#define INSTRUCTION_ST_Z_UNCHANGED_MASK  82
-#define INSTRUCTION_STD_Z_MASK  84
+#define ST_Z_UNCHANGED_OPCODE                                       0x8200
+#define ST_Z_POST_INCREMENT_OPCODE                                  0x9201
+#define ST_Z_PRE_DECREMENT_OPCODE                                   0x9202
+#define STD_Z_OPCODE                                                0x8200
 #define STS_OPCODE  0x9200
 #define INSTRUCTION_SUB_MASK  86
 #define INSTRUCTION_SUBI_MASK  87
@@ -394,6 +394,15 @@ void AVRCPU::setupInstructionDecoder() {
             case ST_Y_PRE_DECREMENT_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_ST_Y_PRE_DECREMENT;
                 continue;
+            case ST_Z_UNCHANGED_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_ST_Z_UNCHANGED;
+                continue;
+            case ST_Z_POST_INCREMENT_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_ST_Z_POST_INCREMENT;
+                continue;
+            case ST_Z_PRE_DECREMENT_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_ST_Z_PRE_DECREMENT;
+                continue;
         }
         switch (i & INSTRUCTION_GROUP5_MASK) {
             case BCLR_CLC_CLH_CLI_CLN_CLS_CLT_CLV_CLZ_OPCODE:
@@ -464,6 +473,9 @@ void AVRCPU::setupInstructionDecoder() {
                 continue;
             case STD_Y_OPCODE:
                 instructionDecoder[i] = &AVRCPU::instruction_STD_Y;
+                continue;
+            case STD_Z_OPCODE:
+                instructionDecoder[i] = &AVRCPU::instruction_STD_Z;
                 continue;
         }
         if (i == BREAK_OPCODE) {
@@ -2199,20 +2211,62 @@ void AVRCPU::instruction_STD_Y() {
     datMem->write(wbAddr, &result);
 }
 
-void AVRCPU::instructionST_Z_UNCHANGED() {
+void AVRCPU::instruction_ST_Z_UNCHANGED() {
+    /*************************ST (Z UNCHANGED)***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction ST (Z UNCHANGED)");
 
+    //Read Z Register
+    datMem->read(REG30_ADDR, &dataL);
+    datMem->read(REG31_ADDR, &dataH);
+    wbAddr = (dataH<<8) | dataL;
+
+    datMem->read((0x01F0 & instruction)>>4, &result);
+    datMem->write(wbAddr, &result);
 }
 
-void AVRCPU::instructionST_Z_POST_INCREMENT() {
+void AVRCPU::instruction_ST_Z_POST_INCREMENT() {
+    /*************************ST (Z POST INCREMENT)***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction ST (Z POST INCREMENT)");
 
+    //Read Z Register
+    datMem->read(REG30_ADDR, &dataL);
+    datMem->read(REG31_ADDR, &dataH);
+    wbAddr = (dataH<<8) | dataL;
+
+    datMem->read((0x01F0 & instruction)>>4, &result);
+    datMem->write(wbAddr++, &result);
+    datMem->write(REG30_ADDR, &wbAddr);
+    wbAddr = wbAddr >> 8;
+    datMem->write(REG31_ADDR, &wbAddr);
 }
 
-void AVRCPU::instructionST_Z_PRE_INCREMENT() {
+void AVRCPU::instruction_ST_Z_PRE_DECREMENT() {
+    /*************************ST (Z PRE DECREMENT)***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction ST (Z PRE DECREMENT)");
 
+    //Read Z Register
+    datMem->read(REG30_ADDR, &dataL);
+    datMem->read(REG31_ADDR, &dataH);
+    wbAddr = (dataH<<8) | dataL;
+
+    datMem->read((0x01F0 & instruction)>>4, &result);
+    datMem->write(--wbAddr, &result);
+    datMem->write(REG30_ADDR, &wbAddr);
+    wbAddr = wbAddr >> 8;
+    datMem->write(REG31_ADDR, &wbAddr);
 }
 
-void AVRCPU::instructionSTD_Z() {
+void AVRCPU::instruction_STD_Z() {
+    /*************************STD (Z)***********************/
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction STD (Z)");
 
+    //Read Z Register
+    datMem->read(REG30_ADDR, &dataL);
+    datMem->read(REG31_ADDR, &dataH);
+    wbAddr = ((dataH<<8) | dataL) + (((0x2000 & instruction)>>8) | ((0x0C00 & instruction)>>7)| (0x0007 & instruction));
+
+    datMem->read((0x01F0 & instruction)>>4, &result);
+    datMem->write(wbAddr, &result);
 }
 
 void AVRCPU::instructionSTS() {

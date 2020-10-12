@@ -221,13 +221,10 @@ private:
     void instruction_ST_Y_PRE_DECREMENT();
     void instruction_STD_Y();
 
-    void instructionST_Z_POST_INCREMENT();
-
-    void instructionST_Z_PRE_INCREMENT();
-
-    void instructionST_Z_UNCHANGED();
-
-    void instructionSTD_Z();
+    void instruction_ST_Z_UNCHANGED();
+    void instruction_ST_Z_POST_INCREMENT();
+    void instruction_ST_Z_PRE_DECREMENT();
+    void instruction_STD_Z();
 
     void instructionSTS();
 
