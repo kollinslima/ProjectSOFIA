@@ -9,9 +9,6 @@
 #define SOFIA_PROGRAM_MEMORY_ATMEGA328P_TAG "SOFIA PROGRAM MEMORY ATMEGA328P"
 
 #define MEMORY_SIZE 32768   //32kB
-#define PROGMEMEND  0x7FFF
-
-
 
 ProgramMemory_ATMega328P::ProgramMemory_ATMega328P() {
     size = MEMORY_SIZE;
@@ -29,18 +26,18 @@ bool ProgramMemory_ATMega328P::loadFile(int fd) {
 
 bool ProgramMemory_ATMega328P::loadInstruction(spc32 pc, void *data) {
     LOGD(SOFIA_PROGRAM_MEMORY_ATMEGA328P_TAG, "Loading instruction -> PC: %X", pc);
-    smemaddr16 instAddrBegin = SAFE_ADDR(pc, PROGMEMEND) << 1;  //PC points to the next instruction, and each instruction has 2 bytes
+    smemaddr16 instAddrBegin = SAFE_ADDR((pc<<1), MEMORY_SIZE);  //PC points to the next instruction, and each instruction has 2 bytes
     *(static_cast<sword16 *>(data)) = (buffer[instAddrBegin+1] << 8) | buffer[instAddrBegin];
     return true;
 }
 
 bool ProgramMemory_ATMega328P::write(smemaddr16 addr, void *data) {
-    buffer[SAFE_ADDR(addr, PROGMEMEND)] = *(static_cast<sbyte *>(data));
+    buffer[SAFE_ADDR(addr, MEMORY_SIZE)] = *(static_cast<sbyte *>(data));
     return true;
 }
 
 bool ProgramMemory_ATMega328P::read(smemaddr16 addr, void *data) {
-    *(static_cast<sbyte *>(data)) = buffer[SAFE_ADDR(addr, PROGMEMEND)];
+    *(static_cast<sbyte *>(data)) = buffer[SAFE_ADDR(addr, MEMORY_SIZE)];
     return true;
 }
 

@@ -242,12 +242,12 @@ void DataMemory_ATMega328P::setupDataMemory() {
 }
 
 bool DataMemory_ATMega328P::write(smemaddr16 addr, void *data) {
-    buffer[SAFE_ADDR(addr, RAMEND)] = *(static_cast<sbyte *>(data));
+    buffer[SAFE_ADDR(addr, MEMORY_SIZE)] = *(static_cast<sbyte *>(data));
     return true;
 }
 
 bool DataMemory_ATMega328P::read(smemaddr16 addr, void *data) {
-    *(static_cast<sbyte *>(data)) = buffer[SAFE_ADDR(addr, RAMEND)];
+    *(static_cast<sbyte *>(data)) = buffer[SAFE_ADDR(addr, MEMORY_SIZE)];
     return true;
 }
 
