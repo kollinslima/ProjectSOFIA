@@ -3,5 +3,10 @@
     <color name="colorPrimary">#17A1A5</color>
     <color name="colorPrimaryDark">#006468</color>
     <color name="colorAccent">#d35400</color>
-    <color name="lineSeparator">#000000</color>
+
+    <color name="v1_lineSeparator">#000000</color>
+
+    <color name="v1_digital_output_hi_z_led">#808080</color>
+    <color name="v1_digital_output_off_led">#17A1A5</color>
+    <color name="v1_digital_output_on_led">#FFCC00</color>
 </resources>

@@ -1,12 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
 <!--    <item-->
 <!--        android:id="@+id/action_reset"-->
 <!--        android:title="@string/reset"/>-->
 
     <item
-        android:id="@+id/action_import"
-        android:title="@string/actionn_import"/>
+        android:id="@+id/v1ActionAddIO"
+        android:title="@string/actionn_io_add"
+        android:icon="@drawable/v1_ic_baseline_add_io"
+        app:showAsAction="ifRoom"/>
+
+    <item
+        android:id="@+id/v1ActionImport"
+        android:title="@string/actionn_import"
+        app:showAsAction="never"/>
 
 </menu>

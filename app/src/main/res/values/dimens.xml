@@ -5,4 +5,7 @@
     <dimen name="ioLabelVerticalPadding">4dp</dimen>
     <dimen name="simulatedTimePadding">4dp</dimen>
     <dimen name="statusInfoPadding">4dp</dimen>
+    <dimen name="outputLayoutPadding">6dp</dimen>
+    <dimen name="outputLed">50dp</dimen>
+    <dimen name="outputLedPadding">10dp</dimen>
 </resources>

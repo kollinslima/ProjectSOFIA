@@ -7,7 +7,7 @@
     android:layout_height="match_parent"
     tools:context=".v1.MainActivitySofiaV1">
 
-    <Toolbar
+    <androidx.appcompat.widget.Toolbar
         android:id="@+id/v1MainToolBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -24,7 +24,7 @@
         android:background="@color/colorPrimaryDark"
         app:layout_constraintTop_toBottomOf="@id/v1MainToolBar">
 
-        <TextView
+        <androidx.appcompat.widget.AppCompatTextView
             android:id="@+id/v1SimulatedTime"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -35,7 +35,7 @@
             app:layout_constraintBottom_toBottomOf="@id/v1StatusBar"
             app:layout_constraintLeft_toLeftOf="@id/v1StatusBar"/>
 
-        <TextView
+        <androidx.appcompat.widget.AppCompatTextView
             android:id="@+id/v1StatusInfo"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -53,13 +53,13 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@id/v1StatusBar">
 
-        <TextView
+        <androidx.appcompat.widget.AppCompatTextView
             android:id="@+id/v1UsageInstructions"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:gravity="center"/>
 
-        <LinearLayout
+        <androidx.appcompat.widget.LinearLayoutCompat
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical">
@@ -70,11 +70,11 @@
                 android:layout_height="match_parent"
                 android:visibility="gone">
 
-<!--                <fragment-->
-<!--                    android:id="@+id/v1OutputFragment"-->
-<!--                    android:name="com.kollins.project.sofia.v1.io.output.OutputFragmentV1"-->
-<!--                    android:layout_width="match_parent"-->
-<!--                    android:layout_height="match_parent" />-->
+                <fragment
+                    android:id="@+id/v1OutputFragment"
+                    android:name="com.kollins.project.sofia.v1.io.output.OutputFragmentV1"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
 
                 <!--            <fragment-->
                 <!--                android:id="@+id/v1SerialMonitor"-->
@@ -92,7 +92,7 @@
             <!--                android:layout_width="match_parent"-->
             <!--                android:layout_height="match_parent" />-->
             <!--        </FrameLayout>-->
-        </LinearLayout>
+        </androidx.appcompat.widget.LinearLayoutCompat>
     </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

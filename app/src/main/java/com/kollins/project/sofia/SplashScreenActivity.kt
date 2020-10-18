@@ -22,9 +22,12 @@ class SplashScreenActivity : AppCompatActivity() {
 //        }
     }
 
-    override fun onResume() {
-        super.onResume()
-        startActivity(Intent(this, MainActivitySofiaV1::class.java))
+    override fun onStart() {
+        super.onStart()
+        val intent = Intent(this, MainActivitySofiaV1::class.java).apply {
+            putExtra(SofiaUiController.TARGET_DEVICE_EXTRA, Device.ARDUINO_UNO)
+        }
+        startActivity(intent)
         finish()
     }
 }

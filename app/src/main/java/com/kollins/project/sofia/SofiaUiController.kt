@@ -47,6 +47,7 @@ class SofiaUiController(mainUi: UiInterface) {
     external fun disposeCore()
 
     companion object {
+        const val TARGET_DEVICE_EXTRA: String = "TARGET_DEVICE"
         init {
             System.loadLibrary("sofiacore")
         }

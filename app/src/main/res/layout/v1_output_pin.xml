@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.LinearLayoutCompat
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="@dimen/outputLayoutPadding"
+    android:gravity="center"
+    android:descendantFocusability="blocksDescendants">
+
+    <androidx.appcompat.widget.AppCompatSpinner
+        android:id="@+id/v1PinSelectorOutput"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"/>
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:id="@+id/v1Meter"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:visibility="invisible"
+        android:orientation="vertical">
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/v1Frequency"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/black"
+            android:gravity="center"/>
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/v1DutyCycle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/black"
+            android:gravity="center"/>
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/v1LedState"
+        android:layout_width="@dimen/outputLed"
+        android:layout_height="@dimen/outputLed"
+        android:gravity="center"
+        android:background="@drawable/v1_digital_output_off_led"
+        android:padding="@dimen/outputLedPadding"/>
+
+</androidx.appcompat.widget.LinearLayoutCompat>

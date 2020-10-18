@@ -7,11 +7,10 @@ import android.content.pm.PackageManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
-import android.view.MenuItem
 import android.view.View
 import android.widget.TextView
 import android.widget.Toast
-import android.widget.Toolbar
+import androidx.appcompat.widget.Toolbar
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.kollins.project.sofia.Device
@@ -19,6 +18,7 @@ import com.kollins.project.sofia.R
 import com.kollins.project.sofia.RequestCodes
 import com.kollins.project.sofia.SofiaUiController
 import com.kollins.project.sofia.interfaces.ui.UiInterface
+import com.kollins.project.sofia.v1.io.output.OutputFragmentV1
 import kotlinx.android.synthetic.main.v1_main_activity.*
 
 private const val MAIN_V1_UI_TAG: String = "SOFIA UI MAIN V1"
@@ -26,17 +26,24 @@ private const val MAIN_V1_UI_TAG: String = "SOFIA UI MAIN V1"
 class MainActivitySofiaV1 : AppCompatActivity(), UiInterface {
 
     private var simulatedTime: Long = 0
+    private lateinit var targetDevice: Device
+
     private lateinit var suc: SofiaUiController
     private lateinit var simulatedTimeText: TextView
+    private lateinit var outputFragment: OutputFragmentV1
 
     //////////////////// ACTIVITY CALLBACKS ///////////////////////////
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.v1_main_activity)
 
+        targetDevice = intent.getSerializableExtra(SofiaUiController.TARGET_DEVICE_EXTRA) as Device
+
         simulatedTimeText = v1SimulatedTime
         v1MainToolBar.inflateMenu(R.menu.v1_main_layout)
         v1MainToolBar.setOnMenuItemClickListener(toolBarMenuItemClick)
+
+        outputFragment = OutputFragmentV1(targetDevice)
 
         suc = SofiaUiController(this)
     }
@@ -72,7 +79,11 @@ class MainActivitySofiaV1 : AppCompatActivity(), UiInterface {
     private val toolBarMenuItemClick: Toolbar.OnMenuItemClickListener =
         Toolbar.OnMenuItemClickListener { item ->
             when (item.itemId) {
-                R.id.action_import -> {
+                R.id.v1ActionAddIO -> {
+                    v1OutputContainer.visibility = View.VISIBLE
+                    outputFragment.addOutput()
+                }
+                R.id.v1ActionImport -> {
                     when (PackageManager.PERMISSION_GRANTED) {
                         ContextCompat.checkSelfPermission(
                             this,
