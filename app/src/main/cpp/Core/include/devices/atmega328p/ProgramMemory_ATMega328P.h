@@ -16,7 +16,7 @@ class ProgramMemory_ATMega328P : public GenericProgramMemory {
         ProgramMemory_ATMega328P();
         ~ProgramMemory_ATMega328P();
 
-        bool loadFile(int fd);
+        int loadFile(int fd);
 
         bool write(smemaddr16 addr, void *data) override;
         bool read(smemaddr16 addr, void *data) override;

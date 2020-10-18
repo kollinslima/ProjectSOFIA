@@ -68,6 +68,26 @@ void notifyTimeUpdate(JNIEnv *env, const char *msg) {
     env->CallVoidMethod(mainCtx.activityObj, id);
 }
 
+void notifyLoadSuccessful(JNIEnv *env, const char *msg) {
+    jmethodID id  = env->GetMethodID(mainCtx.activityClz, "loadCoreSuccess", "()V");
+    env->CallVoidMethod(mainCtx.activityObj, id);
+}
+
+void notifyChecksumError(JNIEnv *env, const char *msg) {
+    jmethodID id  = env->GetMethodID(mainCtx.activityClz, "loadCoreChecksumError", "()V");
+    env->CallVoidMethod(mainCtx.activityObj, id);
+}
+
+void notifyFileOpenFail(JNIEnv *env, const char *msg) {
+    jmethodID id  = env->GetMethodID(mainCtx.activityClz, "loadCoreFileOpenFail", "()V");
+    env->CallVoidMethod(mainCtx.activityObj, id);
+}
+
+void notifyInvalidFile(JNIEnv *env, const char *msg) {
+    jmethodID id  = env->GetMethodID(mainCtx.activityClz, "loadCoreInvalidFile", "()V");
+    env->CallVoidMethod(mainCtx.activityObj, id);
+}
+
 ////////////////////// UI -> NDK Interface//////////////////////////////////////////
 extern "C" JNIEXPORT jint JNICALL
 JNI_OnLoad(JavaVM *vm, void *reserved) {
@@ -86,26 +106,12 @@ JNI_OnLoad(JavaVM *vm, void *reserved) {
     mainCtx.activityObj = nullptr;
 
     mainCtx.listeners[TIME_UPDATE_LISTENER] = notifyTimeUpdate;
+    mainCtx.listeners[LOAD_SUCCESS_LISTENER] = notifyLoadSuccessful;
+    mainCtx.listeners[CHECKSUM_ERROR_LISTENER] = notifyChecksumError;
+    mainCtx.listeners[FILE_OPEN_FAIL_LISTENER] = notifyFileOpenFail;
+    mainCtx.listeners[INVALID_FILE_LISTENER] = notifyInvalidFile;
 
     return JNI_VERSION_1_6;
-}
-
-extern "C" JNIEXPORT void JNICALL
-Java_com_kollins_project_sofia_MainActivity_startCore(
-        JNIEnv* env,
-        jobject instance) {
-
-    LOGI(MAIN_CORE_TAG, "Starting SOFIA Core");
-
-    if (!mainCtx.activityObj) {
-        jclass clz = env->GetObjectClass(instance);
-        mainCtx.activityClz = reinterpret_cast<jclass>(env->NewGlobalRef(clz));
-        mainCtx.activityObj = env->NewGlobalRef(instance);
-    }
-
-    if (mainCtx.scc) {
-        mainCtx.scc->start(mainCtx.vm, mainCtx.env);
-    }
 }
 
 extern "C" JNIEXPORT void JNICALL
@@ -114,6 +120,30 @@ Java_com_kollins_project_sofia_MainActivity_stopCore(
         jobject instance) {
 
     LOGI(MAIN_CORE_TAG, "Stopping SOFIA Core");
+
+    if (mainCtx.scc) {
+        mainCtx.scc->stop();
+    }
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_kollins_project_sofia_SofiaUiController_startCore(
+        JNIEnv* env,
+        jobject instance) {
+
+    LOGI(MAIN_CORE_TAG, "Starting SOFIA Core");
+
+    if (mainCtx.scc) {
+        mainCtx.scc->start();
+    }
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_kollins_project_sofia_MainActivity_disposeCore(
+        JNIEnv* env,
+        jobject instance) {
+
+    LOGI(MAIN_CORE_TAG, "Disposing SOFIA Core");
 
     if (mainCtx.scc) {
         mainCtx.scc->stop();
@@ -130,12 +160,20 @@ Java_com_kollins_project_sofia_MainActivity_stopCore(
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_kollins_project_sofia_MainActivity_loadCore(JNIEnv *env, jobject instance,
-                                                     jobject device, jint fd) {
+Java_com_kollins_project_sofia_SofiaUiController_loadCore(JNIEnv *env, jobject instance,
+                                                             jobject device, jint fd) {
 
-    Java_com_kollins_project_sofia_MainActivity_stopCore(env, instance);
+    LOGI(MAIN_CORE_TAG, "Loading SOFIA Core");
+
+    Java_com_kollins_project_sofia_MainActivity_disposeCore(env, instance);
+
+    if (!mainCtx.activityObj) {
+        jclass clz = env->GetObjectClass(instance);
+        mainCtx.activityClz = reinterpret_cast<jclass>(env->NewGlobalRef(clz));
+        mainCtx.activityObj = env->NewGlobalRef(instance);
+    }
 
     Device nativeDevice = enumMap(env, device);
-    mainCtx.scc = new SofiaCoreController(nativeDevice, reinterpret_cast<int>(fd));
-    mainCtx.scc->setListeners(mainCtx.listeners);
+    mainCtx.scc = new SofiaCoreController(mainCtx.listeners, mainCtx.vm, mainCtx.env);
+    mainCtx.scc->load(nativeDevice, reinterpret_cast<int>(fd));
 }

@@ -1,3 +1,13 @@
 <resources>
     <string name="app_name">SOFIA</string>
+
+    <string name="splash_screen_introduction">An App by: </string>
+    <string name="about_screen_introduction">Developed by: </string>
+    <string name="developer">Kollins Gabriel Lima</string>
+    <string name="outputFragmentLabel">Output</string>
+    <string name="action_reset">Reset</string>
+    <string name="actionn_import">Import</string>
+    <string name="import_fail_open_fail">Fail to import file - cannot open file</string>
+    <string name="import_fail_invalid_file">Fail to import file - invalid file</string>
+    <string name="import_fail_checksum_error">Fail to import file - checksum error</string>
 </resources>

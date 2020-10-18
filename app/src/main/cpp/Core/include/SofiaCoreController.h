@@ -17,23 +17,24 @@ class GenericDevice;
 
 class SofiaCoreController {
     public:
-        SofiaCoreController(Device device, int filePath);
+        SofiaCoreController(Listener **listeners, JavaVM *vm, JNIEnv *env);
         ~SofiaCoreController();
 
-        void setListeners(Listener **listeners);
+//        void setListeners(Listener **listeners);
 
-        void start(JavaVM *vm, JNIEnv *env);
+        void load(Device device, int fileDescriptor);
+        void start();
         void stop();
 
-        bool isDeviceRunning();
+//        bool isDeviceRunning();
 
         void addNotification(int notificationID, const string& message = "");
 
     private:
 
         GenericDevice *device;
-        bool isRunning;
 
+        bool stopDispatcher;
         Listener **listeners;
 
         thread dispatcherThread;

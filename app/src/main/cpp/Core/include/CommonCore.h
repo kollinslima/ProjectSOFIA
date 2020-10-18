@@ -17,6 +17,10 @@ typedef __uint16_t sword16;
 
 #define MAX_LISTENERS 1
 #define TIME_UPDATE_LISTENER 0
+#define LOAD_SUCCESS_LISTENER  1
+#define CHECKSUM_ERROR_LISTENER  2
+#define FILE_OPEN_FAIL_LISTENER  3
+#define INVALID_FILE_LISTENER  4
 
 #ifdef NDEBUG
 #define LOGD(TAG, ...)

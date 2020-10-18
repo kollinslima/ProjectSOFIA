@@ -17,12 +17,11 @@
 
 #define SOFIA_INTEL_PARSER_TAG "SOFIA INTEL PARSER"
 
-bool IntelParser::parse(int fd, GenericProgramMemory *progMem) {
+int IntelParser::parse(int fd, GenericProgramMemory *progMem) {
     FILE *fp = fdopen(fd, "r");
     if (fp) {
         LOGD(SOFIA_INTEL_PARSER_TAG, "Hex file opened");
         char line[MAX_READ_BUFFER];
-        bool parseFail = false;
 
         bool extendedSegmentAddress = false;
         bool extendedLinearAddress = false;
@@ -36,14 +35,12 @@ bool IntelParser::parse(int fd, GenericProgramMemory *progMem) {
             int bytesLen = Functions::hexStrToByte(cleanLine, bytes);
             if (bytesLen < 0) {
                 LOGE(SOFIA_INTEL_PARSER_TAG, "Error reading file");
-                parseFail = true;
-                break;
+                return INTEL_INVALID_FILE;
             }
 
             if (!checksum(bytes, bytesLen)){
                 LOGE(SOFIA_INTEL_PARSER_TAG, "Checksum error");
-                parseFail = true;
-                break;
+                return INTEL_CHECKSUM_ERROR;
             }
 
             switch (bytes[INTEL_RECORD_TYPE]) {
@@ -93,13 +90,13 @@ bool IntelParser::parse(int fd, GenericProgramMemory *progMem) {
                 }
                 default:
                     LOGE(SOFIA_INTEL_PARSER_TAG, "Record type unknown");
-                    break;
+                    return INTEL_INVALID_FILE;
             }
         }
         fclose(fp);
-        return !parseFail;
+        return INTEL_PARSE_SUCCESS;
     }
-    return false;
+    return INTEL_FILE_OPEN_FAILED;
 }
 
 bool IntelParser::checksum(sbyte *bytes, int bytesLen) {

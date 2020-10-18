@@ -9,32 +9,48 @@
 
 #define SOFIA_CORE_TAG "SOFIA CORE CONTROLLER"
 
-SofiaCoreController::SofiaCoreController(Device device, int fd) {
-    listeners = nullptr;
-    isRunning = false;
+SofiaCoreController::SofiaCoreController(Listener **listeners, JavaVM *vm, JNIEnv *env) {
+    this->listeners = listeners;
+    device = nullptr;
     notificationList.clear();
 
-    this->device = DeviceFactory::createDevice(device, this);
-    this->device->loadFile(fd);
+    stopDispatcher = false;
+    dispatcherThread = thread(&SofiaCoreController::dispatcher, this, vm, env);
+//    this->device->load(fileDescriptor);
 }
 SofiaCoreController::~SofiaCoreController() {
-    stop();
-    delete device;
-}
-
-void SofiaCoreController::setListeners(Listener **listeners) {
-    this->listeners = listeners;
-}
-
-void SofiaCoreController::start(JavaVM *vm, JNIEnv *env) {
-    isRunning = true;
-    dispatcherThread = thread(&SofiaCoreController::dispatcher, this, vm, env);
-    device->run();
-}
-void SofiaCoreController::stop() {
-    isRunning = false;
+    stopDispatcher = true;
+    if (device) {
+        device->stop();
+        delete device;
+        device = nullptr;
+    }
     dispatcherThread.join();
     notificationList.clear();
+}
+
+//void SofiaCoreController::setListeners(Listener **listeners) {
+//    this->listeners = listeners;
+//}
+
+void SofiaCoreController::load(Device device, int fileDescriptor) {
+    if (this->device) {
+        delete this->device;
+        this->device = nullptr;
+    }
+    this->device = DeviceFactory::createDevice(device, this);
+    this->device->load(fileDescriptor);
+}
+
+void SofiaCoreController::start() {
+    if (device) {
+        device->start();
+    }
+}
+void SofiaCoreController::stop() {
+    if (device) {
+        device->stop();
+    }
 }
 
 void SofiaCoreController::addNotification(int notificationID, const string& message) {
@@ -50,9 +66,9 @@ void SofiaCoreController::dispatcher(JavaVM *vm, JNIEnv *env) {
     while (true) {
         unique_lock<mutex> notificationGuard(notificationMutex);
         notificationCv.wait(notificationGuard,
-                                  [this] { return !(notificationList.empty() && isRunning); });
+                                  [this] { return !(notificationList.empty() && !stopDispatcher); });
 
-        if (!isRunning) break;
+        if (stopDispatcher) break;
 
         notification = notificationList.front();
         notificationList.pop_front();
@@ -63,7 +79,7 @@ void SofiaCoreController::dispatcher(JavaVM *vm, JNIEnv *env) {
     vm->DetachCurrentThread();
 }
 
-bool SofiaCoreController::isDeviceRunning() {
-    return isRunning;
-}
+//bool SofiaCoreController::isDeviceRunning() {
+//    return isRunning;
+//}
 

@@ -26,13 +26,14 @@ public:
 
     ~ATMega328P();
 
-    bool loadFile(int fd) override;
-
-    void run() override;
+    void load(int fd) override;
+    void start() override;
+    void stop() override;
 
 private:
     SofiaCoreController *scc;
 
+    bool isRunning;
     unsigned int clockFreq;
 
     ProgramMemory_ATMega328P programMemory;

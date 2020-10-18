@@ -1,0 +1,55 @@
+package com.kollins.project.sofia
+
+import android.util.Log
+import com.kollins.project.sofia.interfaces.ui.UiInterface
+
+enum class RequestCodes {
+    READ_EXTERNAL_REQUEST_CODE,
+    IMPORT_FILE_REQUEST_CODE
+}
+
+enum class Device {
+    ARDUINO_UNO
+}
+
+private const val SOFIA_UI_CONTROLLER_TAG: String = "SOFIA UI CONTROLLER"
+
+class SofiaUiController(mainUi: UiInterface) {
+
+    private var ui = mainUi
+
+    //////////////////// LISTENERS ///////////////////////////
+    fun timeUpdate() {
+        ui.timeUpdate()
+    }
+
+    fun loadCoreSuccess() {
+        Log.d(SOFIA_UI_CONTROLLER_TAG, "File load successful !")
+        startCore()
+    }
+
+    fun loadCoreChecksumError() {
+        ui.loadCoreChecksumError()
+    }
+
+    fun loadCoreFileOpenFail() {
+        ui.loadCoreFileOpenFail()
+    }
+
+    fun loadCoreInvalidFile() {
+        ui.loadCoreInvalidFile()
+    }
+
+    //////////////////// NATIVE FUNCTIONS ///////////////////////////
+    external fun startCore()
+    external fun stopCore()
+    external fun loadCore(s: Device, fd: Int)
+    external fun disposeCore()
+
+    companion object {
+        init {
+            System.loadLibrary("sofiacore")
+        }
+    }
+
+}

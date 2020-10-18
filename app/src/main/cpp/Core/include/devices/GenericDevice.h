@@ -17,8 +17,9 @@ class GenericDevice {
     public:
         virtual ~GenericDevice() {};
 
-        virtual bool loadFile(int fd)=0;
-        virtual void run()=0;
+        virtual void load(int fd)=0;
+        virtual void start()=0;
+        virtual void stop()=0;
 };
 
 

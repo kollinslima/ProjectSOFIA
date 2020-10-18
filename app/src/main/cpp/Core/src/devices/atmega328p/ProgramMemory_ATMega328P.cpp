@@ -19,7 +19,7 @@ ProgramMemory_ATMega328P::~ProgramMemory_ATMega328P() {
     delete [] buffer;
 };
 
-bool ProgramMemory_ATMega328P::loadFile(int fd) {
+int ProgramMemory_ATMega328P::loadFile(int fd) {
     LOGI(SOFIA_PROGRAM_MEMORY_ATMEGA328P_TAG, "Loading program memory...");
     return IntelParser::parse(fd, this);
 }
