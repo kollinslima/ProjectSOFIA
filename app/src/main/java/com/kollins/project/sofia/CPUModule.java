@@ -1424,8 +1424,8 @@ public class CPUModule implements CPUInstructions {
                 }
                 clockCycleDone = false;
 
-                regD = dataMemory.readByte((0x01F0 & instruction) >> 4);
-                regR = dataMemory.readByte(((0x0200 & instruction) >> 5) | (0x000F & instruction));
+                regD = dataMemory.readByte(0x10 + ((0x00F0 & instruction) >> 4));
+                regR = dataMemory.readByte(0x10 + ((0x000F & instruction)));
 
                 outData = (regD * regR);
 
@@ -1451,8 +1451,8 @@ public class CPUModule implements CPUInstructions {
                 }
                 clockCycleDone = false;
 
-                regD = dataMemory.readByte((0x01F0 & instruction) >> 4);
-                regR = dataMemory.readByte(((0x0200 & instruction) >> 5) | (0x000F & instruction));
+                regD = dataMemory.readByte(0x10 + ((0x0070 & instruction) >> 4));
+                regR = dataMemory.readByte(0x10 + ((0x0007 & instruction)));
 
                 outData = (regD * (0x00FF & regR));
 
