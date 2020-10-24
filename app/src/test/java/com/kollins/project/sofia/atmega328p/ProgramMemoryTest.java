@@ -127,15 +127,15 @@ public class ProgramMemoryTest {
         assertEquals(6, pcPointerTest);
     }
 
-    @Test(expected = NullPointerException.class)
-    public void loadInstruction_Last_Error() {
-        flashMemoryTest[ProgramMemory_ATmega328P.FLASH_SIZE - 2] = (byte) 0xAB;
-        flashMemoryTest[ProgramMemory_ATmega328P.FLASH_SIZE - 1] = (byte) 0xCD;
-
-        Whitebox.setInternalState(programMemory,"pcPointer", (char) (ProgramMemory_ATmega328P.FLASH_SIZE/2));
-
-        programMemory.loadInstruction();
-    }
+//    @Test(expected = NullPointerException.class)
+//    public void loadInstruction_Last_Error() {
+//        flashMemoryTest[ProgramMemory_ATmega328P.FLASH_SIZE - 2] = (byte) 0xAB;
+//        flashMemoryTest[ProgramMemory_ATmega328P.FLASH_SIZE - 1] = (byte) 0xCD;
+//
+//        Whitebox.setInternalState(programMemory,"pcPointer", (char) (ProgramMemory_ATmega328P.FLASH_SIZE/2));
+//
+//        programMemory.loadInstruction();
+//    }
 
     @Test
     public void setPC_to_0x50() {
