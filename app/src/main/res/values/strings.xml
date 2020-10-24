@@ -129,5 +129,6 @@
     <string name="filemanager_not_found">Please install a File Manager.</string>
     <string name="not_hex_error">Error: Not a .hex file</string>
     <string name="change_file_location_error">Error: Try moving your file somewhere else in the INTERNAL memory of your device</string>
+    <string name="fail_to_start_simulation">ERROR: Fail to start simulation</string>
 
 </resources>

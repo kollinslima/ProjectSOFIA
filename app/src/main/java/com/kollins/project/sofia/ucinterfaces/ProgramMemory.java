@@ -17,16 +17,19 @@
 
 package com.kollins.project.sofia.ucinterfaces;
 
+import android.content.ContentResolver;
+import android.net.Uri;
+
 /**
  * Created by kollins on 3/8/18.
  */
 
 public interface ProgramMemory {
     int getMemorySize();
-    boolean loadProgramMemory(String hexFileLocation);
+    boolean loadProgramMemory(Uri hexFileLocation, ContentResolver contentResolver);
     int loadInstruction();
 
-    void stopCodeObserver();
+    void stopCodeObserver(ContentResolver contentResolver);
 
     int getPC();
     void setPC(int pc);

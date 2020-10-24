@@ -17,13 +17,18 @@
 
 package com.kollins.project.sofia.atmega328p;
 
+import android.content.ContentResolver;
+import android.database.ContentObserver;
+import android.net.Uri;
 import android.os.Environment;
 import android.os.FileObserver;
 import android.os.Handler;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 
+import com.kollins.project.sofia.R;
 import com.kollins.project.sofia.UCModule;
 import com.kollins.project.sofia.ucinterfaces.ProgramMemory;
 
@@ -32,7 +37,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Objects;
 
 /**
  * Created by kollins on 3/8/18.
@@ -51,7 +58,7 @@ public class ProgramMemory_ATmega328P implements ProgramMemory {
     private final int INTEL_REORD_TYPE = 3;
     private final int INTEL_DATA = 4;
 
-    private FileObserver codeObserver;
+    private CodeObserver codeObserver;
     private Handler ucHandler;
 
     public ProgramMemory_ATmega328P(Handler ucHandler) {
@@ -59,6 +66,7 @@ public class ProgramMemory_ATmega328P implements ProgramMemory {
         flashMemory = new byte[FLASH_SIZE];
 
         pcPointer = 0;
+        codeObserver = new CodeObserver(this.ucHandler);
     }
 
     //Thanks Dave L.
@@ -79,80 +87,52 @@ public class ProgramMemory_ATmega328P implements ProgramMemory {
         return FLASH_SIZE;
     }
 
-    public boolean loadProgramMemory(String hexFileLocation) {
+    //    public boolean loadProgramMemory(String hexFileLocation) {
+    public boolean loadProgramMemory(Uri hexFileLocation, ContentResolver contentResolver) {
 
-//        Log.d("HEX", "Loading from " + hexFileLocation);
+        Log.d("HEX", "Loading from " + hexFileLocation.toString());
         String state = Environment.getExternalStorageState();
+        boolean ret = false;
 
         //All set to read and write data in SDCard
         if (Environment.MEDIA_MOUNTED.equals(state) || Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)) {
-
-
-            File fileDir = null;
-            if (hexFileLocation.equals(UCModule.DEFAULT_HEX_LOCATION)) {
-                fileDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
-            } else {
-                fileDir = Environment.getExternalStorageDirectory();
-            }
-
-            if (fileDir.exists()) {
-                File hexFile = new File(fileDir, hexFileLocation);
-                if (!hexFile.exists()) {
-
-                    //If file was not found, wait 1s and try again
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-
-                    hexFile = new File(fileDir, hexFileLocation);
-                    if (!hexFile.exists()) {
-                        //Not found again? Sorry, I give up...
-                        Log.e(UCModule.MY_LOG_TAG, "ERROR: File not found\n" + hexFileLocation);
-                        return false;
-                    }
-
+            try {
+                InputStream inputStream = contentResolver.openInputStream(hexFileLocation);
+                BufferedReader reader = new BufferedReader(new InputStreamReader(Objects.requireNonNull(inputStream)));
+                ret = loadHexFile(reader);
+                if (ret) {
+                    startCodeObserver(hexFileLocation, contentResolver);
                 }
-//                Log.d("HEX", "Hex loaded");
-
-                startCodeObserver(hexFile);
-
-                try {
-                    FileInputStream fis = new FileInputStream(hexFile);
-                    loadHexFile(fis);
-                } catch (FileNotFoundException e) {
-                    Log.e(UCModule.MY_LOG_TAG, "ERROR: Load .hex file", e);
-                    return false;
-                }
-            } else {
-                Log.e(UCModule.MY_LOG_TAG, "ERROR: Can't open hex directory");
-                return false;
+                reader.close();
+            } catch (IOException e) {
+                Log.e(UCModule.MY_LOG_TAG, "ERROR: Load file error");
+                e.printStackTrace();
             }
-
         } else {
             Log.e(UCModule.MY_LOG_TAG, "ERROR: Can't read SD card");
-            return false;
         }
-
-        return true;
+        return ret;
     }
 
-    private void startCodeObserver(File hexFile) {
-        //Watch for changes in hexFile
-        codeObserver = new FileObserver(hexFile.getPath().toString()) {
-            @Override
-            public void onEvent(int event, @Nullable String path) {
-                Log.i(UCModule.MY_LOG_TAG, "File event: " + event);
+    //    private void startCodeObserver(File hexFile) {
+    private void startCodeObserver(Uri hexFile, ContentResolver contentResolver) {
+        //This is the new way to do this, but it's not working yet...
+//        contentResolver.registerContentObserver(hexFile, false, codeObserver);
 
-                if (event == FileObserver.CLOSE_WRITE
-                        || event == FileObserver.DELETE_SELF) {
-                    //Send Broadcast
-                    ucHandler.sendEmptyMessage(UCModule.RESET_ACTION);
-                }
-            }
-        };
-        codeObserver.startWatching();
+        //Watch for changes in hexFile
+//        FileObserver codeObserver = new FileObserver(hexFile.getPath().toString()) {
+//            @Override
+//            public void onEvent(int event, @Nullable String path) {
+//                Log.i(UCModule.MY_LOG_TAG, "File event: " + event);
+//
+//                if (event == FileObserver.CLOSE_WRITE
+//                        || event == FileObserver.DELETE_SELF) {
+//                    //Send Broadcast
+//                    ucHandler.sendEmptyMessage(UCModule.RESET_ACTION);
+//                }
+//            }
+//        };
+//        codeObserver.startWatching();
     }
 
     @Override
@@ -211,9 +191,8 @@ public class ProgramMemory_ATmega328P implements ProgramMemory {
         return flashMemory[address];
     }
 
-    private void loadHexFile(FileInputStream fis) {
+    private boolean loadHexFile(BufferedReader reader) {
 
-        BufferedReader reader = new BufferedReader(new InputStreamReader(fis));
         String line;
 
         byte[] readBytes;
@@ -233,7 +212,10 @@ public class ProgramMemory_ATmega328P implements ProgramMemory {
 
                 readBytes = hexStringToByteArray(line);
 
-                //Checksum()
+                if(!checksum(readBytes)){
+                    Log.d(UCModule.MY_LOG_TAG, "Checksum error !!!");
+                    return false;
+                }
 
                 dataSize = readBytes[INTEL_DATA_SIZE];
                 Log.d(UCModule.MY_LOG_TAG, "Data size: " + dataSize);
@@ -292,20 +274,45 @@ public class ProgramMemory_ATmega328P implements ProgramMemory {
                     default:
                         Log.e(UCModule.MY_LOG_TAG, "Record Type unknown: " +
                                 String.format("0x%02X", readBytes[INTEL_REORD_TYPE]));
+                        return false;
                 }
 
             }
-
-            reader.close();
-            fis.close();
         } catch (IOException e) {
             Log.e(UCModule.MY_LOG_TAG, "ERROR: Load .hex file", e);
+            return false;
         } catch (ArrayIndexOutOfBoundsException e) {
             Log.e(UCModule.MY_LOG_TAG, "ERROR: .hex file bigger than 32kB", e);
+            return false;
         }
+
+        return true;
     }
 
-    public void stopCodeObserver() {
-        codeObserver.stopWatching();
+    public boolean checksum(byte[] readBytes) {
+        long sum = 0;
+        for (int i = 0; i < readBytes.length-1; ++i) { //Don't sum the checksum byte
+            sum += readBytes[i]&0xFF;
+        }
+        return (readBytes[readBytes.length-1]&0xFF) == (((~sum)+1)&0xFF);
+    }
+
+    public void stopCodeObserver(ContentResolver contentResolver) {
+//        codeObserver.stopWatching();
+//        contentResolver.unregisterContentObserver(codeObserver);
+    }
+
+    private class CodeObserver extends ContentObserver {
+        public CodeObserver(Handler handler) {
+            super(handler);
+        }
+
+        @Override
+        public void onChange(boolean selfChange) {
+            super.onChange(selfChange);
+
+            Log.d(UCModule.MY_LOG_TAG, "CodeObserver: File Changed - reseting simulator");
+            ucHandler.sendEmptyMessage(UCModule.RESET_ACTION);
+        }
     }
 }

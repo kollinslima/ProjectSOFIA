@@ -22,7 +22,9 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
@@ -50,6 +52,7 @@ import com.kollins.project.sofia.ucinterfaces.Timer1Module;
 import com.kollins.project.sofia.ucinterfaces.Timer2Module;
 import com.kollins.project.sofia.ucinterfaces.USARTModule;
 
+import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 
@@ -69,8 +72,8 @@ public class UCModule extends AppCompatActivity {
     public static String PACKAGE_NAME;
 
     //Default location
-    public static final String DEFAULT_HEX_LOCATION = "SOFIA/code.hex";
-    private String hexFileLocation = DEFAULT_HEX_LOCATION;
+//    public static final String DEFAULT_HEX_LOCATION = Environment.getExternalStorageDirectory().getPath();
+    private Uri hexFileLocation = Uri.EMPTY;
 
     //Default device
     public static String device;
@@ -126,8 +129,8 @@ public class UCModule extends AppCompatActivity {
                 Manifest.permission.READ_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED) {
 
-                ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 0);
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 0);
         }
 
         context = getApplicationContext();
@@ -204,7 +207,7 @@ public class UCModule extends AppCompatActivity {
 
             Log.d(MY_LOG_TAG, "Flash size: " + programMemory.getMemorySize());
 
-            if (programMemory.loadProgramMemory(hexFileLocation)) {
+            if (programMemory.loadProgramMemory(hexFileLocation, getContentResolver())) {
                 //hexFile read Successfully
 
                 programMemory.setPC(0);
@@ -269,6 +272,7 @@ public class UCModule extends AppCompatActivity {
             setUpSuccessful = false;
             ucView.setStatus(UCModule_View.LED_STATUS.HEX_FILE_ERROR);
             Log.e(MY_LOG_TAG, "Error Set-up", e);
+            Toast.makeText(this, getString(R.string.fail_to_start_simulation), Toast.LENGTH_LONG).show();
         }
 
     }
@@ -415,7 +419,7 @@ public class UCModule extends AppCompatActivity {
 
         try {
             threadScheduler.join(1000);
-        } catch (InterruptedException|NullPointerException e) {
+        } catch (InterruptedException | NullPointerException e) {
             Log.e("ERROR", "ERROR: stopSystem -> join", e);
         }
 
@@ -424,7 +428,7 @@ public class UCModule extends AppCompatActivity {
         }
 
         if (setUpSuccessful) {
-            programMemory.stopCodeObserver();
+            programMemory.stopCodeObserver(getContentResolver());
         }
     }
 
@@ -435,18 +439,20 @@ public class UCModule extends AppCompatActivity {
         stopSystem();
     }
 
-    public void changeFileLocation(String newHexFileLocation) {
+    //    public void changeFileLocation(String newHexFileLocation) {
+    public void changeFileLocation(Uri newHexFileLocation) {
         if (newHexFileLocation == null) {
             Toast.makeText(this, getString(R.string.change_file_location_error), Toast.LENGTH_LONG).show();
             return;
         }
 
-        if (newHexFileLocation.substring(newHexFileLocation.length() - 3).equals("hex")) {
-            hexFileLocation = newHexFileLocation.replace("/storage/emulated/0/", "");
+//        if (newHexFileLocation.toString().substring(newHexFileLocation.toString().length() - 3).equals("hex")) {
+////            hexFileLocation = newHexFileLocation.replace("/storage/emulated/0/", "");
+            hexFileLocation = newHexFileLocation;
             Log.d("FileImporter", "New Path: " + hexFileLocation);
-        } else {
-            Toast.makeText(this, getString(R.string.not_hex_error), Toast.LENGTH_LONG).show();
-        }
+//        } else {
+//            Toast.makeText(this, getString(R.string.not_hex_error), Toast.LENGTH_LONG).show();
+//        }
     }
 
     public class UCHandler extends Handler {
@@ -475,7 +481,7 @@ public class UCModule extends AppCompatActivity {
         }
     }
 
-    private class Scheduler implements Runnable{
+    private class Scheduler implements Runnable {
 
         private double getAvgClock(double newClock) {
             sum += newClock;
@@ -485,7 +491,7 @@ public class UCModule extends AppCompatActivity {
         @Override
         public void run() {
             Thread.currentThread().setName("Scheduler");
-            while (!getResetFlag()){
+            while (!getResetFlag()) {
 
                 //Measure efective clock
 //                time2 = SystemClock.elapsedRealtimeNanos();

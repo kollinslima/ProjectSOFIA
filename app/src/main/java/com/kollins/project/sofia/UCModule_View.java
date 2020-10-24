@@ -25,6 +25,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -370,8 +371,9 @@ public class UCModule_View extends Fragment {
             case FILE_IMPORT_CODE:
                 if (resultCode == RESULT_OK) {
                     Uri uri = data.getData();
-//                    Log.d("FileImporter", "Path: " + PathUtil.getPath(getContext(), uri));
-                    ucModule.changeFileLocation(PathUtil.getPath(getContext(), uri));
+                    Log.d("FileImporter", "Path: " + uri.toString());
+//                    ucModule.changeFileLocation(PathUtil.getPath(getContext(), uri));
+                    ucModule.changeFileLocation(uri);
                     uCHandler.sendEmptyMessage(UCModule.RESET_ACTION);
                 }
                 break;
