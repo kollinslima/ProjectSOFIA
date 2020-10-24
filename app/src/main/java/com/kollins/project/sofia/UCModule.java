@@ -24,7 +24,6 @@ import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
@@ -52,7 +51,6 @@ import com.kollins.project.sofia.ucinterfaces.Timer1Module;
 import com.kollins.project.sofia.ucinterfaces.Timer2Module;
 import com.kollins.project.sofia.ucinterfaces.USARTModule;
 
-import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 
@@ -118,6 +116,8 @@ public class UCModule extends AppCompatActivity {
     private Thread threadUCView;
 
     private Thread threadScheduler;
+
+    private boolean firstLoadFileFail = true;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -262,6 +262,10 @@ public class UCModule extends AppCompatActivity {
             } else {
                 setUpSuccessful = false;
                 ucView.setStatus(UCModule_View.LED_STATUS.HEX_FILE_ERROR);
+                if (!firstLoadFileFail) {
+                    Toast.makeText(this, getString(R.string.fail_to_load_file), Toast.LENGTH_LONG).show();
+                }
+                firstLoadFileFail = false;
             }
 
         } catch (ClassNotFoundException |
@@ -272,7 +276,10 @@ public class UCModule extends AppCompatActivity {
             setUpSuccessful = false;
             ucView.setStatus(UCModule_View.LED_STATUS.HEX_FILE_ERROR);
             Log.e(MY_LOG_TAG, "Error Set-up", e);
-            Toast.makeText(this, getString(R.string.fail_to_start_simulation), Toast.LENGTH_LONG).show();
+            if (!firstLoadFileFail) {
+                Toast.makeText(this, getString(R.string.fail_to_load_file), Toast.LENGTH_LONG).show();
+            }
+            firstLoadFileFail = false;
         }
 
     }
@@ -442,7 +449,7 @@ public class UCModule extends AppCompatActivity {
     //    public void changeFileLocation(String newHexFileLocation) {
     public void changeFileLocation(Uri newHexFileLocation) {
         if (newHexFileLocation == null) {
-            Toast.makeText(this, getString(R.string.change_file_location_error), Toast.LENGTH_LONG).show();
+            Toast.makeText(this, getString(R.string.fail_to_load_file), Toast.LENGTH_LONG).show();
             return;
         }
 
