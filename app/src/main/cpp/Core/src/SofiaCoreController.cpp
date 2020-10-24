@@ -20,6 +20,7 @@ SofiaCoreController::SofiaCoreController(Listener **listeners, JavaVM *vm, JNIEn
 }
 SofiaCoreController::~SofiaCoreController() {
     stopDispatcher = true;
+    notificationCv.notify_all();
     if (device) {
         device->stop();
         delete device;
