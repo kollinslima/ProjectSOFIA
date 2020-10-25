@@ -4,37 +4,18 @@
     <string name="splash_screen_introduction">An App by: </string>
     <string name="about_screen_introduction">Developed by: </string>
     <string name="developer">Kollins Gabriel Lima</string>
+
     <string name="outputFragmentLabel">Output</string>
     <string name="action_reset">Reset</string>
     <string name="actionn_import">Import</string>
+    <string name="actionn_io_add">Add I/O</string>
+
+    <string name="logic_high">On</string>
+    <string name="logic_low">Off</string>
+    <string name="logic_tri_state">Hi-Z</string>
+
     <string name="import_fail_open_fail">Fail to import file - cannot open file</string>
     <string name="import_fail_invalid_file">Fail to import file - invalid file</string>
     <string name="import_fail_checksum_error">Fail to import file - checksum error</string>
-    <string name="actionn_io_add">Add I/O</string>
-
-    <!--Pins of model-->
-    <string-array
-        name="arduino_uno_pins">
-        <item>Pin0</item>
-        <item>Pin1</item>
-        <item>Pin2</item>
-        <item>Pin3</item>
-        <item>Pin4</item>
-        <item>Pin5</item>
-        <item>Pin6</item>
-        <item>Pin7</item>
-        <item>Pin8</item>
-        <item>Pin9</item>
-        <item>Pin10</item>
-        <item>Pin11</item>
-        <item>Pin12</item>
-        <item>Pin13</item>
-        <item>A0</item>
-        <item>A1</item>
-        <item>A2</item>
-        <item>A3</item>
-        <item>A4</item>
-        <item>A5</item>
-    </string-array>
 
 </resources>

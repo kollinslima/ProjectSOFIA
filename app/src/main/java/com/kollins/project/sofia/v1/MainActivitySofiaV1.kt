@@ -43,7 +43,8 @@ class MainActivitySofiaV1 : AppCompatActivity(), UiInterface {
         v1MainToolBar.inflateMenu(R.menu.v1_main_layout)
         v1MainToolBar.setOnMenuItemClickListener(toolBarMenuItemClick)
 
-        outputFragment = OutputFragmentV1(targetDevice)
+        outputFragment = OutputFragmentV1()
+        outputFragment.init(targetDevice)
 
         suc = SofiaUiController(this)
     }
@@ -80,8 +81,8 @@ class MainActivitySofiaV1 : AppCompatActivity(), UiInterface {
         Toolbar.OnMenuItemClickListener { item ->
             when (item.itemId) {
                 R.id.v1ActionAddIO -> {
-                    v1OutputContainer.visibility = View.VISIBLE
                     outputFragment.addOutput()
+                    v1OutputContainer.visibility = View.VISIBLE
                 }
                 R.id.v1ActionImport -> {
                     when (PackageManager.PERMISSION_GRANTED) {
