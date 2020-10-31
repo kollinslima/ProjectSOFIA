@@ -324,6 +324,10 @@ public class UCModule extends AppCompatActivity {
         return resources.getInteger(R.integer.defaultSourcePower);
     }
 
+    public static String getSofiaVersion() {
+        return resources.getString(R.string.app_version);
+    }
+
     public static double getMaxVoltageLowState() {
         return (resources.getInteger(R.integer.maxVoltageLow) / 1000f);
     }

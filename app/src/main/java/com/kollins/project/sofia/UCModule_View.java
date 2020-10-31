@@ -22,6 +22,7 @@ import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -349,7 +350,12 @@ public class UCModule_View extends Fragment {
                             Uri.fromParts("mailto", "", null));
                     emailIntent.putExtra(Intent.EXTRA_EMAIL, new String[] { REPORT_EMAIL });
                     emailIntent.putExtra(Intent.EXTRA_SUBJECT, REPORT_SUBJECT);
-//                    emailIntent.putExtra(Intent.EXTRA_TEXT, "Body");
+                    emailIntent.putExtra(Intent.EXTRA_TEXT,
+                            "================" +
+                            "\nSOFIA: " + UCModule.getSofiaVersion() +
+                            "\nAPI level: " + Build.VERSION.SDK_INT +
+                            "\n================\n\n"
+                            );
                     startActivity(Intent.createChooser(emailIntent, ""));
                     break;
 
