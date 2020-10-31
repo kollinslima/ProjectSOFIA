@@ -295,7 +295,8 @@ public class UCModule_View extends Fragment {
                     /*
                     Thanks: https://stackoverflow.com/questions/7856959/android-file-chooser
                      */
-                    Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+//                    Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                    Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
                     intent.setType("*/*");
                     intent.addCategory(Intent.CATEGORY_OPENABLE);
 

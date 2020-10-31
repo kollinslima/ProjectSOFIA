@@ -104,7 +104,7 @@ public class ProgramMemory_ATmega328P implements ProgramMemory {
                     startCodeObserver(hexFileLocation, contentResolver);
                 }
                 reader.close();
-            } catch (IOException e) {
+            } catch (SecurityException | IOException e) {
                 Log.e(UCModule.MY_LOG_TAG, "ERROR: Load file error");
                 e.printStackTrace();
             }
