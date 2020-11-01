@@ -55,6 +55,8 @@ public class OutputFragment_ATmega328P extends Fragment implements OutputFragmen
 
     public static final int[] BACKGROUND_PIN = {R.drawable.off_led, R.drawable.on_led, R.drawable.hi_z_led};
 
+//    public static final int FUSION_FREQ = 1000; //Above this value, the screen will blink too fast, so make it analog
+
     //Virtual Pin to hold states until first output
     public static int[] pinbuffer = new int[UCModule.getPinArray().length];
 
@@ -253,7 +255,7 @@ public class OutputFragment_ATmega328P extends Fragment implements OutputFragmen
 
     public synchronized void updateView(int index) {
 
-        new UpdateScreen().execute(index);
+        new UpdateScreen(index).execute();
 
 //        if (outputPinsList == null) {
 //            return;
@@ -314,63 +316,93 @@ public class OutputFragment_ATmega328P extends Fragment implements OutputFragmen
         return !dataMemory.readBit(memoryAddress, bitPosition);
     }
 
-    private class UpdateScreen extends AsyncTask<Integer, Void, Integer>{
+    private class UpdateScreen extends AsyncTask<Void, Void, Void>{
 
         private TextView led, freq, dc;
         private OutputPin_ATmega328P pin;
         private String ledText, freqText, dcText;
         private int backgroundColor;
-        private View view;
+        private int r,g,b;
+        private View view = null;
+        private final int index;
+
+        public UpdateScreen(int index) {
+            this.index = index;
+        }
 
         @Override
-        protected Integer doInBackground(Integer... integers) {
+        protected void onPreExecute() {
+            super.onPreExecute();
+            if (outputPinsList != null) {
+                view = outputPinsList.getChildAt(index -
+                        outputPinsList.getFirstVisiblePosition());
+
+                if (view != null) {
+                    led = view.findViewById(R.id.ledState);
+                    freq = view.findViewById(R.id.frequency);
+                    dc = view.findViewById(R.id.dutycycle);
+                }
+            }
+        }
+
+        @Override
+        protected Void doInBackground(Void...v) {
 
             if (outputPinsList == null) {
-                return -1;
+                return null;
             }
-
-            View view = outputPinsList.getChildAt(integers[0] -
-                    outputPinsList.getFirstVisiblePosition());
-
-            if (view == null) {
-                return -1;
-            }
-
-            led = view.findViewById(R.id.ledState);
-            freq = view.findViewById(R.id.frequency);
-            dc = view.findViewById(R.id.dutycycle);
 
             try {
-                pin = outputPins.get(integers[0]);
+                pin = outputPins.get(index);
             } catch (IndexOutOfBoundsException e){
                 Log.e(UCModule.MY_LOG_TAG, "Invalid Index", e);
-                return -1;
+                return null;
             }
 
             ledText = UCModule.resources.getStringArray(R.array.ledText)[pin.getPinState(pin.getPinPositionSpinner())];
             backgroundColor = BACKGROUND_PIN[pin.getPinState(pin.getPinPositionSpinner())];
-            if (frequencyBuffer[pin.getPinPositionSpinner()] >= 0) {
-                freqText = String.format(Locale.getDefault(), "%.0f Hz", frequencyBuffer[pin.getPinPositionSpinner()]);
+            double freq = frequencyBuffer[pin.getPinPositionSpinner()];
+            if (freq >= 0) {
+                freqText = String.format(Locale.getDefault(), "%.0f Hz", freq);
             } else {
                 freqText = "";
             }
 
-            if (dutyCycleBuffer[pin.getPinPositionSpinner()] <= 100 && dutyCycleBuffer[pin.getPinPositionSpinner()] >= 0) {
+            double dc = dutyCycleBuffer[pin.getPinPositionSpinner()];
+            if (dc <= 100 && dc >= 0) {
                 dcText = String.format(Locale.getDefault(), "%.0f %%", dutyCycleBuffer[pin.getPinPositionSpinner()]);
-            } else {
-                dcText = "";
+//                if (freq > FUSION_FREQ) {
+//                    //TODO: Make this function dynamic with ON/OFF colors
+//                    double dcPercent = (dc/100);
+//                    r = (23 + (int)(dcPercent*232))&0xFF;
+//                    g = (161 + (int)(dcPercent*43))&0xFF;
+//                    b = (165 + (int)(dcPercent*(-165)))&0xFF;
+//
+//                    ledText = "";
+//                } else {
+//                    backgroundColor = BACKGROUND_PIN[pin.getPinState(pin.getPinPositionSpinner())];
+//                }
+//            } else {
+//                dcText = "";
+//                backgroundColor = BACKGROUND_PIN[pin.getPinState(pin.getPinPositionSpinner())];
             }
 
-            return 0;
+            return null;
         }
 
         @Override
-        protected void onPostExecute(Integer integer) {
-            super.onPostExecute(integer);
+        protected void onPostExecute(Void v) {
+            super.onPostExecute(v);
 
-            if (integer == 0) {
+            if (view != null) {
                 led.setText(ledText);
-                led.setBackgroundResource(backgroundColor);
+//                if (ledText.isEmpty()) {
+//                    Drawable analogBackground = AppCompatResources.getDrawable(getContext(), R.drawable.off_led);
+//                    DrawableCompat.setTint(analogBackground, Color.rgb(r, g, b));
+//                    led.setBackground(analogBackground);
+//                } else {
+                    led.setBackgroundResource(backgroundColor);
+//                }
                 freq.setText(freqText);
                 dc.setText(dcText);
             }
