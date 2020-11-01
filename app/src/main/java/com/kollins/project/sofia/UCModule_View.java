@@ -359,6 +359,13 @@ public class UCModule_View extends Fragment {
                     outputFrame.setVisibility(View.GONE);
                     inputFragment.clearAll();
                     inputFrame.setVisibility(View.GONE);
+
+                    Fragment old_fragment = getActivity().getSupportFragmentManager()
+                            .findFragmentByTag(SerialFragment.TAG_SERIAL_FRAGMENT);
+                    if (old_fragment != null) {
+                        mFragmentManager.beginTransaction().remove(old_fragment).commit();
+                    }
+
                     startInstructions.setVisibility(View.VISIBLE);
 
             } else if (itemId == R.id.action_help) {
@@ -466,7 +473,7 @@ public class UCModule_View extends Fragment {
 
                 mFragmentTransaction = mFragmentManager.beginTransaction();
                 mFragmentTransaction.add(R.id.outputPins, serialFragment, SerialFragment.TAG_SERIAL_FRAGMENT);
-                mFragmentTransaction.addToBackStack(null);
+//                mFragmentTransaction.addToBackStack(null);
                 mFragmentTransaction.commit();
 
             }
@@ -492,11 +499,17 @@ public class UCModule_View extends Fragment {
                     }
                     break;
 
-//                case REMOVE_SERIAL_FRAGMENT:
-//                    if (inputFrame.getVisibility() != View.VISIBLE) {
-//                        startInstructions.setVisibility(View.VISIBLE);
-//                    }
-//                    break;
+                case REMOVE_SERIAL_FRAGMENT:
+                    Fragment old_fragment = getActivity().getSupportFragmentManager()
+                            .findFragmentByTag(SerialFragment.TAG_SERIAL_FRAGMENT);
+                    if (old_fragment != null) {
+                        mFragmentManager.beginTransaction().remove(old_fragment).commit();
+                    }
+                    if (inputFrame.getVisibility() != View.VISIBLE && !outputFragment.haveOutput()) {
+                        outputFrame.setVisibility(View.GONE);
+                        startInstructions.setVisibility(View.VISIBLE);
+                    }
+                    break;
             }
         }
     }

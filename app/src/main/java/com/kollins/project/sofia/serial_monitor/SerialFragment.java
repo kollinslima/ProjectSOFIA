@@ -58,7 +58,7 @@ public class SerialFragment extends Fragment {
         closeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                getActivity().onBackPressed();
+//                getActivity().onBackPressed();
                 screenUpdater.sendEmptyMessage(UCModule_View.REMOVE_SERIAL_FRAGMENT);
             }
         });
