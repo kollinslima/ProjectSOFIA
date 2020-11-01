@@ -349,11 +349,16 @@ public class OutputFragment_ATmega328P extends Fragment implements OutputFragmen
 
             ledText = UCModule.resources.getStringArray(R.array.ledText)[pin.getPinState(pin.getPinPositionSpinner())];
             backgroundColor = BACKGROUND_PIN[pin.getPinState(pin.getPinPositionSpinner())];
-            freqText = String.format(Locale.getDefault(), "%.0f Hz", frequencyBuffer[pin.getPinPositionSpinner()] >= 0 ? frequencyBuffer[pin.getPinPositionSpinner()] : 0);
+            if (frequencyBuffer[pin.getPinPositionSpinner()] >= 0) {
+                freqText = String.format(Locale.getDefault(), "%.0f Hz", frequencyBuffer[pin.getPinPositionSpinner()]);
+            } else {
+                freqText = "";
+            }
+
             if (dutyCycleBuffer[pin.getPinPositionSpinner()] <= 100 && dutyCycleBuffer[pin.getPinPositionSpinner()] >= 0) {
                 dcText = String.format(Locale.getDefault(), "%.0f %%", dutyCycleBuffer[pin.getPinPositionSpinner()]);
             } else {
-                dcText = String.format(Locale.getDefault(), "%.0f %%", 0);
+                dcText = "";
             }
 
             return 0;
