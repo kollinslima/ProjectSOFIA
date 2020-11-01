@@ -34,7 +34,7 @@ public class OutputPin_ATmega328P {
     public OutputPin_ATmega328P(String pin, int pinPositionSpinner){
         this.pin = pin;
         this.pinPositionSpinner = pinPositionSpinner;
-        meter = false;
+        meter = true;
         resetPinState();
     }
 
@@ -42,7 +42,7 @@ public class OutputPin_ATmega328P {
         this.pin = pin;
         this.pinPositionSpinner = pinPositionSpinner;
         this.pinState = pinState;
-        meter = false;
+        meter = true;
     }
 
     public String getPin() {
