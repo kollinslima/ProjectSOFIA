@@ -39,6 +39,7 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
+import com.kollins.project.sofia.atmega328p.ADC_ATmega328P;
 import com.kollins.project.sofia.atmega328p.iomodule_atmega328p.output.OutputFragment_ATmega328P;
 import com.kollins.project.sofia.ucinterfaces.ADCModule;
 import com.kollins.project.sofia.ucinterfaces.DataMemory;
@@ -69,6 +70,11 @@ public class UCModule extends AppCompatActivity {
 
     public static String PACKAGE_NAME;
 
+    public static final String SETTINGS = "Settings";
+    public static final String MODEL_SETTINGS = "ArduinoModel";
+    public static final String START_PAUSED_SETTINGS = "StartPaused";
+    public static final String AREF_SETTINGS = "AREF";
+
     //Default location
 //    public static final String DEFAULT_HEX_LOCATION = Environment.getExternalStorageDirectory().getPath();
     private Uri hexFileLocation = Uri.EMPTY;
@@ -84,6 +90,9 @@ public class UCModule extends AppCompatActivity {
     public static final int CLOCK_ACTION = 1;
     public static final int SHORT_CIRCUIT_ACTION = 2;
     public static final int STOP_ACTION = 3;
+    public static final int PAUSE_ACTION = 4;
+    public static final int RESUME_ACTION = 5;
+    public static final int UPDATE_SETTINGS_ACTION = 6;
 
     public static final String MY_LOG_TAG = "LOG_SIMULATOR";
 
@@ -119,6 +128,9 @@ public class UCModule extends AppCompatActivity {
 
     private boolean firstLoadFileFail = true;
 
+    private boolean startPaused = false;
+    private boolean pauseSimulation = startPaused;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -133,6 +145,12 @@ public class UCModule extends AppCompatActivity {
                     new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 0);
         }
 
+        //Load device settings
+        SharedPreferences settings = getSharedPreferences(SETTINGS, MODE_PRIVATE);
+        startPaused = settings.getBoolean(START_PAUSED_SETTINGS, false);
+        ADC_ATmega328P.AREF = (short) settings.getInt(AREF_SETTINGS, 5000);
+        model = settings.getString(MODEL_SETTINGS, "UNO");
+
         context = getApplicationContext();
 
         PACKAGE_NAME = getApplicationContext().getPackageName();
@@ -140,12 +158,9 @@ public class UCModule extends AppCompatActivity {
 
         uCHandler = new UCHandler();
 
-        //Load device
-        SharedPreferences prefDevice = getSharedPreferences("deviceConfig", MODE_PRIVATE);
-        model = prefDevice.getString("arduinoModel", "UNO");
-        device = getDevice(model);
         setTitle("Arduino " + model);
 
+        device = getDevice(model);
         numberOfModules = getDeviceModules() + 1;
 
         setUpSuccessful = false;
@@ -195,6 +210,7 @@ public class UCModule extends AppCompatActivity {
         }
 
         shortCircuitFlag = false;
+        pauseSimulation = startPaused;
         setResetFlag(false);
 //        resetClockVector();
 
@@ -254,7 +270,13 @@ public class UCModule extends AppCompatActivity {
                         .newInstance(dataMemory);
 
                 setUpSuccessful = true;
-                ucView.setStatus(UCModule_View.LED_STATUS.RUNNING);
+                if (pauseSimulation) {
+                    ucView.setStatus(UCModule_View.LED_STATUS.PAUSED);
+                    ucView.resetSimulatedTime();
+                } else {
+                    ucView.setStatus(UCModule_View.LED_STATUS.RUNNING);
+                }
+
 
                 threadScheduler = new Thread(new Scheduler());
                 threadScheduler.start();
@@ -390,6 +412,14 @@ public class UCModule extends AppCompatActivity {
         return ContextCompat.getColor(context, R.color.running);
     }
 
+    public static String getStatusPaused() {
+        return resources.getString(R.string.paused);
+    }
+
+    public static int getStatusPausedColor() {
+        return ContextCompat.getColor(context, R.color.paused);
+    }
+
     public static String getStatusShortCircuit() {
         return resources.getString(R.string.short_circuit);
     }
@@ -418,6 +448,7 @@ public class UCModule extends AppCompatActivity {
 
         Log.i(MY_LOG_TAG, "Reset");
 
+        pauseSimulation = false;
         stopSystem();
         ucView.resetIO();
         setUpUc();
@@ -426,6 +457,7 @@ public class UCModule extends AppCompatActivity {
     private void stopSystem() {
         Log.i(MY_LOG_TAG, "Stopping system");
 
+        pauseSimulation = false;
         setResetFlag(true);
 
         try {
@@ -448,6 +480,16 @@ public class UCModule extends AppCompatActivity {
         shortCircuitFlag = true;
         ucView.setStatus(UCModule_View.LED_STATUS.SHORT_CIRCUIT);
         stopSystem();
+    }
+
+    private void pauseSystem() {
+        ucView.setStatus(UCModule_View.LED_STATUS.PAUSED);
+        pauseSimulation = true;
+    }
+
+    private void resumeSystem() {
+        ucView.setStatus(UCModule_View.LED_STATUS.RUNNING);
+        pauseSimulation = false;
     }
 
     //    public void changeFileLocation(String newHexFileLocation) {
@@ -485,6 +527,22 @@ public class UCModule extends AppCompatActivity {
                     stopSystem();
                     break;
 
+                case PAUSE_ACTION:
+                    pauseSystem();
+                    break;
+
+                case RESUME_ACTION:
+                    resumeSystem();
+                    break;
+
+                case UPDATE_SETTINGS_ACTION:
+                    //Load device settings
+                    SharedPreferences settings = getSharedPreferences(SETTINGS, MODE_PRIVATE);
+                    startPaused = settings.getBoolean(START_PAUSED_SETTINGS, false);
+                    ADC_ATmega328P.AREF = (short) settings.getInt(AREF_SETTINGS, 5000);
+                    model = settings.getString(MODEL_SETTINGS, "UNO");
+                    break;
+
                 default:
                     Log.e(MY_LOG_TAG, "ERROR: Action not found UCModule");
                     break;
@@ -503,6 +561,15 @@ public class UCModule extends AppCompatActivity {
         public void run() {
             Thread.currentThread().setName("Scheduler");
             while (!getResetFlag()) {
+
+                if (pauseSimulation) {
+                    try {
+                        Thread.sleep(1);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    continue;
+                }
 
                 //Measure efective clock
 //                time2 = SystemClock.elapsedRealtimeNanos();

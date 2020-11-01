@@ -27,6 +27,7 @@
     <string name="hex_file_read_fail_instructions">Carrege um arquivo .hex</string>
 
     <string name="running">Executando</string>
+    <string name="paused">Pausado</string>
     <string name="reset">Reset</string>
     <!--<string name="short_circuit">SHORT CIRCUIT!!! - Reset system</string>-->
     <string name="short_circuit">CURTO CIRCUITO!</string>
@@ -120,9 +121,9 @@
     <string name="action_meter">Medidor</string>
     <string name="serial_monitor_title">Monitor Serial</string>
     <string name="action_adc_adjust">Config AREF</string>
-    <string name="AREF_value">Novo valor de AREF (Volts)</string>
+    <string name="AREF_value_hint">AREF (Volts)</string>
     <string name="adc_cancel">Cancelar</string>
-    <string name="AREF_current">AREF Atual = </string>
+    <string name="AREF_current">AREF Atual (V)</string>
     <string name="arefError">Digite um valor positivo entre 1 e 5</string>
     <string name="developer_email">kollins.lima@gmail.com</string>
 
@@ -134,4 +135,9 @@
     <string name="not_hex_error">Erro: Este não é um arquivo .hex</string>
     <string name="fail_to_load_file">Erro: Falha ao carregar arquivo</string>
     <string name="fail_to_start_simulation">Erro: Falha ao iniciar a simulação</string>
+    <string name="action_play_pause">Play/Pause</string>
+    <string name="action_settings">Configuração</string>
+    <string name="settings_platform">Plataforma</string>
+    <string name="settings_default_platform">Arduino UNO</string>
+    <string name="settings_start_paused">Começar pausado</string>
 </resources>

@@ -49,7 +49,7 @@
         android:id="@+id/adc_new_aref"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="@string/AREF_value"
+        android:hint="@string/AREF_value_hint"
         android:inputType="numberDecimal"
         android:layout_margin="16dp"/>
 

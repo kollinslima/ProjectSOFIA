@@ -19,9 +19,9 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <item android:id="@+id/action_reset"
-        android:icon="@drawable/ic_action_reset"
-        android:title="@string/action_reset"
+    <item android:id="@+id/action_play_pause"
+        android:icon="@drawable/ic_action_play"
+        android:title="@string/action_play_pause"
         app:showAsAction="always"/>
 
     <item android:id="@+id/action_add"
@@ -32,18 +32,19 @@
     <item android:id="@+id/action_import"
         android:icon="@drawable/ic_action_import"
         android:title="@string/action_import"
-        app:showAsAction="ifRoom"/>
-
-    <item android:id="@+id/action_memory_map"
-        android:title="@string/action_memory_map"
         app:showAsAction="never"/>
 
-    <item android:id="@+id/action_adc_adjust"
-        android:title="@string/action_adc_adjust"
+    <item android:id="@+id/action_reset"
+        android:icon="@drawable/ic_action_reset"
+        android:title="@string/action_reset"
         app:showAsAction="never"/>
 
     <item android:id="@+id/action_clear_io"
         android:title="@string/action_clear_io"
+        app:showAsAction="never"/>
+
+    <item android:id="@+id/action_memory_map"
+        android:title="@string/action_memory_map"
         app:showAsAction="never"/>
 
     <item android:id="@+id/action_help"
@@ -52,6 +53,14 @@
 
     <item android:id="@+id/action_report_bug"
         android:title="@string/action_report_bug"
+        app:showAsAction="never"/>
+
+<!--    <item android:id="@+id/action_adc_adjust"-->
+<!--        android:title="@string/action_adc_adjust"-->
+<!--        app:showAsAction="never"/>-->
+
+    <item android:id="@+id/action_settings"
+        android:title="@string/action_settings"
         app:showAsAction="never"/>
 
     <item android:id="@+id/action_about"

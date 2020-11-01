@@ -39,7 +39,7 @@
         </activity>
         <activity android:name="com.kollins.project.sofia.UCModule"
             android:screenOrientation="portrait"/>
-        <activity android:name="com.kollins.project.sofia.extra.AREF_Configuration"
+        <activity android:name="com.kollins.project.sofia.extra.Settings"
             android:screenOrientation="portrait"/>
         <activity android:name="com.kollins.project.sofia.extra.AboutPage"
             android:screenOrientation="portrait"/>

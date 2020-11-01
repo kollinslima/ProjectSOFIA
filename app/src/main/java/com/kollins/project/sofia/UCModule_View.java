@@ -51,7 +51,7 @@ import com.kollins.project.sofia.atmega328p.iomodule_atmega328p.input.InputFragm
 import com.kollins.project.sofia.atmega328p.iomodule_atmega328p.output.OutputFragment_ATmega328P;
 import com.kollins.project.sofia.extra.AREF_Configuration;
 import com.kollins.project.sofia.extra.AboutPage;
-import com.kollins.project.sofia.extra.PathUtil;
+import com.kollins.project.sofia.extra.Settings;
 import com.kollins.project.sofia.extra.memory_map.MemoryFragment;
 import com.kollins.project.sofia.serial_monitor.SerialFragment;
 import com.kollins.project.sofia.ucinterfaces.DataMemory;
@@ -59,6 +59,7 @@ import com.kollins.project.sofia.ucinterfaces.IOModule;
 import com.kollins.project.sofia.ucinterfaces.InputFragment;
 import com.kollins.project.sofia.ucinterfaces.OutputFragment;
 
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import static android.app.Activity.RESULT_OK;
@@ -69,14 +70,14 @@ import static android.app.Activity.RESULT_OK;
 
 public class UCModule_View extends Fragment {
 
-    public enum LED_STATUS {RUNNING, SHORT_CIRCUIT, HEX_FILE_ERROR}
+    public enum LED_STATUS {RUNNING, PAUSED, SHORT_CIRCUIT, HEX_FILE_ERROR}
 
     private static final String DOCUMENTATION_URL = "https://project-sofia.gitbook.io/project/using-sofia";
     private static final String REPORT_EMAIL = "kollins.lima@gmail.com";
     private static final String REPORT_SUBJECT = "[SOFIA FEEDBACK]";
 
     private static final int FILE_IMPORT_CODE = 0;
-    private static final int AREF_VALUE = 1;
+    private static final int SETTINGS = 1;
 
     public static final int REMOVE_OUTPUT_FRAGMENT = 0;
     public static final int REMOVE_INPUT_FRAGMENT = 1;
@@ -115,6 +116,8 @@ public class UCModule_View extends Fragment {
     private long seconds;
 
     public static ScreenUpdater screenUpdater;
+
+    private LED_STATUS status;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -205,6 +208,16 @@ public class UCModule_View extends Fragment {
         }
     }
 
+    public void resetSimulatedTime() {
+        simulatedText = UCModule.resources.getString(R.string.simulated_time_format, 0, 0);
+        screenUpdater.post(new Runnable() {
+            @Override
+            public void run() {
+                simulatedTimeDisplay.setText(simulatedText);
+            }
+        });
+    }
+
     public void setMemoryIO(DataMemory dataMemory) {
         outputFragment.setDataMemory(dataMemory);
         inputFragment.setDataMemory(dataMemory);
@@ -232,10 +245,22 @@ public class UCModule_View extends Fragment {
     }
 
     public void setStatus(LED_STATUS status) {
+        this.status = status;
         switch (status) {
             case RUNNING:
                 statusInfo.setText(UCModule.getStatusRunning());
                 statusInfo.setTextColor(UCModule.getStatusRunningColor());
+
+                toolbar.getMenu().getItem(0).setIcon(ContextCompat.getDrawable(getContext(), R.drawable.ic_action_pause));
+
+                hexFileErrorInstructions.setVisibility(View.GONE);
+                break;
+
+            case PAUSED:
+                statusInfo.setText(UCModule.getStatusPaused());
+                statusInfo.setTextColor(UCModule.getStatusPausedColor());
+
+                toolbar.getMenu().getItem(0).setIcon(ContextCompat.getDrawable(getContext(), R.drawable.ic_action_play));
 
                 hexFileErrorInstructions.setVisibility(View.GONE);
                 break;
@@ -265,24 +290,25 @@ public class UCModule_View extends Fragment {
     private class ToolBarMenuItemClick implements Toolbar.OnMenuItemClickListener {
         @Override
         public boolean onMenuItemClick(MenuItem item) {
-            switch (item.getItemId()) {
-                case R.id.action_reset:
-                    uCHandler.sendEmptyMessage(UCModule.RESET_ACTION);
-                    break;
+            int itemId = item.getItemId();
+            if (itemId == R.id.action_play_pause) {
+                if (status == LED_STATUS.RUNNING) {
+                    uCHandler.sendEmptyMessage(UCModule.PAUSE_ACTION);
+                } else if (status == LED_STATUS.PAUSED){
+                    uCHandler.sendEmptyMessage(UCModule.RESUME_ACTION);
+                }
+            } else if (itemId == R.id.action_add) {
+                if (!UCModule.setUpSuccessful) {
+                    return true;
+                }
 
-                case R.id.action_add:
-                    if (!UCModule.setUpSuccessful) {
-                        break;
-                    }
+                PopupMenu popup = new PopupMenu(getActivity(), getView().findViewById(R.id.action_add));
+                popup.setOnMenuItemClickListener(new PopUpMenuItemClick());
+                MenuInflater inflater = popup.getMenuInflater();
+                inflater.inflate(R.menu.pop_up_menu, popup.getMenu());
+                popup.show();
 
-                    PopupMenu popup = new PopupMenu(getActivity(), getView().findViewById(R.id.action_add));
-                    popup.setOnMenuItemClickListener(new PopUpMenuItemClick());
-                    MenuInflater inflater = popup.getMenuInflater();
-                    inflater.inflate(R.menu.pop_up_menu, popup.getMenu());
-                    popup.show();
-                    break;
-
-                case R.id.action_import:
+            } else if (itemId == R.id.action_import) {
 
                     // Ask for permission to use external storage
                     if (ContextCompat.checkSelfPermission(getActivity(),
@@ -310,9 +336,11 @@ public class UCModule_View extends Fragment {
                         Toast.makeText(getContext(), getString(R.string.filemanager_not_found),
                                 Toast.LENGTH_SHORT).show();
                     }
-                    break;
 
-                case R.id.action_memory_map:
+            } else if (itemId == R.id.action_reset) {
+                    uCHandler.sendEmptyMessage(UCModule.RESET_ACTION);
+
+            } else if (itemId == R.id.action_memory_map) {
 
                     if (memoryFragment.getDataMemory() == null) {
                         Toast.makeText(getContext(), getString(R.string.action_memory_map_error),
@@ -325,27 +353,23 @@ public class UCModule_View extends Fragment {
                         mFragmentTransaction.add(R.id.fragment_memory, memoryFragment, MemoryFragment.TAG_MEM_FRAGMENT);
                         mFragmentTransaction.commit();
                     }
-                    break;
 
-                case R.id.action_adc_adjust:
-                    startActivityForResult(new Intent(getActivity().getBaseContext(), AREF_Configuration.class), AREF_VALUE);
-                    break;
-
-                case R.id.action_clear_io:
+            } else if (itemId == R.id.action_clear_io) {
                     outputFragment.clearAll();
                     outputFrame.setVisibility(View.GONE);
                     inputFragment.clearAll();
                     inputFrame.setVisibility(View.GONE);
                     startInstructions.setVisibility(View.VISIBLE);
-                    break;
 
-                case R.id.action_help:
+            } else if (itemId == R.id.action_help) {
                     Intent browserIntent = new Intent(Intent.ACTION_VIEW,
                             Uri.parse(DOCUMENTATION_URL));
                     startActivity(browserIntent);
-                    break;
 
-                case R.id.action_report_bug:
+            } else if (itemId == R.id.action_settings) {
+                    startActivityForResult(new Intent(getActivity().getBaseContext(), Settings.class), SETTINGS);
+
+            } else if (itemId == R.id.action_report_bug) {
                     Intent emailIntent = new Intent(Intent.ACTION_SENDTO,
                             Uri.fromParts("mailto", "", null));
                     emailIntent.putExtra(Intent.EXTRA_EMAIL, new String[] { REPORT_EMAIL });
@@ -357,15 +381,9 @@ public class UCModule_View extends Fragment {
                             "\n================\n\n"
                             );
                     startActivity(Intent.createChooser(emailIntent, ""));
-                    break;
 
-                case R.id.action_about:
-                    startActivity(new Intent(getActivity().getBaseContext(), AboutPage.class));
-                    break;
-
-                default:
-                    //This shouldn't happen...
-                    break;
+            } else if (itemId == R.id.action_about) {
+                startActivity(new Intent(getActivity().getBaseContext(), AboutPage.class));
             }
             return true;
         }
@@ -385,10 +403,9 @@ public class UCModule_View extends Fragment {
                 }
                 break;
 
-            case AREF_VALUE:
+            case SETTINGS:
                 if (resultCode == RESULT_OK){
-                    double voltage = data.getDoubleExtra(AREF_Configuration.AREF_EXTRA, 0);
-                    ADC_ATmega328P.AREF = (short) (voltage);
+                    uCHandler.sendEmptyMessage(UCModule.UPDATE_SETTINGS_ACTION);
                 }
                 break;
         }
@@ -399,22 +416,20 @@ public class UCModule_View extends Fragment {
         @Override
         public boolean onMenuItemClick(MenuItem item) {
             startInstructions.setVisibility(View.GONE);
-            switch (item.getItemId()) {
-                case R.id.action_output:
-                    outputFrame.setVisibility(View.VISIBLE);
-                    if (!outputFragment.haveOutput()) {
+            int itemId = item.getItemId();
+            if (itemId == R.id.action_output) {
+                outputFrame.setVisibility(View.VISIBLE);
+                if (!outputFragment.haveOutput()) {
 
-                        mFragmentManager = getActivity().getSupportFragmentManager();
-                        mFragmentTransaction = mFragmentManager.beginTransaction();
+                    mFragmentManager = getActivity().getSupportFragmentManager();
+                    mFragmentTransaction = mFragmentManager.beginTransaction();
 
-                        mFragmentTransaction.add(R.id.outputPins, (Fragment) outputFragment, OutputFragment.TAG_OUTPUT_FRAGMENT);
-                        mFragmentTransaction.commit();
-                    } else {
-                        outputFragment.addOuput();
-                    }
-                    break;
-
-                case R.id.action_digital_input:
+                    mFragmentTransaction.add(R.id.outputPins, (Fragment) outputFragment, OutputFragment.TAG_OUTPUT_FRAGMENT);
+                    mFragmentTransaction.commit();
+                } else {
+                    outputFragment.addOuput();
+                }
+            } else if (itemId == R.id.action_digital_input) {
                     inputFrame.setVisibility(View.VISIBLE);
                     if (!inputFragment.haveInput()) {
 
@@ -427,9 +442,7 @@ public class UCModule_View extends Fragment {
                     }
                     inputFragment.addDigitalInput();
 
-                    break;
-
-                case R.id.action_analog_input:
+            } else if (itemId == R.id.action_analog_input) {
                     inputFrame.setVisibility(View.VISIBLE);
                     if (!inputFragment.haveInput()) {
 
@@ -441,23 +454,21 @@ public class UCModule_View extends Fragment {
 
                     }
                     inputFragment.addAnalogicInput();
-                    break;
 
-                case R.id.action_serial_monitor:
-                    outputFrame.setVisibility(View.VISIBLE);
-                    mFragmentManager = getActivity().getSupportFragmentManager();
+            } else if (itemId == R.id.action_serial_monitor) {
+                outputFrame.setVisibility(View.VISIBLE);
+                mFragmentManager = getActivity().getSupportFragmentManager();
 
-                    Fragment old_fragment = mFragmentManager.findFragmentByTag(SerialFragment.TAG_SERIAL_FRAGMENT);
-                    if (old_fragment != null){
-                        mFragmentManager.beginTransaction().remove(old_fragment).commit();
-                    }
+                Fragment old_fragment = mFragmentManager.findFragmentByTag(SerialFragment.TAG_SERIAL_FRAGMENT);
+                if (old_fragment != null) {
+                    mFragmentManager.beginTransaction().remove(old_fragment).commit();
+                }
 
-                    mFragmentTransaction = mFragmentManager.beginTransaction();
-                    mFragmentTransaction.add(R.id.outputPins, serialFragment, SerialFragment.TAG_SERIAL_FRAGMENT);
-                    mFragmentTransaction.addToBackStack(null);
-                    mFragmentTransaction.commit();
+                mFragmentTransaction = mFragmentManager.beginTransaction();
+                mFragmentTransaction.add(R.id.outputPins, serialFragment, SerialFragment.TAG_SERIAL_FRAGMENT);
+                mFragmentTransaction.addToBackStack(null);
+                mFragmentTransaction.commit();
 
-                    break;
             }
             return true;
         }
