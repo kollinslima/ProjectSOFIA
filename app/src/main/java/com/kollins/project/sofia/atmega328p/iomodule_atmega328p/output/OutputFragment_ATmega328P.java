@@ -178,18 +178,18 @@ public class OutputFragment_ATmega328P extends Fragment implements OutputFragmen
             actionMode.finish();
             return true;
         }
-        if (menuItem.getItemId() == R.id.action_meter) {
-            SparseBooleanArray checked = outputPinsList.getCheckedItemPositions();
-
-            for (int i = checked.size() - 1; i >= 0; i--) {
-                if (checked.valueAt(i)) {
-                    outputPins.get(checked.keyAt(i)).showMeter();
-                }
-            }
-
-            actionMode.finish();
-            return true;
-        }
+//        if (menuItem.getItemId() == R.id.action_meter) {
+//            SparseBooleanArray checked = outputPinsList.getCheckedItemPositions();
+//
+//            for (int i = checked.size() - 1; i >= 0; i--) {
+//                if (checked.valueAt(i)) {
+//                    outputPins.get(checked.keyAt(i)).showMeter();
+//                }
+//            }
+//
+//            actionMode.finish();
+//            return true;
+//        }
 
         return false;
     }

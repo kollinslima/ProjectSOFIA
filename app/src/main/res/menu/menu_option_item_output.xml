@@ -19,10 +19,10 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <item android:id="@+id/action_meter"
-        android:icon="@drawable/ic_meter"
-        android:title="@string/action_meter"
-        app:showAsAction="ifRoom"/>
+<!--    <item android:id="@+id/action_meter"-->
+<!--        android:icon="@drawable/ic_meter"-->
+<!--        android:title="@string/action_meter"-->
+<!--        app:showAsAction="ifRoom"/>-->
 
     <item android:id="@+id/action_delete"
         android:icon="@drawable/ic_action_delete"
