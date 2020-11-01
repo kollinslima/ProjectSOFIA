@@ -18,18 +18,15 @@
 package com.kollins.project.sofia.atmega328p;
 
 import android.content.ContentResolver;
+import android.content.Context;
 import android.database.ContentObserver;
 import android.net.Uri;
 import android.os.Environment;
-import android.os.FileObserver;
 import android.os.Handler;
 import android.util.Log;
-import android.widget.Toast;
 
-import androidx.annotation.Nullable;
-
-import com.kollins.project.sofia.R;
 import com.kollins.project.sofia.UCModule;
+import com.kollins.project.sofia.extra.PathUtil;
 import com.kollins.project.sofia.ucinterfaces.ProgramMemory;
 
 import java.io.BufferedReader;
@@ -73,9 +70,13 @@ public class ProgramMemory_ATmega328P implements ProgramMemory {
     // (https://stackoverflow.com/questions/140131/convert-a-string-representation-of-a-hex-dump-to-a-byte-array-using-java)
     private byte[] hexStringToByteArray(String hexString) {
         int len = hexString.length();
+        if (len%2 != 0) {
+            return null;
+        }
+
         byte[] data = new byte[len / 2];
 
-        for (int i = 0; i < len-1; i += 2) {
+        for (int i = 0; i < len - 1; i += 2) {
             data[i / 2] = (byte) ((Character.digit(hexString.charAt(i), 16) << 4)
                     + Character.digit(hexString.charAt(i + 1), 16));
         }
@@ -88,7 +89,7 @@ public class ProgramMemory_ATmega328P implements ProgramMemory {
     }
 
     //    public boolean loadProgramMemory(String hexFileLocation) {
-    public boolean loadProgramMemory(Uri hexFileLocation, ContentResolver contentResolver) {
+    public boolean loadProgramMemory(Context context, Uri hexFileLocation, ContentResolver contentResolver) {
 
         Log.d("HEX", "Loading from " + hexFileLocation.toString());
         String state = Environment.getExternalStorageState();
@@ -97,14 +98,31 @@ public class ProgramMemory_ATmega328P implements ProgramMemory {
         //All set to read and write data in SDCard
         if (Environment.MEDIA_MOUNTED.equals(state) || Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)) {
             try {
+                //Try to open the new way
                 InputStream inputStream = contentResolver.openInputStream(hexFileLocation);
                 BufferedReader reader = new BufferedReader(new InputStreamReader(Objects.requireNonNull(inputStream)));
                 ret = loadHexFile(reader);
-                if (ret) {
-                    startCodeObserver(hexFileLocation, contentResolver);
-                }
+//                if (ret) {
+//                    Log.d(UCModule.MY_LOG_TAG, "CodeObserver: STARTING CODE OBSERVER");
+//                    startCodeObserver(hexFileLocation, contentResolver);
+//                }
                 reader.close();
-            } catch (SecurityException | IOException e) {
+            } catch (SecurityException e) {
+                //Ok, then try the old way
+                String hexPath = PathUtil.getPath(context, hexFileLocation);
+                if (hexPath != null) {
+                    File hexFile = new File(hexPath);
+                    try {
+                        FileInputStream fis = new FileInputStream(hexFile);
+                        BufferedReader reader = new BufferedReader(new InputStreamReader(fis));
+                        ret = loadHexFile(reader);
+                        reader.close();
+                    } catch (IOException exception) {
+                        Log.e(UCModule.MY_LOG_TAG, "ERROR: Load file error");
+                        exception.printStackTrace();
+                    }
+                }
+            } catch (IOException e) {
                 Log.e(UCModule.MY_LOG_TAG, "ERROR: Load file error");
                 e.printStackTrace();
             }
@@ -116,11 +134,10 @@ public class ProgramMemory_ATmega328P implements ProgramMemory {
 
     //    private void startCodeObserver(File hexFile) {
     private void startCodeObserver(Uri hexFile, ContentResolver contentResolver) {
-        //This is the new way to do this, but it's not working yet...
-//        contentResolver.registerContentObserver(hexFile, false, codeObserver);
-
+//        contentResolver.registerContentObserver(hexFile, true, codeObserver);
         //Watch for changes in hexFile
-//        FileObserver codeObserver = new FileObserver(hexFile.getPath().toString()) {
+//        Log.i(UCModule.MY_LOG_TAG, "File event observe: " + hexFile.getPath());
+//        FileObserver codeObserver = new FileObserver(hexFile.getPath()) {
 //            @Override
 //            public void onEvent(int event, @Nullable String path) {
 //                Log.i(UCModule.MY_LOG_TAG, "File event: " + event);
@@ -211,8 +228,11 @@ public class ProgramMemory_ATmega328P implements ProgramMemory {
                 Log.v(UCModule.MY_LOG_TAG, line);
 
                 readBytes = hexStringToByteArray(line);
+                if (readBytes == null) {
+                    continue;
+                }
 
-                if(!checksum(readBytes)){
+                if (!checksum(readBytes)) {
                     Log.d(UCModule.MY_LOG_TAG, "Checksum error !!!");
                     return false;
                 }
@@ -291,10 +311,10 @@ public class ProgramMemory_ATmega328P implements ProgramMemory {
 
     public boolean checksum(byte[] readBytes) {
         long sum = 0;
-        for (int i = 0; i < readBytes.length-1; ++i) { //Don't sum the checksum byte
-            sum += readBytes[i]&0xFF;
+        for (int i = 0; i < readBytes.length - 1; ++i) { //Don't sum the checksum byte
+            sum += readBytes[i] & 0xFF;
         }
-        return (readBytes[readBytes.length-1]&0xFF) == (((~sum)+1)&0xFF);
+        return (readBytes[readBytes.length - 1] & 0xFF) == (((~sum) + 1) & 0xFF);
     }
 
     public void stopCodeObserver(ContentResolver contentResolver) {

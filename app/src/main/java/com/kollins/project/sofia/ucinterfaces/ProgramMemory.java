@@ -18,6 +18,7 @@
 package com.kollins.project.sofia.ucinterfaces;
 
 import android.content.ContentResolver;
+import android.content.Context;
 import android.net.Uri;
 
 /**
@@ -26,7 +27,7 @@ import android.net.Uri;
 
 public interface ProgramMemory {
     int getMemorySize();
-    boolean loadProgramMemory(Uri hexFileLocation, ContentResolver contentResolver);
+    boolean loadProgramMemory(Context context, Uri hexFileLocation, ContentResolver contentResolver);
     int loadInstruction();
 
     void stopCodeObserver(ContentResolver contentResolver);

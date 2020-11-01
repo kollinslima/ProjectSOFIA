@@ -223,7 +223,7 @@ public class UCModule extends AppCompatActivity {
 
             Log.d(MY_LOG_TAG, "Flash size: " + programMemory.getMemorySize());
 
-            if (programMemory.loadProgramMemory(hexFileLocation, getContentResolver())) {
+            if (programMemory.loadProgramMemory(this, hexFileLocation, getContentResolver())) {
                 //hexFile read Successfully
 
                 programMemory.setPC(0);
