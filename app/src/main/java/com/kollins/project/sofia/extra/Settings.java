@@ -24,7 +24,6 @@ import android.util.Log;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
@@ -32,10 +31,8 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.kollins.project.sofia.R;
 import com.kollins.project.sofia.UCModule;
-import com.kollins.project.sofia.atmega328p.ADC_ATmega328P;
 
 import static com.kollins.project.sofia.UCModule.AREF_SETTINGS;
-import static com.kollins.project.sofia.UCModule.MODEL_SETTINGS;
 import static com.kollins.project.sofia.UCModule.SETTINGS;
 import static com.kollins.project.sofia.UCModule.START_PAUSED_SETTINGS;
 

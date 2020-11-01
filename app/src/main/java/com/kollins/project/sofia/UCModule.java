@@ -328,9 +328,7 @@ public class UCModule extends AppCompatActivity {
 
     public static boolean[] getHiZInput() {
         boolean[] hiZInput = new boolean[getPinArray().length];
-        for (int i = 0; i < hiZInput.length; i++) {
-            hiZInput[i] = true;
-        }
+        Arrays.fill(hiZInput, true);
         return hiZInput;
     }
 
@@ -466,9 +464,7 @@ public class UCModule extends AppCompatActivity {
             Log.e("ERROR", "ERROR: stopSystem -> join", e);
         }
 
-        for (int i = 0; i < OutputFragment_ATmega328P.evalFreq.length; i++) {
-            OutputFragment_ATmega328P.evalFreq[i] = false;
-        }
+        Arrays.fill(OutputFragment_ATmega328P.evalFreq, false);
 
         if (setUpSuccessful) {
             programMemory.stopCodeObserver(getContentResolver());

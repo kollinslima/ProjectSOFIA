@@ -41,12 +41,12 @@ public class PathUtil {
      * Gets the file path of the given Uri.
      */
     public static String getPath(Context context, Uri uri){
-        final boolean needToCheckUri = Build.VERSION.SDK_INT >= 19;
+//        final boolean needToCheckUri = true;
         String selection = null;
         String[] selectionArgs = null;
         // Uri is different in versions after KITKAT (Android 4.4), we need to
         // deal with different Uris.
-        if (needToCheckUri && DocumentsContract.isDocumentUri(context.getApplicationContext(), uri)) {
+        if (DocumentsContract.isDocumentUri(context.getApplicationContext(), uri)) {
             if (isExternalStorageDocument(uri)) {
                 final String docId = DocumentsContract.getDocumentId(uri);
                 final String[] split = docId.split(":");
@@ -76,9 +76,7 @@ public class PathUtil {
         }
         if ("content".equalsIgnoreCase(uri.getScheme())) {
             String[] projection = { MediaStore.Images.Media.DATA };
-            Cursor cursor = null;
-            try {
-                cursor = context.getContentResolver().query(uri, projection, selection, selectionArgs, null);
+            try (Cursor cursor = context.getContentResolver().query(uri, projection, selection, selectionArgs, null)) {
                 int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
                 if (cursor.moveToFirst()) {
                     return cursor.getString(column_index);

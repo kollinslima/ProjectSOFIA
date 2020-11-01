@@ -45,6 +45,7 @@ import com.kollins.project.sofia.ucinterfaces.OutputFragment;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Created by kollins on 3/14/18.
@@ -298,7 +299,6 @@ public class OutputFragment_ATmega328P extends Fragment implements OutputFragmen
 
     @Override
     public void getPINConfig() {
-        return;
     }
 
     public List<OutputPin_ATmega328P> getPinList() {
@@ -320,6 +320,7 @@ public class OutputFragment_ATmega328P extends Fragment implements OutputFragmen
         private OutputPin_ATmega328P pin;
         private String ledText, freqText, dcText;
         private int backgroundColor;
+        private View view;
 
         @Override
         protected Integer doInBackground(Integer... integers) {
@@ -348,8 +349,12 @@ public class OutputFragment_ATmega328P extends Fragment implements OutputFragmen
 
             ledText = UCModule.resources.getStringArray(R.array.ledText)[pin.getPinState(pin.getPinPositionSpinner())];
             backgroundColor = BACKGROUND_PIN[pin.getPinState(pin.getPinPositionSpinner())];
-            freqText = String.format("%.0f Hz", frequencyBuffer[pin.getPinPositionSpinner()] >= 0 ? frequencyBuffer[pin.getPinPositionSpinner()] : 0);
-            dcText = String.format("%.0f %%", dutyCycleBuffer[pin.getPinPositionSpinner()] <= 100 ? dutyCycleBuffer[pin.getPinPositionSpinner()] : 100);
+            freqText = String.format(Locale.getDefault(), "%.0f Hz", frequencyBuffer[pin.getPinPositionSpinner()] >= 0 ? frequencyBuffer[pin.getPinPositionSpinner()] : 0);
+            if (dutyCycleBuffer[pin.getPinPositionSpinner()] <= 100 && dutyCycleBuffer[pin.getPinPositionSpinner()] >= 0) {
+                dcText = String.format(Locale.getDefault(), "%.0f %%", dutyCycleBuffer[pin.getPinPositionSpinner()]);
+            } else {
+                dcText = String.format(Locale.getDefault(), "%.0f %%", 0);
+            }
 
             return 0;
         }

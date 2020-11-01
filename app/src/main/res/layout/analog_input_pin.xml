@@ -34,7 +34,6 @@
         android:id="@+id/voltageLevel"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:min="0"
         android:max="100"
         android:layout_weight="4"/>
 

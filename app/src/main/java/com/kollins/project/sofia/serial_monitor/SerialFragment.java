@@ -34,10 +34,12 @@ import androidx.fragment.app.Fragment;
 import com.kollins.project.sofia.R;
 import com.kollins.project.sofia.UCModule_View;
 
+import java.util.Objects;
+
 public class SerialFragment extends Fragment {
 
     public static String TAG_SERIAL_FRAGMENT = "serialFragmentTAG";
-    public static String buffer = new String();
+    public static String buffer = "";
 
     private static TextView serialMonitor;
     private Button closeButton, sendButton;

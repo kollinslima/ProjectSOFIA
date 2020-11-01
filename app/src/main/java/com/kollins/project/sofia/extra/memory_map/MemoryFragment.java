@@ -75,7 +75,7 @@ public class MemoryFragment extends Fragment {
         int memoryUsage = dataMemory.getMemoryUsage();
         int memorySize = dataMemory.getMemorySize();
         memUsageBytesText.setText("Bytes: " + memoryUsage + "/" + memorySize);
-        memUsagePercentText.setText(String.valueOf((memoryUsage*100)/memorySize) + "%");
+        memUsagePercentText.setText((memoryUsage * 100) / memorySize + "%");
 
         dataMemory.startTimer();
 
@@ -119,7 +119,7 @@ public class MemoryFragment extends Fragment {
                 }
                 @Override
                 public boolean onQueryTextChange(String s) {
-                    mAdapter.getFilter().filter(s.toString());
+                    mAdapter.getFilter().filter(s);
                     return true;
                 }
             });
@@ -134,7 +134,7 @@ public class MemoryFragment extends Fragment {
         @Override
         protected Void doInBackground(Integer... integers) {
             memoryByte = "Bytes: " + integers[0] + "/" + integers[1];
-            memoryPercent = String.valueOf((integers[0]*100)/integers[1]) + "%";
+            memoryPercent = (integers[0] * 100) / integers[1] + "%";
             return null;
         }
 

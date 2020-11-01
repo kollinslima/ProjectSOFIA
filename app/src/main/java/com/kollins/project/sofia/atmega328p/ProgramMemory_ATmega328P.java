@@ -32,7 +32,6 @@ import com.kollins.project.sofia.ucinterfaces.ProgramMemory;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -100,7 +99,7 @@ public class ProgramMemory_ATmega328P implements ProgramMemory {
             try {
                 //Try to open the new way
                 InputStream inputStream = contentResolver.openInputStream(hexFileLocation);
-                BufferedReader reader = new BufferedReader(new InputStreamReader(Objects.requireNonNull(inputStream)));
+                BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
                 ret = loadHexFile(reader);
 //                if (ret) {
 //                    Log.d(UCModule.MY_LOG_TAG, "CodeObserver: STARTING CODE OBSERVER");

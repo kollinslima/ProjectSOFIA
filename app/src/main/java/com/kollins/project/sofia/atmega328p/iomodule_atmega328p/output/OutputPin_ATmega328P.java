@@ -20,6 +20,8 @@ package com.kollins.project.sofia.atmega328p.iomodule_atmega328p.output;
 import com.kollins.project.sofia.UCModule;
 import com.kollins.project.sofia.ucinterfaces.IOModule;
 
+import java.util.Arrays;
+
 /**
  * Created by kollins on 3/14/18.
  */
@@ -70,9 +72,7 @@ public class OutputPin_ATmega328P {
     }
 
     public void resetPinState(){
-        for (int i = 0; i < pinState.length; i++){
-            pinState[i] = IOModule.TRI_STATE;
-        }
+        Arrays.fill(pinState, IOModule.TRI_STATE);
     }
 
     public int[] getStates() {

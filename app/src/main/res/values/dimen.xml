@@ -22,5 +22,5 @@
     <dimen name="row_mem_map">50dp</dimen>
     <dimen name="serial_close_button">25dp</dimen>
     <dimen name="serial_send_button">40dp</dimen>
-    <dimen name="serial_text_size">12dp</dimen>
+    <dimen name="serial_text_size">12sp</dimen>
 </resources>
