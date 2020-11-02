@@ -24,7 +24,7 @@
 
     <string name="hex_file_read_fail">Falha ao ler programa.</string>
     <!--<string name="hex_file_read_fail_instructions">Load a .hex file and reset system</string>-->
-    <string name="hex_file_read_fail_instructions">Carrege um arquivo .hex</string>
+    <string name="hex_file_read_fail_instructions">Importe um arquivo .hex</string>
 
     <string name="running">Executando</string>
     <string name="paused">Pausado</string>
@@ -133,7 +133,7 @@
     <string name="action_memory_map_error">Inicie a simulação primeiro.</string>
     <string name="filemanager_not_found">Instale um gerenciador de arquivos.</string>
     <string name="not_hex_error">Erro: Este não é um arquivo .hex</string>
-    <string name="fail_to_load_file">Erro: Falha ao carregar arquivo</string>
+    <string name="fail_to_load_file">Erro: Falha ao importar arquivo</string>
     <string name="fail_to_start_simulation">Erro: Falha ao iniciar a simulação</string>
     <string name="action_play_pause">Play/Pause</string>
     <string name="action_settings">Configuração</string>
