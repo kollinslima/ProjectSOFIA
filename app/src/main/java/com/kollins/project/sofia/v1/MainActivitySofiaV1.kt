@@ -81,8 +81,14 @@ class MainActivitySofiaV1 : AppCompatActivity(), UiInterface {
         Toolbar.OnMenuItemClickListener { item ->
             when (item.itemId) {
                 R.id.v1ActionAddIO -> {
+                    val fragManager = supportFragmentManager
+                    if(fragManager.findFragmentByTag(OutputFragmentV1.V1_OUTPUT_FRAGMENT_TAG) == null) {
+                        val fragTransaction = fragManager.beginTransaction()
+                        fragTransaction.add(R.id.v1OutputFragmentFrame, outputFragment, OutputFragmentV1.V1_OUTPUT_FRAGMENT_TAG)
+                        fragTransaction.commit()
+                        v1OutputContainer.visibility = View.VISIBLE
+                    }
                     outputFragment.addOutput()
-                    v1OutputContainer.visibility = View.VISIBLE
                 }
                 R.id.v1ActionImport -> {
                     when (PackageManager.PERMISSION_GRANTED) {

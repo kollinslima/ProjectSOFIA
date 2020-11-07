@@ -5,8 +5,7 @@
     android:layout_height="wrap_content"
     android:orientation="horizontal"
     android:padding="@dimen/outputLayoutPadding"
-    android:gravity="center"
-    android:descendantFocusability="blocksDescendants">
+    android:gravity="center">
 
     <androidx.appcompat.widget.AppCompatSpinner
         android:id="@+id/v1PinSelectorOutput"

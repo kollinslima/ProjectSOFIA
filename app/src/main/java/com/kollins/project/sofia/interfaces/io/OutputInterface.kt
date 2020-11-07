@@ -13,4 +13,5 @@ interface OutputInterface {
     fun updatePinState()
     fun getPinState() : OutputState
     fun getPinNames() : List<String>
+    fun clone(): OutputInterface
 }

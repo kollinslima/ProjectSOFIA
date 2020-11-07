@@ -84,6 +84,10 @@ class OutputPinV1ATmega328P : OutputInterface {
         return pinNames
     }
 
+    override fun clone(): OutputInterface {
+        return OutputPinV1ATmega328P()
+    }
+
     companion object {
         const val defaultIndex = 13
         var pullUpDisabled = false

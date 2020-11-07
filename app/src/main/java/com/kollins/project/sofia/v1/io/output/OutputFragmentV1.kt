@@ -15,9 +15,13 @@ import kotlinx.android.synthetic.main.v1_output_fragment.view.*
 
 class OutputFragmentV1 : Fragment() {
 
-    private var outputList: MutableList<OutputInterface> = mutableListOf()
-    private var outputAdapter: OutputAdapterV1 = OutputAdapterV1(outputList)
+    private val outputList: MutableList<OutputInterface> = mutableListOf()
+    private val outputAdapter: OutputAdapterV1 = OutputAdapterV1(outputList)
     private lateinit var outputPin: OutputInterface
+
+    companion object{
+        const val V1_OUTPUT_FRAGMENT_TAG: String = "V1_OUTPUT_FRAGMENT_TAG"
+    }
 
     fun init(targetDevice: Device) {
         outputPin = when (targetDevice) {
@@ -35,14 +39,13 @@ class OutputFragmentV1 : Fragment() {
         val view = inflater.inflate(R.layout.v1_output_fragment, container, false)
 
         val outputListView = view.outputList
-        outputListView.layoutManager = LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
         outputListView.adapter = outputAdapter
-
+        outputListView.layoutManager = LinearLayoutManager(activity)
         return view
     }
 
     fun addOutput() {
-        outputList.add(outputPin)
+        outputList.add(outputPin.clone())
         outputAdapter.notifyItemInserted(outputList.size-1)
     }
 }
