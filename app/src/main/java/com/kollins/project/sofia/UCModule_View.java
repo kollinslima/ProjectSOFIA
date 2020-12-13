@@ -197,7 +197,9 @@ public class UCModule_View extends Fragment {
             microSeconds = simulatedTime / (10000);
             seconds = TimeUnit.MICROSECONDS.toSeconds(microSeconds);
 
-            simulatedText = UCModule.resources.getString(R.string.simulated_time_format, seconds, microSeconds);
+            simulatedText = UCModule.resources.getString(R.string.simulated_time_format,
+                    seconds,
+                    microSeconds - TimeUnit.SECONDS.toMicros(seconds)); //Fix microSeconds after 1s
 
             screenUpdater.post(new Runnable() {
                 @Override

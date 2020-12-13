@@ -69,7 +69,7 @@ public class ProgramMemory_ATmega328P implements ProgramMemory {
     // (https://stackoverflow.com/questions/140131/convert-a-string-representation-of-a-hex-dump-to-a-byte-array-using-java)
     private byte[] hexStringToByteArray(String hexString) {
         int len = hexString.length();
-        if (len%2 != 0) {
+        if (len <= 0 || len%2 != 0) {
             return null;
         }
 
@@ -222,8 +222,16 @@ public class ProgramMemory_ATmega328P implements ProgramMemory {
 
         try {
             while ((line = reader.readLine()) != null) {
-                //Remove colon
-                line = line.substring(1);
+
+                try {
+                    //Remove colon
+                    line = line.substring(1);
+                } catch (StringIndexOutOfBoundsException e){
+                    //This verification is necessary to avoid crash in some devices
+                    //Maybe an empty line is being read at the end
+                    Log.e(UCModule.MY_LOG_TAG, "ERROR: Something wrong while parsing this line:  " + line, e);
+                    continue;
+                }
                 Log.v(UCModule.MY_LOG_TAG, line);
 
                 readBytes = hexStringToByteArray(line);
@@ -232,7 +240,7 @@ public class ProgramMemory_ATmega328P implements ProgramMemory {
                 }
 
                 if (!checksum(readBytes)) {
-                    Log.d(UCModule.MY_LOG_TAG, "Checksum error !!!");
+                    Log.e(UCModule.MY_LOG_TAG, "Checksum error !!!");
                     return false;
                 }
 

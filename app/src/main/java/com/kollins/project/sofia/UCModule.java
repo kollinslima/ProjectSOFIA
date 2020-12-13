@@ -322,8 +322,30 @@ public class UCModule extends AppCompatActivity {
     }
 
     public static String[] getPinArray() {
-        int id = resources.getIdentifier(UCModule.model + "_pins", "array", PACKAGE_NAME);
-        return resources.getStringArray(id);
+//        int id = resources.getIdentifier(UCModule.model + "_pins", "array", PACKAGE_NAME);
+//        return resources.getStringArray(id);
+        return new String[]{
+                "Pin0",
+                "Pin1",
+                "Pin2",
+                "Pin3",
+                "Pin4",
+                "Pin5",
+                "Pin6",
+                "Pin7",
+                "Pin8",
+                "Pin9",
+                "Pin10",
+                "Pin11",
+                "Pin12",
+                "Pin13",
+                "A0",
+                "A1",
+                "A2",
+                "A3",
+                "A4",
+                "A5"
+        };
     }
 
     public static boolean[] getHiZInput() {
