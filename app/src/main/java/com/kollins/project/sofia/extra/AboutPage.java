@@ -18,11 +18,13 @@
 package com.kollins.project.sofia.extra;
 
 import android.os.Bundle;
+import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.kollins.project.sofia.R;
+import com.kollins.project.sofia.UCModule;
 
 public class AboutPage extends AppCompatActivity {
 
@@ -31,6 +33,8 @@ public class AboutPage extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.about_page);
+
+        ((TextView)findViewById(R.id.versionText)).setText(UCModule.getSofiaVersion());
     }
 
 }

@@ -367,7 +367,7 @@ public class UCModule extends AppCompatActivity {
     }
 
     public static String getSofiaVersion() {
-        return resources.getString(R.string.app_version);
+        return String.format("v%s", BuildConfig.VERSION_NAME);
     }
 
     public static double getMaxVoltageLowState() {
