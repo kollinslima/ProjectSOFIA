@@ -379,11 +379,13 @@ public class UCModule extends AppCompatActivity {
     }
 
     public static String[] getPinArrayWithHint() {
-        int id = resources.getIdentifier(UCModule.model + "_pins", "array", PACKAGE_NAME);
-        String[] pinArrayWithHint = resources.getStringArray(id);
+//        int id = resources.getIdentifier(UCModule.model + "_pins", "array", PACKAGE_NAME);
+//        String[] pinArrayWithHint = resources.getStringArray(id);
+        String[] pinArrayWithHint = UCModule.getPinArray();
         pinArrayWithHint = Arrays.copyOf(pinArrayWithHint, pinArrayWithHint.length + 1);
 
-        pinArrayWithHint[pinArrayWithHint.length - 1] = resources.getString(R.string.inputHint);
+//        pinArrayWithHint[pinArrayWithHint.length - 1] = resources.getString(R.string.inputHint);
+        pinArrayWithHint[pinArrayWithHint.length - 1] = "Pin X";
         return pinArrayWithHint;
     }
 
