@@ -21,11 +21,11 @@ apply plugin: 'jacoco'
 
 
 android {
-    compileSdkVersion 29
+    compileSdkVersion 30
     defaultConfig {
         applicationId "com.kollins.project.sofia"
         minSdkVersion 21
-        targetSdkVersion 29
+        targetSdkVersion 30
 //        multiDexEnabled true
         versionCode 14
         versionName "1.12.1"
