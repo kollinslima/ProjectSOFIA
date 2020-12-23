@@ -387,6 +387,7 @@ public class UCModule_View extends Fragment {
                             "================" +
                             "\nSOFIA: " + UCModule.getSofiaVersion() +
                             "\nAPI level: " + Build.VERSION.SDK_INT +
+                            "\nDevice: " + Build.MANUFACTURER + " - " + Build.MODEL +
                             "\n================\n\n"
                             );
                     startActivity(Intent.createChooser(emailIntent, ""));
