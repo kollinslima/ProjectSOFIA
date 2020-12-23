@@ -36,6 +36,7 @@ import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.PopupMenu;
 import androidx.appcompat.widget.Toolbar;
@@ -45,11 +46,9 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
-import com.kollins.project.sofia.atmega328p.ADC_ATmega328P;
 import com.kollins.project.sofia.atmega328p.iomodule_atmega328p.IOModule_ATmega328P;
 import com.kollins.project.sofia.atmega328p.iomodule_atmega328p.input.InputFragment_ATmega328P;
 import com.kollins.project.sofia.atmega328p.iomodule_atmega328p.output.OutputFragment_ATmega328P;
-import com.kollins.project.sofia.extra.AREF_Configuration;
 import com.kollins.project.sofia.extra.AboutPage;
 import com.kollins.project.sofia.extra.Settings;
 import com.kollins.project.sofia.extra.memory_map.MemoryFragment;
@@ -59,7 +58,6 @@ import com.kollins.project.sofia.ucinterfaces.IOModule;
 import com.kollins.project.sofia.ucinterfaces.InputFragment;
 import com.kollins.project.sofia.ucinterfaces.OutputFragment;
 
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import static android.app.Activity.RESULT_OK;
@@ -171,8 +169,6 @@ public class UCModule_View extends Fragment {
         //Set Toolbar
         toolbar = ((Toolbar) view.findViewById(R.id.mainToolbar));
         toolbar.inflateMenu(R.menu.menu_layout);
-        toolbar.setOnMenuItemClickListener(new ToolBarMenuItemClick());
-        toolbar.setTitle("Arduino " + UCModule.model);
 
         statusInfo = (TextView) view.findViewById(R.id.statusInfo);
         simulatedTimeDisplay = (TextView) view.findViewById(R.id.simulatedTime);
@@ -184,6 +180,13 @@ public class UCModule_View extends Fragment {
         inputFrame = (FrameLayout) view.findViewById(R.id.inputPins);
 
         return view;
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        toolbar.setTitle("Arduino " + UCModule.model);
+        toolbar.setOnMenuItemClickListener(new ToolBarMenuItemClick(view));
     }
 
     @SuppressLint("StringFormatInvalid")
@@ -290,6 +293,11 @@ public class UCModule_View extends Fragment {
     }
 
     private class ToolBarMenuItemClick implements Toolbar.OnMenuItemClickListener {
+        View view;
+        public ToolBarMenuItemClick(View view) {
+            this.view = view;
+        }
+
         @Override
         public boolean onMenuItemClick(MenuItem item) {
             int itemId = item.getItemId();
@@ -304,7 +312,7 @@ public class UCModule_View extends Fragment {
                     return true;
                 }
 
-                PopupMenu popup = new PopupMenu(getActivity(), getView().findViewById(R.id.action_add));
+                PopupMenu popup = new PopupMenu(getContext(), this.view.findViewById(R.id.action_add));
                 popup.setOnMenuItemClickListener(new PopUpMenuItemClick());
                 MenuInflater inflater = popup.getMenuInflater();
                 inflater.inflate(R.menu.pop_up_menu, popup.getMenu());
