@@ -7,7 +7,7 @@ enum class OutputState {
 }
 
 interface OutputInterface {
-    fun ioUpdate(addr: Byte, value: Byte)
+    fun ioUpdate(value:String)
     fun setOutputIndex(position: Int)
     fun getOutputIndex() : Int
     fun updatePinState()

@@ -4,7 +4,7 @@ import com.kollins.project.sofia.interfaces.io.OutputInterface
 import com.kollins.project.sofia.interfaces.io.OutputState
 import kotlin.experimental.and
 
-enum class OutputAddr (val addr: Byte) {
+enum class OutputAddr(val addr: Byte) {
     DDRB(0x24),
     PORTB(0x25),
     DDRC(0x27),
@@ -21,13 +21,14 @@ class OutputPinV1ATmega328P : OutputInterface {
     private var pinState = OutputState.TRI_STATE
     private var haveMeter = false
 
-    override fun ioUpdate(addr: Byte, value: Byte) {
-        outRegisters[addr] = value
+    override fun ioUpdate(change:String) {
+        val splittedChange: List<String> = change.split(":")
+        outRegisters[splittedChange[0].toByte()] = splittedChange[1].toByte()
     }
 
     override fun setOutputIndex(position: Int) {
         index = position
-        when(index) {
+        when (index) {
             in 0..7 -> {
                 outputBit = index
                 portAddr = OutputAddr.PORTD.addr
@@ -51,8 +52,8 @@ class OutputPinV1ATmega328P : OutputInterface {
     }
 
     override fun updatePinState() {
-        val ddrReg = outRegisters[ddrAddr]?:0x00
-        val portReg = outRegisters[portAddr]?:0x00
+        val ddrReg = outRegisters[ddrAddr] ?: 0x00
+        val portReg = outRegisters[portAddr] ?: 0x00
         val mask = (0x01 shl index).toByte()
 
         if ((ddrReg and mask) == 0.toByte()) {
@@ -99,6 +100,7 @@ class OutputPinV1ATmega328P : OutputInterface {
             OutputAddr.DDRD.addr to 0x00,
             OutputAddr.PORTD.addr to 0x00
         )
+
         val pinNames = listOf(
             "Pin0",
             "Pin1",

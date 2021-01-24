@@ -1,7 +1,6 @@
 package com.kollins.project.sofia.v1.io.output
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -47,6 +46,11 @@ class OutputFragmentV1 : Fragment() {
     fun addOutput() {
         outputList.add(outputPin.clone())
         outputAdapter.notifyItemInserted(outputList.size-1)
+    }
+
+    fun ioUpdate(change:String) {
+        outputPin.ioUpdate(change)
+        outputAdapter.updateIO()
     }
 }
 

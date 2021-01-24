@@ -5,4 +5,5 @@ interface UiInterface {
     fun loadCoreChecksumError()
     fun loadCoreFileOpenFail()
     fun loadCoreInvalidFile()
+    fun ioUpdate(change:String)
 }

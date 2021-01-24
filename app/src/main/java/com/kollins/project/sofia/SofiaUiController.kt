@@ -40,6 +40,10 @@ class SofiaUiController(mainUi: UiInterface) {
         ui.loadCoreInvalidFile()
     }
 
+    fun outputChanged (change:String) {
+        ui.ioUpdate(change)
+    }
+
     //////////////////// NATIVE FUNCTIONS ///////////////////////////
     external fun startCore()
     external fun stopCore()

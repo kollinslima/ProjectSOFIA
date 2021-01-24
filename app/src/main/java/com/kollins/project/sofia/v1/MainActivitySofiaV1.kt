@@ -76,6 +76,10 @@ class MainActivitySofiaV1 : AppCompatActivity(), UiInterface {
         Toast.makeText(this, R.string.import_fail_invalid_file, Toast.LENGTH_SHORT)
     }
 
+    override fun ioUpdate(change:String) {
+        runOnUiThread { outputFragment.ioUpdate(change) }
+    }
+
     //////////////////// LISTENERS ///////////////////////////
     private val toolBarMenuItemClick: Toolbar.OnMenuItemClickListener =
         Toolbar.OnMenuItemClickListener { item ->
