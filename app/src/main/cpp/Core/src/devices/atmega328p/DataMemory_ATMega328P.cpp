@@ -3,6 +3,9 @@
 //
 
 #include "../../../include/devices/atmega328p/DataMemory_ATMega328P.h"
+#include "../../../include/utils/Functions.h"
+
+#define SOFIA_DATA_MEMORY_ATMEGA328P_TAG "SOFIA DATA MEMORY ATMEGA328P"
 
 #define SDRAM_EXTERNAL_SIZE 2048    //2kB external SDRAM
 #define REGISTERS           32      //32 Registers
@@ -119,9 +122,11 @@
 #define DDRB_ADDR           0x24
 #define PINB_ADDR           0x23
 
-DataMemory_ATMega328P::DataMemory_ATMega328P() {
+DataMemory_ATMega328P::DataMemory_ATMega328P(SofiaNotifier *notifier) {
     size = MEMORY_SIZE;
     buffer = new sbyte[size];
+    this->notifier = notifier;
+    memset (buffer,0,size);
     setupDataMemory();
 }
 
@@ -131,7 +136,6 @@ DataMemory_ATMega328P::~DataMemory_ATMega328P() {
 
 void DataMemory_ATMega328P::setupDataMemory() {
     /**************RESET CONDITION************/
-
     buffer[UDR0_ADDR]   = 0x00;
     buffer[UBRR0H_ADDR] = 0x00;
     buffer[UBRR0L_ADDR] = 0x00;
@@ -193,8 +197,8 @@ void DataMemory_ATMega328P::setupDataMemory() {
     buffer[CLKPR_ADDR]  = 0x00;
     buffer[WDTCSR_ADDR] = 0x00;
     buffer[SREG_ADDR]   = 0x00;
-    buffer[SPH_ADDR]    = (RAMEND>>8); //0x80
-    buffer[SPL_ADDR]    = RAMEND;      //0xFF
+    buffer[SPH_ADDR]    = static_cast<sbyte>(RAMEND>>8);    //0x80
+    buffer[SPL_ADDR]    = static_cast<sbyte>(RAMEND);       //0xFF
 
     buffer[SPMCSR_ADDR] = 0x00;
 
@@ -242,12 +246,31 @@ void DataMemory_ATMega328P::setupDataMemory() {
 }
 
 bool DataMemory_ATMega328P::write(smemaddr16 addr, void *data) {
-    buffer[SAFE_ADDR(addr, MEMORY_SIZE)] = *(static_cast<sbyte *>(data));
+    sbyte byte = *(static_cast<sbyte *>(data));
+
+    switch (addr) {
+        case PORTD_ADDR:
+        case DDRD_ADDR:
+        case PIND_ADDR:
+        case PORTC_ADDR:
+        case DDRC_ADDR:
+        case PINC_ADDR:
+        case PORTB_ADDR:
+        case DDRB_ADDR:
+        case PINB_ADDR:
+            this->notifier->addNotification(
+                    OUTPUT_CHANGED_LISTENER, to_string(addr)+":"+to_string(byte));
+            break;
+        default:
+            break;
+    }
+    buffer[SAFE_ADDR(addr, MEMORY_SIZE)] = byte;
     return true;
 }
 
 bool DataMemory_ATMega328P::read(smemaddr16 addr, void *data) {
-    *(static_cast<sbyte *>(data)) = buffer[SAFE_ADDR(addr, MEMORY_SIZE)];
+    sbyte byte = buffer[SAFE_ADDR(addr, MEMORY_SIZE)];
+    *(static_cast<sbyte *>(data)) = byte;
     return true;
 }
 

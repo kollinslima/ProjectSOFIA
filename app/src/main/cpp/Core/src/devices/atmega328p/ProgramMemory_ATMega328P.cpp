@@ -13,6 +13,7 @@
 ProgramMemory_ATMega328P::ProgramMemory_ATMega328P() {
     size = MEMORY_SIZE;
     buffer = new sbyte[size];
+    memset (buffer,0,size);
 }
 
 ProgramMemory_ATMega328P::~ProgramMemory_ATMega328P() {

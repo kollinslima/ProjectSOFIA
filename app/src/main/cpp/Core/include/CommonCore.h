@@ -15,12 +15,16 @@ typedef __uint16_t smemaddr16;
 typedef __uint8_t sbyte;
 typedef __uint16_t sword16;
 
-#define MAX_LISTENERS 1
+#define MAX_LISTENERS 6
+
 #define TIME_UPDATE_LISTENER 0
+
 #define LOAD_SUCCESS_LISTENER  1
 #define CHECKSUM_ERROR_LISTENER  2
 #define FILE_OPEN_FAIL_LISTENER  3
 #define INVALID_FILE_LISTENER  4
+
+#define OUTPUT_CHANGED_LISTENER  5
 
 #ifdef NDEBUG
 #define LOGD(TAG, ...)

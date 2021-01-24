@@ -88,6 +88,11 @@ void notifyInvalidFile(JNIEnv *env, const char *msg) {
     env->CallVoidMethod(mainCtx.activityObj, id);
 }
 
+void notifyOutputChanged(JNIEnv *env, const char *msg) {
+    jmethodID id  = env->GetMethodID(mainCtx.activityClz, "outputChanged", "(Ljava/lang/String;)V");
+    env->CallVoidMethod(mainCtx.activityObj, id, env->NewStringUTF(msg));
+}
+
 ////////////////////// UI -> NDK Interface//////////////////////////////////////////
 extern "C" JNIEXPORT jint JNICALL
 JNI_OnLoad(JavaVM *vm, void *reserved) {
@@ -106,10 +111,13 @@ JNI_OnLoad(JavaVM *vm, void *reserved) {
     mainCtx.activityObj = nullptr;
 
     mainCtx.listeners[TIME_UPDATE_LISTENER] = notifyTimeUpdate;
+
     mainCtx.listeners[LOAD_SUCCESS_LISTENER] = notifyLoadSuccessful;
     mainCtx.listeners[CHECKSUM_ERROR_LISTENER] = notifyChecksumError;
     mainCtx.listeners[FILE_OPEN_FAIL_LISTENER] = notifyFileOpenFail;
     mainCtx.listeners[INVALID_FILE_LISTENER] = notifyInvalidFile;
+
+    mainCtx.listeners[OUTPUT_CHANGED_LISTENER] = notifyOutputChanged;
 
     return JNI_VERSION_1_6;
 }

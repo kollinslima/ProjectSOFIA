@@ -7,11 +7,15 @@
 
 
 #include "../components/avr/GenericAVRDataMemory.h"
+#include "../../../include/SofiaCoreController.h"
+#include <string>
+
+using namespace std;
 
 class DataMemory_ATMega328P : public GenericAVRDataMemory {
 
 public:
-    DataMemory_ATMega328P();
+    DataMemory_ATMega328P(SofiaNotifier *notifier);
 
     ~DataMemory_ATMega328P();
 
@@ -29,6 +33,7 @@ public:
 
 private:
     void setupDataMemory();
+    SofiaNotifier *notifier;
 };
 
 
