@@ -17,12 +17,12 @@
 
 using namespace std;
 
-class SofiaCoreController;
+class SofiaNotifier;
 
 class ATMega328P : public GenericDevice {
 
 public:
-    ATMega328P(SofiaCoreController *scc);
+    ATMega328P(SofiaNotifier *notifier);
 
     ~ATMega328P();
 
@@ -31,14 +31,14 @@ public:
     void stop() override;
 
 private:
-    SofiaCoreController *scc;
+    SofiaNotifier *notifier;
 
     bool isRunning;
     unsigned int clockFreq;
 
-    ProgramMemory_ATMega328P programMemory;
-    DataMemory_ATMega328P dataMemory;
-    AVRCPU cpu = AVRCPU(&programMemory, &dataMemory);
+    ProgramMemory_ATMega328P *programMemory;
+    DataMemory_ATMega328P *dataMemory;
+    AVRCPU *cpu;
 
     int syncCounter[NUM_MODULES];
     thread scheduler[NUM_MODULES];

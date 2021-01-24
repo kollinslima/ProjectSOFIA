@@ -9,6 +9,7 @@
 
 class Functions {
     public:
+//        static char *byteToHexStr(sbyte *byes, int len);
         static int hexStrToByte(const char* hexStr, sbyte *byes);
 };
 

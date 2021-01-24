@@ -8,11 +8,11 @@
 
 #define SOFIA_DEVICE_FACTORY_TAG "SOFIA DEVICE FACTORY"
 
-GenericDevice * DeviceFactory::createDevice(Device device, SofiaCoreController *scc) {
+GenericDevice * DeviceFactory::createDevice(Device device, SofiaNotifier *notifier) {
     GenericDevice *ret = nullptr;
     switch (device) {
         case Device::ARDUINO_UNO:
-            ret = new ATMega328P(scc);
+            ret = new ATMega328P(notifier);
             break;
         default:
             LOGE(SOFIA_DEVICE_FACTORY_TAG, "Device unknown (how did I get here?)");

@@ -15,27 +15,15 @@ using namespace std;
 
 class GenericDevice;
 
-class SofiaCoreController {
+class SofiaNotifier {
     public:
-        SofiaCoreController(Listener **listeners, JavaVM *vm, JNIEnv *env);
-        ~SofiaCoreController();
-
-//        void setListeners(Listener **listeners);
-
-        void load(Device device, int fileDescriptor);
-        void start();
-        void stop();
-
-//        bool isDeviceRunning();
+        explicit SofiaNotifier(Listener **listeners, JavaVM *vm, JNIEnv *env);
+        ~SofiaNotifier();
 
         void addNotification(int notificationID, const string& message = "");
-
-    private:
-
-        GenericDevice *device;
-
-        bool stopDispatcher;
+    private :
         Listener **listeners;
+        bool stopDispatcher;
 
         thread dispatcherThread;
         mutex notificationMutex;
@@ -44,5 +32,18 @@ class SofiaCoreController {
         void dispatcher (JavaVM *vm, JNIEnv *env);
 };
 
+class SofiaCoreController {
+    public:
+        explicit SofiaCoreController(Listener **listeners, JavaVM *vm, JNIEnv *env);
+        ~SofiaCoreController();
+
+        void load(Device device, int fileDescriptor);
+        void start();
+        void stop();
+
+    private:
+        GenericDevice *device;
+        SofiaNotifier *notifier;
+};
 
 #endif //PROJECTSOFIA_SOFIACORECONTROLLER_H

@@ -9,7 +9,7 @@ typedef struct {
     jclass activityClz;
     jobject activityObj;
     SofiaCoreController *scc;
-    Listener *listeners[MAX_LISTENERS]; //TODO: Make it dynamic
+    Listener *listeners[MAX_LISTENERS];
 } MainCtx;
 
 MainCtx mainCtx;

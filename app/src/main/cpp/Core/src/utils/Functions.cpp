@@ -3,10 +3,24 @@
 //
 
 #include <cstring>
+#include <cstdlib>
 #include "../../include/utils/Functions.h"
 #include "../../include/CommonCore.h"
 
 #define SOFIA_FUNCTIONS_TAG "SOFIA FUNCTIONS"
+
+//constexpr char hexmap[] = {'0', '1', '2', '3', '4', '5', '6', '7',
+//                           '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+//
+//char *Functions::byteToHexStr(sbyte *data, int len) {
+//    char *s = (char *)malloc((len*2)*sizeof(char));
+//    for (int i = 0; i < len; ++i) {
+//        int pos = 2*i;
+//        s[pos]     = hexmap[(data[i] & 0xF0) >> 4];
+//        s[pos + 1] = hexmap[data[i] & 0x0F];
+//    }
+//    return s;
+//}
 
 int Functions::hexStrToByte(const char* hexStr, sbyte *byes) {
     size_t len = strlen(hexStr);

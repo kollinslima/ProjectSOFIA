@@ -12,8 +12,13 @@
 #define DEFAULT_CLOCK_FREQ 16000000
 #define CPU_MODULE_INDEX 0
 
-ATMega328P::ATMega328P(SofiaCoreController *scc) {
-    this->scc = scc;
+ATMega328P::ATMega328P(SofiaNotifier *notifier) {
+    this->notifier = notifier;
+
+    programMemory = new ProgramMemory_ATMega328P();
+    dataMemory = new DataMemory_ATMega328P(notifier);
+    cpu = new AVRCPU(programMemory, dataMemory);
+
     clockFreq = DEFAULT_CLOCK_FREQ;
     isRunning = false;
 }
@@ -24,6 +29,15 @@ ATMega328P::~ATMega328P() {
         i.join();
     }
     syncThread.join();
+
+    delete cpu;
+    cpu = nullptr;
+
+    delete dataMemory;
+    dataMemory = nullptr;
+
+    delete programMemory;
+    programMemory = nullptr;
 }
 
 void ATMega328P::start() {
@@ -47,25 +61,25 @@ void ATMega328P::stop() {
 }
 
 void ATMega328P::load(int fd) {
-    switch (programMemory.loadFile(fd)) {
+    switch (programMemory->loadFile(fd)) {
         case INTEL_CHECKSUM_ERROR:
-            scc->addNotification(CHECKSUM_ERROR_LISTENER);
+            notifier->addNotification(CHECKSUM_ERROR_LISTENER);
             break;
         case INTEL_INVALID_FILE:
-            scc->addNotification(INVALID_FILE_LISTENER);
+            notifier->addNotification(INVALID_FILE_LISTENER);
             break;
         case INTEL_FILE_OPEN_FAILED:
-            scc->addNotification(FILE_OPEN_FAIL_LISTENER);
+            notifier->addNotification(FILE_OPEN_FAIL_LISTENER);
             break;
         default:
-            scc->addNotification(LOAD_SUCCESS_LISTENER);
+            notifier->addNotification(LOAD_SUCCESS_LISTENER);
             break;
     }
 }
 
 void ATMega328P::cpuThread() {
     while (isRunning) {
-        cpu.run();
+        cpu->run();
         syncCounter[CPU_MODULE_INDEX]--;
         while (!syncCounter[CPU_MODULE_INDEX]) {usleep(1000);}
     }
@@ -92,7 +106,7 @@ void ATMega328P::syncronizationThread() {
     while (isRunning) {
         while (memcmp(syncCounter, finishCondition, sizeof(syncCounter))) {usleep(1000);}
         memcpy(syncCounter, initialCondition, sizeof(syncCounter));
-        scc->addNotification(TIME_UPDATE_LISTENER);
+        notifier->addNotification(TIME_UPDATE_LISTENER);
     }
 }
 
