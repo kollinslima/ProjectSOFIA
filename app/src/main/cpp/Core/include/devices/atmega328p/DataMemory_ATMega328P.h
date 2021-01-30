@@ -6,7 +6,7 @@
 #define PROJECTSOFIA_DATAMEMORY_ATMEGA328P_H
 
 
-#include "../components/avr/GenericAVRDataMemory.h"
+#include "../components/avr/memory/GenericAVRDataMemory.h"
 #include "../../../include/SofiaCoreController.h"
 #include <string>
 

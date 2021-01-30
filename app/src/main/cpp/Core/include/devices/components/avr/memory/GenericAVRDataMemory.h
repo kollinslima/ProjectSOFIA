@@ -5,7 +5,7 @@
 #ifndef PROJECTSOFIA_GENERICAVRMEMORY_H
 #define PROJECTSOFIA_GENERICAVRMEMORY_H
 
-#include "../generic/GenericMemory.h"
+#include "../../generic/GenericMemory.h"
 
 class GenericAVRDataMemory : public GenericMemory {
 

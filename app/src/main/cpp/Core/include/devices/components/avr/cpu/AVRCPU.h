@@ -5,30 +5,59 @@
 #ifndef PROJECTSOFIA_AVRCPU_H
 #define PROJECTSOFIA_AVRCPU_H
 
-
-#include "../generic/GenericCPU.h"
-#include "../generic/GenericMemory.h"
-#include "../generic/GenericProgramMemory.h"
-#include "GenericAVRDataMemory.h"
+#include "../../generic/GenericCPU.h"
+#include "../../generic/GenericMemory.h"
+#include "../../generic/GenericProgramMemory.h"
+#include "../memory/GenericAVRDataMemory.h"
 
 #define INSTRUCTION_DECODER_SIZE 65536 //2^16
+
+#define I_FLAG_MASK     0x80
+#define T_FLAG_MASK     0x40
+#define H_FLAG_MASK     0x20
+#define S_FLAG_MASK     0x10
+#define V_FLAG_MASK     0x08
+#define N_FLAG_MASK     0x04
+#define Z_FLAG_MASK     0x02
+#define C_FLAG_MASK     0x01
 
 class AVRCPU : public GenericCPU {
 
 public:
-    AVRCPU(GenericProgramMemory *programMemory, GenericAVRDataMemory *dataMemory);
+    typedef enum {
+        AVR,
+        AVRe,
+        AVRxm,
+        AVRxt,
+        AVRrc,
+    } Core;
 
+    typedef enum {
+        PC09,
+        PC16,
+        PC22,
+    } PCBits;
+
+    AVRCPU(GenericProgramMemory *programMemory, GenericAVRDataMemory *dataMemory, Core core = AVRCPU::Core::AVR);
     virtual ~AVRCPU();
 
-    void run();
+    void setPCSize(PCBits pcBits);
+    void setIOBaseAddr(smemaddr16 addr);
 
-private:
+    virtual void run() = 0;
+
+protected:
     typedef void (AVRCPU::*Instruction)();
 
     Instruction instructionDecoder[INSTRUCTION_DECODER_SIZE];
 
     GenericProgramMemory *progMem;
     GenericAVRDataMemory *datMem;
+    Core core;
+    PCBits pcBits;
+    smemaddr16 ioBaseAddr;
+
+    short needExtraCycles;
 
     sword16 instruction;
     smemaddr16 sregAddr;
@@ -82,9 +111,9 @@ private:
 
     void instruction_BST();
 
-    void instruction_CALL();
+    virtual void instruction_CALL();
 
-    void instruction_CBI();
+    virtual void instruction_CBI();
 
     void instruction_CLR_EOR();
 
@@ -104,11 +133,11 @@ private:
 
     void instruction_EICALL();
 
-    void instruction_EIJMP();
+    virtual void instruction_EIJMP();
 
-    void instruction_ELPM1();
-    void instruction_ELPM2();
-    void instruction_ELPM3();
+    virtual void instruction_ELPM1();
+    virtual void instruction_ELPM2();
+    virtual void instruction_ELPM3();
 
     void instruction_FMUL();
 
@@ -116,7 +145,7 @@ private:
 
     void instruction_FMULSU();
 
-    void instruction_ICALL();
+    virtual void instruction_ICALL();
 
     void instruction_IJMP();
 
@@ -132,19 +161,19 @@ private:
 
     void instruction_LAT();
 
-    void instruction_LD_X_UNCHANGED();
-    void instruction_LD_X_POST_INCREMENT();
-    void instruction_LD_X_PRE_DECREMENT();
+    virtual void instruction_LD_X_UNCHANGED();
+    virtual void instruction_LD_X_POST_INCREMENT();
+    virtual void instruction_LD_X_PRE_DECREMENT();
 
-    void instruction_LD_Y_UNCHANGED();
-    void instruction_LD_Y_POST_INCREMENT();
-    void instruction_LD_Y_PRE_DECREMENT();
-    void instruction_LDD_Y();
+    virtual void instruction_LD_Y_UNCHANGED();
+    virtual void instruction_LD_Y_POST_INCREMENT();
+    virtual void instruction_LD_Y_PRE_DECREMENT();
+    virtual void instruction_LDD_Y();
 
-    void instruction_LD_Z_UNCHANGED();
-    void instruction_LD_Z_POST_INCREMENT();
-    void instruction_LD_Z_PRE_DECREMENT();
-    void instruction_LDD_Z();
+    virtual void instruction_LD_Z_UNCHANGED();
+    virtual void instruction_LD_Z_POST_INCREMENT();
+    virtual void instruction_LD_Z_PRE_DECREMENT();
+    virtual void instruction_LDD_Z();
 
     void instruction_LDI_SER();
 
@@ -179,13 +208,13 @@ private:
 
     void instruction_POP();
 
-    void instruction_PUSH();
+    virtual void instruction_PUSH();
 
-    void instruction_RCALL();
+    virtual void instruction_RCALL();
 
-    void instruction_RET();
+    virtual void instruction_RET();
 
-    void instruction_RETI();
+    virtual void instruction_RETI();
 
     void instruction_RJMP();
 
@@ -195,7 +224,7 @@ private:
 
     void instruction_SBCI();
 
-    void instruction_SBI();
+    virtual void instruction_SBI();
 
     void instruction_SBIC();
 
@@ -212,19 +241,19 @@ private:
     void instruction_SPM_Z_UNCHANGED();
     void instruction_SPM_POST_INCREMENT();
 
-    void instruction_ST_X_UNCHANGED();
-    void instruction_ST_X_POST_INCREMENT();
-    void instruction_ST_X_PRE_DECREMENT();
+    virtual void instruction_ST_X_UNCHANGED();
+    virtual void instruction_ST_X_POST_INCREMENT();
+    virtual void instruction_ST_X_PRE_DECREMENT();
 
-    void instruction_ST_Y_UNCHANGED();
-    void instruction_ST_Y_POST_INCREMENT();
-    void instruction_ST_Y_PRE_DECREMENT();
-    void instruction_STD_Y();
+    virtual void instruction_ST_Y_UNCHANGED();
+    virtual void instruction_ST_Y_POST_INCREMENT();
+    virtual void instruction_ST_Y_PRE_DECREMENT();
+    virtual void instruction_STD_Y();
 
-    void instruction_ST_Z_UNCHANGED();
-    void instruction_ST_Z_POST_INCREMENT();
-    void instruction_ST_Z_PRE_DECREMENT();
-    void instruction_STD_Z();
+    virtual void instruction_ST_Z_UNCHANGED();
+    virtual void instruction_ST_Z_POST_INCREMENT();
+    virtual void instruction_ST_Z_PRE_DECREMENT();
+    virtual void instruction_STD_Z();
 
     void instruction_STS();
     void instruction_STS16();

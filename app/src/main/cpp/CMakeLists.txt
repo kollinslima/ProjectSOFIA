@@ -21,7 +21,8 @@ add_library( # Sets the name of the library.
             Core/src/SofiaCoreController.cpp
             Core/src/devices/DeviceFactory.cpp
             Core/src/devices/atmega328p/ATMega328P.cpp
-        Core/src/devices/components/avr/AVRCPU.cpp
+            Core/src/devices/components/avr/cpu/AVRCPU.cpp
+            Core/src/devices/components/avr/cpu/AVRCPU_AVRe.cpp
             Core/src/devices/atmega328p/ProgramMemory_ATMega328P.cpp
             Core/src/devices/atmega328p/DataMemory_ATMega328P.cpp
             Core/src/parsers/IntelParser.cpp

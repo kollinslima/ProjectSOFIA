@@ -3,9 +3,9 @@
 //
 
 #include <cstdlib>
-#include "../../../../include/devices/components/avr/AVRCPU.h"
-#include "../../../../include/CommonCore.h"
-#include "../../../../include/devices/components/avr/GenericAVRDataMemory.h"
+#include "../../../../../include/devices/components/avr/cpu/AVRCPU.h"
+#include "../../../../../include/CommonCore.h"
+#include "../../../../../include/devices/components/avr/memory/GenericAVRDataMemory.h"
 
 //ADC/ROL, ADD/LSL, AND/TST
 //BRBC/BRCC/BRGE/BRHC/BRID/BRNE/BRPL/BRSH/BRTC/BRVC
@@ -165,15 +165,6 @@
 #define WDR_OPCODE                                                  0x95A8
 #define XCH_OPCODE                                                  0x9204
 
-#define I_FLAG_MASK     0x80
-#define T_FLAG_MASK     0x40
-#define H_FLAG_MASK     0x20
-#define S_FLAG_MASK     0x10
-#define V_FLAG_MASK     0x08
-#define N_FLAG_MASK     0x04
-#define Z_FLAG_MASK     0x02
-#define C_FLAG_MASK     0x01
-
 #define REG00_ADDR      0x00
 #define REG01_ADDR      0x01
 #define REG16_ADDR      0x10
@@ -189,14 +180,17 @@
 #define REG30_ADDR      0x1E
 #define REG31_ADDR      0x1F
 
-#define IOREG_BASEADDR  0x20
+#define SOFIA_AVRCPU_TAG "SOFIA AVRCPU"
 
-#define SOFIA_AVRCPU_TAG "SOFIA AVRCPU CONTROLLER"
-
-AVRCPU::AVRCPU(GenericProgramMemory *programMemory, GenericAVRDataMemory *dataMemory) {
+AVRCPU::AVRCPU(GenericProgramMemory *programMemory, GenericAVRDataMemory *dataMemory, Core core) {
     pc = 0;
     progMem = programMemory;
     datMem = dataMemory;
+    this->core = core;
+    pcBits = PCBits::PC16;
+    ioBaseAddr = 0;
+
+    needExtraCycles = 0;
 
     sregAddr = datMem->getSREGAddres();
     stackLAddr = datMem->getSPLAddres();
@@ -206,6 +200,14 @@ AVRCPU::AVRCPU(GenericProgramMemory *programMemory, GenericAVRDataMemory *dataMe
 }
 
 AVRCPU::~AVRCPU() {
+}
+
+void AVRCPU::setIOBaseAddr(smemaddr16 addr) {
+    ioBaseAddr = addr;
+}
+
+void AVRCPU::setPCSize(PCBits pcBits) {
+    this->pcBits = pcBits;
 }
 
 void AVRCPU::setupInstructionDecoder() {
@@ -559,11 +561,6 @@ void AVRCPU::setupInstructionDecoder() {
     }
 }
 
-void AVRCPU::run() {
-    progMem->loadInstruction(pc++, &instruction);
-    (this->*instructionDecoder[instruction])();
-}
-
 void AVRCPU::instruction_ADC_ROL() {
     /*************************ADC/ROL***********************/
     LOGD(SOFIA_AVRCPU_TAG, "Instruction ADC/ROL");
@@ -595,7 +592,7 @@ void AVRCPU::instruction_ADC_ROL() {
     sreg |= (((sreg << 1) ^ sreg) << 1) & S_FLAG_MASK;
 
     //Flag Z
-    sreg |= result?0x00:Z_FLAG_MASK;
+    sreg |= result ? 0x00 : Z_FLAG_MASK;
 
     //Flag C
     sreg |= (hc_flag >> 7) & C_FLAG_MASK;
@@ -635,7 +632,7 @@ void AVRCPU::instruction_ADD_LSL() {
     sreg |= (((sreg << 1) ^ sreg) << 1) & S_FLAG_MASK;
 
     //Flag Z
-    sreg |= result?0x00:Z_FLAG_MASK;
+    sreg |= result ? 0x00 : Z_FLAG_MASK;
 
     //Flag C
     sreg |= (hc_flag >> 7) & C_FLAG_MASK;
@@ -648,7 +645,7 @@ void AVRCPU::instruction_ADIW() {
     /*************************ADIW***********************/
     LOGD(SOFIA_AVRCPU_TAG, "Instruction ADIW");
 
-    offset = ((0x0030&instruction)>>3); //(>>4)*2 = >>3
+    offset = ((0x0030 & instruction) >> 3); //(>>4)*2 = >>3
 
     //ADIW operates on the upper four registers pairs
     dataLAddr = REG24_ADDR + offset;
@@ -658,28 +655,30 @@ void AVRCPU::instruction_ADIW() {
     datMem->read(dataHAddr, &dataH);
     datMem->read(sregAddr, &sreg);
 
-    outData = ((dataH<<8) | dataL) + (((0x00C0 & instruction)>>2) | (0x000F & instruction));
+    outData = ((dataH << 8) | dataL) + (((0x00C0 & instruction) >> 2) | (0x000F & instruction));
     sreg &= 0xE0;
 
     //Flag V
-    sreg |= (((~dataH)>>4)&(outData>>12))&V_FLAG_MASK;
+    sreg |= (((~dataH) >> 4) & (outData >> 12)) & V_FLAG_MASK;
 
     //Flag N
-    sreg |= (outData>>13)&N_FLAG_MASK;
+    sreg |= (outData >> 13) & N_FLAG_MASK;
 
     //Flag S
     sreg |= (((sreg << 1) ^ sreg) << 1) & S_FLAG_MASK;
 
     //Flag Z
-    sreg |= outData?0x0000:Z_FLAG_MASK;
+    sreg |= outData ? 0x0000 : Z_FLAG_MASK;
 
     //Flag C
-    sreg |= ((dataH>>7)&((~outData)>>15))&C_FLAG_MASK;
+    sreg |= ((dataH >> 7) & ((~outData) >> 15)) & C_FLAG_MASK;
 
     datMem->write(dataLAddr, &outData);
-    outData = outData>>8;
+    outData = outData >> 8;
     datMem->write(dataHAddr, &outData);
     datMem->write(sregAddr, &sreg);
+
+    needExtraCycles = 1;
 }
 
 void AVRCPU::instruction_AND_TST() {
@@ -702,7 +701,7 @@ void AVRCPU::instruction_AND_TST() {
     sreg |= (((sreg << 1) ^ sreg) << 1) & S_FLAG_MASK;
 
     //Flag Z
-    sreg |= result?0x00:Z_FLAG_MASK;
+    sreg |= result ? 0x00 : Z_FLAG_MASK;
 
     datMem->write(wbAddr, &result);
     datMem->write(sregAddr, &sreg);
@@ -717,7 +716,7 @@ void AVRCPU::instruction_ANDI_CBR() {
     datMem->read(wbAddr, &regD);
     datMem->read(sregAddr, &sreg);
 
-    result = regD & (((0x0F00&instruction)>>4)|(0x000F&instruction));
+    result = regD & (((0x0F00 & instruction) >> 4) | (0x000F & instruction));
     sreg &= 0xE1;
 
     //Flag N
@@ -727,7 +726,7 @@ void AVRCPU::instruction_ANDI_CBR() {
     sreg |= (((sreg << 1) ^ sreg) << 1) & S_FLAG_MASK;
 
     //Flag Z
-    sreg |= result?0x00:Z_FLAG_MASK;
+    sreg |= result ? 0x00 : Z_FLAG_MASK;
 
     datMem->write(wbAddr, &result);
     datMem->write(sregAddr, &sreg);
@@ -742,7 +741,7 @@ void AVRCPU::instruction_ASR() {
     datMem->read(wbAddr, &regD);
     datMem->read(sregAddr, &sreg);
 
-    result = ((__int8_t)regD)>>1; //Cast to make sign extension
+    result = ((__int8_t) regD) >> 1; //Cast to make sign extension
     sreg &= 0xE0;
 
     //Flag N
@@ -758,7 +757,7 @@ void AVRCPU::instruction_ASR() {
     sreg |= (((sreg << 1) ^ sreg) << 1) & S_FLAG_MASK;
 
     //Flag Z
-    sreg |= result?0x00:Z_FLAG_MASK;
+    sreg |= result ? 0x00 : Z_FLAG_MASK;
 
     datMem->write(wbAddr, &result);
     datMem->write(sregAddr, &sreg);
@@ -769,7 +768,7 @@ void AVRCPU::instruction_BCLR_CLC_CLH_CLI_CLN_CLS_CLT_CLV_CLZ() {
     LOGD(SOFIA_AVRCPU_TAG, "Instruction BCLR");
 
     datMem->read(sregAddr, &sreg);
-    sreg &= ~(0x01 << ((instruction>>4)&0x0007));
+    sreg &= ~(0x01 << ((instruction >> 4) & 0x0007));
     datMem->write(sregAddr, &sreg);
 }
 
@@ -781,9 +780,9 @@ void AVRCPU::instruction_BLD() {
     datMem->read(wbAddr, &regD);
     datMem->read(sregAddr, &sreg);
 
-    offset = instruction&0x0007;
+    offset = instruction & 0x0007;
     regD &= ~(0x01 << offset);
-    regD |= ((sreg&T_FLAG_MASK)>>6)<<offset;
+    regD |= ((sreg & T_FLAG_MASK) >> 6) << offset;
 
     datMem->write(wbAddr, &regD);
 }
@@ -794,8 +793,11 @@ void AVRCPU::instruction_BRBC_BRCC_BRGE_BRHC_BRID_BRNE_BRPL_BRSH_BRTC_BRVC() {
 
     datMem->read(sregAddr, &sreg);
 
-    offset = instruction&0x0007;
-    pc += (((__int8_t)(instruction&0x03F8))<<6>>9)&(~(((__int8_t )(sreg<<(7-offset)))>>7)); //Cast to make sign extension
+    offset = instruction & 0x0007;
+    __int8_t enableBranch = (~(((__int8_t)(sreg << (7 - offset)))
+            >> 7)); //Cast to make sign extension
+    pc += (((__int8_t)(instruction & 0x03F8)) << 6 >> 9) & enableBranch;     //Cast to make sign extension
+    needExtraCycles = 0x01 & enableBranch;
 }
 
 void AVRCPU::instruction_BRBS_BRCS_BREQ_BRHS_BRIE_BRLO_BRLT_BRMI_BRTS_BRVS() {
@@ -804,8 +806,10 @@ void AVRCPU::instruction_BRBS_BRCS_BREQ_BRHS_BRIE_BRLO_BRLT_BRMI_BRTS_BRVS() {
 
     datMem->read(sregAddr, &sreg);
 
-    offset = instruction&0x0007;
-    pc += (((__int8_t)(instruction&0x03F8))<<6>>9)&(((__int8_t )(sreg<<(7-offset)))>>7); //Cast to make sign extension
+    offset = instruction & 0x0007;
+    __int8_t enableBranch = (((__int8_t)(sreg << (7 - offset))) >> 7); //Cast to make sign extension
+    pc += (((__int8_t)(instruction & 0x03F8)) << 6 >> 9) & enableBranch;  //Cast to make sign extension
+    needExtraCycles = 0x01 & enableBranch;
 }
 
 void AVRCPU::instruction_BREAK() {
@@ -818,7 +822,7 @@ void AVRCPU::instruction_BSET_SEC_SEH_SEI_SEN_SES_SET_SEV_SEZ() {
     LOGD(SOFIA_AVRCPU_TAG, "Instruction BSET/SEC/SEH/SEI/SEN/SES/SET/SEV/SEZ");
 
     datMem->read(sregAddr, &sreg);
-    sreg |= (0x01 << ((instruction>>4)&0x0007));
+    sreg |= (0x01 << ((instruction >> 4) & 0x0007));
     datMem->write(sregAddr, &sreg);
 }
 
@@ -829,9 +833,9 @@ void AVRCPU::instruction_BST() {
     datMem->read((0x01F0 & instruction) >> 4, &regD);
     datMem->read(sregAddr, &sreg);
 
-    offset = instruction&0x0007;
+    offset = instruction & 0x0007;
     sreg &= ~T_FLAG_MASK;
-    sreg |= ((regD>>offset)&0x01)<<6;
+    sreg |= ((regD >> offset) & 0x01) << 6;
 
     datMem->write(sregAddr, &sreg);
 }
@@ -840,34 +844,26 @@ void AVRCPU::instruction_CALL() {
     /*************************CALL***********************/
     LOGD(SOFIA_AVRCPU_TAG, "Instruction CALL");
 
-    jumpValue = ((instruction&0x01F0)>>3) | (instruction&0x0001);
+    jumpValue = ((instruction & 0x01F0) >> 3) | (instruction & 0x0001);
     progMem->loadInstruction(pc++, &instruction);
-    jumpValue = (jumpValue<<16) | instruction;
+    jumpValue = (jumpValue << 16) | instruction;
 
     datMem->read(stackLAddr, &dataL);
     datMem->read(stackHAddr, &dataH);
-    stackPointer = (dataH<<8)|dataL;
+    stackPointer = (dataH << 8) | dataL;
 
-    //PC is already in position to go to stack (write little-endian)
-    datMem->write(stackPointer--, &pc);
-    pc = pc >> 8;
-    datMem->write(stackPointer--, &pc);
-
-    //Update SPL and SPH
-    datMem->write(stackLAddr, &stackPointer);
-    stackPointer = stackPointer >> 8;
-    datMem->write(stackHAddr, &stackPointer);
-
-    pc = jumpValue;
+    /*
+     * Stack pointer update is core specific. Check derived class
+     */
 }
 
 void AVRCPU::instruction_CBI() {
     /*************************CBI***********************/
     LOGD(SOFIA_AVRCPU_TAG, "Instruction CBI");
 
-    wbAddr = ((instruction&0x00F8)>>3) + IOREG_BASEADDR;
+    wbAddr = ((instruction & 0x00F8) >> 3) + ioBaseAddr;
     datMem->read(wbAddr, &result);
-    result &= ~(0x01 << (instruction&0x0007));
+    result &= ~(0x01 << (instruction & 0x0007));
     datMem->write(wbAddr, &result);
 }
 
@@ -891,7 +887,7 @@ void AVRCPU::instruction_CLR_EOR() {
     sreg |= (((sreg << 1) ^ sreg) << 1) & S_FLAG_MASK;
 
     //Flag Z
-    sreg |= result?0x00:Z_FLAG_MASK;
+    sreg |= result ? 0x00 : Z_FLAG_MASK;
 
     datMem->write(wbAddr, &result);
     datMem->write(sregAddr, &sreg);
@@ -915,7 +911,7 @@ void AVRCPU::instruction_COM() {
     sreg |= (((sreg << 1) ^ sreg) << 1) & S_FLAG_MASK;
 
     //Flag Z
-    sreg |= result?0x00:Z_FLAG_MASK;
+    sreg |= result ? 0x00 : Z_FLAG_MASK;
 
     //Flag C
     sreg |= C_FLAG_MASK;
@@ -954,7 +950,7 @@ void AVRCPU::instruction_CP() {
     sreg |= (((sreg << 1) ^ sreg) << 1) & S_FLAG_MASK;
 
     //Flag Z
-    sreg |= result?0x00:Z_FLAG_MASK;
+    sreg |= result ? 0x00 : Z_FLAG_MASK;
 
     //Flag C
     sreg |= (hc_flag >> 7) & C_FLAG_MASK;
@@ -992,7 +988,7 @@ void AVRCPU::instruction_CPC() {
     sreg |= (((sreg << 1) ^ sreg) << 1) & S_FLAG_MASK;
 
     //Flag Z
-    sreg &= result?(~Z_FLAG_MASK):sreg;
+    sreg &= result ? (~Z_FLAG_MASK) : sreg;
 
     //Flag C
     sreg |= (hc_flag >> 7) & C_FLAG_MASK;
@@ -1021,7 +1017,8 @@ void AVRCPU::instruction_CPI() {
     sreg |= (hc_flag << 2) & H_FLAG_MASK;
 
     //Flag V
-    sreg |= (((regD & (~immediate) & not_result) | (not_regD & immediate_and_result)) >> 4) & V_FLAG_MASK;
+    sreg |= (((regD & (~immediate) & not_result) | (not_regD & immediate_and_result)) >> 4) &
+            V_FLAG_MASK;
 
     //Flag N
     sreg |= (result >> 5) & N_FLAG_MASK;
@@ -1030,7 +1027,7 @@ void AVRCPU::instruction_CPI() {
     sreg |= (((sreg << 1) ^ sreg) << 1) & S_FLAG_MASK;
 
     //Flag Z
-    sreg |= result?0x00:Z_FLAG_MASK;
+    sreg |= result ? 0x00 : Z_FLAG_MASK;
 
     //Flag C
     sreg |= (hc_flag >> 7) & C_FLAG_MASK;
@@ -1047,15 +1044,17 @@ void AVRCPU::instruction_CPSE() {
 
     if (regD == regR) {
         progMem->loadInstruction(pc++, &instruction);
+        needExtraCycles = 1;
 
         //Test 2 word instruction
         testJMP_CALL = instruction & INSTRUCTION_GROUP7_MASK;
         testLDS_STS = instruction & INSTRUCTION_GROUP8_MASK;
         if (testJMP_CALL == JMP_OPCODE ||
-            testJMP_CALL == CALL_OPCODE||
-            testLDS_STS  == LDS_OPCODE ||
-            testLDS_STS  == STS_OPCODE) {
+            testJMP_CALL == CALL_OPCODE ||
+            testLDS_STS == LDS_OPCODE ||
+            testLDS_STS == STS_OPCODE) {
             pc += 1;
+            needExtraCycles += 1;
         }
     }
 }
@@ -1073,7 +1072,7 @@ void AVRCPU::instruction_DEC() {
     sreg &= 0xE1;
 
     //Flag V
-    sreg |= (regD == 0x80)?V_FLAG_MASK:0x00;
+    sreg |= (regD == 0x80) ? V_FLAG_MASK : 0x00;
 
     //Flag N
     sreg |= (result >> 5) & N_FLAG_MASK;
@@ -1082,7 +1081,7 @@ void AVRCPU::instruction_DEC() {
     sreg |= (((sreg << 1) ^ sreg) << 1) & S_FLAG_MASK;
 
     //Flag Z
-    sreg |= result?0x00:Z_FLAG_MASK;
+    sreg |= result ? 0x00 : Z_FLAG_MASK;
 
     datMem->write(wbAddr, &result);
     datMem->write(sregAddr, &sreg);
@@ -1090,50 +1089,87 @@ void AVRCPU::instruction_DEC() {
 
 void AVRCPU::instruction_DES() {
     /*************************DES***********************/
+    /*
+     * Only AVRxm will implement this function
+     * If the DES instruction is succeeding a non-DES instruction, an extra cycle is inserted.
+     */
     LOGD(SOFIA_AVRCPU_TAG, "Instruction DES - NOT IMPLEMENTED");
 }
 
 void AVRCPU::instruction_EICALL() {
     /*************************EICALL***********************/
+    /*
+     * The instruction is only implemented on devices with 22-bit PC
+     * AVRe -> 4 cycles
+     * AVRxm and AVRxt -> 3 cycles
+     */
     LOGD(SOFIA_AVRCPU_TAG, "Instruction EICALL - NOT IMPLEMENTED");
 }
 
 void AVRCPU::instruction_EIJMP() {
     /*************************EIJMP***********************/
-    LOGD(SOFIA_AVRCPU_TAG, "Instruction EIJMP - NOT IMPLEMENTED");
+    /*
+     * This instruction is not available on all devices.
+     */
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction EIJMP");
+
+    //TODO
+
+    needExtraCycles = 1;
 }
 
 void AVRCPU::instruction_ELPM1() {
     /*************************ELPM1***********************/
-    LOGD(SOFIA_AVRCPU_TAG, "Instruction ELPM1 - NOT IMPLEMENTED");
+    /*
+     * This instruction is not available on all devices.
+     */
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction ELPM1");
+
+    //TODO
+
+    needExtraCycles = 2;
 }
 
 void AVRCPU::instruction_ELPM2() {
     /*************************ELPM2***********************/
-    LOGD(SOFIA_AVRCPU_TAG, "Instruction ELPM2 - NOT IMPLEMENTED");
+    /*
+     * This instruction is not available on all devices.
+     */
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction ELPM2");
+
+    //TODO
+
+    needExtraCycles = 2;
 }
 
 void AVRCPU::instruction_ELPM3() {
     /*************************ELPM3***********************/
-    LOGD(SOFIA_AVRCPU_TAG, "Instruction ELPM3 - NOT IMPLEMENTED");
+    /*
+     * This instruction is not available on all devices.
+     */
+    LOGD(SOFIA_AVRCPU_TAG, "Instruction ELPM3");
+
+    //TODO
+
+    needExtraCycles = 2;
 }
 
 void AVRCPU::instruction_FMUL() {
     /*************************FMUL***********************/
     LOGD(SOFIA_AVRCPU_TAG, "Instruction FMUL");
 
-    datMem->read(REG16_ADDR|((0x0070&instruction)>>4), &regD);
-    datMem->read(REG16_ADDR|(0x0007&instruction), &regR);
+    datMem->read(REG16_ADDR | ((0x0070 & instruction) >> 4), &regD);
+    datMem->read(REG16_ADDR | (0x0007 & instruction), &regR);
     datMem->read(sregAddr, &sreg);
 
     outData = regD * regR;
     sreg &= 0xFC;
 
     //Flag Z
-    sreg |= outData?0x0000:Z_FLAG_MASK;
+    sreg |= outData ? 0x0000 : Z_FLAG_MASK;
 
     //Flag C
-    sreg |= (outData>>15)&C_FLAG_MASK;
+    sreg |= (outData >> 15) & C_FLAG_MASK;
 
     //"A left shift is necessary for the high byte of the product to be
     //in the same format as the inputs"
@@ -1143,24 +1179,25 @@ void AVRCPU::instruction_FMUL() {
     outData = outData >> 8;
     datMem->write(REG01_ADDR, &outData);
     datMem->write(sregAddr, &sreg);
+    needExtraCycles = 1;
 }
 
 void AVRCPU::instruction_FMULS() {
     /*************************FMULS***********************/
     LOGD(SOFIA_AVRCPU_TAG, "Instruction FMULS");
 
-    datMem->read(REG16_ADDR|((0x0070&instruction)>>4), &regD);
-    datMem->read(REG16_ADDR|(0x0007&instruction), &regR);
+    datMem->read(REG16_ADDR | ((0x0070 & instruction) >> 4), &regD);
+    datMem->read(REG16_ADDR | (0x0007 & instruction), &regR);
     datMem->read(sregAddr, &sreg);
 
-    outData = ((__int8_t)regD) * ((__int8_t)regR); //signed multiplication
+    outData = ((__int8_t) regD) * ((__int8_t) regR); //signed multiplication
     sreg &= 0xFC;
 
     //Flag Z
-    sreg |= outData?0x0000:Z_FLAG_MASK;
+    sreg |= outData ? 0x0000 : Z_FLAG_MASK;
 
     //Flag C
-    sreg |= (outData>>15)&C_FLAG_MASK;
+    sreg |= (outData >> 15) & C_FLAG_MASK;
 
     //"A left shift is necessary for the high byte of the product to be
     //in the same format as the inputs"
@@ -1170,24 +1207,25 @@ void AVRCPU::instruction_FMULS() {
     outData = outData >> 8;
     datMem->write(REG01_ADDR, &outData);
     datMem->write(sregAddr, &sreg);
+    needExtraCycles = 1;
 }
 
 void AVRCPU::instruction_FMULSU() {
     /*************************FMULSU***********************/
     LOGD(SOFIA_AVRCPU_TAG, "Instruction FMULSU");
 
-    datMem->read(REG16_ADDR|((0x0070&instruction)>>4), &regD);
-    datMem->read(REG16_ADDR|(0x0007&instruction), &regR);
+    datMem->read(REG16_ADDR | ((0x0070 & instruction) >> 4), &regD);
+    datMem->read(REG16_ADDR | (0x0007 & instruction), &regR);
     datMem->read(sregAddr, &sreg);
 
-    outData = ((__int8_t)regD) * regR; //signed * unsigned
+    outData = ((__int8_t) regD) * regR; //signed * unsigned
     sreg &= 0xFC;
 
     //Flag Z
-    sreg |= outData?0x0000:Z_FLAG_MASK;
+    sreg |= outData ? 0x0000 : Z_FLAG_MASK;
 
     //Flag C
-    sreg |= (outData>>15)&C_FLAG_MASK;
+    sreg |= (outData >> 15) & C_FLAG_MASK;
 
     //"A left shift is necessary for the high byte of the product to be
     //in the same format as the inputs"
@@ -1197,6 +1235,7 @@ void AVRCPU::instruction_FMULSU() {
     outData = outData >> 8;
     datMem->write(REG01_ADDR, &outData);
     datMem->write(sregAddr, &sreg);
+    needExtraCycles = 1;
 }
 
 void AVRCPU::instruction_ICALL() {
@@ -1207,23 +1246,15 @@ void AVRCPU::instruction_ICALL() {
     datMem->read(REG30_ADDR, &dataL);
     datMem->read(REG31_ADDR, &dataH);
 
-    jumpValue = (dataH<<8) | dataL;
+    jumpValue = (dataH << 8) | dataL;
 
     datMem->read(stackLAddr, &dataL);
     datMem->read(stackHAddr, &dataH);
-    stackPointer = (dataH<<8)|dataL;
+    stackPointer = (dataH << 8) | dataL;
 
-    //PC is already in position to go to stack (write little-endian)
-    datMem->write(stackPointer--, &pc);
-    pc = pc >> 8;
-    datMem->write(stackPointer--, &pc);
-
-    //Update SPL and SPH
-    datMem->write(stackLAddr, &stackPointer);
-    stackPointer = stackPointer >> 8;
-    datMem->write(stackHAddr, &stackPointer);
-
-    pc = jumpValue;
+    /*
+     * Stack pointer update is core specific. Check derived class
+     */
 }
 
 void AVRCPU::instruction_IJMP() {
@@ -1234,17 +1265,21 @@ void AVRCPU::instruction_IJMP() {
     datMem->read(REG30_ADDR, &dataL);
     datMem->read(REG31_ADDR, &dataH);
 
-    jumpValue = (dataH<<8) | dataL;
+    jumpValue = (dataH << 8) | dataL;
+
+    pc = 0;  //To clear higher bits in 22-bits PC
 
     pc = jumpValue;
+    needExtraCycles = 1;
 }
 
 void AVRCPU::instruction_IN() {
     /*************************IN***********************/
     LOGD(SOFIA_AVRCPU_TAG, "Instruction IN");
 
-    datMem->read(IOREG_BASEADDR + (((0x0600&instruction)>>5)|(0x000F&instruction)), &result);
-    datMem->write((0x01F0&instruction)>>4, &result);
+    datMem->read(ioBaseAddr + (((0x0600 & instruction) >> 5) | (0x000F & instruction)),
+                 &result);
+    datMem->write((0x01F0 & instruction) >> 4, &result);
 }
 
 void AVRCPU::instruction_INC() {
@@ -1260,7 +1295,7 @@ void AVRCPU::instruction_INC() {
     sreg &= 0xE1;
 
     //Flag V
-    sreg |= (regD == 0x7F)?V_FLAG_MASK:0x00;
+    sreg |= (regD == 0x7F) ? V_FLAG_MASK : 0x00;
 
     //Flag N
     sreg |= (result >> 5) & N_FLAG_MASK;
@@ -1269,7 +1304,7 @@ void AVRCPU::instruction_INC() {
     sreg |= (((sreg << 1) ^ sreg) << 1) & S_FLAG_MASK;
 
     //Flag Z
-    sreg |= result?0x00:Z_FLAG_MASK;
+    sreg |= result ? 0x00 : Z_FLAG_MASK;
 
     datMem->write(wbAddr, &result);
     datMem->write(sregAddr, &sreg);
@@ -1279,25 +1314,35 @@ void AVRCPU::instruction_JMP() {
     /*************************JMP***********************/
     LOGD(SOFIA_AVRCPU_TAG, "Instruction JMP");
 
-    jumpValue = ((instruction&0x01F0)>>3) | (instruction&0x0001);
+    jumpValue = ((instruction & 0x01F0) >> 3) | (instruction & 0x0001);
     progMem->loadInstruction(pc++, &instruction);
-    jumpValue = (jumpValue<<16) | instruction;
+    jumpValue = (jumpValue << 16) | instruction;
 
     pc = jumpValue;
+    needExtraCycles = 2;
 }
 
 void AVRCPU::instruction_LAC() {
     /*************************LAC***********************/
+    /*
+     * Only AVRxm will implement this function
+     */
     LOGD(SOFIA_AVRCPU_TAG, "Instruction LAC - NOT IMPLEMENTED");
 }
 
 void AVRCPU::instruction_LAS() {
     /*************************LAS***********************/
+    /*
+     * Only AVRxm will implement this function
+     */
     LOGD(SOFIA_AVRCPU_TAG, "Instruction LAS - NOT IMPLEMENTED");
 }
 
 void AVRCPU::instruction_LAT() {
     /*************************LAT***********************/
+    /*
+     * Only AVRxm will implement this function
+     */
     LOGD(SOFIA_AVRCPU_TAG, "Instruction LAT - NOT IMPLEMENTED");
 }
 
@@ -1308,10 +1353,16 @@ void AVRCPU::instruction_LD_X_UNCHANGED() {
     //Read X Register
     datMem->read(REG26_ADDR, &dataL);
     datMem->read(REG27_ADDR, &dataH);
-    wbAddr = (dataH<<8) | dataL;
+    wbAddr = (dataH << 8) | dataL;
 
     datMem->read(wbAddr, &result);
-    datMem->write((0x01F0 & instruction)>>4, &result);
+    datMem->write((0x01F0 & instruction) >> 4, &result);
+
+    /*
+     * For AVRxm, no need for extra cycles when accessing I/O registers
+     * For AVRrc, loading data from the data memory takes one clock cycle,
+     * and loading from the program memory takes two clock cycles.
+     */
 }
 
 void AVRCPU::instruction_LD_X_POST_INCREMENT() {
@@ -1321,13 +1372,19 @@ void AVRCPU::instruction_LD_X_POST_INCREMENT() {
     //Read X Register
     datMem->read(REG26_ADDR, &dataL);
     datMem->read(REG27_ADDR, &dataH);
-    wbAddr = (dataH<<8) | dataL;
+    wbAddr = (dataH << 8) | dataL;
 
     datMem->read(wbAddr++, &result);
-    datMem->write((0x01F0 & instruction)>>4, &result);
+    datMem->write((0x01F0 & instruction) >> 4, &result);
     datMem->write(REG26_ADDR, &wbAddr);
     wbAddr = wbAddr >> 8;
     datMem->write(REG27_ADDR, &wbAddr);
+
+    /*
+     * For AVRxm, no need for extra cycles when accessing I/O registers
+     * For AVRrc, loading data from the data memory takes two clock cycle,
+     * and loading from the program memory takes three clock cycles.
+     */
 }
 
 void AVRCPU::instruction_LD_X_PRE_DECREMENT() {
@@ -1337,13 +1394,19 @@ void AVRCPU::instruction_LD_X_PRE_DECREMENT() {
     //Read X Register
     datMem->read(REG26_ADDR, &dataL);
     datMem->read(REG27_ADDR, &dataH);
-    wbAddr = (dataH<<8) | dataL;
+    wbAddr = (dataH << 8) | dataL;
 
     datMem->read(--wbAddr, &result);
-    datMem->write((0x01F0 & instruction)>>4, &result);
+    datMem->write((0x01F0 & instruction) >> 4, &result);
     datMem->write(REG26_ADDR, &wbAddr);
     wbAddr = wbAddr >> 8;
     datMem->write(REG27_ADDR, &wbAddr);
+
+    /*
+     * For AVRrc, loading data from the data memory takes two clock cycle,
+     * For AVRrc, loading data from the data memory takes two clock cycle,
+     * and loading from the program memory takes three clock cycles.
+     */
 }
 
 void AVRCPU::instruction_LD_Y_UNCHANGED() {
@@ -1353,10 +1416,16 @@ void AVRCPU::instruction_LD_Y_UNCHANGED() {
     //Read Y Register
     datMem->read(REG28_ADDR, &dataL);
     datMem->read(REG29_ADDR, &dataH);
-    wbAddr = (dataH<<8) | dataL;
+    wbAddr = (dataH << 8) | dataL;
 
     datMem->read(wbAddr, &result);
-    datMem->write((0x01F0 & instruction)>>4, &result);
+    datMem->write((0x01F0 & instruction) >> 4, &result);
+
+    /*
+     * For AVRxm, no need for extra cycles when accessing I/O registers
+     * For AVRrc, loading data from the data memory takes one clock cycle,
+     * and loading from the program memory takes two clock cycles.
+     */
 }
 
 void AVRCPU::instruction_LD_Y_POST_INCREMENT() {
@@ -1366,13 +1435,20 @@ void AVRCPU::instruction_LD_Y_POST_INCREMENT() {
     //Read Y Register
     datMem->read(REG28_ADDR, &dataL);
     datMem->read(REG29_ADDR, &dataH);
-    wbAddr = (dataH<<8) | dataL;
+    wbAddr = (dataH << 8) | dataL;
 
     datMem->read(wbAddr++, &result);
-    datMem->write((0x01F0 & instruction)>>4, &result);
+    datMem->write((0x01F0 & instruction) >> 4, &result);
     datMem->write(REG28_ADDR, &wbAddr);
     wbAddr = wbAddr >> 8;
     datMem->write(REG29_ADDR, &wbAddr);
+
+    /*
+     * For AVRxm, no need for extra cycles when accessing I/O registers
+     * For AVRrc, loading data from the data memory takes two clock cycle,
+     * and loading from the program memory takes three clock cycles.
+     */
+//    needExtraCycles = 1;
 }
 
 void AVRCPU::instruction_LD_Y_PRE_DECREMENT() {
@@ -1382,13 +1458,18 @@ void AVRCPU::instruction_LD_Y_PRE_DECREMENT() {
     //Read Y Register
     datMem->read(REG28_ADDR, &dataL);
     datMem->read(REG29_ADDR, &dataH);
-    wbAddr = (dataH<<8) | dataL;
+    wbAddr = (dataH << 8) | dataL;
 
     datMem->read(--wbAddr, &result);
-    datMem->write((0x01F0 & instruction)>>4, &result);
+    datMem->write((0x01F0 & instruction) >> 4, &result);
     datMem->write(REG28_ADDR, &wbAddr);
     wbAddr = wbAddr >> 8;
     datMem->write(REG29_ADDR, &wbAddr);
+
+    /*
+     * For AVRrc, loading data from the data memory takes two clock cycle,
+     * and loading from the program memory takes three clock cycles.
+     */
 }
 
 void AVRCPU::instruction_LDD_Y() {
@@ -1398,10 +1479,12 @@ void AVRCPU::instruction_LDD_Y() {
     //Read Y Register
     datMem->read(REG28_ADDR, &dataL);
     datMem->read(REG29_ADDR, &dataH);
-    wbAddr = ((dataH<<8) | dataL) + (((0x2000 & instruction)>>8) | ((0x0C00 & instruction)>>7)| (0x0007 & instruction));
+    wbAddr = ((dataH << 8) | dataL) +
+             (((0x2000 & instruction) >> 8) | ((0x0C00 & instruction) >> 7) |
+              (0x0007 & instruction));
 
     datMem->read(wbAddr, &result);
-    datMem->write((0x01F0 & instruction)>>4, &result);
+    datMem->write((0x01F0 & instruction) >> 4, &result);
 }
 
 void AVRCPU::instruction_LD_Z_UNCHANGED() {
@@ -1411,10 +1494,16 @@ void AVRCPU::instruction_LD_Z_UNCHANGED() {
     //Read Z Register
     datMem->read(REG30_ADDR, &dataL);
     datMem->read(REG31_ADDR, &dataH);
-    wbAddr = (dataH<<8) | dataL;
+    wbAddr = (dataH << 8) | dataL;
 
     datMem->read(wbAddr, &result);
-    datMem->write((0x01F0 & instruction)>>4, &result);
+    datMem->write((0x01F0 & instruction) >> 4, &result);
+
+    /*
+     * * For AVRxm, no need for extra cycles when accessing I/O registers
+     * For AVRrc, loading data from the data memory takes one clock cycle,
+     * and loading from the program memory takes two clock cycles.
+     */
 }
 
 void AVRCPU::instruction_LD_Z_POST_INCREMENT() {
@@ -1424,13 +1513,19 @@ void AVRCPU::instruction_LD_Z_POST_INCREMENT() {
     //Read Z Register
     datMem->read(REG30_ADDR, &dataL);
     datMem->read(REG31_ADDR, &dataH);
-    wbAddr = (dataH<<8) | dataL;
+    wbAddr = (dataH << 8) | dataL;
 
     datMem->read(wbAddr++, &result);
-    datMem->write((0x01F0 & instruction)>>4, &result);
+    datMem->write((0x01F0 & instruction) >> 4, &result);
     datMem->write(REG30_ADDR, &wbAddr);
     wbAddr = wbAddr >> 8;
     datMem->write(REG31_ADDR, &wbAddr);
+
+    /*
+     * For AVRxm, no need for extra cycles when accessing I/O registers
+     * For AVRrc, loading data from the data memory takes two clock cycle,
+     * and loading from the program memory takes three clock cycles.
+     */
 }
 
 void AVRCPU::instruction_LD_Z_PRE_DECREMENT() {
@@ -1440,13 +1535,18 @@ void AVRCPU::instruction_LD_Z_PRE_DECREMENT() {
     //Read Z Register
     datMem->read(REG30_ADDR, &dataL);
     datMem->read(REG31_ADDR, &dataH);
-    wbAddr = (dataH<<8) | dataL;
+    wbAddr = (dataH << 8) | dataL;
 
     datMem->read(--wbAddr, &result);
-    datMem->write((0x01F0 & instruction)>>4, &result);
+    datMem->write((0x01F0 & instruction) >> 4, &result);
     datMem->write(REG30_ADDR, &wbAddr);
     wbAddr = wbAddr >> 8;
     datMem->write(REG31_ADDR, &wbAddr);
+
+    /*
+     * For AVRrc, loading data from the data memory takes two clock cycle,
+     * and loading from the program memory takes three clock cycles.
+     */
 }
 
 void AVRCPU::instruction_LDD_Z() {
@@ -1456,17 +1556,19 @@ void AVRCPU::instruction_LDD_Z() {
     //Read Z Register
     datMem->read(REG30_ADDR, &dataL);
     datMem->read(REG31_ADDR, &dataH);
-    wbAddr = ((dataH<<8) | dataL) + (((0x2000 & instruction)>>8) | ((0x0C00 & instruction)>>7)| (0x0007 & instruction));
+    wbAddr = ((dataH << 8) | dataL) +
+             (((0x2000 & instruction) >> 8) | ((0x0C00 & instruction) >> 7) |
+              (0x0007 & instruction));
 
     datMem->read(wbAddr, &result);
-    datMem->write((0x01F0 & instruction)>>4, &result);
+    datMem->write((0x01F0 & instruction) >> 4, &result);
 }
 
 void AVRCPU::instruction_LDI_SER() {
     /*************************LDI/SER***********************/
     LOGD(SOFIA_AVRCPU_TAG, "Instruction LDI/SER");
 
-    result = ((0x0F00 & instruction)>>4) | (0x000F & instruction);
+    result = ((0x0F00 & instruction) >> 4) | (0x000F & instruction);
     datMem->write(REG16_ADDR | ((0x00F0 & instruction) >> 4), &result);
 }
 
@@ -1480,10 +1582,16 @@ void AVRCPU::instruction_LDS() {
 
     datMem->read(instruction, &result);
     datMem->write(wbAddr, &result);
+
+    //AVRxm and AVRxt may need one extra cycle
+    needExtraCycles = 1;
 }
 
 void AVRCPU::instruction_LDS16() {
     /*************************LDS (16-bit)***********************/
+    /*
+     * Only AVRrc will implement this function
+     */
     LOGD(SOFIA_AVRCPU_TAG, "Instruction LDS (16-bit) - NOT IMPLEMENTED");
 }
 
@@ -1495,10 +1603,12 @@ void AVRCPU::instruction_LPM_Z_UNCHANGED_DEST_R0() {
     datMem->read(REG30_ADDR, &dataL);
     datMem->read(REG31_ADDR, &dataH);
 
-    wbAddr = (dataH<<8) | dataL;
+    wbAddr = (dataH << 8) | dataL;
 
     progMem->read(wbAddr, &result);
     datMem->write(REG00_ADDR, &result);
+
+    needExtraCycles = 2;
 }
 
 void AVRCPU::instruction_LPM_Z_UNCHANGED() {
@@ -1509,10 +1619,12 @@ void AVRCPU::instruction_LPM_Z_UNCHANGED() {
     datMem->read(REG30_ADDR, &dataL);
     datMem->read(REG31_ADDR, &dataH);
 
-    wbAddr = (dataH<<8) | dataL;
+    wbAddr = (dataH << 8) | dataL;
 
     progMem->read(wbAddr, &result);
-    datMem->write((0x01F0 & instruction)>>4, &result);
+    datMem->write((0x01F0 & instruction) >> 4, &result);
+
+    needExtraCycles = 2;
 }
 
 void AVRCPU::instruction_LPM_Z_POST_INCREMENT() {
@@ -1523,13 +1635,15 @@ void AVRCPU::instruction_LPM_Z_POST_INCREMENT() {
     datMem->read(REG30_ADDR, &dataL);
     datMem->read(REG31_ADDR, &dataH);
 
-    wbAddr = (dataH<<8) | dataL;
+    wbAddr = (dataH << 8) | dataL;
 
     progMem->read(wbAddr++, &result);
-    datMem->write((0x01F0 & instruction)>>4, &result);
+    datMem->write((0x01F0 & instruction) >> 4, &result);
     datMem->write(REG30_ADDR, &wbAddr);
     wbAddr = wbAddr >> 8;
     datMem->write(REG31_ADDR, &wbAddr);
+
+    needExtraCycles = 2;
 }
 
 void AVRCPU::instruction_LSR() {
@@ -1554,7 +1668,7 @@ void AVRCPU::instruction_LSR() {
     sreg |= (((sreg << 1) ^ sreg) << 1) & S_FLAG_MASK;
 
     //Flag Z
-    sreg |= result?0x00:Z_FLAG_MASK;
+    sreg |= result ? 0x00 : Z_FLAG_MASK;
 
     datMem->write(wbAddr, &result);
     datMem->write(sregAddr, &sreg);
@@ -1564,7 +1678,7 @@ void AVRCPU::instruction_MOV() {
     /*************************MOV***********************/
     LOGD(SOFIA_AVRCPU_TAG, "Instruction MOV");
 
-    datMem->read((((0x0200&instruction)>>5) | (0x000F&instruction)), &result);
+    datMem->read((((0x0200 & instruction) >> 5) | (0x000F & instruction)), &result);
     datMem->write((0x01F0 & instruction) >> 4, &result);
 }
 
@@ -1572,37 +1686,39 @@ void AVRCPU::instruction_MOVW() {
     /*************************MOVW***********************/
     LOGD(SOFIA_AVRCPU_TAG, "Instruction MOVW");
 
-    regRAddr = (0x000F&instruction)<<1;
-    regDAddr = (0x00F0&instruction)>>3;
+    regRAddr = (0x000F & instruction) << 1;
+    regDAddr = (0x00F0 & instruction) >> 3;
 
     datMem->read(regRAddr, &result);
     datMem->write(regDAddr, &result);
 
-    datMem->read(regRAddr+1, &result);
-    datMem->write(regDAddr+1, &result);
+    datMem->read(regRAddr + 1, &result);
+    datMem->write(regDAddr + 1, &result);
 }
 
 void AVRCPU::instruction_MUL() {
     /*************************MUL***********************/
     LOGD(SOFIA_AVRCPU_TAG, "Instruction MUL");
 
-    datMem->read((0x01F0&instruction)>>4, &regD);
-    datMem->read(((0x0200&instruction)>>5) | (0x000F&instruction), &regR);
+    datMem->read((0x01F0 & instruction) >> 4, &regD);
+    datMem->read(((0x0200 & instruction) >> 5) | (0x000F & instruction), &regR);
     datMem->read(sregAddr, &sreg);
 
     outData = regD * regR;
     sreg &= 0xFC;
 
     //Flag Z
-    sreg |= outData?0x0000:Z_FLAG_MASK;
+    sreg |= outData ? 0x0000 : Z_FLAG_MASK;
 
     //Flag C
-    sreg |= (outData>>15)&C_FLAG_MASK;
+    sreg |= (outData >> 15) & C_FLAG_MASK;
 
     datMem->write(REG00_ADDR, &outData);
     outData = outData >> 8;
     datMem->write(REG01_ADDR, &outData);
     datMem->write(sregAddr, &sreg);
+
+    needExtraCycles = 1;
 }
 
 void AVRCPU::instruction_MULS() {
@@ -1613,19 +1729,21 @@ void AVRCPU::instruction_MULS() {
     datMem->read(REG16_ADDR | (0x000F & instruction), &regR);
     datMem->read(sregAddr, &sreg);
 
-    outData = ((__int8_t)regD) * ((__int8_t)regR); //signed multiplication
+    outData = ((__int8_t) regD) * ((__int8_t) regR); //signed multiplication
     sreg &= 0xFC;
 
     //Flag Z
-    sreg |= outData?0x0000:Z_FLAG_MASK;
+    sreg |= outData ? 0x0000 : Z_FLAG_MASK;
 
     //Flag C
-    sreg |= (outData>>15)&C_FLAG_MASK;
+    sreg |= (outData >> 15) & C_FLAG_MASK;
 
     datMem->write(REG00_ADDR, &outData);
     outData = outData >> 8;
     datMem->write(REG01_ADDR, &outData);
     datMem->write(sregAddr, &sreg);
+
+    needExtraCycles = 1;
 }
 
 void AVRCPU::instruction_MULSU() {
@@ -1636,26 +1754,28 @@ void AVRCPU::instruction_MULSU() {
     datMem->read(REG16_ADDR | (0x0007 & instruction), &regR);
     datMem->read(sregAddr, &sreg);
 
-    outData = ((__int8_t)regD) * regR; //signed * unsigned
+    outData = ((__int8_t) regD) * regR; //signed * unsigned
     sreg &= 0xFC;
 
     //Flag Z
-    sreg |= outData?0x0000:Z_FLAG_MASK;
+    sreg |= outData ? 0x0000 : Z_FLAG_MASK;
 
     //Flag C
-    sreg |= (outData>>15)&C_FLAG_MASK;
+    sreg |= (outData >> 15) & C_FLAG_MASK;
 
     datMem->write(REG00_ADDR, &outData);
     outData = outData >> 8;
     datMem->write(REG01_ADDR, &outData);
     datMem->write(sregAddr, &sreg);
+
+    needExtraCycles = 1;
 }
 
 void AVRCPU::instruction_NEG() {
     /*************************NEG***********************/
     LOGD(SOFIA_AVRCPU_TAG, "Instruction NEG");
 
-    wbAddr = (0x01F0&instruction)>>4;
+    wbAddr = (0x01F0 & instruction) >> 4;
     datMem->read(wbAddr, &regD);
     datMem->read(sregAddr, &sreg);
 
@@ -1663,10 +1783,10 @@ void AVRCPU::instruction_NEG() {
     sreg &= 0xC0;
 
     //Flag H
-    sreg |= ((result & regD)<<2)&H_FLAG_MASK;
+    sreg |= ((result & regD) << 2) & H_FLAG_MASK;
 
     //Flag V
-    sreg |= (result == 0x80)?V_FLAG_MASK:0x00;
+    sreg |= (result == 0x80) ? V_FLAG_MASK : 0x00;
 
     //Flag N
     sreg |= (result >> 5) & N_FLAG_MASK;
@@ -1675,7 +1795,7 @@ void AVRCPU::instruction_NEG() {
     sreg |= (((sreg << 1) ^ sreg) << 1) & S_FLAG_MASK;
 
     //Flag Z and C
-    sreg |= result?C_FLAG_MASK:Z_FLAG_MASK;
+    sreg |= result ? C_FLAG_MASK : Z_FLAG_MASK;
 
     datMem->write(wbAddr, &result);
     datMem->write(sregAddr, &sreg);
@@ -1706,7 +1826,7 @@ void AVRCPU::instruction_OR() {
     sreg |= (((sreg << 1) ^ sreg) << 1) & S_FLAG_MASK;
 
     //Flag Z
-    sreg |= result?0x00:Z_FLAG_MASK;
+    sreg |= result ? 0x00 : Z_FLAG_MASK;
 
     datMem->write(wbAddr, &result);
     datMem->write(sregAddr, &sreg);
@@ -1721,7 +1841,7 @@ void AVRCPU::instruction_ORI_SBR() {
     datMem->read(wbAddr, &regD);
     datMem->read(sregAddr, &sreg);
 
-    result = regD | (((0x0F00&instruction)>>4)|(0x000F&instruction));
+    result = regD | (((0x0F00 & instruction) >> 4) | (0x000F & instruction));
     sreg &= 0xE1;
 
     //Flag N
@@ -1731,7 +1851,7 @@ void AVRCPU::instruction_ORI_SBR() {
     sreg |= (((sreg << 1) ^ sreg) << 1) & S_FLAG_MASK;
 
     //Flag Z
-    sreg |= result?0x00:Z_FLAG_MASK;
+    sreg |= result ? 0x00 : Z_FLAG_MASK;
 
     datMem->write(wbAddr, &result);
     datMem->write(sregAddr, &sreg);
@@ -1741,8 +1861,9 @@ void AVRCPU::instruction_OUT() {
     /*************************OUT***********************/
     LOGD(SOFIA_AVRCPU_TAG, "Instruction OUT");
 
-    datMem->read((0x01F0&instruction)>>4, &result);
-    datMem->write(IOREG_BASEADDR + (((0x0600&instruction)>>5)|(0x000F&instruction)), &result);
+    datMem->read((0x01F0 & instruction) >> 4, &result);
+    datMem->write(ioBaseAddr + (((0x0600 & instruction) >> 5) | (0x000F & instruction)),
+                  &result);
 }
 
 void AVRCPU::instruction_POP() {
@@ -1751,15 +1872,18 @@ void AVRCPU::instruction_POP() {
 
     datMem->read(stackLAddr, &dataL);
     datMem->read(stackHAddr, &dataH);
-    stackPointer = (dataH<<8)|dataL;
+    stackPointer = (dataH << 8) | dataL;
 
     datMem->read(++stackPointer, &result);
-    datMem->write((0x01F0&instruction)>>4, &result);
+    datMem->write((0x01F0 & instruction) >> 4, &result);
 
     //Update SPL and SPH
     datMem->write(stackLAddr, &stackPointer);
     stackPointer = stackPointer >> 8;
     datMem->write(stackHAddr, &stackPointer);
+
+    //AVRrc will need one extra cycle
+    needExtraCycles = 1;
 }
 
 void AVRCPU::instruction_PUSH() {
@@ -1768,9 +1892,9 @@ void AVRCPU::instruction_PUSH() {
 
     datMem->read(stackLAddr, &dataL);
     datMem->read(stackHAddr, &dataH);
-    stackPointer = (dataH<<8)|dataL;
+    stackPointer = (dataH << 8) | dataL;
 
-    datMem->read((0x01F0&instruction)>>4, &result);
+    datMem->read((0x01F0 & instruction) >> 4, &result);
     datMem->write(stackPointer--, &result);
 
     //Update SPL and SPH
@@ -1783,23 +1907,11 @@ void AVRCPU::instruction_RCALL() {
     /*************************RCALL***********************/
     LOGD(SOFIA_AVRCPU_TAG, "Instruction RCALL");
 
-    jumpValue = 0x0FFF&instruction;
+    jumpValue = 0x0FFF & instruction;
 
     datMem->read(stackLAddr, &dataL);
     datMem->read(stackHAddr, &dataH);
-    stackPointer = (dataH<<8)|dataL;
-
-    //PC is already in position to go to stack (write little-endian)
-    datMem->write(stackPointer--, &pc);
-    pc = pc >> 8;
-    datMem->write(stackPointer--, &pc);
-
-    //Update SPL and SPH
-    datMem->write(stackLAddr, &stackPointer);
-    stackPointer = stackPointer >> 8;
-    datMem->write(stackHAddr, &stackPointer);
-
-    pc += (((__int32_t)jumpValue)<<20)>>20; //Cast to make sign extension
+    stackPointer = (dataH << 8) | dataL;
 }
 
 void AVRCPU::instruction_RET() {
@@ -1808,17 +1920,7 @@ void AVRCPU::instruction_RET() {
 
     datMem->read(stackLAddr, &dataL);
     datMem->read(stackHAddr, &dataH);
-    stackPointer = (dataH<<8)|dataL;
-
-    //PC (read little-endian)
-    datMem->read(++stackPointer, &dataH);
-    datMem->read(++stackPointer, &dataL);
-    pc = (dataH<<8)|dataL;
-
-    //Update SPL and SPH
-    datMem->write(stackLAddr, &stackPointer);
-    stackPointer = stackPointer >> 8;
-    datMem->write(stackHAddr, &stackPointer);
+    stackPointer = (dataH << 8) | dataL;
 }
 
 void AVRCPU::instruction_RETI() {
@@ -1827,29 +1929,16 @@ void AVRCPU::instruction_RETI() {
 
     datMem->read(stackLAddr, &dataL);
     datMem->read(stackHAddr, &dataH);
-    stackPointer = (dataH<<8)|dataL;
-
-    //PC (read little-endian)
-    datMem->read(++stackPointer, &dataH);
-    datMem->read(++stackPointer, &dataL);
-    pc = (dataH<<8)|dataL;
-
-    datMem->read(sregAddr, &sreg);
-    sreg |= I_FLAG_MASK; //FIXME: AVR XMEGA will not perform this set
-    datMem->write(sregAddr, &sreg);
-
-    //Update SPL and SPH
-    datMem->write(stackLAddr, &stackPointer);
-    stackPointer = stackPointer >> 8;
-    datMem->write(stackHAddr, &stackPointer);
+    stackPointer = (dataH << 8) | dataL;
 }
 
 void AVRCPU::instruction_RJMP() {
     /*************************RJMP***********************/
     LOGD(SOFIA_AVRCPU_TAG, "Instruction RJMP");
 
-    jumpValue = 0x0FFF&instruction;
-    pc += (((__int32_t)jumpValue)<<20)>>20; //Cast to make sign extension
+    jumpValue = 0x0FFF & instruction;
+    pc += (((__int32_t) jumpValue) << 20) >> 20; //Cast to make sign extension
+    needExtraCycles = 1;
 }
 
 void AVRCPU::instruction_ROR() {
@@ -1877,7 +1966,7 @@ void AVRCPU::instruction_ROR() {
     sreg |= (((sreg << 1) ^ sreg) << 1) & S_FLAG_MASK;
 
     //Flag Z
-    sreg |= result?0x00:Z_FLAG_MASK;
+    sreg |= result ? 0x00 : Z_FLAG_MASK;
 
     datMem->write(wbAddr, &result);
     datMem->write(sregAddr, &sreg);
@@ -1914,7 +2003,7 @@ void AVRCPU::instruction_SBC() {
     sreg |= (((sreg << 1) ^ sreg) << 1) & S_FLAG_MASK;
 
     //Flag Z
-    sreg &= result?(~Z_FLAG_MASK):sreg;
+    sreg &= result ? (~Z_FLAG_MASK) : sreg;
 
     //Flag C
     sreg |= (hc_flag >> 7) & C_FLAG_MASK;
@@ -1946,7 +2035,8 @@ void AVRCPU::instruction_SBCI() {
     sreg |= (hc_flag << 2) & H_FLAG_MASK;
 
     //Flag V
-    sreg |= (((regD & (~immediate) & not_result) | (not_regD & immediate_and_result)) >> 4) & V_FLAG_MASK;
+    sreg |= (((regD & (~immediate) & not_result) | (not_regD & immediate_and_result)) >> 4) &
+            V_FLAG_MASK;
 
     //Flag N
     sreg |= (result >> 5) & N_FLAG_MASK;
@@ -1955,7 +2045,7 @@ void AVRCPU::instruction_SBCI() {
     sreg |= (((sreg << 1) ^ sreg) << 1) & S_FLAG_MASK;
 
     //Flag Z
-    sreg &= result?(~Z_FLAG_MASK):sreg;
+    sreg &= result ? (~Z_FLAG_MASK) : sreg;
 
     //Flag C
     sreg |= (hc_flag >> 7) & C_FLAG_MASK;
@@ -1968,9 +2058,9 @@ void AVRCPU::instruction_SBI() {
     /*************************SBI***********************/
     LOGD(SOFIA_AVRCPU_TAG, "Instruction SBI");
 
-    wbAddr = ((instruction&0x00F8)>>3) + IOREG_BASEADDR;
+    wbAddr = ((instruction & 0x00F8) >> 3) + ioBaseAddr;
     datMem->read(wbAddr, &result);
-    result |= (0x01 << (instruction&0x0007));
+    result |= (0x01 << (instruction & 0x0007));
     datMem->write(wbAddr, &result);
 }
 
@@ -1978,21 +2068,24 @@ void AVRCPU::instruction_SBIC() {
     /*************************SBIC***********************/
     LOGD(SOFIA_AVRCPU_TAG, "Instruction SBIC");
 
-    datMem->read(((instruction&0x00F8)>>3) + IOREG_BASEADDR, &result);
+    datMem->read(((instruction & 0x00F8) >> 3) + ioBaseAddr, &result);
 
-    result &= (0x01 << (instruction&0x0007));
+    result &= (0x01 << (instruction & 0x0007));
 
+    //AVRxm will need one extra cycle, regardless for all cases
     if (!result) {
         progMem->loadInstruction(pc++, &instruction);
+        needExtraCycles = 1;
 
         //Test 2 word instruction
         testJMP_CALL = instruction & INSTRUCTION_GROUP7_MASK;
         testLDS_STS = instruction & INSTRUCTION_GROUP8_MASK;
         if (testJMP_CALL == JMP_OPCODE ||
-            testJMP_CALL == CALL_OPCODE||
-            testLDS_STS  == LDS_OPCODE ||
-            testLDS_STS  == STS_OPCODE) {
+            testJMP_CALL == CALL_OPCODE ||
+            testLDS_STS == LDS_OPCODE ||
+            testLDS_STS == STS_OPCODE) {
             pc += 1;
+            needExtraCycles += 1;
         }
     }
 }
@@ -2001,21 +2094,24 @@ void AVRCPU::instruction_SBIS() {
     /*************************SBIS***********************/
     LOGD(SOFIA_AVRCPU_TAG, "Instruction SBIS");
 
-    datMem->read(((instruction&0x00F8)>>3) + IOREG_BASEADDR, &result);
+    datMem->read(((instruction & 0x00F8) >> 3) + ioBaseAddr, &result);
 
-    result &= (0x01 << (instruction&0x0007));
+    result &= (0x01 << (instruction & 0x0007));
 
+    //AVRxm will need one extra cycle, regardless for all cases
     if (result) {
         progMem->loadInstruction(pc++, &instruction);
+        needExtraCycles = 1;
 
         //Test 2 word instruction
         testJMP_CALL = instruction & INSTRUCTION_GROUP7_MASK;
         testLDS_STS = instruction & INSTRUCTION_GROUP8_MASK;
         if (testJMP_CALL == JMP_OPCODE ||
-            testJMP_CALL == CALL_OPCODE||
-            testLDS_STS  == LDS_OPCODE ||
-            testLDS_STS  == STS_OPCODE) {
+            testJMP_CALL == CALL_OPCODE ||
+            testLDS_STS == LDS_OPCODE ||
+            testLDS_STS == STS_OPCODE) {
             pc += 1;
+            needExtraCycles += 1;
         }
     }
 }
@@ -2024,7 +2120,7 @@ void AVRCPU::instruction_SBIW() {
     /*************************SBIW***********************/
     LOGD(SOFIA_AVRCPU_TAG, "Instruction SBIW");
 
-    offset = ((0x0030&instruction)>>3); //(>>4)*2 = >>3
+    offset = ((0x0030 & instruction) >> 3); //(>>4)*2 = >>3
 
     //SBIW operates on the upper four registers pairs
     dataLAddr = REG24_ADDR + offset;
@@ -2034,49 +2130,53 @@ void AVRCPU::instruction_SBIW() {
     datMem->read(dataHAddr, &dataH);
     datMem->read(sregAddr, &sreg);
 
-    outData = ((dataH<<8) | dataL) - (((0x00C0 & instruction)>>2) | (0x000F & instruction));
+    outData = ((dataH << 8) | dataL) - (((0x00C0 & instruction) >> 2) | (0x000F & instruction));
     sreg &= 0xE0;
 
     //Flag V
-    sreg |= ((dataH>>4)&((~outData)>>12))&V_FLAG_MASK;
+    sreg |= ((dataH >> 4) & ((~outData) >> 12)) & V_FLAG_MASK;
 
     //Flag N
-    sreg |= (outData>>13)&N_FLAG_MASK;
+    sreg |= (outData >> 13) & N_FLAG_MASK;
 
     //Flag S
     sreg |= (((sreg << 1) ^ sreg) << 1) & S_FLAG_MASK;
 
     //Flag Z
-    sreg |= outData?0x0000:Z_FLAG_MASK;
+    sreg |= outData ? 0x0000 : Z_FLAG_MASK;
 
     //Flag C
-    sreg |= (((~dataH)>>7)&(outData>>15))&C_FLAG_MASK;
+    sreg |= (((~dataH) >> 7) & (outData >> 15)) & C_FLAG_MASK;
 
     datMem->write(dataLAddr, &outData);
-    outData = outData>>8;
+    outData = outData >> 8;
     datMem->write(dataHAddr, &outData);
     datMem->write(sregAddr, &sreg);
+
+    needExtraCycles = 1;
 }
 
 void AVRCPU::instruction_SBRC() {
     /*************************SBRC***********************/
     LOGD(SOFIA_AVRCPU_TAG, "Instruction SBRC");
 
-    datMem->read((instruction&0x01F0)>>4, &result);
+    datMem->read((instruction & 0x01F0) >> 4, &result);
 
-    result &= (0x01 << (instruction&0x0007));
+    result &= (0x01 << (instruction & 0x0007));
 
     if (!result) {
         progMem->loadInstruction(pc++, &instruction);
+        needExtraCycles = 1;
 
         //Test 2 word instruction
         testJMP_CALL = instruction & INSTRUCTION_GROUP7_MASK;
         testLDS_STS = instruction & INSTRUCTION_GROUP8_MASK;
         if (testJMP_CALL == JMP_OPCODE ||
-            testJMP_CALL == CALL_OPCODE||
-            testLDS_STS  == LDS_OPCODE ||
-            testLDS_STS  == STS_OPCODE) {
+            testJMP_CALL == CALL_OPCODE ||
+            testLDS_STS == LDS_OPCODE ||
+            testLDS_STS == STS_OPCODE) {
             pc += 1;
+            needExtraCycles += 1;
         }
     }
 }
@@ -2085,21 +2185,23 @@ void AVRCPU::instruction_SBRS() {
     /*************************SBRS***********************/
     LOGD(SOFIA_AVRCPU_TAG, "Instruction SBRS");
 
-    datMem->read((instruction&0x01F0)>>4, &result);
+    datMem->read((instruction & 0x01F0) >> 4, &result);
 
-    result &= (0x01 << (instruction&0x0007));
+    result &= (0x01 << (instruction & 0x0007));
 
     if (result) {
         progMem->loadInstruction(pc++, &instruction);
+        needExtraCycles = 1;
 
         //Test 2 word instruction
         testJMP_CALL = instruction & INSTRUCTION_GROUP7_MASK;
         testLDS_STS = instruction & INSTRUCTION_GROUP8_MASK;
         if (testJMP_CALL == JMP_OPCODE ||
-            testJMP_CALL == CALL_OPCODE||
-            testLDS_STS  == LDS_OPCODE ||
-            testLDS_STS  == STS_OPCODE) {
+            testJMP_CALL == CALL_OPCODE ||
+            testLDS_STS == LDS_OPCODE ||
+            testLDS_STS == STS_OPCODE) {
             pc += 1;
+            needExtraCycles += 1;
         }
     }
 }
@@ -2115,20 +2217,23 @@ void AVRCPU::instruction_SPM_Z_UNCHANGED() {
 
     datMem->read(REG00_ADDR, &dataL);
     datMem->read(REG01_ADDR, &dataH);
-    outData = (dataH<<8) | dataL;
+    outData = (dataH << 8) | dataL;
 
     //Read Z Register
     datMem->read(REG30_ADDR, &dataL);
     datMem->read(REG31_ADDR, &dataH);
-    wbAddr = ((dataH<<8) | dataL)<<1; //Z is a page/word address
+    wbAddr = ((dataH << 8) | dataL) << 1; //Z is a page/word address
 
     progMem->write(wbAddr, &outData);
     outData = outData >> 8;
-    progMem->write(wbAddr+1, &outData);
+    progMem->write(wbAddr + 1, &outData);
 }
 
-void AVRCPU::instruction_SPM_POST_INCREMENT(){
+void AVRCPU::instruction_SPM_POST_INCREMENT() {
     /*************************SPM (Z POST INCREMENT)***********************/
+    /*
+     * Only AVRxm and AVRxt will implement this function
+     */
     LOGD(SOFIA_AVRCPU_TAG, "Instruction SPM (Z POST INCREMENT) - NOT IMPLEMENTED");
 }
 
@@ -2139,9 +2244,9 @@ void AVRCPU::instruction_ST_X_UNCHANGED() {
     //Read X Register
     datMem->read(REG26_ADDR, &dataL);
     datMem->read(REG27_ADDR, &dataH);
-    wbAddr = (dataH<<8) | dataL;
+    wbAddr = (dataH << 8) | dataL;
 
-    datMem->read((0x01F0 & instruction)>>4, &result);
+    datMem->read((0x01F0 & instruction) >> 4, &result);
     datMem->write(wbAddr, &result);
 }
 
@@ -2152,9 +2257,9 @@ void AVRCPU::instruction_ST_X_POST_INCREMENT() {
     //Read X Register
     datMem->read(REG26_ADDR, &dataL);
     datMem->read(REG27_ADDR, &dataH);
-    wbAddr = (dataH<<8) | dataL;
+    wbAddr = (dataH << 8) | dataL;
 
-    datMem->read((0x01F0 & instruction)>>4, &result);
+    datMem->read((0x01F0 & instruction) >> 4, &result);
     datMem->write(wbAddr++, &result);
     datMem->write(REG26_ADDR, &wbAddr);
     wbAddr = wbAddr >> 8;
@@ -2168,9 +2273,9 @@ void AVRCPU::instruction_ST_X_PRE_DECREMENT() {
     //Read X Register
     datMem->read(REG26_ADDR, &dataL);
     datMem->read(REG27_ADDR, &dataH);
-    wbAddr = (dataH<<8) | dataL;
+    wbAddr = (dataH << 8) | dataL;
 
-    datMem->read((0x01F0 & instruction)>>4, &result);
+    datMem->read((0x01F0 & instruction) >> 4, &result);
     datMem->write(--wbAddr, &result);
     datMem->write(REG26_ADDR, &wbAddr);
     wbAddr = wbAddr >> 8;
@@ -2184,9 +2289,9 @@ void AVRCPU::instruction_ST_Y_UNCHANGED() {
     //Read Y Register
     datMem->read(REG28_ADDR, &dataL);
     datMem->read(REG29_ADDR, &dataH);
-    wbAddr = (dataH<<8) | dataL;
+    wbAddr = (dataH << 8) | dataL;
 
-    datMem->read((0x01F0 & instruction)>>4, &result);
+    datMem->read((0x01F0 & instruction) >> 4, &result);
     datMem->write(wbAddr, &result);
 }
 
@@ -2197,9 +2302,9 @@ void AVRCPU::instruction_ST_Y_POST_INCREMENT() {
     //Read Y Register
     datMem->read(REG28_ADDR, &dataL);
     datMem->read(REG29_ADDR, &dataH);
-    wbAddr = (dataH<<8) | dataL;
+    wbAddr = (dataH << 8) | dataL;
 
-    datMem->read((0x01F0 & instruction)>>4, &result);
+    datMem->read((0x01F0 & instruction) >> 4, &result);
     datMem->write(wbAddr++, &result);
     datMem->write(REG28_ADDR, &wbAddr);
     wbAddr = wbAddr >> 8;
@@ -2213,9 +2318,9 @@ void AVRCPU::instruction_ST_Y_PRE_DECREMENT() {
     //Read Y Register
     datMem->read(REG28_ADDR, &dataL);
     datMem->read(REG29_ADDR, &dataH);
-    wbAddr = (dataH<<8) | dataL;
+    wbAddr = (dataH << 8) | dataL;
 
-    datMem->read((0x01F0 & instruction)>>4, &result);
+    datMem->read((0x01F0 & instruction) >> 4, &result);
     datMem->write(--wbAddr, &result);
     datMem->write(REG28_ADDR, &wbAddr);
     wbAddr = wbAddr >> 8;
@@ -2229,9 +2334,11 @@ void AVRCPU::instruction_STD_Y() {
     //Read Y Register
     datMem->read(REG28_ADDR, &dataL);
     datMem->read(REG29_ADDR, &dataH);
-    wbAddr = ((dataH<<8) | dataL) + (((0x2000 & instruction)>>8) | ((0x0C00 & instruction)>>7)| (0x0007 & instruction));
+    wbAddr = ((dataH << 8) | dataL) +
+             (((0x2000 & instruction) >> 8) | ((0x0C00 & instruction) >> 7) |
+              (0x0007 & instruction));
 
-    datMem->read((0x01F0 & instruction)>>4, &result);
+    datMem->read((0x01F0 & instruction) >> 4, &result);
     datMem->write(wbAddr, &result);
 }
 
@@ -2242,9 +2349,9 @@ void AVRCPU::instruction_ST_Z_UNCHANGED() {
     //Read Z Register
     datMem->read(REG30_ADDR, &dataL);
     datMem->read(REG31_ADDR, &dataH);
-    wbAddr = (dataH<<8) | dataL;
+    wbAddr = (dataH << 8) | dataL;
 
-    datMem->read((0x01F0 & instruction)>>4, &result);
+    datMem->read((0x01F0 & instruction) >> 4, &result);
     datMem->write(wbAddr, &result);
 }
 
@@ -2255,9 +2362,9 @@ void AVRCPU::instruction_ST_Z_POST_INCREMENT() {
     //Read Z Register
     datMem->read(REG30_ADDR, &dataL);
     datMem->read(REG31_ADDR, &dataH);
-    wbAddr = (dataH<<8) | dataL;
+    wbAddr = (dataH << 8) | dataL;
 
-    datMem->read((0x01F0 & instruction)>>4, &result);
+    datMem->read((0x01F0 & instruction) >> 4, &result);
     datMem->write(wbAddr++, &result);
     datMem->write(REG30_ADDR, &wbAddr);
     wbAddr = wbAddr >> 8;
@@ -2271,9 +2378,9 @@ void AVRCPU::instruction_ST_Z_PRE_DECREMENT() {
     //Read Z Register
     datMem->read(REG30_ADDR, &dataL);
     datMem->read(REG31_ADDR, &dataH);
-    wbAddr = (dataH<<8) | dataL;
+    wbAddr = (dataH << 8) | dataL;
 
-    datMem->read((0x01F0 & instruction)>>4, &result);
+    datMem->read((0x01F0 & instruction) >> 4, &result);
     datMem->write(--wbAddr, &result);
     datMem->write(REG30_ADDR, &wbAddr);
     wbAddr = wbAddr >> 8;
@@ -2287,9 +2394,11 @@ void AVRCPU::instruction_STD_Z() {
     //Read Z Register
     datMem->read(REG30_ADDR, &dataL);
     datMem->read(REG31_ADDR, &dataH);
-    wbAddr = ((dataH<<8) | dataL) + (((0x2000 & instruction)>>8) | ((0x0C00 & instruction)>>7)| (0x0007 & instruction));
+    wbAddr = ((dataH << 8) | dataL) +
+             (((0x2000 & instruction) >> 8) | ((0x0C00 & instruction) >> 7) |
+              (0x0007 & instruction));
 
-    datMem->read((0x01F0 & instruction)>>4, &result);
+    datMem->read((0x01F0 & instruction) >> 4, &result);
     datMem->write(wbAddr, &result);
 }
 
@@ -2303,10 +2412,14 @@ void AVRCPU::instruction_STS() {
 
     datMem->read(wbAddr, &result);
     datMem->write(instruction, &result);
+    needExtraCycles = 1;
 }
 
 void AVRCPU::instruction_STS16() {
     /*************************STS (16-bit)***********************/
+    /*
+     * Only AVRrc will implement this function
+     */
     LOGD(SOFIA_AVRCPU_TAG, "Instruction STS (16-bit) - NOT IMPLEMENTED");
 }
 
@@ -2341,7 +2454,7 @@ void AVRCPU::instruction_SUB() {
     sreg |= (((sreg << 1) ^ sreg) << 1) & S_FLAG_MASK;
 
     //Flag Z
-    sreg |= result?0x00:Z_FLAG_MASK;
+    sreg |= result ? 0x00 : Z_FLAG_MASK;
 
     //Flag C
     sreg |= (hc_flag >> 7) & C_FLAG_MASK;
@@ -2373,7 +2486,8 @@ void AVRCPU::instruction_SUBI() {
     sreg |= (hc_flag << 2) & H_FLAG_MASK;
 
     //Flag V
-    sreg |= (((regD & (~immediate) & not_result) | (not_regD & immediate_and_result)) >> 4) & V_FLAG_MASK;
+    sreg |= (((regD & (~immediate) & not_result) | (not_regD & immediate_and_result)) >> 4) &
+            V_FLAG_MASK;
 
     //Flag N
     sreg |= (result >> 5) & N_FLAG_MASK;
@@ -2382,7 +2496,7 @@ void AVRCPU::instruction_SUBI() {
     sreg |= (((sreg << 1) ^ sreg) << 1) & S_FLAG_MASK;
 
     //Flag Z
-    sreg |= result?0x00:Z_FLAG_MASK;
+    sreg |= result ? 0x00 : Z_FLAG_MASK;
 
     //Flag C
     sreg |= (hc_flag >> 7) & C_FLAG_MASK;
@@ -2398,7 +2512,7 @@ void AVRCPU::instruction_SWAP() {
     wbAddr = (0x01F0 & instruction) >> 4;
     datMem->read(wbAddr, &regD);
 
-    result = (regD<<4)|(regD>>4);
+    result = (regD << 4) | (regD >> 4);
 
     datMem->write(wbAddr, &result);
 }
@@ -2410,11 +2524,14 @@ void AVRCPU::instruction_WDR() {
 
 void AVRCPU::instruction_XCH() {
     /*************************XCH***********************/
+    /*
+     * Only AVRxm will implement this function
+     */
     LOGD(SOFIA_AVRCPU_TAG, "Instruction XCH - NOT IMPLEMENTED");
 }
 
 void AVRCPU::unknownInstruction() {
-//    LOGD(SOFIA_AVRCPU_TAG, "Unknown Instruction");
+    LOGD(SOFIA_AVRCPU_TAG, "Unknown Instruction");
 }
 
 

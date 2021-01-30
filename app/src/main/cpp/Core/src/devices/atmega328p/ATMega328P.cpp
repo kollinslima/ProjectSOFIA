@@ -6,6 +6,7 @@
 #include "../../../include/devices/atmega328p/ATMega328P.h"
 #include "../../../include/SofiaCoreController.h"
 #include "../../../include/parsers/IntelParser.h"
+#include "../../../include/devices/components/avr/cpu/AVRCPU_AVRe.h"
 
 #define SOFIA_ATMEGA328P_TAG "SOFIA ATMEGA328P"
 
@@ -17,7 +18,13 @@ ATMega328P::ATMega328P(SofiaNotifier *notifier) {
 
     programMemory = new ProgramMemory_ATMega328P();
     dataMemory = new DataMemory_ATMega328P(notifier);
-    cpu = new AVRCPU(programMemory, dataMemory);
+
+    cpu = new AVRCPU_AVRe(programMemory, dataMemory);
+
+    //Cofigure CPU to ATMega328P
+    //ATmega328P has a 14-bits PC, but the behavior is the same as a 16-bits for the CPU
+    cpu->setPCSize(AVRCPU::PCBits::PC16);
+    cpu->setIOBaseAddr(0x0020);
 
     clockFreq = DEFAULT_CLOCK_FREQ;
     isRunning = false;
@@ -42,7 +49,7 @@ ATMega328P::~ATMega328P() {
 
 void ATMega328P::start() {
     isRunning = true;
-    for (int & i : syncCounter) {
+    for (unsigned int & i : syncCounter) {
         i = clockFreq;
     }
     scheduler[CPU_MODULE_INDEX] = thread(&ATMega328P::cpuThread, this);
@@ -95,18 +102,18 @@ void ATMega328P::cpuThread() {
 //}
 
 void ATMega328P::syncronizationThread() {
-    int finishCondition[NUM_MODULES];
-    int initialCondition[NUM_MODULES];
+    unsigned int finishCondition[NUM_MODULES];
+    unsigned int initialCondition[NUM_MODULES];
 
-    for (int &i : initialCondition) {
+    for (unsigned int &i : initialCondition) {
         i = clockFreq;
     }
     memset(finishCondition, 0, sizeof(finishCondition));
 
     while (isRunning) {
-        while (memcmp(syncCounter, finishCondition, sizeof(syncCounter))) {usleep(1000);}
-        memcpy(syncCounter, initialCondition, sizeof(syncCounter));
+        while (memcmp(syncCounter, finishCondition, sizeof(syncCounter)) != 0) {usleep(1000);}
         notifier->addNotification(TIME_UPDATE_LISTENER);
+        memcpy(syncCounter, initialCondition, sizeof(syncCounter));
     }
 }
 

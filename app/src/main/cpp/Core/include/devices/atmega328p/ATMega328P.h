@@ -11,7 +11,7 @@
 #include "../GenericDevice.h"
 #include "ProgramMemory_ATMega328P.h"
 #include "DataMemory_ATMega328P.h"
-#include "../components/avr/AVRCPU.h"
+#include "../components/avr/cpu/AVRCPU.h"
 
 #define NUM_MODULES 1
 
@@ -40,7 +40,7 @@ private:
     DataMemory_ATMega328P *dataMemory;
     AVRCPU *cpu;
 
-    int syncCounter[NUM_MODULES];
+    unsigned int syncCounter[NUM_MODULES];
     thread scheduler[NUM_MODULES];
     thread syncThread;
 
