@@ -9,4 +9,11 @@
     <color name="v1_digital_output_hi_z_led">#808080</color>
     <color name="v1_digital_output_off_led">#17A1A5</color>
     <color name="v1_digital_output_on_led">#FFCC00</color>
+
+    <color name="v1_off_push_button">#17A1A5</color>
+    <color name="v1_on_push_button">#FFCC00</color>
+
+    <color name="v1_input_state_undefined">#808080</color>
+    <color name="v1_input_state_off">#17A1A5</color>
+    <color name="v1_input_state_on">#FFCC00</color>
 </resources>

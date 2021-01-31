@@ -8,4 +8,7 @@
     <dimen name="outputLayoutPadding">6dp</dimen>
     <dimen name="outputLed">50dp</dimen>
     <dimen name="outputLedPadding">10dp</dimen>
+
+    <dimen name="v1PushButtonSize">50dp</dimen>
+    <dimen name="v1PinStateSize">50dp</dimen>
 </resources>

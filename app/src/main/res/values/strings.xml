@@ -5,14 +5,18 @@
     <string name="about_screen_introduction">Developed by: </string>
     <string name="developer">Kollins Gabriel Lima</string>
 
-    <string name="outputFragmentLabel">Output</string>
     <string name="action_reset">Reset</string>
     <string name="actionn_import">Import</string>
     <string name="actionn_io_add">Add I/O</string>
 
+    <string name="outputFragmentLabel">Output</string>
     <string name="logic_high">On</string>
     <string name="logic_low">Off</string>
     <string name="logic_tri_state">Hi-Z</string>
+
+    <string name="inputFragmentLabel">Input</string>
+    <string name="push_button_on">On</string>
+    <string name="push_button_off">Off</string>
 
     <string name="simulated_time_display">%d s</string>
     <string name="frequency_display">%.2f Hz</string>

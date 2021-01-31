@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.LinearLayoutCompat
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="@dimen/outputLayoutPadding"
+    android:gravity="center">
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/v1DigitalPushButton"
+        android:layout_width="@dimen/v1PushButtonSize"
+        android:layout_height="@dimen/v1PushButtonSize"
+        android:background="@color/v1_off_push_button"
+        android:text="@string/push_button_off" />
+
+    <androidx.appcompat.widget.AppCompatSpinner
+        android:id="@+id/v1PinModeSelector"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="3"/>
+
+    <androidx.appcompat.widget.AppCompatSpinner
+        android:id="@+id/v1PinSelectorDigitalInput"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="3"/>
+
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/v1DigitalInputState"
+        android:layout_width="@dimen/v1PinStateSize"
+        android:layout_height="@dimen/v1PinStateSize"
+        android:background="@drawable/v1_digital_input_undefined"
+        android:gravity="center"/>
+
+</androidx.appcompat.widget.LinearLayoutCompat>
