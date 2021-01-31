@@ -21,7 +21,7 @@ class OutputPinV1ATmega328P : OutputInterface {
     private var pinState = OutputState.TRI_STATE
     private var haveMeter = false
 
-    override fun ioUpdate(change:String) {
+    override fun outputUpdate(change:String) {
         val splittedChange: List<String> = change.split(":")
         outRegisters[splittedChange[0].toByte()] = splittedChange[1].toByte()
     }

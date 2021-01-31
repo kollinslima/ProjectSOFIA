@@ -17,6 +17,7 @@ import com.kollins.project.sofia.Device
 import com.kollins.project.sofia.R
 import com.kollins.project.sofia.RequestCodes
 import com.kollins.project.sofia.SofiaUiController
+import com.kollins.project.sofia.exception.SofiaException
 import com.kollins.project.sofia.interfaces.ui.UiInterface
 import com.kollins.project.sofia.v1.io.output.OutputFragmentV1
 import kotlinx.android.synthetic.main.v1_main_activity.*
@@ -50,7 +51,7 @@ class MainActivitySofiaV1 : AppCompatActivity(), UiInterface {
     }
 
     //////////////////// UI FUNCTIONS ///////////////////////////
-    fun importFile() {
+    private fun importFile() {
         Log.d(MAIN_V1_UI_TAG, "Importing file...")
         val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
             addCategory(Intent.CATEGORY_OPENABLE)
@@ -64,20 +65,28 @@ class MainActivitySofiaV1 : AppCompatActivity(), UiInterface {
         runOnUiThread { simulatedTimeText.text = "$simulatedTime s" }
     }
 
+    override fun loadSuccess() {
+        simulatedTime = 0
+        runOnUiThread { simulatedTimeText.text = "$simulatedTime s" }
+    }
+
     override fun loadCoreChecksumError() {
-        Toast.makeText(this, R.string.import_fail_checksum_error, Toast.LENGTH_SHORT)
+        Toast.makeText(this, R.string.import_fail_checksum_error, Toast.LENGTH_SHORT).show()
+        throw SofiaException(getString(R.string.exception_checksum_error))
     }
 
     override fun loadCoreFileOpenFail() {
-        Toast.makeText(this, R.string.import_fail_open_fail, Toast.LENGTH_SHORT)
+        Toast.makeText(this, R.string.import_fail_open_fail, Toast.LENGTH_SHORT).show()
+        throw SofiaException(getString(R.string.exception_open_fail))
     }
 
     override fun loadCoreInvalidFile() {
-        Toast.makeText(this, R.string.import_fail_invalid_file, Toast.LENGTH_SHORT)
+        Toast.makeText(this, R.string.import_fail_invalid_file, Toast.LENGTH_SHORT).show()
+        throw SofiaException(getString(R.string.exception_invalid_file))
     }
 
-    override fun ioUpdate(change:String) {
-        runOnUiThread { outputFragment.ioUpdate(change) }
+    override fun outputUpdate(change: String) {
+        runOnUiThread { outputFragment.outputUpdate(change) }
     }
 
     //////////////////// LISTENERS ///////////////////////////
@@ -86,9 +95,13 @@ class MainActivitySofiaV1 : AppCompatActivity(), UiInterface {
             when (item.itemId) {
                 R.id.v1ActionAddIO -> {
                     val fragManager = supportFragmentManager
-                    if(fragManager.findFragmentByTag(OutputFragmentV1.V1_OUTPUT_FRAGMENT_TAG) == null) {
+                    if (fragManager.findFragmentByTag(OutputFragmentV1.V1_OUTPUT_FRAGMENT_TAG) == null) {
                         val fragTransaction = fragManager.beginTransaction()
-                        fragTransaction.add(R.id.v1OutputFragmentFrame, outputFragment, OutputFragmentV1.V1_OUTPUT_FRAGMENT_TAG)
+                        fragTransaction.add(
+                            R.id.v1OutputFragmentFrame,
+                            outputFragment,
+                            OutputFragmentV1.V1_OUTPUT_FRAGMENT_TAG
+                        )
                         fragTransaction.commit()
                         v1OutputContainer.visibility = View.VISIBLE
                     }
@@ -130,13 +143,25 @@ class MainActivitySofiaV1 : AppCompatActivity(), UiInterface {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == RequestCodes.IMPORT_FILE_REQUEST_CODE.ordinal && resultCode == Activity.RESULT_OK) {
-            data?.data?.also { uri ->
-                val fileDesciptor = contentResolver.openFileDescriptor(uri, "r")
-                if (fileDesciptor != null) {
-                    suc.loadCore(Device.ATMEGA328P, fileDesciptor.fd)
-                } else {
-                    Toast.makeText(this, R.string.import_fail_open_fail, Toast.LENGTH_SHORT)
+            if (data == null) {
+                Toast.makeText(this, R.string.import_fail_open_fail, Toast.LENGTH_SHORT).show()
+                throw SofiaException(getString(R.string.exception_import_fail_data_null))
+            }
+
+            data.data.also { uri ->
+                if (uri == null) {
+                    Toast.makeText(this, R.string.import_fail_open_fail, Toast.LENGTH_SHORT).show()
+                    throw SofiaException(getString(R.string.exception_import_fail_uri_null))
                 }
+
+                val fileDesciptor = contentResolver.openFileDescriptor(uri, "r")
+                if (fileDesciptor == null) {
+                    val message = R.string.import_fail_open_fail
+                    Toast.makeText(this, R.string.import_fail_open_fail, Toast.LENGTH_SHORT).show()
+                    throw SofiaException(getString(message))
+                }
+
+                suc.loadCore(Device.ATMEGA328P, fileDesciptor.fd)
             }
         }
     }

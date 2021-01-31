@@ -25,6 +25,7 @@ class SofiaUiController(mainUi: UiInterface) {
 
     fun loadCoreSuccess() {
         Log.d(SOFIA_UI_CONTROLLER_TAG, "File load successful !")
+        ui.loadSuccess()
         startCore()
     }
 
@@ -41,11 +42,11 @@ class SofiaUiController(mainUi: UiInterface) {
     }
 
     fun outputChanged (change:String) {
-        ui.ioUpdate(change)
+        ui.outputUpdate(change)
     }
 
     //////////////////// NATIVE FUNCTIONS ///////////////////////////
-    external fun startCore()
+    private external fun startCore()
     external fun stopCore()
     external fun loadCore(s: Device, fd: Int)
     external fun disposeCore()

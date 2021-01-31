@@ -18,4 +18,10 @@
     <string name="import_fail_invalid_file">Fail to import file - invalid file</string>
     <string name="import_fail_checksum_error">Fail to import file - checksum error</string>
 
+    <string name="exception_checksum_error">MainActivitySofia::loadCoreChecksumError: checksum error</string>
+    <string name="exception_open_fail">MainActivitySofia::loadCoreFileOpenFail: file open failed in core</string>
+    <string name="exception_invalid_file">MainActivitySofia::loadCoreInvalidFile: core reported invalid file</string>
+    <string name="exception_import_fail_data_null">MainActivitySofia::onActivityResult: data pointer is NULL</string>
+    <string name="exception_import_fail_uri_null">MainActivitySofia::onActivityResult: uri pointer is NULL</string>
+
 </resources>

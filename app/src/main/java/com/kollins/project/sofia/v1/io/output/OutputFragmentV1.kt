@@ -48,8 +48,8 @@ class OutputFragmentV1 : Fragment() {
         outputAdapter.notifyItemInserted(outputList.size-1)
     }
 
-    fun ioUpdate(change:String) {
-        outputPin.ioUpdate(change)
+    fun outputUpdate(change:String) {
+        outputPin.outputUpdate(change)
         outputAdapter.updateIO()
     }
 }
