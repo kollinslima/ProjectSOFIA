@@ -9,7 +9,7 @@ enum class RequestCodes {
 }
 
 enum class Device {
-    ARDUINO_UNO
+    ATMEGA328P
 }
 
 private const val SOFIA_UI_CONTROLLER_TAG: String = "SOFIA UI CONTROLLER"

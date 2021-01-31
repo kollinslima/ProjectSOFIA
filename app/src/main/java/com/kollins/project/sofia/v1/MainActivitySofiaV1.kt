@@ -61,7 +61,7 @@ class MainActivitySofiaV1 : AppCompatActivity(), UiInterface {
 
     override fun timeUpdate() {
         simulatedTime++
-        runOnUiThread { simulatedTimeText.text = simulatedTime.toString() }
+        runOnUiThread { simulatedTimeText.text = "$simulatedTime s" }
     }
 
     override fun loadCoreChecksumError() {
@@ -133,7 +133,7 @@ class MainActivitySofiaV1 : AppCompatActivity(), UiInterface {
             data?.data?.also { uri ->
                 val fileDesciptor = contentResolver.openFileDescriptor(uri, "r")
                 if (fileDesciptor != null) {
-                    suc.loadCore(Device.ARDUINO_UNO, fileDesciptor.fd)
+                    suc.loadCore(Device.ATMEGA328P, fileDesciptor.fd)
                 } else {
                     Toast.makeText(this, R.string.import_fail_open_fail, Toast.LENGTH_SHORT)
                 }

@@ -38,7 +38,7 @@ std::string jstringToString(JNIEnv *env, jstring string) {
 }
 
 Device enumMap(JNIEnv *env, jobject uiEnum) {
-    Device ret = Device::ARDUINO_UNO;
+    Device ret = Device::ATMEGA328P;
     if (uiEnum) {
         const jclass enumClass = env->FindClass("com/kollins/project/sofia/Device");
         const jmethodID name = env->GetMethodID(enumClass, "name", "()Ljava/lang/String;");
@@ -46,11 +46,11 @@ Device enumMap(JNIEnv *env, jobject uiEnum) {
 
         const char *nativeEnum = env->GetStringUTFChars(value, nullptr);
 
-        if (!strcmp(nativeEnum, "ARDUINO_UNO")) {
-            ret = Device ::ARDUINO_UNO;
+        if (!strcmp(nativeEnum, "ATMEGA328P")) {
+            ret = Device ::ATMEGA328P;
         } else {
-            LOGW(MAIN_CORE_TAG, "Could not parse UI enum, assign ARDUINO_UNO");
-            ret = Device ::ARDUINO_UNO;
+            LOGW(MAIN_CORE_TAG, "Could not parse UI enum, assign ATMEGA328P");
+            ret = Device ::ATMEGA328P;
         }
 
         env->ReleaseStringUTFChars(value, nativeEnum);
@@ -58,7 +58,7 @@ Device enumMap(JNIEnv *env, jobject uiEnum) {
         env->DeleteLocalRef(value);
         env->DeleteLocalRef(enumClass);
     } else {
-        LOGW(MAIN_CORE_TAG, "UI enum is NULL, using ARDUINO_UNO");
+        LOGW(MAIN_CORE_TAG, "UI enum is NULL, using ATMEGA328P");
     }
     return ret;
 }

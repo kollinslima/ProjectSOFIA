@@ -25,7 +25,7 @@ class SplashScreenActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
         val intent = Intent(this, MainActivitySofiaV1::class.java).apply {
-            putExtra(SofiaUiController.TARGET_DEVICE_EXTRA, Device.ARDUINO_UNO)
+            putExtra(SofiaUiController.TARGET_DEVICE_EXTRA, Device.ATMEGA328P)
         }
         startActivity(intent)
         finish()

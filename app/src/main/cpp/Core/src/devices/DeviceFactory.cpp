@@ -11,7 +11,7 @@
 GenericDevice * DeviceFactory::createDevice(Device device, SofiaNotifier *notifier) {
     GenericDevice *ret = nullptr;
     switch (device) {
-        case Device::ARDUINO_UNO:
+        case Device::ATMEGA328P:
             ret = new ATMega328P(notifier);
             break;
         default:

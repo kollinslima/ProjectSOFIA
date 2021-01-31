@@ -33,7 +33,7 @@ typedef __uint16_t sword16;
 #define LOGE(TAG, ...)
 #else
 #define LOGD(TAG, ...)   \
-    ((void)__android_log_print(ANDROID_LOG_DEBUG, TAG, __VA_ARGS__))
+//    ((void)__android_log_print(ANDROID_LOG_DEBUG, TAG, __VA_ARGS__))
 #define LOGI(TAG, ...)   \
     ((void)__android_log_print(ANDROID_LOG_INFO, TAG, __VA_ARGS__))
 #define LOGW(TAG, ...)   \
@@ -43,7 +43,7 @@ typedef __uint16_t sword16;
 #endif
 
 enum Device {
-        ARDUINO_UNO,
+        ATMEGA328P,
     };
 
 #endif //PROJECTSOFIA_COMMONCORE_H

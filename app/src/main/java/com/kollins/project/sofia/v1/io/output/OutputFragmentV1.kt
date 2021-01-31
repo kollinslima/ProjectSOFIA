@@ -24,7 +24,7 @@ class OutputFragmentV1 : Fragment() {
 
     fun init(targetDevice: Device) {
         outputPin = when (targetDevice) {
-            Device.ARDUINO_UNO -> {
+            Device.ATMEGA328P -> {
                 OutputPinV1ATmega328P()
             }
         }
