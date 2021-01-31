@@ -12,6 +12,9 @@ interface OutputInterface {
     fun getOutputIndex() : Int
     fun updatePinState()
     fun getPinState() : OutputState
+    fun getFrequency() : Double
+    fun getDutyCycle() : Double
     fun getPinNames() : List<String>
     fun clone(): OutputInterface
+    fun updateSimulationSpeed()
 }

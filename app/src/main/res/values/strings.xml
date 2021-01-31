@@ -14,6 +14,10 @@
     <string name="logic_low">Off</string>
     <string name="logic_tri_state">Hi-Z</string>
 
+    <string name="simulated_time_display">%d s</string>
+    <string name="frequency_display">%.2f Hz</string>
+    <string name="duty_cycle_display">%.2f %%</string>
+
     <string name="import_fail_open_fail">Fail to import file - cannot open file</string>
     <string name="import_fail_invalid_file">Fail to import file - invalid file</string>
     <string name="import_fail_checksum_error">Fail to import file - checksum error</string>

@@ -24,9 +24,8 @@ class OutputAdapterV1(private val outputList: MutableList<OutputInterface>) :
     inner class ViewHolder(itemView: View, private val context: Context) :
         RecyclerView.ViewHolder(itemView) {
         private val spinner: AppCompatSpinner = itemView.v1PinSelectorOutput
-//        val meterLayout: LinearLayoutCompat = itemView.v1Meter
-//        val freqMeter: AppCompatTextView = itemView.v1Frequency
-//        val dcMeter: AppCompatTextView = itemView.v1DutyCycle
+        private val freqMeter: AppCompatTextView = itemView.v1Frequency
+        private val dcMeter: AppCompatTextView = itemView.v1DutyCycle
         private val led: AppCompatTextView = itemView.v1LedState
 
         init {
@@ -56,6 +55,12 @@ class OutputAdapterV1(private val outputList: MutableList<OutputInterface>) :
                     TODO("Not yet implemented")
                 }
             }
+
+            val frequency = pin.getFrequency()
+            val dutyCycle = pin.getDutyCycle()
+
+            freqMeter.text = if (frequency.isFinite()) context.getString(R.string.frequency_display, frequency) else ""
+            dcMeter.text = if (dutyCycle.isFinite()) context.getString(R.string.duty_cycle_display, dutyCycle) else ""
 
             when (pin.getPinState()) {
                 OutputState.HIGH -> {

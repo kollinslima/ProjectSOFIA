@@ -61,13 +61,13 @@ class MainActivitySofiaV1 : AppCompatActivity(), UiInterface {
     }
 
     override fun timeUpdate() {
-        simulatedTime++
-        runOnUiThread { simulatedTimeText.text = "$simulatedTime s" }
+        outputFragment.updateSimulationSpeed()
+        runOnUiThread { simulatedTimeText.text = getString(R.string.simulated_time_display, simulatedTime++) }
     }
 
     override fun loadSuccess() {
         simulatedTime = 0
-        runOnUiThread { simulatedTimeText.text = "$simulatedTime s" }
+        runOnUiThread { simulatedTimeText.text = getString(R.string.simulated_time_display, simulatedTime) }
     }
 
     override fun loadCoreChecksumError() {

@@ -1,5 +1,6 @@
 package com.kollins.project.sofia.v1.io.output.atmega328p
 
+import android.os.SystemClock
 import com.kollins.project.sofia.interfaces.io.OutputInterface
 import com.kollins.project.sofia.interfaces.io.OutputState
 import kotlin.experimental.and
@@ -13,13 +14,22 @@ enum class OutputAddr(val addr: Byte) {
     PORTD(0x2B)
 }
 
+private const val METER_FILTER_SIZE = 2
+
 class OutputPinV1ATmega328P : OutputInterface {
     private var index = defaultIndex
     private var portAddr = OutputAddr.PORTB.addr
     private var ddrAddr = OutputAddr.DDRB.addr
     private var outputBit = 6
     private var pinState = OutputState.TRI_STATE
-    private var haveMeter = false
+
+    private var highTime : LongArray =  LongArray(METER_FILTER_SIZE) { 0 }
+    private var highTimeIndex = 0
+    private var wavePeriod : LongArray = LongArray(METER_FILTER_SIZE) { 0 }
+    private var wavePeriodIndex = 0
+    private var measureHighTime : Long = 0
+    private var lastRisingEdgeTimestamp : Long = 0
+
 
     override fun outputUpdate(change:String) {
         val splittedChange: List<String> = change.split(":")
@@ -45,6 +55,9 @@ class OutputPinV1ATmega328P : OutputInterface {
                 ddrAddr = OutputAddr.DDRC.addr
             }
         }
+
+        wavePeriod = LongArray(METER_FILTER_SIZE) { 0 }
+        highTime = LongArray(METER_FILTER_SIZE) { 0 }
     }
 
     override fun getOutputIndex(): Int {
@@ -75,6 +88,18 @@ class OutputPinV1ATmega328P : OutputInterface {
                 OutputState.HIGH
             }
         }
+
+        val timestamp = SystemClock.elapsedRealtimeNanos()
+        if (pinState == OutputState.HIGH) {
+            highTime[highTimeIndex] = measureHighTime
+            wavePeriod[wavePeriodIndex] = timestamp - lastRisingEdgeTimestamp
+            lastRisingEdgeTimestamp = timestamp
+            measureHighTime = timestamp
+            highTimeIndex = (highTimeIndex+1)%METER_FILTER_SIZE
+            wavePeriodIndex = (wavePeriodIndex+1)%METER_FILTER_SIZE
+        } else {
+            measureHighTime = timestamp - measureHighTime
+        }
     }
 
     override fun getPinState(): OutputState {
@@ -89,9 +114,27 @@ class OutputPinV1ATmega328P : OutputInterface {
         return OutputPinV1ATmega328P()
     }
 
+    override fun updateSimulationSpeed() {
+        val timestamp = SystemClock.elapsedRealtimeNanos()
+        simulationSpeed[simulationSpeedArrayIndex] = timestamp - simulationSpeedTimestamp
+        simulationSpeedTimestamp = timestamp
+        simulationSpeedArrayIndex = (simulationSpeedArrayIndex + 1)%METER_FILTER_SIZE
+    }
+
+    override fun getFrequency(): Double {
+        return simulationSpeed.average()/wavePeriod.average()
+    }
+
+    override fun getDutyCycle(): Double {
+        return highTime.average()/wavePeriod.average()
+    }
+
     companion object {
         const val defaultIndex = 13
         var pullUpDisabled = false
+        var simulationSpeedTimestamp : Long = SystemClock.elapsedRealtimeNanos()
+        var simulationSpeed : LongArray = LongArray(METER_FILTER_SIZE) { 0 }
+        var simulationSpeedArrayIndex = 0
         var outRegisters = mutableMapOf<Byte, Byte>(
             OutputAddr.DDRB.addr to 0x00,
             OutputAddr.PORTB.addr to 0x00,

@@ -52,5 +52,9 @@ class OutputFragmentV1 : Fragment() {
         outputPin.outputUpdate(change)
         outputAdapter.updateIO()
     }
+
+    fun updateSimulationSpeed() {
+        outputPin.updateSimulationSpeed()
+    }
 }
 
