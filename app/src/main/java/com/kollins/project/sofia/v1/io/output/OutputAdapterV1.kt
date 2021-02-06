@@ -48,7 +48,7 @@ class OutputAdapterV1(private val outputList: MutableList<OutputInterface>) :
                     id: Long
                 ) {
                     pin.setOutputIndex(position)
-                    this@OutputAdapterV1.notifyDataSetChanged()
+//                    this@OutputAdapterV1.notifyDataSetChanged()
                 }
 
                 override fun onNothingSelected(parent: AdapterView<*>?) {
