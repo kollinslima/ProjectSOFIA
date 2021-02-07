@@ -67,7 +67,7 @@
             <FrameLayout
                 android:id="@+id/v1OutputContainer"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="0dp"
                 android:visibility="gone"
                 android:layout_weight="1">
 
@@ -91,6 +91,7 @@
                     android:layout_height="match_parent" />
 
             </FrameLayout>
+
         </androidx.appcompat.widget.LinearLayoutCompat>
     </FrameLayout>
 

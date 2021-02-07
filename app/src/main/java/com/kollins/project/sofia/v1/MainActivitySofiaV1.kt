@@ -95,6 +95,21 @@ class MainActivitySofiaV1 : AppCompatActivity(), UiInterface {
                 inputFragment.addDigitalInput()
                 true
             }
+            R.id.v1ActionAddAnalogInput -> {
+                val fragManager = supportFragmentManager
+                if (fragManager.findFragmentByTag(InputFragmentV1.V1_INPUT_FRAGMENT_TAG) == null) {
+                    val fragTransaction = fragManager.beginTransaction()
+                    fragTransaction.add(
+                        R.id.v1InputFragmentFrame,
+                        inputFragment,
+                        InputFragmentV1.V1_INPUT_FRAGMENT_TAG
+                    )
+                    fragTransaction.commit()
+                    v1InputContainer.visibility = View.VISIBLE
+                }
+                inputFragment.addAnalogInput()
+                true
+            }
             R.id.v1ActionImport -> {
                 when (PackageManager.PERMISSION_GRANTED) {
                     ContextCompat.checkSelfPermission(

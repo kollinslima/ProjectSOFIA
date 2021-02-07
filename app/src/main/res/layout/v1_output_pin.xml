@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:padding="@dimen/outputLayoutPadding"
+    android:padding="@dimen/v1OutputLayoutPadding"
     android:gravity="center">
 
     <androidx.appcompat.widget.AppCompatSpinner
@@ -39,10 +39,10 @@
 
     <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/v1LedState"
-        android:layout_width="@dimen/outputLed"
-        android:layout_height="@dimen/outputLed"
+        android:layout_width="@dimen/v1OutputLed"
+        android:layout_height="@dimen/v1OutputLed"
         android:gravity="center"
         android:background="@drawable/v1_digital_output_off_led"
-        android:padding="@dimen/outputLedPadding"/>
+        android:padding="@dimen/v1OutputLedPadding"/>
 
 </androidx.appcompat.widget.LinearLayoutCompat>

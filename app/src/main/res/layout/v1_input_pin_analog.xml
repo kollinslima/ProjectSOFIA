@@ -3,22 +3,24 @@
 <androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:descendantFocusability="blocksDescendants"
-    android:gravity="center"
     android:orientation="horizontal"
-    android:padding="10dp">
+    android:padding="@dimen/v1AnalogInputLayoutPadding"
+    android:gravity="center">
 
     <androidx.appcompat.widget.AppCompatSpinner
         android:id="@+id/v1PinSelectorAnalogInput"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="@dimen/v1AnalogSpinnerSize"
         android:layout_weight="2.5" />
 
     <androidx.appcompat.widget.AppCompatSeekBar
         android:id="@+id/v1VoltageLevel"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:max="100"
+        android:progress="0"
+        android:thumbTint="@color/colorAccent"
+        android:progressTint="@color/colorAccent"
         android:layout_weight="4"/>
 
     <androidx.appcompat.widget.AppCompatTextView
@@ -27,6 +29,7 @@
         android:layout_height="match_parent"
         android:textColor="@android:color/black"
         android:textStyle="bold"
+        android:gravity="center"
         android:layout_weight="1"/>
 
 

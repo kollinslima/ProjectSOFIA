@@ -1,9 +1,12 @@
 package com.kollins.project.sofia.v1.io.input.atmega328p
 
-import android.util.Log
 import com.kollins.project.sofia.interfaces.io.InputInterface
 import com.kollins.project.sofia.interfaces.io.InputMode
 import com.kollins.project.sofia.interfaces.io.InputType
+
+//ATMega328P can go from -0.5V to 5.5V, but let's stick with the basics for now
+private const val MAX_VOLTAGE_INPUT = 5.00f
+//private const val MIN_VOLTAGE_INPUT = 0.00
 
 //Map arduino names to ATMega328P pins
 enum class InputMap(val boardName: String, val devicePin: String) {
@@ -62,6 +65,10 @@ class InputPinV1ATmega328P : InputInterface {
 
     override fun setInputModeIndex(index: Int) {
         modeIndex = index
+    }
+
+    override fun getVoltage(percent: Int): Float {
+        return (percent * MAX_VOLTAGE_INPUT)/100
     }
 
     companion object {

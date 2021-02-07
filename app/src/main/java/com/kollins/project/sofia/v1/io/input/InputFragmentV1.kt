@@ -49,8 +49,17 @@ class InputFragmentV1 : Fragment() {
     fun addDigitalInput() {
         val newInput = inputPin.clone()
         newInput.setInputType(InputType.DIGITAL)
+        addInput(newInput)
+    }
 
-        inputList.add(newInput)
+    fun addAnalogInput() {
+        val newInput = inputPin.clone()
+        newInput.setInputType(InputType.ANALOG)
+        addInput(newInput)
+    }
+
+    private fun addInput(input:InputInterface) {
+        inputList.add(input)
         inputAdapter.notifyItemInserted(inputList.size-1)
     }
 }

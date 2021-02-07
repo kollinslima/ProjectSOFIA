@@ -22,5 +22,6 @@ interface InputInterface {
     fun setInputIndex(index:Int)
     fun getInputModeIndex(): Int
     fun setInputModeIndex(index:Int)
+    fun getVoltage(percent:Int):Float
 
 }

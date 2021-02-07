@@ -7,9 +7,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
-import androidx.appcompat.widget.AppCompatButton
-import androidx.appcompat.widget.AppCompatImageView
-import androidx.appcompat.widget.AppCompatSpinner
+import android.widget.SeekBar
+import androidx.appcompat.widget.*
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.kollins.project.sofia.R
@@ -17,6 +16,7 @@ import com.kollins.project.sofia.interfaces.io.InputInterface
 import com.kollins.project.sofia.interfaces.io.InputMode
 import com.kollins.project.sofia.interfaces.io.InputType
 import com.kollins.project.sofia.v1.io.input.atmega328p.InputPinV1ATmega328P
+import kotlinx.android.synthetic.main.v1_input_pin_analog.view.*
 import kotlinx.android.synthetic.main.v1_input_pin_digital.view.*
 
 
@@ -67,7 +67,7 @@ class InputAdapterV1(private val inputList: MutableList<InputInterface>) :
                 }
 
                 override fun onNothingSelected(parent: AdapterView<*>?) {
-                    TODO("Not yet implemented")
+                    //No need
                 }
             }
 
@@ -153,8 +153,57 @@ class InputAdapterV1(private val inputList: MutableList<InputInterface>) :
 
     inner class AnalogInputViewHolder(itemView: View, private val context: Context) :
         InputViewHolder(itemView, context) {
+
+        private val inputSelector: AppCompatSpinner = itemView.v1PinSelectorAnalogInput
+        private val voltageLevel: AppCompatSeekBar = itemView.v1VoltageLevel
+        private var voltageDisplay: AppCompatTextView = itemView.v1VoltageDisplay
+
+        init {
+            val pinNames = InputPinV1ATmega328P.pinNames
+            inputSelector.adapter = HintAdapter(
+                context,
+                android.R.layout.simple_spinner_dropdown_item,
+                List(pinNames.size) { pinNames[it].boardName }
+            )
+            voltageDisplay.text = context.getString(R.string.voltage_display,0f)
+        }
+
         override fun bindView(pin: InputInterface) {
-            TODO("Not yet implemented")
+            inputSelector.setSelection(pin.getInputIndex())
+            inputSelector.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(
+                    parent: AdapterView<*>?,
+                    view: View?,
+                    position: Int,
+                    id: Long
+                ) {
+                    pin.setInputIndex(position)
+                }
+
+                override fun onNothingSelected(parent: AdapterView<*>?) {
+                    //No need
+                }
+            }
+
+            voltageLevel.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(
+                    seekBar: SeekBar?,
+                    progress: Int,
+                    fromUser: Boolean
+                ) {
+                    val voltage = pin.getVoltage(progress)
+                    voltageDisplay.text = context.getString(R.string.voltage_display,voltage)
+                }
+
+                override fun onStartTrackingTouch(seekBar: SeekBar?) {
+                    //No need
+                }
+
+                override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                    //No need
+                }
+
+            })
         }
 
     }

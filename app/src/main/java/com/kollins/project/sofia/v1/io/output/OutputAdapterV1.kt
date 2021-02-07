@@ -51,7 +51,7 @@ class OutputAdapterV1(private val outputList: MutableList<OutputInterface>) :
                 }
 
                 override fun onNothingSelected(parent: AdapterView<*>?) {
-                    TODO("Not yet implemented")
+                    //No need
                 }
             }
 

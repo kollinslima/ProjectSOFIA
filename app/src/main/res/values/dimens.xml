@@ -5,10 +5,13 @@
     <dimen name="ioLabelVerticalPadding">4dp</dimen>
     <dimen name="simulatedTimePadding">4dp</dimen>
     <dimen name="statusInfoPadding">4dp</dimen>
-    <dimen name="outputLayoutPadding">6dp</dimen>
-    <dimen name="outputLed">50dp</dimen>
-    <dimen name="outputLedPadding">10dp</dimen>
 
-    <dimen name="v1PushButtonSize">50dp</dimen>
-    <dimen name="v1PinStateSize">50dp</dimen>
+    <dimen name="v1OutputLedPadding">10dp</dimen>
+    <dimen name="v1OutputLed">50dp</dimen>
+    <dimen name="v1PushButtonSize">@dimen/v1OutputLed</dimen>
+    <dimen name="v1PinStateSize">@dimen/v1OutputLed</dimen>
+    <dimen name="v1AnalogSpinnerSize">@dimen/v1OutputLed</dimen>
+    <dimen name="v1DigitalInputLayoutPadding">6dp</dimen>
+    <dimen name="v1AnalogInputLayoutPadding">6dp</dimen>
+    <dimen name="v1OutputLayoutPadding">6dp</dimen>
 </resources>

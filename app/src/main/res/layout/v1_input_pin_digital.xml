@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:padding="@dimen/outputLayoutPadding"
+    android:padding="@dimen/v1DigitalInputLayoutPadding"
     android:gravity="center">
 
     <androidx.appcompat.widget.AppCompatButton

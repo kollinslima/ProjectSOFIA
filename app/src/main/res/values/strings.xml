@@ -15,12 +15,11 @@
     <string name="logic_tri_state">Hi-Z</string>
 
     <string name="inputFragmentLabel">Input</string>
-    <string name="push_button_on">On</string>
-    <string name="push_button_off">Off</string>
 
     <string name="simulated_time_display">%d s</string>
     <string name="frequency_display">%.2f Hz</string>
     <string name="duty_cycle_display">%.2f %%</string>
+    <string name="voltage_display">%.2f V</string>
 
     <string name="import_fail_open_fail">Fail to import file - cannot open file</string>
     <string name="import_fail_invalid_file">Fail to import file - invalid file</string>
