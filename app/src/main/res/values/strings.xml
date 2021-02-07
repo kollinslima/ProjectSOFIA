@@ -34,5 +34,7 @@
     <string name="action_dig_input">Digital Input</string>
     <string name="action_anal_input">Analog Input</string>
     <string name="push_button_text">PUSH</string>
+    <string name="actionn_reset">Reset</string>
+    <string name="actionn_clear_io">Clear I/O</string>
 
 </resources>

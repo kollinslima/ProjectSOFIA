@@ -56,5 +56,10 @@ class OutputFragmentV1 : Fragment() {
     fun updateSimulationSpeed() {
         outputPin.updateSimulationSpeed()
     }
+
+    fun clearOutputs() {
+        outputList.clear()
+        outputAdapter.notifyDataSetChanged()
+    }
 }
 

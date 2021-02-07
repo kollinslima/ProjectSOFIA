@@ -62,5 +62,10 @@ class InputFragmentV1 : Fragment() {
         inputList.add(input)
         inputAdapter.notifyItemInserted(inputList.size-1)
     }
+
+    fun clearInputs() {
+        inputList.clear()
+        inputAdapter.notifyDataSetChanged()
+    }
 }
 

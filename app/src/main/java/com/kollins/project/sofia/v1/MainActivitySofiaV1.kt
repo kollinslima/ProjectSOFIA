@@ -65,6 +65,7 @@ class MainActivitySofiaV1 : AppCompatActivity(), UiInterface {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
+
             R.id.v1ActionAddOutput -> {
                 val fragManager = supportFragmentManager
                 if (fragManager.findFragmentByTag(OutputFragmentV1.V1_OUTPUT_FRAGMENT_TAG) == null) {
@@ -80,6 +81,7 @@ class MainActivitySofiaV1 : AppCompatActivity(), UiInterface {
                 outputFragment.addOutput()
                 true
             }
+
             R.id.v1ActionAddDigitalInput -> {
                 val fragManager = supportFragmentManager
                 if (fragManager.findFragmentByTag(InputFragmentV1.V1_INPUT_FRAGMENT_TAG) == null) {
@@ -95,6 +97,7 @@ class MainActivitySofiaV1 : AppCompatActivity(), UiInterface {
                 inputFragment.addDigitalInput()
                 true
             }
+
             R.id.v1ActionAddAnalogInput -> {
                 val fragManager = supportFragmentManager
                 if (fragManager.findFragmentByTag(InputFragmentV1.V1_INPUT_FRAGMENT_TAG) == null) {
@@ -110,6 +113,7 @@ class MainActivitySofiaV1 : AppCompatActivity(), UiInterface {
                 inputFragment.addAnalogInput()
                 true
             }
+
             R.id.v1ActionImport -> {
                 when (PackageManager.PERMISSION_GRANTED) {
                     ContextCompat.checkSelfPermission(
@@ -128,6 +132,32 @@ class MainActivitySofiaV1 : AppCompatActivity(), UiInterface {
                 }
                 true
             }
+
+            R.id.v1ActionClearIO -> {
+                outputFragment.clearOutputs()
+                inputFragment.clearInputs()
+
+                val fragManager = supportFragmentManager
+                val outputFragment = fragManager.findFragmentByTag(OutputFragmentV1.V1_OUTPUT_FRAGMENT_TAG)
+                val inputFragment = fragManager.findFragmentByTag(InputFragmentV1.V1_INPUT_FRAGMENT_TAG)
+
+                if (outputFragment != null) {
+                    val fragTransaction = fragManager.beginTransaction()
+                    fragTransaction.remove(outputFragment)
+                    fragTransaction.commit()
+                    v1OutputContainer.visibility = View.GONE
+                }
+
+                if (inputFragment != null) {
+                    val fragTransaction = fragManager.beginTransaction()
+                    fragTransaction.remove(inputFragment)
+                    fragTransaction.commit()
+                    v1InputContainer.visibility = View.GONE
+                }
+
+                true
+            }
+
             else -> super.onOptionsItemSelected(item)
         }
     }

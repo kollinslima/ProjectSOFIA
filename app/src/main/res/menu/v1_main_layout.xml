@@ -33,4 +33,14 @@
         android:title="@string/actionn_import"
         app:showAsAction="never" />
 
+    <item
+        android:id="@+id/v1Reset"
+        android:title="@string/actionn_reset"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/v1ActionClearIO"
+        android:title="@string/actionn_clear_io"
+        app:showAsAction="never" />
+
 </menu>
