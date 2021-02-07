@@ -12,6 +12,7 @@
         android:layout_height="wrap_content"
         android:background="@color/colorPrimary"
         android:minHeight="?attr/actionBarSize"
+        app:title=""
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -67,35 +68,29 @@
                 android:id="@+id/v1OutputContainer"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:visibility="gone">
+                android:visibility="gone"
+                android:layout_weight="1">
 
                 <FrameLayout
                     android:id="@+id/v1OutputFragmentFrame"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent" />
 
-                <!--                <fragment-->
-                <!--                    android:id="@+id/v1OutputFragment"-->
-                <!--                    android:name="com.kollins.project.sofia.v1.io.output.OutputFragmentV1"-->
-                <!--                    android:layout_width="match_parent"-->
-                <!--                    android:layout_height="match_parent" />-->
-
-                <!--            <fragment-->
-                <!--                android:id="@+id/v1SerialMonitor"-->
-                <!--                android:layout_width="match_parent"-->
-                <!--                android:layout_height="match_parent" />-->
             </FrameLayout>
 
-            <!--        <FrameLayout-->
-            <!--            android:id="@+id/v1InputContainer"-->
-            <!--            android:layout_width="match_parent"-->
-            <!--            android:layout_height="0dp"-->
-            <!--            android:layout_weight="1">-->
-            <!--            <fragment-->
-            <!--                android:id="@+id/v1InputFragment"-->
-            <!--                android:layout_width="match_parent"-->
-            <!--                android:layout_height="match_parent" />-->
-            <!--        </FrameLayout>-->
+            <FrameLayout
+                android:id="@+id/v1InputContainer"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:visibility="gone"
+                android:layout_weight="1">
+
+                <FrameLayout
+                    android:id="@+id/v1InputFragmentFrame"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
+
+            </FrameLayout>
         </androidx.appcompat.widget.LinearLayoutCompat>
     </FrameLayout>
 

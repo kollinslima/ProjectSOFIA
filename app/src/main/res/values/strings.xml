@@ -31,5 +31,9 @@
     <string name="exception_invalid_file">MainActivitySofia::loadCoreInvalidFile: core reported invalid file</string>
     <string name="exception_import_fail_data_null">MainActivitySofia::onActivityResult: data pointer is NULL</string>
     <string name="exception_import_fail_uri_null">MainActivitySofia::onActivityResult: uri pointer is NULL</string>
+    <string name="action_output">Output</string>
+    <string name="action_dig_input">Digital Input</string>
+    <string name="action_anal_input">Analog Input</string>
+    <string name="push_button_text">PUSH</string>
 
 </resources>

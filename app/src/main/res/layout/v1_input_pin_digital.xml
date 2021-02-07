@@ -12,19 +12,20 @@
         android:layout_width="@dimen/v1PushButtonSize"
         android:layout_height="@dimen/v1PushButtonSize"
         android:background="@color/v1_off_push_button"
-        android:text="@string/push_button_off" />
+        android:text="@string/push_button_text"
+        android:textColor="@android:color/white"/>
 
     <androidx.appcompat.widget.AppCompatSpinner
         android:id="@+id/v1PinModeSelector"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_weight="3"/>
+        android:layout_weight="0.58" />
 
     <androidx.appcompat.widget.AppCompatSpinner
         android:id="@+id/v1PinSelectorDigitalInput"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_weight="3"/>
+        android:layout_weight="0.42"/>
 
     <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/v1DigitalInputState"
