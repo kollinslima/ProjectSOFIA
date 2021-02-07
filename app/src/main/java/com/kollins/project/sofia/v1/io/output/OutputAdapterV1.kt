@@ -17,19 +17,19 @@ import com.kollins.project.sofia.v1.io.output.atmega328p.OutputPinV1ATmega328P
 import kotlinx.android.synthetic.main.v1_output_pin.view.*
 
 class OutputAdapterV1(private val outputList: MutableList<OutputInterface>) :
-    RecyclerView.Adapter<OutputAdapterV1.ViewHolder>() {
+    RecyclerView.Adapter<OutputAdapterV1.OutputViewHolder>() {
 
-    private var boundViewHolders = mutableMapOf<ViewHolder, Int>()
+    private var boundViewHolders = mutableMapOf<OutputViewHolder, Int>()
 
-    inner class ViewHolder(itemView: View, private val context: Context) :
+    inner class OutputViewHolder(itemView: View, private val context: Context) :
         RecyclerView.ViewHolder(itemView) {
-        private val spinner: AppCompatSpinner = itemView.v1PinSelectorOutput
+        private val outputSelector: AppCompatSpinner = itemView.v1PinSelectorOutput
         private val freqMeter: AppCompatTextView = itemView.v1Frequency
         private val dcMeter: AppCompatTextView = itemView.v1DutyCycle
         private val led: AppCompatTextView = itemView.v1LedState
 
         init {
-            spinner.adapter = ArrayAdapter<String>(
+            outputSelector.adapter = ArrayAdapter<String>(
                 context,
                 android.R.layout.simple_spinner_dropdown_item,
                 OutputPinV1ATmega328P.pinNames
@@ -39,8 +39,8 @@ class OutputAdapterV1(private val outputList: MutableList<OutputInterface>) :
         fun bindView(pin: OutputInterface) {
             pin.updatePinState()
 
-            spinner.setSelection(pin.getOutputIndex())
-            spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            outputSelector.setSelection(pin.getOutputIndex())
+            outputSelector.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
                 override fun onItemSelected(
                     parent: AdapterView<*>?,
                     view: View?,
@@ -48,7 +48,6 @@ class OutputAdapterV1(private val outputList: MutableList<OutputInterface>) :
                     id: Long
                 ) {
                     pin.setOutputIndex(position)
-//                    this@OutputAdapterV1.notifyDataSetChanged()
                 }
 
                 override fun onNothingSelected(parent: AdapterView<*>?) {
@@ -85,18 +84,18 @@ class OutputAdapterV1(private val outputList: MutableList<OutputInterface>) :
         return outputList.size
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): OutputViewHolder {
         val view =
             LayoutInflater.from(parent.context).inflate(R.layout.v1_output_pin, parent, false)
-        return ViewHolder(view, parent.context)
+        return OutputViewHolder(view, parent.context)
     }
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: OutputViewHolder, position: Int) {
         holder.bindView(outputList[position])
         boundViewHolders[holder] = position
     }
 
-    override fun onViewRecycled(holder: ViewHolder) {
+    override fun onViewRecycled(holder: OutputViewHolder) {
         boundViewHolders.remove(holder)
     }
 

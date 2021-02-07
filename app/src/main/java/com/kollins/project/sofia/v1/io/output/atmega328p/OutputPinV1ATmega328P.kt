@@ -15,9 +15,10 @@ enum class OutputAddr(val addr: Byte) {
 }
 
 private const val METER_FILTER_SIZE = 2
+private const val DEFAULT_OUTPUT_INDEX = 13
 
 class OutputPinV1ATmega328P : OutputInterface {
-    private var index = defaultIndex
+    private var index = DEFAULT_OUTPUT_INDEX
     private var portAddr = OutputAddr.PORTB.addr
     private var ddrAddr = OutputAddr.DDRB.addr
     private var outputBit = 6
@@ -130,7 +131,6 @@ class OutputPinV1ATmega328P : OutputInterface {
     }
 
     companion object {
-        const val defaultIndex = 13
         var pullUpDisabled = false
         var simulationSpeedTimestamp : Long = SystemClock.elapsedRealtimeNanos()
         var simulationSpeed : LongArray = LongArray(METER_FILTER_SIZE) { 0 }
