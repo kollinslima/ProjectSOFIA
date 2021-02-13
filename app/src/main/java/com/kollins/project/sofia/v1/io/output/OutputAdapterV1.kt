@@ -22,22 +22,29 @@ class OutputAdapterV1(private val outputList: MutableList<OutputInterface>) :
     private var boundViewHolders = mutableMapOf<OutputViewHolder, Int>()
 
     inner class OutputViewHolder(itemView: View, private val context: Context) :
-        RecyclerView.ViewHolder(itemView) {
+        RecyclerView.ViewHolder(itemView), View.OnLongClickListener {
         private val outputSelector: AppCompatSpinner = itemView.v1PinSelectorOutput
         private val freqMeter: AppCompatTextView = itemView.v1Frequency
         private val dcMeter: AppCompatTextView = itemView.v1DutyCycle
         private val led: AppCompatTextView = itemView.v1LedState
 
+        private var adapter = ArrayAdapter<String>(
+            context,
+            android.R.layout.simple_spinner_dropdown_item,
+            OutputPinV1ATmega328P.outputList.map { it.boardName }
+        )
+
         init {
-            outputSelector.adapter = ArrayAdapter<String>(
-                context,
-                android.R.layout.simple_spinner_dropdown_item,
-                OutputPinV1ATmega328P.pinNames
-            )
+            outputSelector.adapter = adapter
+            itemView.setOnLongClickListener(this)
         }
 
         fun bindView(pin: OutputInterface) {
-            pin.updatePinState()
+            pin.updatePin()
+
+            //Spinner list may change, update it!
+            adapter.clear()
+            adapter.addAll(pin.getPinNames())
 
             outputSelector.setSelection(pin.getOutputIndex())
             outputSelector.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
@@ -48,18 +55,25 @@ class OutputAdapterV1(private val outputList: MutableList<OutputInterface>) :
                     id: Long
                 ) {
                     pin.setOutputIndex(position)
+                    updateIO()
                 }
 
                 override fun onNothingSelected(parent: AdapterView<*>?) {
-                    //No need
+                    outputSelector.setSelection(pin.getOutputIndex())
                 }
             }
 
             val frequency = pin.getFrequency()
             val dutyCycle = pin.getDutyCycle()
 
-            freqMeter.text = if (frequency.isFinite()) context.getString(R.string.frequency_display, frequency) else ""
-            dcMeter.text = if (dutyCycle.isFinite()) context.getString(R.string.duty_cycle_display, dutyCycle) else ""
+            freqMeter.text = if (frequency.isFinite()) context.getString(
+                R.string.frequency_display,
+                frequency
+            ) else ""
+            dcMeter.text = if (dutyCycle.isFinite()) context.getString(
+                R.string.duty_cycle_display,
+                dutyCycle
+            ) else ""
 
             when (pin.getPinState()) {
                 OutputState.HIGH -> {
@@ -77,6 +91,10 @@ class OutputAdapterV1(private val outputList: MutableList<OutputInterface>) :
                     )
                 }
             }
+        }
+
+        override fun onLongClick(v: View?): Boolean {
+            return true
         }
     }
 

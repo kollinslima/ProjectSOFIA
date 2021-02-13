@@ -10,7 +10,7 @@ interface OutputInterface {
     fun outputUpdate(change:String)
     fun setOutputIndex(position: Int)
     fun getOutputIndex() : Int
-    fun updatePinState()
+    fun updatePin()
     fun getPinState() : OutputState
     fun getFrequency() : Double
     fun getDutyCycle() : Double
