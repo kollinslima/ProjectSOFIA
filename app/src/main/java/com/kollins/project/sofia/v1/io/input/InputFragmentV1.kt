@@ -67,5 +67,10 @@ class InputFragmentV1 : Fragment() {
         inputList.clear()
         inputAdapter.notifyDataSetChanged()
     }
+
+    fun inputUpdate(change: String) {
+        inputPin.ioUpdate(change)
+        inputAdapter.updateIO()
+    }
 }
 

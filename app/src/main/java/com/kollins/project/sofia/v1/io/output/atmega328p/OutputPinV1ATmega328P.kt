@@ -1,23 +1,10 @@
 package com.kollins.project.sofia.v1.io.output.atmega328p
 
 import android.os.SystemClock
-import android.util.Log
-import com.kollins.project.sofia.defs.atmega328p.PinMap
-import com.kollins.project.sofia.defs.atmega328p.atmega328pPortBPins
-import com.kollins.project.sofia.defs.atmega328p.atmega328pPortCPins
-import com.kollins.project.sofia.defs.atmega328p.atmega328pPortDPins
+import com.kollins.project.sofia.defs.atmega328p.*
 import com.kollins.project.sofia.interfaces.io.OutputInterface
 import com.kollins.project.sofia.interfaces.io.OutputState
 import kotlin.experimental.and
-
-enum class OutputAddr(val addr: Byte) {
-    DDRB(0x24),
-    PORTB(0x25),
-    DDRC(0x27),
-    PORTC(0x28),
-    DDRD(0x2A),
-    PORTD(0x2B)
-}
 
 private const val METER_FILTER_SIZE = 2
 private const val PIN_START_PORTD = 2
@@ -39,7 +26,7 @@ class OutputPinV1ATmega328P : OutputInterface {
     private var lastRisingEdgeTimestamp: Long = 0
 
 
-    override fun outputUpdate(change: String) {
+    override fun ioUpdate(change: String) {
         val splittedChange: List<String> = change.split(":")
         val register = splittedChange[0].toByte()
         val value = splittedChange[1].toByte()
@@ -50,13 +37,13 @@ class OutputPinV1ATmega328P : OutputInterface {
 
     private fun updateOutputList(register: Byte, value: Byte) {
         when (register) {
-            OutputAddr.DDRB.addr -> {
+            IoRegisters.DDRB.addr -> {
                 addOutputPins(value, atmega328pPortBPins)
             }
-            OutputAddr.DDRD.addr -> {
+            IoRegisters.DDRD.addr -> {
                 addOutputPins(value, atmega328pPortDPins)
             }
-            OutputAddr.DDRC.addr -> {
+            IoRegisters.DDRC.addr -> {
                 addOutputPins(value, atmega328pPortCPins)
             }
         }
@@ -66,34 +53,34 @@ class OutputPinV1ATmega328P : OutputInterface {
         var i = 0
         var mask = 0x01
         while (i < atmega328pPortPins.size) {
-            if ((value and mask.toByte()) == 0.toByte()) {
-                outputList.remove(atmega328pPortPins[i])
-            } else {
+            outputList.remove(atmega328pPortPins[i])
+            if ((value and mask.toByte()) != 0.toByte()) {
                 outputList.add(0, atmega328pPortPins[i])
             }
             i++
             mask = (mask shl 1)
         }
+        outputList = outputList.sortedBy { it.devicePin }.toMutableList()
     }
 
-    override fun setOutputIndex(position: Int) {
-        curOutput = outputList[if (position > 0) position else 0]
+    override fun setPinIndex(index: Int) {
+        curOutput = outputList[if (index > 0) index else 0]
 
         when (curOutput) {
             in atmega328pPortDPins -> {
                 outputBit = curOutput.devicePin - PIN_START_PORTD
-                portAddr = OutputAddr.PORTD.addr
-                ddrAddr = OutputAddr.DDRD.addr
+                portAddr = IoRegisters.PORTD.addr
+                ddrAddr = IoRegisters.DDRD.addr
             }
             in atmega328pPortBPins -> {
                 outputBit = curOutput.devicePin - PIN_START_PORTB
-                portAddr = OutputAddr.PORTB.addr
-                ddrAddr = OutputAddr.DDRB.addr
+                portAddr = IoRegisters.PORTB.addr
+                ddrAddr = IoRegisters.DDRB.addr
             }
             in atmega328pPortCPins -> {
                 outputBit = curOutput.devicePin - PIN_START_PORTC
-                portAddr = OutputAddr.PORTC.addr
-                ddrAddr = OutputAddr.DDRC.addr
+                portAddr = IoRegisters.PORTC.addr
+                ddrAddr = IoRegisters.DDRC.addr
             }
             else -> {
                 //None selected
@@ -109,9 +96,9 @@ class OutputPinV1ATmega328P : OutputInterface {
 
     }
 
-    override fun getOutputIndex(): Int {
+    override fun getPinIndex(): Int {
         val index = outputList.indexOf(curOutput)
-        return if (index > 0) index else 0
+        return if (index > 0) index else outputList.indexOf(PinMap.PINX)
     }
 
     override fun updatePin() {
@@ -175,14 +162,14 @@ class OutputPinV1ATmega328P : OutputInterface {
         var simulationSpeedArrayIndex = 0
 
         var outRegisters = mutableMapOf<Byte, Byte>(
-            OutputAddr.DDRB.addr to 0x00,
-            OutputAddr.PORTB.addr to 0x00,
-            OutputAddr.DDRC.addr to 0x00,
-            OutputAddr.PORTC.addr to 0x00,
-            OutputAddr.DDRD.addr to 0x00,
-            OutputAddr.PORTD.addr to 0x00
+            IoRegisters.DDRB.addr to 0x00,
+            IoRegisters.PORTB.addr to 0x00,
+            IoRegisters.DDRC.addr to 0x00,
+            IoRegisters.PORTC.addr to 0x00,
+            IoRegisters.DDRD.addr to 0x00,
+            IoRegisters.PORTD.addr to 0x00
         )
 
-        val outputList = mutableListOf(PinMap.PINX)
+        var outputList = mutableListOf(PinMap.PINX)
     }
 }

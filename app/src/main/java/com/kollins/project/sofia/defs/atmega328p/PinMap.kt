@@ -2,6 +2,7 @@ package com.kollins.project.sofia.defs.atmega328p
 
 //Map Arduino names to ATMega328P pins
 enum class PinMap(val boardName: String, val devicePin: Int) {
+    PINX("None", -1),
     PIN0("Pin0", 2),
     PIN1("Pin1", 3),
     PIN2("Pin2", 4),
@@ -22,7 +23,6 @@ enum class PinMap(val boardName: String, val devicePin: Int) {
     A3("A3", 26),
     A4("A4", 27),
     A5("A5", 28),
-    PINX("None", 28),
 }
 
 val atmega328pPinList = PinMap.values()

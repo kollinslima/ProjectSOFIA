@@ -7,4 +7,5 @@ interface UiInterface {
     fun loadCoreFileOpenFail()
     fun loadCoreInvalidFile()
     fun outputUpdate(change:String)
+    fun inputUpdate(change:String)
 }

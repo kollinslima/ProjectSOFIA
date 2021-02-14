@@ -24,7 +24,7 @@ typedef __uint16_t sword16;
 #define FILE_OPEN_FAIL_LISTENER  3
 #define INVALID_FILE_LISTENER  4
 
-#define OUTPUT_CHANGED_LISTENER  5
+#define IO_CHANGED_LISTENER  5
 
 #ifdef NDEBUG
 #define LOGD(TAG, ...)

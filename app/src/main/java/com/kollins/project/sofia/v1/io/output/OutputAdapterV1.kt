@@ -28,14 +28,14 @@ class OutputAdapterV1(private val outputList: MutableList<OutputInterface>) :
         private val dcMeter: AppCompatTextView = itemView.v1DutyCycle
         private val led: AppCompatTextView = itemView.v1LedState
 
-        private var adapter = ArrayAdapter<String>(
+        private var spinnerAdapter = ArrayAdapter<String>(
             context,
             android.R.layout.simple_spinner_dropdown_item,
             OutputPinV1ATmega328P.outputList.map { it.boardName }
         )
 
         init {
-            outputSelector.adapter = adapter
+            outputSelector.adapter = spinnerAdapter
             itemView.setOnLongClickListener(this)
         }
 
@@ -43,10 +43,10 @@ class OutputAdapterV1(private val outputList: MutableList<OutputInterface>) :
             pin.updatePin()
 
             //Spinner list may change, update it!
-            adapter.clear()
-            adapter.addAll(pin.getPinNames())
+            spinnerAdapter.clear()
+            spinnerAdapter.addAll(pin.getPinNames())
 
-            outputSelector.setSelection(pin.getOutputIndex())
+            outputSelector.setSelection(pin.getPinIndex())
             outputSelector.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
                 override fun onItemSelected(
                     parent: AdapterView<*>?,
@@ -54,12 +54,12 @@ class OutputAdapterV1(private val outputList: MutableList<OutputInterface>) :
                     position: Int,
                     id: Long
                 ) {
-                    pin.setOutputIndex(position)
+                    pin.setPinIndex(position)
                     updateIO()
                 }
 
                 override fun onNothingSelected(parent: AdapterView<*>?) {
-                    outputSelector.setSelection(pin.getOutputIndex())
+                    outputSelector.setSelection(pin.getPinIndex())
                 }
             }
 
@@ -94,7 +94,7 @@ class OutputAdapterV1(private val outputList: MutableList<OutputInterface>) :
         }
 
         override fun onLongClick(v: View?): Boolean {
-            return true
+            TODO("Not yet implemented")
         }
     }
 

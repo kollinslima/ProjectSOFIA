@@ -8,6 +8,7 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.kollins.project.sofia.Device
 import com.kollins.project.sofia.R
+import com.kollins.project.sofia.interfaces.io.IoInterface
 import com.kollins.project.sofia.interfaces.io.OutputInterface
 import com.kollins.project.sofia.v1.io.output.atmega328p.OutputPinV1ATmega328P
 import kotlinx.android.synthetic.main.v1_output_fragment.view.*
@@ -49,7 +50,7 @@ class OutputFragmentV1 : Fragment() {
     }
 
     fun outputUpdate(change:String) {
-        outputPin.outputUpdate(change)
+        outputPin.ioUpdate(change)
         outputAdapter.updateIO()
     }
 

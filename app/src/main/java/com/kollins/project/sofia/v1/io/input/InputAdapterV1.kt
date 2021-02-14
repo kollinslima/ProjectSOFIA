@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.SeekBar
+import android.widget.TextView
 import androidx.appcompat.widget.*
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
@@ -23,8 +24,10 @@ import kotlinx.android.synthetic.main.v1_input_pin_digital.view.*
 class InputAdapterV1(private val inputList: MutableList<InputInterface>) :
     RecyclerView.Adapter<InputAdapterV1.InputViewHolder>() {
 
+    private var boundViewHolders = mutableMapOf<InputAdapterV1.InputViewHolder, Int>()
+
     abstract inner class InputViewHolder(itemView: View, private val context: Context) :
-        RecyclerView.ViewHolder(itemView) {
+        RecyclerView.ViewHolder(itemView), View.OnLongClickListener {
         abstract fun bindView(pin: InputInterface);
     }
 
@@ -37,23 +40,36 @@ class InputAdapterV1(private val inputList: MutableList<InputInterface>) :
         private val inputState: AppCompatImageView = itemView.v1DigitalInputState
         private var toggle: Boolean = false
 
+        private var spinnerPinAdapter = HideAdapter(
+            context,
+            android.R.layout.simple_spinner_dropdown_item,
+            InputPinV1ATmega328P.inputList.map { it.boardName }
+        )
+
+        private var spinnerModeAdapter = ArrayAdapter<String>(
+            context,
+            android.R.layout.simple_spinner_dropdown_item,
+            InputMode.values().map { it.text }
+        )
+
         init {
-            val pinNames = InputPinV1ATmega328P.pinNames
-            val pinModes = InputMode.values()
-            inputSelector.adapter = HintAdapter(
-                context,
-                android.R.layout.simple_spinner_dropdown_item,
-                List(pinNames.size) { pinNames[it].boardName }
-            )
-            modeSelector.adapter = ArrayAdapter<String>(
-                context,
-                android.R.layout.simple_spinner_dropdown_item,
-                List(pinModes.size) { pinModes[it].text }
-            )
+            inputSelector.adapter = spinnerPinAdapter
+            modeSelector.adapter = spinnerModeAdapter
+            itemView.setOnLongClickListener(this)
         }
 
         override fun bindView(pin: InputInterface) {
-            inputSelector.setSelection(pin.getInputIndex())
+
+            //Spinner list may change, update it!
+            spinnerPinAdapter.clear()
+            spinnerPinAdapter.addAll(pin.getPinNames())
+
+            val pinIndex = pin.getPinIndex()
+
+            //Hide inputs in use
+            spinnerPinAdapter.hidePosition(pinIndex)
+
+            inputSelector.setSelection(pinIndex)
             inputSelector.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
                 override fun onItemSelected(
                     parent: AdapterView<*>?,
@@ -61,13 +77,15 @@ class InputAdapterV1(private val inputList: MutableList<InputInterface>) :
                     position: Int,
                     id: Long
                 ) {
-                    pin.setInputIndex(position)
+                    spinnerPinAdapter.showPosition(pinIndex)
+                    pin.setPinIndex(position)
                     toggle = false
                     setInputState(pin.getInputModeIndex(), false)
+                    updateIO()
                 }
 
                 override fun onNothingSelected(parent: AdapterView<*>?) {
-                    //No need
+                    inputSelector.setSelection(pin.getPinIndex())
                 }
             }
 
@@ -85,7 +103,7 @@ class InputAdapterV1(private val inputList: MutableList<InputInterface>) :
                 }
 
                 override fun onNothingSelected(parent: AdapterView<*>?) {
-                    TODO("Not yet implemented")
+                    modeSelector.setSelection(pin.getInputModeIndex())
                 }
             }
 
@@ -93,16 +111,30 @@ class InputAdapterV1(private val inputList: MutableList<InputInterface>) :
                 var buttonPressed = false
                 if (event.action == MotionEvent.ACTION_DOWN) {
                     buttonPressed = true
-                    button.setBackgroundColor(ContextCompat.getColor(context, R.color.v1_on_push_button))
+                    button.setBackgroundColor(
+                        ContextCompat.getColor(
+                            context,
+                            R.color.v1_on_push_button
+                        )
+                    )
                     toggle = !toggle
                     v.performClick()
                 } else if (event.action == MotionEvent.ACTION_UP) {
                     buttonPressed = false
-                    button.setBackgroundColor(ContextCompat.getColor(context, R.color.v1_off_push_button))
+                    button.setBackgroundColor(
+                        ContextCompat.getColor(
+                            context,
+                            R.color.v1_off_push_button
+                        )
+                    )
                 }
                 setInputState(pin.getInputModeIndex(), buttonPressed)
                 true
             }
+        }
+
+        override fun onLongClick(v: View?): Boolean {
+            TODO("Not yet implemented")
         }
 
         fun setInputState(mode: Int, buttonPressed: Boolean) {
@@ -158,18 +190,28 @@ class InputAdapterV1(private val inputList: MutableList<InputInterface>) :
         private val voltageLevel: AppCompatSeekBar = itemView.v1VoltageLevel
         private var voltageDisplay: AppCompatTextView = itemView.v1VoltageDisplay
 
+        private var spinnerAdapter = HideAdapter(
+            context,
+            android.R.layout.simple_spinner_dropdown_item,
+            InputPinV1ATmega328P.inputList.map { it.boardName }
+        )
+
         init {
-            val pinNames = InputPinV1ATmega328P.pinNames
-            inputSelector.adapter = HintAdapter(
-                context,
-                android.R.layout.simple_spinner_dropdown_item,
-                List(pinNames.size) { pinNames[it].boardName }
-            )
-            voltageDisplay.text = context.getString(R.string.voltage_display,0f)
+            inputSelector.adapter = spinnerAdapter
+//            itemView.setOnLongClickListener(this)
         }
 
         override fun bindView(pin: InputInterface) {
-            inputSelector.setSelection(pin.getInputIndex())
+            //Spinner list may change, update it!
+            spinnerAdapter.clear()
+            spinnerAdapter.addAll(pin.getPinNames())
+
+            val pinIndex = pin.getPinIndex()
+
+            //Hide inputs in use
+            spinnerAdapter.hidePosition(pinIndex)
+
+            inputSelector.setSelection(pinIndex)
             inputSelector.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
                 override fun onItemSelected(
                     parent: AdapterView<*>?,
@@ -177,11 +219,13 @@ class InputAdapterV1(private val inputList: MutableList<InputInterface>) :
                     position: Int,
                     id: Long
                 ) {
-                    pin.setInputIndex(position)
+                    spinnerAdapter.showPosition(pinIndex)
+                    pin.setPinIndex(position)
+                    updateIO()
                 }
 
                 override fun onNothingSelected(parent: AdapterView<*>?) {
-                    //No need
+                    inputSelector.setSelection(pin.getPinIndex())
                 }
             }
 
@@ -192,7 +236,7 @@ class InputAdapterV1(private val inputList: MutableList<InputInterface>) :
                     fromUser: Boolean
                 ) {
                     val voltage = pin.getVoltage(progress)
-                    voltageDisplay.text = context.getString(R.string.voltage_display,voltage)
+                    voltageDisplay.text = context.getString(R.string.voltage_display, voltage)
                 }
 
                 override fun onStartTrackingTouch(seekBar: SeekBar?) {
@@ -204,6 +248,10 @@ class InputAdapterV1(private val inputList: MutableList<InputInterface>) :
                 }
 
             })
+        }
+
+        override fun onLongClick(v: View?): Boolean {
+            TODO("Not yet implemented")
         }
 
     }
@@ -237,14 +285,50 @@ class InputAdapterV1(private val inputList: MutableList<InputInterface>) :
 
     override fun onBindViewHolder(holder: InputViewHolder, position: Int) {
         holder.bindView(inputList[position])
+        boundViewHolders[holder] = position
+    }
+
+    override fun onViewRecycled(holder: InputAdapterV1.InputViewHolder) {
+        boundViewHolders.remove(holder)
+    }
+
+    fun updateIO() {
+        /*
+        This will update all visible inputs, just like calling notifyDataSetChanged,
+        but it won't redraw the widgets
+        Use notifyDataSetChanged only to add/remove new rows
+         */
+        for ((holder, position) in boundViewHolders) {
+            holder.bindView(inputList[position])
+        }
     }
 }
 
-class HintAdapter(context: Context, resource: Int, objects: List<Any?>) :
+class HideAdapter(context: Context, resource: Int, objects: List<Any?>) :
     ArrayAdapter<Any?>(context, resource, objects) {
-    override fun getCount(): Int {
-        //Don't show PinX
-        val count = super.getCount()
-        return if (count > 0) count - 1 else count
+
+    fun hidePosition(position: Int) {
+        hidePosition.add(position)
+    }
+
+    fun showPosition(position: Int) {
+        hidePosition.remove(position)
+    }
+
+    override fun getDropDownView(position: Int, convertView: View?, parent: ViewGroup): View {
+        val view: View
+        if (position in hidePosition) {
+            val text = TextView(context)
+            text.visibility = View.GONE
+            text.height = 0
+            view = text
+        } else {
+            view = super.getDropDownView(position, null, parent)
+        }
+        return view
+    }
+
+    companion object {
+        private val hidePosition: MutableSet<Int> = mutableSetOf()
     }
 }

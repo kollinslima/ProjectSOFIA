@@ -259,7 +259,7 @@ bool DataMemory_ATMega328P::write(smemaddr16 addr, void *data) {
         case DDRB_ADDR:
         case PINB_ADDR:
             this->notifier->addNotification(
-                    OUTPUT_CHANGED_LISTENER, to_string(addr)+":"+to_string(byte));
+                    IO_CHANGED_LISTENER, to_string(addr) + ":" + to_string(byte));
             break;
         default:
             break;

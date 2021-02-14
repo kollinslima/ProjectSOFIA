@@ -14,14 +14,11 @@ enum class InputMode (var text:String){
     TOGGLE("Toggle")
 }
 
-interface InputInterface {
-    fun clone(): InputInterface
+interface InputInterface : IoInterface{
     fun setInputType(type:InputType)
     fun getInputType(): InputType
-    fun getInputIndex(): Int
-    fun setInputIndex(index:Int)
     fun getInputModeIndex(): Int
     fun setInputModeIndex(index:Int)
     fun getVoltage(percent:Int):Float
-
+    override fun clone(): InputInterface
 }

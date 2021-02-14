@@ -1,46 +1,27 @@
 package com.kollins.project.sofia.v1.io.input.atmega328p
 
+import com.kollins.project.sofia.defs.atmega328p.*
 import com.kollins.project.sofia.interfaces.io.InputInterface
 import com.kollins.project.sofia.interfaces.io.InputMode
 import com.kollins.project.sofia.interfaces.io.InputType
+import kotlin.experimental.and
 
 //ATMega328P can go from -0.5V to 5.5V, but let's stick with the basics for now
 private const val MAX_VOLTAGE_INPUT = 5.00f
 //private const val MIN_VOLTAGE_INPUT = 0.00
 
-//Map arduino names to ATMega328P pins
-enum class InputMap(val boardName: String, val devicePin: String) {
-    PIN0("Pin0", "2"),
-    PIN1("Pin1", "3"),
-    PIN2("Pin2", "4"),
-    PIN3("Pin3", "5"),
-    PIN4("Pin4", "6"),
-    PIN5("Pin5", "11"),
-    PIN6("Pin6", "12"),
-    PIN7("Pin7", "13"),
-    PIN8("Pin8", "14"),
-    PIN9("Pin9", "15"),
-    PIN10("Pin10", "16"),
-    PIN11("Pin11", "17"),
-    PIN12("Pin12", "18"),
-    PIN13("Pin13", "19"),
-    A0("A0", "23"),
-    A1("A1", "24"),
-    A2("A2", "25"),
-    A3("A3", "26"),
-    A4("A4", "27"),
-    A5("A5", "28"),
-    PINX("PinX", "-1")
-}
-
 class InputPinV1ATmega328P : InputInterface {
 
-    private var inputIndex = InputMap.PINX.ordinal
+    private var curInput = PinMap.PINX
     private var modeIndex = InputMode.PULL_DOWN.ordinal
     private var type = InputType.DIGITAL
 
     override fun clone(): InputInterface {
         return InputPinV1ATmega328P()
+    }
+
+    override fun getPinNames(): List<String> {
+        return inputList.map { it.boardName }
     }
 
     override fun setInputType(type: InputType) {
@@ -51,12 +32,13 @@ class InputPinV1ATmega328P : InputInterface {
         return type
     }
 
-    override fun getInputIndex(): Int {
-        return inputIndex
+    override fun getPinIndex(): Int {
+        val index = inputList.indexOf(curInput)
+        return if (index > 0) index else inputList.indexOf(PinMap.PINX)
     }
 
-    override fun setInputIndex(index: Int) {
-        inputIndex = index
+    override fun setPinIndex(position: Int) {
+        curInput = inputList[if (position > 0) position else 0]
     }
 
     override fun getInputModeIndex(): Int {
@@ -68,10 +50,47 @@ class InputPinV1ATmega328P : InputInterface {
     }
 
     override fun getVoltage(percent: Int): Float {
-        return (percent * MAX_VOLTAGE_INPUT)/100
+        return (percent * MAX_VOLTAGE_INPUT) / 100
+    }
+
+    override fun ioUpdate(change: String) {
+        val splittedChange: List<String> = change.split(":")
+        val register = splittedChange[0].toByte()
+        val value = splittedChange[1].toByte()
+
+        updateInputList(register, value)
+    }
+
+    private fun updateInputList(register: Byte, value: Byte) {
+        when (register) {
+            IoRegisters.DDRB.addr -> {
+                addInputPins(value, atmega328pPortBPins)
+            }
+            IoRegisters.DDRD.addr -> {
+                addInputPins(value, atmega328pPortDPins)
+            }
+            IoRegisters.DDRC.addr -> {
+                addInputPins(value, atmega328pPortCPins)
+            }
+        }
+    }
+
+    private fun addInputPins(value: Byte, atmega328pPortPins: List<PinMap>) {
+        var i = 0
+        var mask = 0x01
+        while (i < atmega328pPortPins.size) {
+            inputList.remove(atmega328pPortPins[i])
+            if ((value and mask.toByte()) == 0.toByte()) {
+                inputList.add(0, atmega328pPortPins[i])
+            }
+            i++
+            mask = (mask shl 1)
+        }
+        inputList = inputList.sortedBy { it.devicePin }
+            .toMutableList()
     }
 
     companion object {
-        val pinNames = InputMap.values()
+        var inputList = atmega328pPinList.toMutableList()
     }
 }

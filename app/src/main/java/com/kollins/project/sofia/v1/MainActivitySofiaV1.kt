@@ -207,6 +207,10 @@ class MainActivitySofiaV1 : AppCompatActivity(), UiInterface {
         runOnUiThread { outputFragment.outputUpdate(change) }
     }
 
+    override fun inputUpdate(change: String) {
+        runOnUiThread { inputFragment.inputUpdate(change) }
+    }
+
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,

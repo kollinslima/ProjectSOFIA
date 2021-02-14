@@ -6,15 +6,11 @@ enum class OutputState {
     TRI_STATE
 }
 
-interface OutputInterface {
-    fun outputUpdate(change:String)
-    fun setOutputIndex(position: Int)
-    fun getOutputIndex() : Int
+interface OutputInterface : IoInterface{
     fun updatePin()
     fun getPinState() : OutputState
     fun getFrequency() : Double
     fun getDutyCycle() : Double
-    fun getPinNames() : List<String>
-    fun clone(): OutputInterface
     fun updateSimulationSpeed()
+    override fun clone(): OutputInterface
 }

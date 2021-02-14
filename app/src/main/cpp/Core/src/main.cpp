@@ -88,8 +88,8 @@ void notifyInvalidFile(JNIEnv *env, const char *msg) {
     env->CallVoidMethod(mainCtx.activityObj, id);
 }
 
-void notifyOutputChanged(JNIEnv *env, const char *msg) {
-    jmethodID id  = env->GetMethodID(mainCtx.activityClz, "outputChanged", "(Ljava/lang/String;)V");
+void notifyIOChanged(JNIEnv *env, const char *msg) {
+    jmethodID id  = env->GetMethodID(mainCtx.activityClz, "ioChanged", "(Ljava/lang/String;)V");
     env->CallVoidMethod(mainCtx.activityObj, id, env->NewStringUTF(msg));
 }
 
@@ -117,7 +117,7 @@ JNI_OnLoad(JavaVM *vm, void *reserved) {
     mainCtx.listeners[FILE_OPEN_FAIL_LISTENER] = notifyFileOpenFail;
     mainCtx.listeners[INVALID_FILE_LISTENER] = notifyInvalidFile;
 
-    mainCtx.listeners[OUTPUT_CHANGED_LISTENER] = notifyOutputChanged;
+    mainCtx.listeners[IO_CHANGED_LISTENER] = notifyIOChanged;
 
     return JNI_VERSION_1_6;
 }
