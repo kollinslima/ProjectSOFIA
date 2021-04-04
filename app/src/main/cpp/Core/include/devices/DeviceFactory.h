@@ -8,11 +8,11 @@
 #include "../../include/devices/GenericDevice.h"
 #include "../CommonCore.h"
 
-class SofiaNotifier;
+class SofiaUiNotifier;
 
 class DeviceFactory {
     public:
-        static GenericDevice *createDevice(Device device, SofiaNotifier *notifier);
+        static GenericDevice *createDevice(Device device, SofiaUiNotifier *notifier);
 };
 
 

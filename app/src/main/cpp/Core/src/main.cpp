@@ -129,7 +129,7 @@ Java_com_kollins_project_sofia_MainActivity_stopCore(
 
     LOGI(MAIN_CORE_TAG, "Stopping SOFIA Core");
 
-    if (mainCtx.scc) {
+    if (mainCtx.scc != nullptr) {
         mainCtx.scc->stop();
     }
 }
@@ -141,7 +141,7 @@ Java_com_kollins_project_sofia_SofiaUiController_startCore(
 
     LOGI(MAIN_CORE_TAG, "Starting SOFIA Core");
 
-    if (mainCtx.scc) {
+    if (mainCtx.scc != nullptr) {
         mainCtx.scc->start();
     }
 }
@@ -153,13 +153,13 @@ Java_com_kollins_project_sofia_MainActivity_disposeCore(
 
     LOGI(MAIN_CORE_TAG, "Disposing SOFIA Core");
 
-    if (mainCtx.scc) {
+    if (mainCtx.scc != nullptr) {
         mainCtx.scc->stop();
         delete mainCtx.scc;
         mainCtx.scc = nullptr;
     }
 
-    if (mainCtx.activityObj) {
+    if (mainCtx.activityObj != nullptr) {
         env->DeleteGlobalRef(mainCtx.activityClz);
         env->DeleteGlobalRef(mainCtx.activityObj);
         mainCtx.activityObj = nullptr;
@@ -175,7 +175,7 @@ Java_com_kollins_project_sofia_SofiaUiController_loadCore(JNIEnv *env, jobject i
 
     Java_com_kollins_project_sofia_MainActivity_disposeCore(env, instance);
 
-    if (!mainCtx.activityObj) {
+    if (mainCtx.activityObj == nullptr) {
         jclass clz = env->GetObjectClass(instance);
         mainCtx.activityClz = reinterpret_cast<jclass>(env->NewGlobalRef(clz));
         mainCtx.activityObj = env->NewGlobalRef(instance);
@@ -184,4 +184,14 @@ Java_com_kollins_project_sofia_SofiaUiController_loadCore(JNIEnv *env, jobject i
     Device nativeDevice = enumMap(env, device);
     mainCtx.scc = new SofiaCoreController(mainCtx.listeners, mainCtx.vm, mainCtx.env);
     mainCtx.scc->load(nativeDevice, reinterpret_cast<int>(fd));
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_kollins_project_sofia_SofiaUiController_signalInput(JNIEnv *env, jobject thiz, jint pin,
+                                                             jfloat voltage) {
+
+    if (mainCtx.scc != nullptr) {
+        mainCtx.scc->signalInput(pin, voltage);
+    }
+
 }

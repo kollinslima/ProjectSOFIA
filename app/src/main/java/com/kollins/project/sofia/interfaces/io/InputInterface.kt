@@ -19,6 +19,7 @@ interface InputInterface : IoInterface{
     fun getInputType(): InputType
     fun getInputModeIndex(): Int
     fun setInputModeIndex(index:Int)
-    fun getVoltage(percent:Int):Float
+    fun getVoltage(percent: Int):Float
+    fun notifySignalInput(voltage:Float)
     override fun clone(): InputInterface
 }

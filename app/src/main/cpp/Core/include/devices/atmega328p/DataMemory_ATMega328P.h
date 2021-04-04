@@ -10,12 +10,19 @@
 #include "../../../include/SofiaCoreController.h"
 #include <string>
 
+#define PORTB_START_PIN 14
+#define PORTC_START_PIN 23
+
+#define PORTD_PIN_OFFSET 2
+#define PORTB_PIN_OFFSET PORTB_START_PIN
+#define PORTC_PIN_OFFSET PORTC_START_PIN
+
 using namespace std;
 
 class DataMemory_ATMega328P : public GenericAVRDataMemory {
 
 public:
-    DataMemory_ATMega328P(SofiaNotifier *notifier);
+    DataMemory_ATMega328P(SofiaUiNotifier *notifier);
 
     ~DataMemory_ATMega328P();
 
@@ -25,15 +32,23 @@ public:
 
     smemaddr16 getSize() override;
 
-    smemaddr16 getSREGAddres() override;
+    smemaddr16 getSREGAddress() override;
 
-    smemaddr16 getSPLAddres() override;
+    smemaddr16 getSPLAddress() override;
 
-    smemaddr16 getSPHAddres() override;
+    smemaddr16 getSPHAddress() override;
+
+    bool isDigitalInputDisabled(int input);
+    bool isPullUpDisabled(int input);
+    void setDigitalInput(int input, bool state);
 
 private:
     void setupDataMemory();
-    SofiaNotifier *notifier;
+
+    int getIoRegisters(int input, sbyte *ddr = nullptr, sbyte *port = nullptr, sbyte *pin = nullptr);
+    sbyte togglePort(sbyte portByte, sbyte pinByte);
+
+    SofiaUiNotifier *notifier;
 };
 
 

@@ -17,12 +17,12 @@
 
 using namespace std;
 
-class SofiaNotifier;
+class SofiaUiNotifier;
 
 class ATMega328P : public GenericDevice {
 
 public:
-    ATMega328P(SofiaNotifier *notifier);
+    ATMega328P(SofiaUiNotifier *notifier);
 
     ~ATMega328P();
 
@@ -30,11 +30,17 @@ public:
     void start() override;
     void stop() override;
 
+    void signalInput(int pin, float voltage) override;
+
 private:
-    SofiaNotifier *notifier;
+    SofiaUiNotifier *notifier;
 
     bool isRunning;
     unsigned int clockFreq;
+
+    float vcc;
+    float minInputHight;
+    float maxInputLow;
 
     ProgramMemory_ATMega328P *programMemory;
     DataMemory_ATMega328P *dataMemory;
@@ -43,6 +49,10 @@ private:
     unsigned int syncCounter[NUM_MODULES];
     thread scheduler[NUM_MODULES];
     thread syncThread;
+
+    bool isDigitalInput(int pin);
+    bool isAnalogInput(int pin);
+    bool getLogicState(int pin, float voltage);
 
     void cpuThread();
 //    void stubThread(int index);

@@ -122,21 +122,21 @@
 #define DDRB_ADDR           0x24
 #define PINB_ADDR           0x23
 
-DataMemory_ATMega328P::DataMemory_ATMega328P(SofiaNotifier *notifier) {
+DataMemory_ATMega328P::DataMemory_ATMega328P(SofiaUiNotifier *notifier) {
     size = MEMORY_SIZE;
     buffer = new sbyte[size];
     this->notifier = notifier;
-    memset (buffer,0,size);
+    memset(buffer, 0, size);
     setupDataMemory();
 }
 
 DataMemory_ATMega328P::~DataMemory_ATMega328P() {
-    delete [] buffer;
+    delete[] buffer;
 }
 
 void DataMemory_ATMega328P::setupDataMemory() {
     /**************RESET CONDITION************/
-    buffer[UDR0_ADDR]   = 0x00;
+    buffer[UDR0_ADDR] = 0x00;
     buffer[UBRR0H_ADDR] = 0x00;
     buffer[UBRR0L_ADDR] = 0x00;
 
@@ -144,18 +144,18 @@ void DataMemory_ATMega328P::setupDataMemory() {
     buffer[UCSR0B_ADDR] = 0x00;
     buffer[UCSR0A_ADDR] = 0x40;
 
-    buffer[TWAMR_ADDR]  = 0x00;
-    buffer[TWCR_ADDR]   = 0x00;
-    buffer[TWDR_ADDR]   = 0xFF;
-    buffer[TWAR_ADDR]   = 0xFE;
-    buffer[TWSR_ADDR]   = 0xF8;
-    buffer[TWBR_ADDR]   = 0x00;
+    buffer[TWAMR_ADDR] = 0x00;
+    buffer[TWCR_ADDR] = 0x00;
+    buffer[TWDR_ADDR] = 0xFF;
+    buffer[TWAR_ADDR] = 0xFE;
+    buffer[TWSR_ADDR] = 0xF8;
+    buffer[TWBR_ADDR] = 0x00;
 
-    buffer[ASSR_ADDR]   = 0x00;
+    buffer[ASSR_ADDR] = 0x00;
 
-    buffer[OCR2B_ADDR]  = 0x00;
-    buffer[OCR2A_ADDR]  = 0x00;
-    buffer[TCNT2_ADDR]  = 0x00;
+    buffer[OCR2B_ADDR] = 0x00;
+    buffer[OCR2A_ADDR] = 0x00;
+    buffer[TCNT2_ADDR] = 0x00;
     buffer[TCCR2B_ADDR] = 0x00;
     buffer[TCCR2A_ADDR] = 0x00;
 
@@ -163,22 +163,22 @@ void DataMemory_ATMega328P::setupDataMemory() {
     buffer[OCR1BL_ADDR] = 0x00;
     buffer[OCR1AH_ADDR] = 0x00;
     buffer[OCR1AL_ADDR] = 0x00;
-    buffer[ICR1H_ADDR]  = 0x00;
-    buffer[ICR1L_ADDR]  = 0x00;
+    buffer[ICR1H_ADDR] = 0x00;
+    buffer[ICR1L_ADDR] = 0x00;
     buffer[TCNT1H_ADDR] = 0x00;
     buffer[TCNT1L_ADDR] = 0x00;
 
     buffer[TCCR1C_ADDR] = 0x00;
     buffer[TCCR1B_ADDR] = 0x00;
     buffer[TCCR1A_ADDR] = 0x00;
-    buffer[DIDR1_ADDR]  = 0x00;
-    buffer[DIDR0_ADDR]  = 0x00;
+    buffer[DIDR1_ADDR] = 0x00;
+    buffer[DIDR0_ADDR] = 0x00;
 
-    buffer[ADMUX_ADDR]  = 0x00;
+    buffer[ADMUX_ADDR] = 0x00;
     buffer[ADCSRB_ADDR] = 0x00;
     buffer[ADCSRA_ADDR] = 0x00;
-    buffer[ADCH_ADDR]   = 0x00;
-    buffer[ADCL_ADDR]   = 0x00;
+    buffer[ADCH_ADDR] = 0x00;
+    buffer[ADCL_ADDR] = 0x00;
 
     buffer[TIMSK2_ADDR] = 0x00;
     buffer[TIMSK1_ADDR] = 0x00;
@@ -187,62 +187,72 @@ void DataMemory_ATMega328P::setupDataMemory() {
     buffer[PCMSK1_ADDR] = 0x00;
     buffer[PCMSK0_ADDR] = 0x00;
 
-    buffer[EICRA_ADDR]  = 0x00;
-    buffer[PCICR_ADDR]  = 0x00;
+    buffer[EICRA_ADDR] = 0x00;
+    buffer[PCICR_ADDR] = 0x00;
 
     buffer[OSCCAL_ADDR] = 0x9F; //This is actually device specific
 
-    buffer[PRR_ADDR]    = 0x00;
+    buffer[PRR_ADDR] = 0x00;
 
-    buffer[CLKPR_ADDR]  = 0x00;
+    buffer[CLKPR_ADDR] = 0x00;
     buffer[WDTCSR_ADDR] = 0x00;
-    buffer[SREG_ADDR]   = 0x00;
-    buffer[SPH_ADDR]    = static_cast<sbyte>(RAMEND>>8);    //0x80
-    buffer[SPL_ADDR]    = static_cast<sbyte>(RAMEND);       //0xFF
+    buffer[SREG_ADDR] = 0x00;
+    buffer[SPH_ADDR] = static_cast<sbyte>(RAMEND >> 8);    //0x80
+    buffer[SPL_ADDR] = static_cast<sbyte>(RAMEND);       //0xFF
 
     buffer[SPMCSR_ADDR] = 0x00;
 
-    buffer[MCUCR_ADDR]  = 0x00;
-    buffer[MCUSR_ADDR]  = 0x00;
-    buffer[SMCR_ADDR]   = 0x00;
+    buffer[MCUCR_ADDR] = 0x00;
+    buffer[MCUSR_ADDR] = 0x00;
+    buffer[SMCR_ADDR] = 0x00;
 
-    buffer[ACSR_ADDR]   = 0x00;
+    buffer[ACSR_ADDR] = 0x00;
 
-    buffer[SPDR_ADDR]   = 0x00;
-    buffer[SPSR_ADDR]   = 0x00;
-    buffer[SPCR_ADDR]   = 0x00;
+    buffer[SPDR_ADDR] = 0x00;
+    buffer[SPSR_ADDR] = 0x00;
+    buffer[SPCR_ADDR] = 0x00;
     buffer[GPIOR2_ADDR] = 0x00;
     buffer[GPIOR1_ADDR] = 0x00;
 
-    buffer[OCR0B_ADDR]  = 0x00;
-    buffer[OCR0A_ADDR]  = 0x00;
-    buffer[TCNT0_ADDR]  = 0x00;
+    buffer[OCR0B_ADDR] = 0x00;
+    buffer[OCR0A_ADDR] = 0x00;
+    buffer[TCNT0_ADDR] = 0x00;
     buffer[TCCR0B_ADDR] = 0x00;
     buffer[TCCR0A_ADDR] = 0x00;
-    buffer[GTCCR_ADDR]  = 0x00;
-    buffer[EEARH_ADDR]  = 0x00;
-    buffer[EEARL_ADDR]  = 0x00;
-    buffer[EEDR_ADDR]   = 0x00;
-    buffer[EECR_ADDR]   = 0x00;
+    buffer[GTCCR_ADDR] = 0x00;
+    buffer[EEARH_ADDR] = 0x00;
+    buffer[EEARL_ADDR] = 0x00;
+    buffer[EEDR_ADDR] = 0x00;
+    buffer[EECR_ADDR] = 0x00;
     buffer[GPIOR0_ADDR] = 0x00;
-    buffer[EIMSK_ADDR]  = 0x00;
-    buffer[EIFR_ADDR]   = 0x00;
-    buffer[PCIFR_ADDR]  = 0x00;
+    buffer[EIMSK_ADDR] = 0x00;
+    buffer[EIFR_ADDR] = 0x00;
+    buffer[PCIFR_ADDR] = 0x00;
 
-    buffer[TIFR2_ADDR]  = 0x00;
-    buffer[TIFR1_ADDR]  = 0x00;
-    buffer[TIFR0_ADDR]  = 0x00;
+    buffer[TIFR2_ADDR] = 0x00;
+    buffer[TIFR1_ADDR] = 0x00;
+    buffer[TIFR0_ADDR] = 0x00;
 
-    buffer[PORTD_ADDR]  = 0x00;
-    buffer[DDRD_ADDR]   = 0x00;
-    buffer[PIND_ADDR]   = 0x00;
-    buffer[PORTC_ADDR]  = 0x00;
-    buffer[DDRC_ADDR]   = 0x00;
-    buffer[PINC_ADDR]   = 0x00;
-    buffer[PORTB_ADDR]  = 0x00;
-    buffer[DDRB_ADDR]   = 0x00;
-    buffer[PINB_ADDR]   = 0x00;
+    buffer[PORTD_ADDR] = 0x00;
+    buffer[DDRD_ADDR] = 0x00;
+    buffer[PIND_ADDR] = 0x00;
+    buffer[PORTC_ADDR] = 0x00;
+    buffer[DDRC_ADDR] = 0x00;
+    buffer[PINC_ADDR] = 0x00;
+    buffer[PORTB_ADDR] = 0x00;
+    buffer[DDRB_ADDR] = 0x00;
+    buffer[PINB_ADDR] = 0x00;
     /*****************************************/
+}
+
+sbyte DataMemory_ATMega328P::togglePort(sbyte portByte, sbyte pinByte) {
+    sbyte toggled = 0x00;
+    sbyte mask = 0x01;
+    sbyte pin = pinByte;
+    for (int i = 0; i < 8; ++i, mask = mask << 1, pin = pin >> 1) {
+        toggled |= 0x01 & pin ? (~portByte) | mask : portByte | mask;
+    }
+    return toggled;
 }
 
 bool DataMemory_ATMega328P::write(smemaddr16 addr, void *data) {
@@ -250,19 +260,44 @@ bool DataMemory_ATMega328P::write(smemaddr16 addr, void *data) {
 
     switch (addr) {
         case PORTD_ADDR:
-        case DDRD_ADDR:
-        case PIND_ADDR:
         case PORTC_ADDR:
-        case DDRC_ADDR:
-        case PINC_ADDR:
         case PORTB_ADDR:
-        case DDRB_ADDR:
-        case PINB_ADDR:
+        case DDRD_ADDR:
+        case DDRC_ADDR:
+        case DDRB_ADDR: {
+            if (buffer[addr] != byte) {
+                buffer[addr] = byte;
+                this->notifier->addNotification(
+                        IO_CHANGED_LISTENER, to_string(addr) + ":" + to_string(byte));
+            }
+            return true;
+            break;
+        }
+        /*
+         * Writing a logic one to PINxn toggles the value of PORTxn,
+         * independent on the value of DDRxn.
+         */
+        case PIND_ADDR: {
+            buffer[PORTD_ADDR] = togglePort(buffer[PORTD_ADDR], byte);
             this->notifier->addNotification(
-                    IO_CHANGED_LISTENER, to_string(addr) + ":" + to_string(byte));
+                    IO_CHANGED_LISTENER, to_string(PORTD_ADDR) + ":" + to_string(buffer[PORTD_ADDR]));
+            return true;
             break;
-        default:
+        }
+        case PINC_ADDR: {
+            buffer[PORTC_ADDR] = togglePort(buffer[PORTC_ADDR], byte);
+            this->notifier->addNotification(
+                    IO_CHANGED_LISTENER, to_string(PORTC_ADDR) + ":" + to_string(buffer[PORTC_ADDR]));
+            return true;
             break;
+        }
+        case PINB_ADDR: {
+            buffer[PORTB_ADDR] = togglePort(buffer[PORTB_ADDR], byte);
+            this->notifier->addNotification(
+                    IO_CHANGED_LISTENER, to_string(PORTB_ADDR) + ":" + to_string(buffer[PORTB_ADDR]));
+            return true;
+            break;
+        }
     }
     buffer[SAFE_ADDR(addr, MEMORY_SIZE)] = byte;
     return true;
@@ -278,14 +313,56 @@ smemaddr16 DataMemory_ATMega328P::getSize() {
     return size;
 }
 
-smemaddr16 DataMemory_ATMega328P::getSREGAddres() {
+smemaddr16 DataMemory_ATMega328P::getSREGAddress() {
     return SREG_ADDR;
 }
 
-smemaddr16 DataMemory_ATMega328P::getSPLAddres() {
+smemaddr16 DataMemory_ATMega328P::getSPLAddress() {
     return SPL_ADDR;
 }
 
-smemaddr16 DataMemory_ATMega328P::getSPHAddres() {
+smemaddr16 DataMemory_ATMega328P::getSPHAddress() {
     return SPH_ADDR;
+}
+
+bool DataMemory_ATMega328P::isDigitalInputDisabled(int input) {
+    return 0x01 & (buffer[DIDR0_ADDR] >> input);
+}
+
+bool DataMemory_ATMega328P::isPullUpDisabled(int input) {
+    if (0x01 & (buffer[MCUCR_ADDR] >> 4)) {
+        return true;
+    } else {
+        sbyte ddr, port;
+        int pos = getIoRegisters(input, &ddr, &port);
+        return (0x01 & (~(buffer[ddr] >> pos))) & (0x01 & (buffer[port] >> pos));
+    }
+}
+
+int DataMemory_ATMega328P::getIoRegisters(int input, sbyte *ddr, sbyte *port, sbyte *pin) {
+    int pos;
+    if (input < PORTB_START_PIN) {
+        SAFE_ATTR(ddr, DDRD_ADDR)
+        SAFE_ATTR(port, PORTD_ADDR)
+        SAFE_ATTR(pin, PIND_ADDR)
+        pos = input - PORTD_PIN_OFFSET;
+    } else if (input < PORTC_START_PIN) {
+        SAFE_ATTR(ddr, DDRB_ADDR)
+        SAFE_ATTR(port, PORTB_ADDR)
+        SAFE_ATTR(pin, PINB_ADDR)
+        pos = input - PORTB_PIN_OFFSET;
+    } else {
+        SAFE_ATTR(ddr, DDRC_ADDR)
+        SAFE_ATTR(port, PORTC_ADDR)
+        SAFE_ATTR(pin, PINC_ADDR)
+        pos = input - PORTC_PIN_OFFSET;
+    }
+    return pos;
+}
+
+void DataMemory_ATMega328P::setDigitalInput(int input, bool state) {
+    sbyte pin;
+    int pos = getIoRegisters(input, nullptr, nullptr, &pin);
+    sbyte mask = 0x01 << pos;
+    buffer[pin] = state ? buffer[pin] | mask : buffer[pin] & (~mask);
 }

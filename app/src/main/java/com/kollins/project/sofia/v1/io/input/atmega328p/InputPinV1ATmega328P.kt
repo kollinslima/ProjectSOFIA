@@ -4,20 +4,21 @@ import com.kollins.project.sofia.defs.atmega328p.*
 import com.kollins.project.sofia.interfaces.io.InputInterface
 import com.kollins.project.sofia.interfaces.io.InputMode
 import com.kollins.project.sofia.interfaces.io.InputType
+import com.kollins.project.sofia.notifier.CoreNotifier
 import kotlin.experimental.and
 
 //ATMega328P can go from -0.5V to 5.5V, but let's stick with the basics for now
 private const val MAX_VOLTAGE_INPUT = 5.00f
-//private const val MIN_VOLTAGE_INPUT = 0.00
+//private const val MIN_VOLTAGE_INPUT = 0.00f
 
-class InputPinV1ATmega328P : InputInterface {
+class InputPinV1ATmega328P(private val scn: CoreNotifier) : InputInterface {
 
     private var curInput = PinMap.PINX
     private var modeIndex = InputMode.PULL_DOWN.ordinal
     private var type = InputType.DIGITAL
 
     override fun clone(): InputInterface {
-        return InputPinV1ATmega328P()
+        return InputPinV1ATmega328P(scn)
     }
 
     override fun getPinNames(): List<String> {
@@ -51,6 +52,10 @@ class InputPinV1ATmega328P : InputInterface {
 
     override fun getVoltage(percent: Int): Float {
         return (percent * MAX_VOLTAGE_INPUT) / 100
+    }
+
+    override fun notifySignalInput(voltage: Float) {
+        scn.signalInput(curInput.devicePin, voltage)
     }
 
     override fun ioUpdate(change: String) {

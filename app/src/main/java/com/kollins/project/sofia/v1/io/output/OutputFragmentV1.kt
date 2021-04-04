@@ -60,6 +60,7 @@ class OutputFragmentV1 : Fragment() {
 
     fun clearOutputs() {
         outputList.clear()
+        outputAdapter.clearViewHolders()
         outputAdapter.notifyDataSetChanged()
     }
 }

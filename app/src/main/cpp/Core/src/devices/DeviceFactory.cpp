@@ -8,7 +8,7 @@
 
 #define SOFIA_DEVICE_FACTORY_TAG "SOFIA DEVICE FACTORY"
 
-GenericDevice * DeviceFactory::createDevice(Device device, SofiaNotifier *notifier) {
+GenericDevice * DeviceFactory::createDevice(Device device, SofiaUiNotifier *notifier) {
     GenericDevice *ret = nullptr;
     switch (device) {
         case Device::ATMEGA328P:

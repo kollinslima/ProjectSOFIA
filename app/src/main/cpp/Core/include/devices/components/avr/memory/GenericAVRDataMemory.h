@@ -18,11 +18,11 @@ public:
 
     virtual smemaddr16 getSize() = 0;
 
-    virtual smemaddr16 getSREGAddres() = 0;
+    virtual smemaddr16 getSREGAddress() = 0;
 
-    virtual smemaddr16 getSPLAddres() = 0;
+    virtual smemaddr16 getSPLAddress() = 0;
 
-    virtual smemaddr16 getSPHAddres() = 0;
+    virtual smemaddr16 getSPHAddress() = 0;
 };
 
 

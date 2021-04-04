@@ -42,15 +42,20 @@ class SofiaUiController(mainUi: UiInterface) {
     }
 
     fun ioChanged (change:String) {
+        Log.d(SOFIA_UI_CONTROLLER_TAG, "IO Changed $change")
         ui.outputUpdate(change)
         ui.inputUpdate(change)
     }
 
     //////////////////// NATIVE FUNCTIONS ///////////////////////////
+    //Core control
     private external fun startCore()
     external fun stopCore()
     external fun loadCore(s: Device, fd: Int)
     external fun disposeCore()
+
+    //Device control
+    external fun signalInput(pin:Int, voltage:Float)
 
     companion object {
         const val TARGET_DEVICE_EXTRA: String = "TARGET_DEVICE"

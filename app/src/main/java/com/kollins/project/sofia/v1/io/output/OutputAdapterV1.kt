@@ -1,6 +1,7 @@
 package com.kollins.project.sofia.v1.io.output
 
 import android.content.Context
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,6 +16,8 @@ import com.kollins.project.sofia.interfaces.io.OutputInterface
 import com.kollins.project.sofia.interfaces.io.OutputState
 import com.kollins.project.sofia.v1.io.output.atmega328p.OutputPinV1ATmega328P
 import kotlinx.android.synthetic.main.v1_output_pin.view.*
+
+private const val OUTPUT_ADAPTER_V1_TAG: String = "OUTPUT ADAPTER V1"
 
 class OutputAdapterV1(private val outputList: MutableList<OutputInterface>) :
     RecyclerView.Adapter<OutputAdapterV1.OutputViewHolder>() {
@@ -115,6 +118,10 @@ class OutputAdapterV1(private val outputList: MutableList<OutputInterface>) :
 
     override fun onViewRecycled(holder: OutputViewHolder) {
         boundViewHolders.remove(holder)
+    }
+
+    fun clearViewHolders() {
+        boundViewHolders.clear()
     }
 
     fun updateIO() {

@@ -15,10 +15,10 @@ using namespace std;
 
 class GenericDevice;
 
-class SofiaNotifier {
+class SofiaUiNotifier {
     public:
-        explicit SofiaNotifier(Listener **listeners, JavaVM *vm, JNIEnv *env);
-        ~SofiaNotifier();
+        explicit SofiaUiNotifier(Listener **listeners, JavaVM *vm, JNIEnv *env);
+        ~SofiaUiNotifier();
 
         void addNotification(int notificationID, const string& message = "");
     private :
@@ -41,9 +41,11 @@ class SofiaCoreController {
         void start();
         void stop();
 
+        void signalInput(int pin, float voltage);
+
     private:
         GenericDevice *device;
-        SofiaNotifier *notifier;
+        SofiaUiNotifier *notifier;
 };
 
 #endif //PROJECTSOFIA_SOFIACORECONTROLLER_H

@@ -80,7 +80,7 @@ class InputAdapterV1(private val inputList: MutableList<InputInterface>) :
                     spinnerPinAdapter.showPosition(pinIndex)
                     pin.setPinIndex(position)
                     toggle = false
-                    setInputState(pin.getInputModeIndex(), false)
+                    setInputState(pin, false)
                     updateIO()
                 }
 
@@ -99,7 +99,7 @@ class InputAdapterV1(private val inputList: MutableList<InputInterface>) :
                 ) {
                     pin.setInputModeIndex(position)
                     toggle = false
-                    setInputState(pin.getInputModeIndex(), false)
+                    setInputState(pin, false)
                 }
 
                 override fun onNothingSelected(parent: AdapterView<*>?) {
@@ -128,7 +128,7 @@ class InputAdapterV1(private val inputList: MutableList<InputInterface>) :
                         )
                     )
                 }
-                setInputState(pin.getInputModeIndex(), buttonPressed)
+                setInputState(pin, buttonPressed)
                 true
             }
         }
@@ -137,48 +137,46 @@ class InputAdapterV1(private val inputList: MutableList<InputInterface>) :
             TODO("Not yet implemented")
         }
 
-        fun setInputState(mode: Int, buttonPressed: Boolean) {
+        fun setInputState(pin: InputInterface, buttonPressed: Boolean) {
+            val mode = pin.getInputModeIndex()
             val undefinedState = R.drawable.v1_digital_input_undefined
             val highState = R.drawable.v1_digital_input_on
             val lowState = R.drawable.v1_digital_input_off
+            var state = undefinedState
 
             when (mode) {
                 InputMode.PUSH_GND.ordinal -> {
-                    inputState.background =
-                        ContextCompat.getDrawable(
-                            context,
-                            if (buttonPressed) lowState else undefinedState
-                        )
+                    state = if (buttonPressed) lowState else undefinedState
                 }
                 InputMode.PUSH_VCC.ordinal -> {
-                    inputState.background =
-                        ContextCompat.getDrawable(
-                            context,
-                            if (buttonPressed) highState else undefinedState
-                        )
+                    state = if (buttonPressed) highState else undefinedState
                 }
                 InputMode.PULL_UP.ordinal -> {
-                    inputState.background =
-                        ContextCompat.getDrawable(
-                            context,
-                            if (buttonPressed) lowState else highState
-                        )
+                    state = if (buttonPressed) lowState else highState
+
                 }
                 InputMode.PULL_DOWN.ordinal -> {
-                    inputState.background =
-                        ContextCompat.getDrawable(
-                            context,
-                            if (buttonPressed) highState else lowState
-                        )
+                    state = if (buttonPressed) highState else lowState
+
                 }
                 InputMode.TOGGLE.ordinal -> {
-                    inputState.background =
-                        ContextCompat.getDrawable(
-                            context,
-                            if (toggle) highState else lowState
-                        )
+                    state = if (toggle) highState else lowState
                 }
             }
+            inputState.background = ContextCompat.getDrawable(context, state)
+
+            val voltage = when(state){
+                lowState -> {
+                    pin.getVoltage(0)
+                }
+                highState -> {
+                    pin.getVoltage(100)
+                }
+                else -> {
+                    pin.getVoltage(50)
+                }
+            }
+            pin.notifySignalInput(voltage)
         }
 
     }
@@ -236,6 +234,7 @@ class InputAdapterV1(private val inputList: MutableList<InputInterface>) :
                     fromUser: Boolean
                 ) {
                     val voltage = pin.getVoltage(progress)
+                    pin.notifySignalInput(voltage)
                     voltageDisplay.text = context.getString(R.string.voltage_display, voltage)
                 }
 

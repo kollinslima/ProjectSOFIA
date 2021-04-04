@@ -5,6 +5,9 @@ import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.os.ParcelFileDescriptor
+import android.os.StrictMode
+import android.os.StrictMode.VmPolicy
 import android.util.Log
 import android.view.Menu
 import android.view.MenuInflater
@@ -15,10 +18,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.kollins.project.sofia.Device
-import com.kollins.project.sofia.R
-import com.kollins.project.sofia.RequestCodes
-import com.kollins.project.sofia.SofiaUiController
+import com.kollins.project.sofia.*
 import com.kollins.project.sofia.exception.SofiaException
 import com.kollins.project.sofia.interfaces.ui.UiInterface
 import com.kollins.project.sofia.v1.io.input.InputFragmentV1
@@ -34,14 +34,20 @@ class MainActivitySofiaV1 : AppCompatActivity(), UiInterface {
     private lateinit var targetDevice: Device
 
     private lateinit var suc: SofiaUiController
+    private lateinit var scn: SofiaCoreNotifier
     private lateinit var simulatedTimeText: TextView
     private lateinit var outputFragment: OutputFragmentV1
     private lateinit var inputFragment: InputFragmentV1
+
+    private lateinit var fileDescriptor: ParcelFileDescriptor
 
     //////////////////// ACTIVITY CALLBACKS ///////////////////////////
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.v1_main_activity)
+
+        suc = SofiaUiController(this)
+        scn = SofiaCoreNotifier(suc)
 
         targetDevice = intent.getSerializableExtra(SofiaUiController.TARGET_DEVICE_EXTRA) as Device
 
@@ -51,10 +57,8 @@ class MainActivitySofiaV1 : AppCompatActivity(), UiInterface {
 
         outputFragment = OutputFragmentV1()
         outputFragment.init(targetDevice)
-        inputFragment = InputFragmentV1()
+        inputFragment = InputFragmentV1(scn)
         inputFragment.init(targetDevice)
-
-        suc = SofiaUiController(this)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -65,7 +69,6 @@ class MainActivitySofiaV1 : AppCompatActivity(), UiInterface {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
-
             R.id.v1ActionAddOutput -> {
                 val fragManager = supportFragmentManager
                 if (fragManager.findFragmentByTag(OutputFragmentV1.V1_OUTPUT_FRAGMENT_TAG) == null) {
@@ -138,8 +141,10 @@ class MainActivitySofiaV1 : AppCompatActivity(), UiInterface {
                 inputFragment.clearInputs()
 
                 val fragManager = supportFragmentManager
-                val outputFragment = fragManager.findFragmentByTag(OutputFragmentV1.V1_OUTPUT_FRAGMENT_TAG)
-                val inputFragment = fragManager.findFragmentByTag(InputFragmentV1.V1_INPUT_FRAGMENT_TAG)
+                val outputFragment =
+                    fragManager.findFragmentByTag(OutputFragmentV1.V1_OUTPUT_FRAGMENT_TAG)
+                val inputFragment =
+                    fragManager.findFragmentByTag(InputFragmentV1.V1_INPUT_FRAGMENT_TAG)
 
                 if (outputFragment != null) {
                     val fragTransaction = fragManager.beginTransaction()
@@ -174,31 +179,39 @@ class MainActivitySofiaV1 : AppCompatActivity(), UiInterface {
 
     override fun timeUpdate() {
         outputFragment.updateSimulationSpeed()
-        runOnUiThread { simulatedTimeText.text = getString(
-            R.string.simulated_time_display,
-            simulatedTime++
-        ) }
+        runOnUiThread {
+            simulatedTimeText.text = getString(
+                R.string.simulated_time_display,
+                simulatedTime++
+            )
+        }
     }
 
     override fun loadSuccess() {
+        this.fileDescriptor.close()
         simulatedTime = 0
-        runOnUiThread { simulatedTimeText.text = getString(
-            R.string.simulated_time_display,
-            simulatedTime
-        ) }
+        runOnUiThread {
+            simulatedTimeText.text = getString(
+                R.string.simulated_time_display,
+                simulatedTime
+            )
+        }
     }
 
     override fun loadCoreChecksumError() {
+        this.fileDescriptor.close()
         Toast.makeText(this, R.string.import_fail_checksum_error, Toast.LENGTH_SHORT).show()
         throw SofiaException(getString(R.string.exception_checksum_error))
     }
 
     override fun loadCoreFileOpenFail() {
+        this.fileDescriptor.close()
         Toast.makeText(this, R.string.import_fail_open_fail, Toast.LENGTH_SHORT).show()
         throw SofiaException(getString(R.string.exception_open_fail))
     }
 
     override fun loadCoreInvalidFile() {
+        this.fileDescriptor.close()
         Toast.makeText(this, R.string.import_fail_invalid_file, Toast.LENGTH_SHORT).show()
         throw SofiaException(getString(R.string.exception_invalid_file))
     }
@@ -237,14 +250,15 @@ class MainActivitySofiaV1 : AppCompatActivity(), UiInterface {
                     throw SofiaException(getString(R.string.exception_import_fail_uri_null))
                 }
 
-                val fileDesciptor = contentResolver.openFileDescriptor(uri, "r")
-                if (fileDesciptor == null) {
+                val descriptor = contentResolver.openFileDescriptor(uri, "r")
+                if (descriptor == null) {
                     val message = R.string.import_fail_open_fail
                     Toast.makeText(this, R.string.import_fail_open_fail, Toast.LENGTH_SHORT).show()
                     throw SofiaException(getString(message))
                 }
 
-                suc.loadCore(Device.ATMEGA328P, fileDesciptor.fd)
+                this.fileDescriptor = descriptor
+                suc.loadCore(Device.ATMEGA328P, this.fileDescriptor.fd)
             }
         }
     }

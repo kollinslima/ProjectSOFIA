@@ -11,11 +11,12 @@ import com.kollins.project.sofia.Device
 import com.kollins.project.sofia.R
 import com.kollins.project.sofia.interfaces.io.InputInterface
 import com.kollins.project.sofia.interfaces.io.InputType
+import com.kollins.project.sofia.notifier.CoreNotifier
 import com.kollins.project.sofia.v1.io.input.atmega328p.InputPinV1ATmega328P
 import kotlinx.android.synthetic.main.v1_input_fragment.view.*
 import kotlinx.android.synthetic.main.v1_output_fragment.view.*
 
-class InputFragmentV1 : Fragment() {
+class InputFragmentV1(private val scn: CoreNotifier) : Fragment() {
 
     private val inputList: MutableList<InputInterface> = mutableListOf()
     private val inputAdapter: InputAdapterV1 = InputAdapterV1(inputList)
@@ -28,7 +29,7 @@ class InputFragmentV1 : Fragment() {
     fun init(targetDevice: Device) {
         inputPin = when (targetDevice) {
             Device.ATMEGA328P -> {
-                InputPinV1ATmega328P()
+                InputPinV1ATmega328P(scn)
             }
         }
     }

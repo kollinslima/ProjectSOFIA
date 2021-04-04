@@ -11,10 +11,10 @@
 
 SofiaCoreController::SofiaCoreController(Listener **listeners, JavaVM *vm, JNIEnv *env) {
     device = nullptr;
-    this->notifier = new SofiaNotifier(listeners, vm, env);
+    this->notifier = new SofiaUiNotifier(listeners, vm, env);
 }
 SofiaCoreController::~SofiaCoreController() {
-    if (device) {
+    if (device != nullptr) {
         device->stop();
         delete device;
         device = nullptr;
@@ -23,7 +23,7 @@ SofiaCoreController::~SofiaCoreController() {
 }
 
 void SofiaCoreController::load(Device device, int fileDescriptor) {
-    if (this->device) {
+    if (this->device != nullptr) {
         delete this->device;
         this->device = nullptr;
     }
@@ -31,38 +31,45 @@ void SofiaCoreController::load(Device device, int fileDescriptor) {
     this->device->load(fileDescriptor);
 }
 void SofiaCoreController::start() {
-    if (device) {
+    if (device != nullptr) {
         device->start();
     }
 }
 void SofiaCoreController::stop() {
-    if (device) {
+    if (device != nullptr) {
         device->stop();
     }
 }
 
+void SofiaCoreController::signalInput(int pin, float voltage) {
+    if (device != nullptr) {
+        LOGI(SOFIA_CORE_TAG, "Signal received: %d:%f", pin, voltage);
+        device->signalInput(pin, voltage);
+    }
+}
+
 //--------- NOTIFIER -----------
-SofiaNotifier::SofiaNotifier(Listener **listeners, JavaVM *vm, JNIEnv *env) {
+SofiaUiNotifier::SofiaUiNotifier(Listener **listeners, JavaVM *vm, JNIEnv *env) {
     this->listeners = listeners;
     notificationList.clear();
     stopDispatcher = false;
-    dispatcherThread = thread(&SofiaNotifier::dispatcher, this, vm, env);
+    dispatcherThread = thread(&SofiaUiNotifier::dispatcher, this, vm, env);
 }
 
-SofiaNotifier::~SofiaNotifier() {
+SofiaUiNotifier::~SofiaUiNotifier() {
     stopDispatcher = true;
     notificationCv.notify_all();
     dispatcherThread.join();
     notificationList.clear();
 }
 
-void SofiaNotifier::addNotification(int notificationID, const string& message) {
+void SofiaUiNotifier::addNotification(int notificationID, const string& message) {
     lock_guard<mutex> notificationGuard(notificationMutex);
     notificationList.emplace_back(notificationID, message);
     notificationCv.notify_one();
 }
 
-void SofiaNotifier::dispatcher(JavaVM *vm, JNIEnv *env) {
+void SofiaUiNotifier::dispatcher(JavaVM *vm, JNIEnv *env) {
     vm->AttachCurrentThread(&env, nullptr);
     pair<int, string> notification;
     while (true) {

@@ -8,6 +8,7 @@
 #include "../../../CommonCore.h"
 
 #define SAFE_ADDR(ADDR, LIMIT) (ADDR<LIMIT?ADDR:ADDR%LIMIT)
+#define SAFE_ATTR(ptr, val) if (ptr != nullptr) (*ptr) = val;
 
 class GenericMemory {
 

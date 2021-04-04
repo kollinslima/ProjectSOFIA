@@ -3,6 +3,7 @@
 //
 
 #include <unistd.h>
+#include <ctime>
 #include "../../../include/devices/atmega328p/ATMega328P.h"
 #include "../../../include/SofiaCoreController.h"
 #include "../../../include/parsers/IntelParser.h"
@@ -13,8 +14,16 @@
 #define DEFAULT_CLOCK_FREQ 16000000
 #define CPU_MODULE_INDEX 0
 
-ATMega328P::ATMega328P(SofiaNotifier *notifier) {
+#define LOWEST_ANALOG_PIN_NUMBER PORTC_START_PIN
+
+#define DEFAULT_VCC 5.0
+#define MIN_INPUT_HIGHT_VOLTAGE_PERCENTAGE  0.7
+#define MAX_INPUT_LOW_VOLTAGE_PERCENTAGE  0.1
+
+ATMega328P::ATMega328P(SofiaUiNotifier *notifier) {
     this->notifier = notifier;
+
+    srand(time(nullptr));
 
     programMemory = new ProgramMemory_ATMega328P();
     dataMemory = new DataMemory_ATMega328P(notifier);
@@ -27,6 +36,9 @@ ATMega328P::ATMega328P(SofiaNotifier *notifier) {
     cpu->setIOBaseAddr(0x0020);
 
     clockFreq = DEFAULT_CLOCK_FREQ;
+    vcc = DEFAULT_VCC;
+    minInputHight = MIN_INPUT_HIGHT_VOLTAGE_PERCENTAGE*vcc;
+    maxInputLow = MAX_INPUT_LOW_VOLTAGE_PERCENTAGE*vcc;
     isRunning = false;
 }
 
@@ -81,6 +93,51 @@ void ATMega328P::load(int fd) {
         default:
             notifier->addNotification(LOAD_SUCCESS_LISTENER);
             break;
+    }
+}
+
+void ATMega328P::signalInput(int pin, float voltage) {
+    if (isDigitalInput(pin)) {
+        dataMemory->setDigitalInput(pin, getLogicState(pin, voltage));
+    }
+    /*
+     * No else here because even if an analog input is enabled,
+     * DIDR0 (Digital Input Disable Register 0) may say that the value
+     * should also be sent to digital buffer
+     */
+    if (isAnalogInput(pin)) {
+        //TODO
+    }
+}
+
+bool ATMega328P::isDigitalInput(int pin) {
+    if (pin < 0) {
+        return false;
+    } else if (pin < LOWEST_ANALOG_PIN_NUMBER) {
+        return true;
+    } else {
+        return !dataMemory->isDigitalInputDisabled(pin - LOWEST_ANALOG_PIN_NUMBER);
+    }
+}
+
+bool ATMega328P::isAnalogInput(int pin) {
+    if (pin >= LOWEST_ANALOG_PIN_NUMBER) {
+        return true;
+    }
+    return false;
+}
+
+bool ATMega328P::getLogicState(int pin, float voltage) {
+    if (voltage <= maxInputLow) {
+        return false;
+    } else if (voltage >= minInputHight) {
+        return true;
+    } else {
+        if (dataMemory->isPullUpDisabled(pin)) {
+            return rand()%2;
+        } else {
+            return true;
+        }
     }
 }
 

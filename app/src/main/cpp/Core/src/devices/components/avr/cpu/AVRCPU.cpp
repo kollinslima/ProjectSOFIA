@@ -192,9 +192,9 @@ AVRCPU::AVRCPU(GenericProgramMemory *programMemory, GenericAVRDataMemory *dataMe
 
     needExtraCycles = 0;
 
-    sregAddr = datMem->getSREGAddres();
-    stackLAddr = datMem->getSPLAddres();
-    stackHAddr = datMem->getSPHAddres();
+    sregAddr = datMem->getSREGAddress();
+    stackLAddr = datMem->getSPLAddress();
+    stackHAddr = datMem->getSPHAddress();
 
     setupInstructionDecoder();
 }

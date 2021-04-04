@@ -1,6 +1,7 @@
 package com.kollins.project.sofia.v1.io.output.atmega328p
 
 import android.os.SystemClock
+import android.util.Log
 import com.kollins.project.sofia.defs.atmega328p.*
 import com.kollins.project.sofia.interfaces.io.OutputInterface
 import com.kollins.project.sofia.interfaces.io.OutputState
@@ -8,8 +9,10 @@ import kotlin.experimental.and
 
 private const val METER_FILTER_SIZE = 2
 private const val PIN_START_PORTD = 2
-private const val PIN_START_PORTB = 8
+private const val PIN_START_PORTB = 14
 private const val PIN_START_PORTC = 23
+
+private const val OUTPUT_PIN_V1_ATMEGA328P_TAG: String = "OUT PIN V1 ATMEGA328P"
 
 class OutputPinV1ATmega328P : OutputInterface {
     private var curOutput = PinMap.PINX
