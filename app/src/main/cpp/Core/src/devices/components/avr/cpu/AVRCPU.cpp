@@ -191,6 +191,8 @@ AVRCPU::AVRCPU(GenericProgramMemory *programMemory, GenericAVRDataMemory *dataMe
     ioBaseAddr = 0;
 
     needExtraCycles = 0;
+    canInterrupt = false;
+    interAddr = 0;
 
     sregAddr = datMem->getSREGAddress();
     stackLAddr = datMem->getSPLAddress();
@@ -822,8 +824,18 @@ void AVRCPU::instruction_BSET_SEC_SEH_SEI_SEN_SES_SET_SEV_SEZ() {
     LOGD(SOFIA_AVRCPU_TAG, "Instruction BSET/SEC/SEH/SEI/SEN/SES/SET/SEV/SEZ");
 
     datMem->read(sregAddr, &sreg);
-    sreg |= (0x01 << ((instruction >> 4) & 0x0007));
+    offset = (0x01 << ((instruction >> 4) & 0x0007));
+    sreg |= offset;
     datMem->write(sregAddr, &sreg);
+
+    //TODO: This may not apply to all CPUs, check datasheet
+    /*
+     * "When using the SEI instruction to enable interrupts,
+     * the instruction following SEI will be executed before any pending interrupts"
+     */
+    if (offset&I_FLAG_MASK) {
+        canInterrupt = false;
+    }
 }
 
 void AVRCPU::instruction_BST() {

@@ -17,6 +17,7 @@ public:
     void run();
 
 private:
+    void checkInterruption();
     void instruction_CALL();
     void instruction_CBI();
     void instruction_EIJMP();

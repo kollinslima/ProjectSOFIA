@@ -217,10 +217,12 @@ class MainActivitySofiaV1 : AppCompatActivity(), UiInterface {
     }
 
     override fun outputUpdate(change: String) {
+        //TODO: Run only adapter update on UI thread
         runOnUiThread { outputFragment.outputUpdate(change) }
     }
 
     override fun inputUpdate(change: String) {
+        //TODO: Run only adapter update on UI thread
         runOnUiThread { inputFragment.inputUpdate(change) }
     }
 

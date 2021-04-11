@@ -122,6 +122,33 @@
 #define DDRB_ADDR           0x24
 #define PINB_ADDR           0x23
 
+//Interrupt Vectors
+#define INT0                0x0002
+#define INT1                0x0004
+#define PCINT0              0x0006
+#define PCINT1              0x0008
+#define PCINT2              0x000A
+#define WDT                 0x000C
+#define TIMER2_COMPA        0x000E
+#define TIMER2_COMPB        0x0010
+#define TIMER2_OVF          0x0012
+#define TIMER1_CAPT         0x0014
+#define TIMER1_COMPA        0x0016
+#define TIMER1_COMPB        0x0018
+#define TIMER1_OVF          0x001A
+#define TIMER0_COMPA        0x001C
+#define TIMER0_COMPB        0x001E
+#define TIMER0_OVF          0x0020
+#define SPI_STC             0x0022
+#define USART_RX            0x0024
+#define USART_UDRE          0x0026
+#define USART_TX            0x0028
+#define ADC                 0x002A
+#define EE_READY            0x002C
+#define ANALOG_COMP         0x002E
+#define TWI                 0x0030
+#define SPM_READY           0x0032
+
 DataMemory_ATMega328P::DataMemory_ATMega328P(SofiaUiNotifier *notifier) {
     size = MEMORY_SIZE;
     buffer = new sbyte[size];
@@ -243,6 +270,64 @@ void DataMemory_ATMega328P::setupDataMemory() {
     buffer[DDRB_ADDR] = 0x00;
     buffer[PINB_ADDR] = 0x00;
     /*****************************************/
+}
+
+bool DataMemory_ATMega328P::checkInterruption(spc32 *interAddr) {
+    if (buffer[SREG_ADDR]&I_FLAG_MASK) {
+
+        ////////////////////////////INT0 interruption///////////////////////////////
+        if (buffer[EIMSK_ADDR]&0x01) {
+            if (buffer[EIFR_ADDR]&0x01) {
+                *interAddr = INT0;
+                //The flag is cleared when the interrupt routine is executed.
+                buffer[EIFR_ADDR] &= 0xFE;
+                return true;
+            } else if (!(buffer[EICRA_ADDR]&0x03)){
+                //Level interrupt - INTF0 is always cleared
+                //if enabled, the interrupts will trigger even if pins are configured as outputs.
+                if (buffer[DDRD_ADDR]&0x04) {
+                    //Pin configured as output, check PORT
+                    if (!(buffer[PORTD_ADDR]&0x04)) {
+                        *interAddr = INT0;
+                        return true;
+                    }
+                } else {
+                    //Pin configured as output, check PIN
+                    if (!(buffer[PIND_ADDR]&0x04)) {
+                        *interAddr = INT0;
+                        return true;
+                    }
+                }
+            }
+        }
+
+        ////////////////////////////INT1 interruption///////////////////////////////
+        if (buffer[EIMSK_ADDR]&0x02) {
+            if (buffer[EIFR_ADDR]&0x02) {
+                *interAddr = INT1;
+                //The flag is cleared when the interrupt routine is executed.
+                buffer[EIFR_ADDR] &= 0xFD;
+                return true;
+            } else if (!(buffer[EICRA_ADDR]&0x0C)){
+                //Level interrupt - INTF1 is always cleared
+                //if enabled, the interrupts will trigger even if pins are configured as outputs.
+                if (buffer[DDRD_ADDR]&0x08) {
+                    //Pin configured as output, check PORT
+                    if (!(buffer[PORTD_ADDR]&0x08)) {
+                        *interAddr = INT1;
+                        return true;
+                    }
+                } else {
+                    //Pin configured as output, check PIN
+                    if (!(buffer[PIND_ADDR]&0x08)) {
+                        *interAddr = INT1;
+                        return true;
+                    }
+                }
+            }
+        }
+    }
+    return false;
 }
 
 sbyte DataMemory_ATMega328P::togglePort(sbyte portByte, sbyte pinByte) {

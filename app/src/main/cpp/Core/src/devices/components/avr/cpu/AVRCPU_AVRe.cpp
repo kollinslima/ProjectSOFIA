@@ -13,10 +13,53 @@ AVRCPU_AVRe::AVRCPU_AVRe(GenericProgramMemory *programMemory, GenericAVRDataMemo
 AVRCPU_AVRe::~AVRCPU_AVRe() {
 }
 
+void AVRCPU_AVRe::checkInterruption() {
+    if (canInterrupt && datMem->checkInterruption(&interAddr)) {
+        datMem->read(stackLAddr, &dataL);
+        datMem->read(stackHAddr, &dataH);
+        stackPointer = (dataH << 8) | dataL;
+
+        //PC is already in position to go to stack (write little-endian)
+        if (pcBits == PC16) {
+            datMem->write(stackPointer--, &pc);
+            pc = pc >> 8;
+            datMem->write(stackPointer--, &pc);
+
+            //Update SPL and SPH
+            datMem->write(stackLAddr, &stackPointer);
+            stackPointer = stackPointer >> 8;
+            datMem->write(stackHAddr, &stackPointer);
+
+            needExtraCycles = 3;
+        } else {
+            LOGD(SOFIA_AVRCPU_AVRE_TAG, "checkInterruption - SP update not implemented for this PC size");
+        }
+
+        datMem->read(sregAddr, &sreg);
+        sreg &= (~I_FLAG_MASK); //Disable interruptions
+        datMem->write(sregAddr, &sreg);
+
+        pc = interAddr;
+    }
+
+    /*
+     * This is not related to I flag, from ATMega328P datasheet:
+     * "When the AVR exits from an interrupt, it will always return to the main program
+     * and execute one more instruction before any pending interrupt is served."
+     * So, in some conditions, we may need to skip interruptions even if all conditions
+     * are satisfied for it to interrupt.
+     */
+    canInterrupt = true;
+}
+
 void AVRCPU_AVRe::run() {
     if (needExtraCycles == 0) {
-        progMem->loadInstruction(pc++, &instruction);
-        (this->*instructionDecoder[instruction])();
+        checkInterruption();
+        //Check again to wait for interruption extra cycles
+        if (needExtraCycles == 0) {
+            progMem->loadInstruction(pc++, &instruction);
+            (this->*instructionDecoder[instruction])();
+        }
     } else {
         needExtraCycles--;
     }
@@ -235,8 +278,10 @@ void AVRCPU_AVRe::instruction_RETI() {
     AVRCPU::instruction_RETI();
 
     datMem->read(sregAddr, &sreg);
-    sreg |= I_FLAG_MASK;
+    sreg |= I_FLAG_MASK; //Reenable interruptions
     datMem->write(sregAddr, &sreg);
+
+    canInterrupt = false;
 
     if (pcBits == PC16) {
         //PC (read little-endian)

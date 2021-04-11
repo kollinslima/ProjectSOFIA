@@ -12,15 +12,6 @@
 
 #define INSTRUCTION_DECODER_SIZE 65536 //2^16
 
-#define I_FLAG_MASK     0x80
-#define T_FLAG_MASK     0x40
-#define H_FLAG_MASK     0x20
-#define S_FLAG_MASK     0x10
-#define V_FLAG_MASK     0x08
-#define N_FLAG_MASK     0x04
-#define Z_FLAG_MASK     0x02
-#define C_FLAG_MASK     0x01
-
 class AVRCPU : public GenericCPU {
 
 public:
@@ -58,6 +49,8 @@ protected:
     smemaddr16 ioBaseAddr;
 
     short needExtraCycles;
+    bool canInterrupt;
+    spc32 interAddr;
 
     sword16 instruction;
     smemaddr16 sregAddr;

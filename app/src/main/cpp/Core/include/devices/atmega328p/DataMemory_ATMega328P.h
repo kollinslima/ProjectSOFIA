@@ -38,6 +38,8 @@ public:
 
     smemaddr16 getSPHAddress() override;
 
+    bool checkInterruption(spc32 *interAddr) override;
+
     bool isDigitalInputDisabled(int input);
     bool isPullUpDisabled(int input);
     void setDigitalInput(int input, bool state);
