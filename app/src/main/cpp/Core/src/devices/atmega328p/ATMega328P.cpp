@@ -43,11 +43,7 @@ ATMega328P::ATMega328P(SofiaUiNotifier *notifier) {
 }
 
 ATMega328P::~ATMega328P() {
-    isRunning = false;
-    for (auto &i : scheduler) {
-        i.join();
-    }
-    syncThread.join();
+    stop();
 
     delete cpu;
     cpu = nullptr;
@@ -60,23 +56,27 @@ ATMega328P::~ATMega328P() {
 }
 
 void ATMega328P::start() {
-    isRunning = true;
-    for (unsigned int & i : syncCounter) {
-        i = clockFreq;
+    if (!isRunning) {
+        isRunning = true;
+        for (unsigned int &i : syncCounter) {
+            i = clockFreq;
+        }
+        scheduler[CPU_MODULE_INDEX] = thread(&ATMega328P::cpuThread, this);
+//        for (int i = 0; i < NUM_MODULES; ++i) {
+//            scheduler[i] = thread(&ATMega328P::stubThread, this, i);
+//        }
+        syncThread = thread(&ATMega328P::syncronizationThread, this);
     }
-    scheduler[CPU_MODULE_INDEX] = thread(&ATMega328P::cpuThread, this);
-//    for (int i = 0; i < NUM_MODULES; ++i) {
-//        scheduler[i] = thread(&ATMega328P::stubThread, this, i);
-//    }
-    syncThread = thread(&ATMega328P::syncronizationThread, this);
 }
 
 void ATMega328P::stop() {
-    isRunning = false;
-    for (auto &i : scheduler) {
-        i.join();
+    if (isRunning) {
+        isRunning = false;
+        for (auto &i : scheduler) {
+            i.join();
+        }
+        syncThread.join();
     }
-    syncThread.join();
 }
 
 void ATMega328P::load(int fd) {
@@ -147,6 +147,7 @@ void ATMega328P::cpuThread() {
         syncCounter[CPU_MODULE_INDEX]--;
         while (!syncCounter[CPU_MODULE_INDEX]) {usleep(1000);}
     }
+    syncCounter[CPU_MODULE_INDEX] = 0;
 }
 
 //void ATMega328P::stubThread(int index) {
@@ -167,8 +168,9 @@ void ATMega328P::syncronizationThread() {
     }
     memset(finishCondition, 0, sizeof(finishCondition));
 
-    while (isRunning) {
+    while (true) {
         while (memcmp(syncCounter, finishCondition, sizeof(syncCounter)) != 0) {usleep(1000);}
+        if (!isRunning) { break; }
         notifier->addNotification(TIME_UPDATE_LISTENER);
         memcpy(syncCounter, initialCondition, sizeof(syncCounter));
     }
