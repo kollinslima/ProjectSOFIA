@@ -38,8 +38,8 @@ class InputPinV1ATmega328P(private val scn: CoreNotifier) : InputInterface {
         return if (index > 0) index else inputList.indexOf(PinMap.PINX)
     }
 
-    override fun setPinIndex(position: Int) {
-        curInput = inputList[if (position > 0) position else 0]
+    override fun setPinIndex(index: Int) {
+        curInput = inputList[if (index > 0) index else 0]
     }
 
     override fun getInputModeIndex(): Int {

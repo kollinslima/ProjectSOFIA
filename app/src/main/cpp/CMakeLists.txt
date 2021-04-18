@@ -25,6 +25,10 @@ add_library( # Sets the name of the library.
             Core/src/devices/components/avr/cpu/AVRCPU_AVRe.cpp
             Core/src/devices/atmega328p/ProgramMemory_ATMega328P.cpp
             Core/src/devices/atmega328p/DataMemory_ATMega328P.cpp
+            Core/src/devices/atmega328p/Timer_ATMega328P.cpp
+            Core/src/devices/atmega328p/Timer0_ATMega328P.cpp
+            Core/src/devices/atmega328p/Timer1_ATMega328P.cpp
+            Core/src/devices/atmega328p/Timer2_ATMega328P.cpp
             Core/src/parsers/IntelParser.cpp
             Core/src/utils/Functions.cpp
         )

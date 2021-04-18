@@ -11,9 +11,10 @@
 #include "../GenericDevice.h"
 #include "ProgramMemory_ATMega328P.h"
 #include "DataMemory_ATMega328P.h"
+#include "Timer_ATMega328P.h"
 #include "../components/avr/cpu/AVRCPU.h"
 
-#define NUM_MODULES 1
+#define NUM_MODULES 4
 
 using namespace std;
 
@@ -44,8 +45,8 @@ private:
 
     ProgramMemory_ATMega328P *programMemory;
     DataMemory_ATMega328P *dataMemory;
-    AVRCPU *cpu;
 
+    UCModule *modules[NUM_MODULES];
     unsigned int syncCounter[NUM_MODULES];
     thread scheduler[NUM_MODULES];
     thread syncThread;
@@ -54,8 +55,7 @@ private:
     bool isAnalogInput(int pin);
     bool getLogicState(int pin, float voltage);
 
-    void cpuThread();
-//    void stubThread(int index);
+    void moduleThread(int index);
     void syncronizationThread();
 };
 

@@ -6,8 +6,9 @@
 #define PROJECTSOFIA_GENERICCPU_H
 
 #include "../../../CommonCore.h"
+#include "UCModule.h"
 
-class GenericCPU {
+class GenericCPU : public UCModule {
 
     public:
         virtual ~GenericCPU() {};

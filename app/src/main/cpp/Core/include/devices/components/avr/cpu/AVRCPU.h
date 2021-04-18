@@ -35,8 +35,6 @@ public:
     void setPCSize(PCBits pcBits);
     void setIOBaseAddr(smemaddr16 addr);
 
-    virtual void run() = 0;
-
 protected:
     typedef void (AVRCPU::*Instruction)();
 

@@ -4,6 +4,6 @@ interface IoInterface {
     fun clone(): IoInterface
     fun getPinNames() : List<String>
     fun ioUpdate(change:String)
-    fun setPinIndex(position: Int)
+    fun setPinIndex(index: Int)
     fun getPinIndex() : Int
 }
