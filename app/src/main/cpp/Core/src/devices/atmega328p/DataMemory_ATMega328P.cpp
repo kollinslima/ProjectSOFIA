@@ -155,6 +155,20 @@ DataMemory_ATMega328P::DataMemory_ATMega328P(SofiaUiNotifier *notifier) {
     this->notifier = notifier;
     memset(buffer, 0, size);
     setupDataMemory();
+
+    //Notify UI in case of reset or if it's loading another .hex file
+    this->notifier->addNotification(
+            IO_CHANGED_LISTENER, to_string(DDRD_ADDR) + ":" + to_string(buffer[DDRD_ADDR]));
+    this->notifier->addNotification(
+            IO_CHANGED_LISTENER, to_string(DDRC_ADDR) + ":" + to_string(buffer[DDRC_ADDR]));
+    this->notifier->addNotification(
+            IO_CHANGED_LISTENER, to_string(DDRB_ADDR) + ":" + to_string(buffer[DDRB_ADDR]));
+    this->notifier->addNotification(
+            IO_CHANGED_LISTENER, to_string(PORTD_ADDR) + ":" + to_string(buffer[PORTD_ADDR]));
+    this->notifier->addNotification(
+            IO_CHANGED_LISTENER, to_string(PORTC_ADDR) + ":" + to_string(buffer[PORTC_ADDR]));
+    this->notifier->addNotification(
+            IO_CHANGED_LISTENER, to_string(PORTB_ADDR) + ":" + to_string(buffer[PORTB_ADDR]));
 }
 
 DataMemory_ATMega328P::~DataMemory_ATMega328P() {
@@ -420,7 +434,7 @@ bool DataMemory_ATMega328P::isPullUpDisabled(int input) {
     } else {
         sbyte ddr, port;
         int pos = getIoRegisters(input, &ddr, &port);
-        return (0x01 & (~(buffer[ddr] >> pos))) & (0x01 & (buffer[port] >> pos));
+        return !((0x01 & (~(buffer[ddr] >> pos))) & (0x01 & (buffer[port] >> pos)));
     }
 }
 

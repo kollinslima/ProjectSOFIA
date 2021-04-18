@@ -121,10 +121,7 @@ bool ATMega328P::isDigitalInput(int pin) {
 }
 
 bool ATMega328P::isAnalogInput(int pin) {
-    if (pin >= LOWEST_ANALOG_PIN_NUMBER) {
-        return true;
-    }
-    return false;
+    return pin >= LOWEST_ANALOG_PIN_NUMBER;
 }
 
 bool ATMega328P::getLogicState(int pin, float voltage) {
