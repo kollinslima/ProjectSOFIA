@@ -13,6 +13,16 @@ public:
     Timer1_ATMega328P(GenericAVRDataMemory *dataMemory);
     virtual ~Timer1_ATMega328P() {}
     void run();
+
+private:
+    sbyte oldPIND;
+    bool clockSource_011();  //Prescaler 64
+    bool clockSource_100();  //Prescaler 256
+    bool clockSource_101();  //Prescaler 1024
+    bool clockSource_110();  //External falling edge T1
+    bool clockSource_111();  //External rising edge T1
+
+    void normal();
 };
 
 #endif //PROJECTSOFIA_TIMER1_ATMEGA328P_H
