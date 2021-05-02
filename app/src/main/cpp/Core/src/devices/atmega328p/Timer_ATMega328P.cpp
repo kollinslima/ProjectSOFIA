@@ -338,11 +338,11 @@ void Timer_ATMega328P::pwmPhaseCorrect5() {
 }
 
 void Timer_ATMega328P::ctc2() {
-
+    normalCtc();
 }
 
 void Timer_ATMega328P::reserved() {
-
+    //Reserved for all timers
 }
 
 void Timer_ATMega328P::fastPWM4() {

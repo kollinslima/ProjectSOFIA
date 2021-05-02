@@ -325,3 +325,18 @@ void Timer1_ATMega328P::pwmPhaseCorrect5() {
         datMem.buffer[OCR1BL_ADDR] = datMem.doubleBuffer[DOUBLE_BUFFER_OCR1BL];
     }
 }
+
+void Timer1_ATMega328P::ctc2() {
+    ocrxa = datMem.buffer[OCR1AH_ADDR];
+    ocrxa = (ocrxa << 8) | datMem.buffer[OCR1AL_ADDR];
+
+    ocrxb = datMem.buffer[OCR1BH_ADDR];
+    ocrxb = (ocrxb << 8) | datMem.buffer[OCR1BL_ADDR];
+
+    top = datMem.buffer[ICR1H_ADDR];
+    top = (top << 8) | datMem.buffer[ICR1L_ADDR];
+
+    endOfScale = TOP;
+
+    Timer_ATMega328P::ctc2();
+}

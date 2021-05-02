@@ -132,3 +132,7 @@ void Timer2_ATMega328P::pwmPhaseCorrect4() {
         datMem.buffer[OCR2B_ADDR] = datMem.doubleBuffer[DOUBLE_BUFFER_OCR2B];
     }
 }
+
+void Timer2_ATMega328P::ctc2() {
+    //Reserved for Timer 2
+}
