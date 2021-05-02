@@ -28,7 +28,7 @@
 #define ASSR_ADDR           0xB6
 
 #define OCR2B_ADDR          0xB4
-#define OCR2A_ADDR          0xB4
+#define OCR2A_ADDR          0xB3
 #define TCNT2_ADDR          0xB2
 #define TCCR2B_ADDR         0xB1
 #define TCCR2A_ADDR         0xB0

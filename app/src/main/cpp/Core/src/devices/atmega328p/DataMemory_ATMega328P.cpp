@@ -289,6 +289,30 @@ bool DataMemory_ATMega328P::write(smemaddr16 addr, void *data) {
                     to_string(PORTB_ADDR) + ":" + to_string(buffer[PORTB_ADDR]));
             break;
         }
+        case OCR0A_ADDR: {
+            switch ((buffer[TCCR0A_ADDR] & 0x03)) {
+                case 0x01:
+                case 0x03:
+                    //Enable double buffer for PWM mode
+                    doubleBuffer[DOUBLE_BUFFER_OCR0A] = byte;
+                    break;
+                default:
+                    buffer[OCR0A_ADDR] = byte;
+            }
+            break;
+        }
+        case OCR0B_ADDR: {
+            switch ((buffer[TCCR0A_ADDR] & 0x03)) {
+                case 0x01:
+                case 0x03:
+                    //Enable double buffer for PWM mode
+                    doubleBuffer[DOUBLE_BUFFER_OCR0B] = byte;
+                    break;
+                default:
+                    buffer[OCR0B_ADDR] = byte;
+            }
+            break;
+        }
         case TCNT1H_ADDR: {
             doubleBuffer[TEMP] = byte;
             break;
@@ -350,6 +374,30 @@ bool DataMemory_ATMega328P::write(smemaddr16 addr, void *data) {
         case ICR1L_ADDR: {
             buffer[ICR1H_ADDR] = doubleBuffer[TEMP];
             buffer[ICR1L_ADDR] = byte;
+            break;
+        }
+        case OCR2A_ADDR: {
+            switch ((buffer[TCCR2A_ADDR] & 0x03)) {
+                case 0x01:
+                case 0x03:
+                    //Enable double buffer for PWM mode
+                    doubleBuffer[DOUBLE_BUFFER_OCR2A] = byte;
+                    break;
+                default:
+                    buffer[OCR2A_ADDR] = byte;
+            }
+            break;
+        }
+        case OCR2B_ADDR: {
+            switch ((buffer[TCCR2A_ADDR] & 0x03)) {
+                case 0x01:
+                case 0x03:
+                    //Enable double buffer for PWM mode
+                    doubleBuffer[DOUBLE_BUFFER_OCR2B] = byte;
+                    break;
+                default:
+                    buffer[OCR2B_ADDR] = byte;
+            }
             break;
         }
         default:
