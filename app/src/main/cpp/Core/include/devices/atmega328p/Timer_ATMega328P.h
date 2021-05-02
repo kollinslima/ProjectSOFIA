@@ -36,9 +36,9 @@ private:
     bool upCount;
     void setupClockSourceDecoder();
     void setupOperationMode();
-    void normalCtc(sword16 top);
-    void pwmDualSlope(sword16 top, bool ocxaToggleEnable = false);
-    void pwmSingleSlope(sword16 top);
+    void normalCtc();
+    void pwmDualSlope(bool ocxaToggleEnable = false);
+    void pwmSingleSlope();
 
 protected:
     DataMemory_ATMega328P& datMem;
@@ -47,7 +47,7 @@ protected:
     sbyte tccrxbReg;
     sbyte interrFlags;
 
-    sword16 ocrxa, ocrxb, icrx, bottom{}, endOfScale{};
+    sword16 ocrxa, ocrxb, bottom{}, top{}, endOfScale{};
     bool matchA, matchB;
     sbyte outARegAddr{}, outBRegAddr{};
     sbyte tccrxAAddr{}, tccrxBAddr{};

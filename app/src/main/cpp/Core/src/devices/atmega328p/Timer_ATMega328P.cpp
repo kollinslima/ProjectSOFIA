@@ -104,7 +104,7 @@ bool Timer_ATMega328P::clockSource_010() {
     return !((++clockCount) & PRESCALER_8_MASK);
 }
 
-void Timer_ATMega328P::normalCtc(sword16 top) {
+void Timer_ATMega328P::normalCtc() {
     if (progress == endOfScale) {
         interrFlags |= OVERFLOW_INTERRUPT;
         progress = bottom;
@@ -155,7 +155,7 @@ void Timer_ATMega328P::normalCtc(sword16 top) {
     }
 }
 
-void Timer_ATMega328P::pwmDualSlope(sword16 top, bool ocxaToggleEnable) {
+void Timer_ATMega328P::pwmDualSlope(bool ocxaToggleEnable) {
     progress += upCount ? 1 : -1;
 
     if (!matchA && progress == ocrxa) {
@@ -229,7 +229,7 @@ void Timer_ATMega328P::pwmDualSlope(sword16 top, bool ocxaToggleEnable) {
     }
 }
 
-void Timer_ATMega328P::pwmSingleSlope(sword16 top) {
+void Timer_ATMega328P::pwmSingleSlope() {
     if (progress == top) {
         interrFlags |= OVERFLOW_INTERRUPT;
         progress = bottom;
@@ -290,51 +290,51 @@ void Timer_ATMega328P::pwmSingleSlope(sword16 top) {
 }
 
 void Timer_ATMega328P::normal() {
-    normalCtc(endOfScale);
+    normalCtc();
 }
 
 void Timer_ATMega328P::pwmPhaseCorrect1() {
-    pwmDualSlope(endOfScale);
+    pwmDualSlope();
 }
 
 void Timer_ATMega328P::pwmPhaseCorrect2() {
-    pwmDualSlope(endOfScale);
+    pwmDualSlope();
 }
 
 void Timer_ATMega328P::pwmPhaseCorrect3() {
-    pwmDualSlope(endOfScale);
+    pwmDualSlope();
 }
 
 void Timer_ATMega328P::ctc1() {
-    normalCtc(ocrxa);
+    normalCtc();
 }
 
 void Timer_ATMega328P::fastPWM1() {
-    pwmSingleSlope(endOfScale);
+    pwmSingleSlope();
 }
 
 void Timer_ATMega328P::fastPWM2() {
-    pwmSingleSlope(endOfScale);
+    pwmSingleSlope();
 }
 
 void Timer_ATMega328P::fastPWM3() {
-    pwmSingleSlope(endOfScale);
+    pwmSingleSlope();
 }
 
 void Timer_ATMega328P::pwmPhaseAndFreqCorrect1() {
-    pwmDualSlope(icrx);
+    pwmDualSlope();
 }
 
 void Timer_ATMega328P::pwmPhaseAndFreqCorrect2() {
-    pwmDualSlope(ocrxa, true);
+    pwmDualSlope(true);
 }
 
 void Timer_ATMega328P::pwmPhaseCorrect4() {
-
+    pwmDualSlope(true);
 }
 
 void Timer_ATMega328P::pwmPhaseCorrect5() {
-
+    pwmDualSlope(true);
 }
 
 void Timer_ATMega328P::ctc2() {

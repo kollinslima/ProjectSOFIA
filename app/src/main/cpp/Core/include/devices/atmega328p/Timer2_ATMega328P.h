@@ -29,6 +29,7 @@ private:
     void ctc1();
     void fastPWM2();
     void pwmPhaseAndFreqCorrect1();
+    void pwmPhaseCorrect4();
 };
 
 #endif //PROJECTSOFIA_TIMER2_ATMEGA328P_H
