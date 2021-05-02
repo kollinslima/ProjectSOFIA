@@ -136,3 +136,18 @@ void Timer2_ATMega328P::pwmPhaseCorrect4() {
 void Timer2_ATMega328P::ctc2() {
     //Reserved for Timer 2
 }
+
+void Timer2_ATMega328P::fastPWM4() {
+    ocrxa = datMem.buffer[OCR2A_ADDR];
+    ocrxb = datMem.buffer[OCR2B_ADDR];
+
+    top = ocrxa;
+
+    Timer_ATMega328P::fastPWM4();
+
+    if (progress == BOTTOM) {
+        //Update double buffer at the BOTTOM
+        datMem.buffer[OCR2A_ADDR] = datMem.doubleBuffer[DOUBLE_BUFFER_OCR2A];
+        datMem.buffer[OCR2B_ADDR] = datMem.doubleBuffer[DOUBLE_BUFFER_OCR2B];
+    }
+}

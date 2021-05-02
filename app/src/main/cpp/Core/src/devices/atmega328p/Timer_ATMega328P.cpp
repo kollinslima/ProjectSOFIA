@@ -40,7 +40,6 @@ Timer_ATMega328P::Timer_ATMega328P(DataMemory_ATMega328P &dataMemory) :
     progress = 0x0000;
     ocrxa = 0x0000;
     ocrxb = 0x0000;
-    icrx = 0x0000;
     matchA = false;
     matchB = false;
     upCount = true;
@@ -346,9 +345,9 @@ void Timer_ATMega328P::reserved() {
 }
 
 void Timer_ATMega328P::fastPWM4() {
-
+    pwmSingleSlope();
 }
 
 void Timer_ATMega328P::fastPWM5() {
-
+    pwmSingleSlope();
 }
