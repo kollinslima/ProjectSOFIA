@@ -13,7 +13,7 @@
 Timer2_ATMega328P::Timer2_ATMega328P(DataMemory_ATMega328P &dataMemory) :
         Timer_ATMega328P(dataMemory) {
 
-    top = TOP;
+    endOfScale = TOP;
     bottom = BOTTOM;
     outARegAddr = PORTD_ADDR;
     outBRegAddr = PORTB_ADDR;
@@ -89,4 +89,16 @@ void Timer2_ATMega328P::ctc1() {
     ocrxb = datMem.buffer[OCR2B_ADDR];
 
     Timer_ATMega328P::ctc1();
+}
+
+void Timer2_ATMega328P::fastPWM2() {
+    if (progress == TOP) {
+        //Update double buffer on TOP
+        datMem.buffer[OCR2A_ADDR] = datMem.doubleBuffer[DOUBLE_BUFFER_OCR2A];
+        datMem.buffer[OCR2B_ADDR] = datMem.doubleBuffer[DOUBLE_BUFFER_OCR2B];
+    }
+    ocrxa = datMem.buffer[OCR2A_ADDR];
+    ocrxb = datMem.buffer[OCR2B_ADDR];
+
+    Timer_ATMega328P::fastPWM2();
 }

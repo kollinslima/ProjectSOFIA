@@ -36,7 +36,9 @@ private:
     bool upCount;
     void setupClockSourceDecoder();
     void setupOperationMode();
-    void pwmPhaseCorrectFixedTop();
+    void normalCtc(sword16 top);
+    void pwmPhaseCorrect(sword16 top);
+    void fastPwm(sword16 top);
 
 protected:
     DataMemory_ATMega328P& datMem;
@@ -45,7 +47,7 @@ protected:
     sbyte tccrxbReg;
     sbyte interrFlags;
 
-    sword16 ocrxa, ocrxb, bottom{}, top{};
+    sword16 ocrxa, ocrxb, bottom{}, endOfScale{};
     bool matchA, matchB;
     sbyte outARegAddr{}, outBRegAddr{};
     sbyte tccrxAAddr{}, tccrxBAddr{};
