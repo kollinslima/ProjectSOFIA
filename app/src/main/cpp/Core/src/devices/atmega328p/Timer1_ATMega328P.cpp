@@ -92,11 +92,12 @@ void Timer1_ATMega328P::normal() {
     ocrxb = datMem.buffer[OCR1BH_ADDR];
     ocrxb = (ocrxb << 8) | datMem.buffer[OCR1BL_ADDR];
 
+    top = TOP;
+
     Timer_ATMega328P::normal();
 }
 
 void Timer1_ATMega328P::pwmPhaseCorrect1() {
-    top = TOP8B;
     if (progress == TOP8B) {
         //Update double buffer on TOP
         datMem.buffer[OCR1AH_ADDR] = datMem.doubleBuffer[DOUBLE_BUFFER_OCR1AH];
@@ -111,11 +112,12 @@ void Timer1_ATMega328P::pwmPhaseCorrect1() {
     ocrxb = datMem.buffer[OCR1BH_ADDR];
     ocrxb = (ocrxb << 8) | datMem.buffer[OCR1BL_ADDR];
 
+    top = TOP8B;
+
     Timer_ATMega328P::pwmPhaseCorrect1();
 }
 
 void Timer1_ATMega328P::pwmPhaseCorrect2() {
-    top = TOP9B;
     if (progress == TOP9B) {
         //Update double buffer on TOP
         datMem.buffer[OCR1AH_ADDR] = datMem.doubleBuffer[DOUBLE_BUFFER_OCR1AH];
@@ -130,11 +132,12 @@ void Timer1_ATMega328P::pwmPhaseCorrect2() {
     ocrxb = datMem.buffer[OCR1BH_ADDR];
     ocrxb = (ocrxb << 8) | datMem.buffer[OCR1BL_ADDR];
 
+    top = TOP9B;
+
     Timer_ATMega328P::pwmPhaseCorrect2();
 }
 
 void Timer1_ATMega328P::pwmPhaseCorrect3() {
-    top = TOP10B;
     if (progress == TOP10B) {
         //Update double buffer on TOP
         datMem.buffer[OCR1AH_ADDR] = datMem.doubleBuffer[DOUBLE_BUFFER_OCR1AH];
@@ -149,5 +152,19 @@ void Timer1_ATMega328P::pwmPhaseCorrect3() {
     ocrxb = datMem.buffer[OCR1BH_ADDR];
     ocrxb = (ocrxb << 8) | datMem.buffer[OCR1BL_ADDR];
 
+    top = TOP10B;
+
     Timer_ATMega328P::pwmPhaseCorrect3();
+}
+
+void Timer1_ATMega328P::ctc1() {
+    ocrxa = datMem.buffer[OCR1AH_ADDR];
+    ocrxa = (ocrxa << 8) | datMem.buffer[OCR1AL_ADDR];
+
+    ocrxb = datMem.buffer[OCR1BH_ADDR];
+    ocrxb = (ocrxb << 8) | datMem.buffer[OCR1BL_ADDR];
+
+    top = TOP;
+
+    Timer_ATMega328P::ctc1();
 }

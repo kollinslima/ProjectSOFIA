@@ -4,13 +4,13 @@
 
 #include "../../../include/devices/atmega328p/Timer_ATMega328P.h"
 
-#define NORM_TOG_CPR_MATCH_A      0x40
-#define NORM_CLR_CPR_MATCH_A      0x80
-#define NORM_SET_CPR_MATCH_A      0xC0
+#define NON_PWM_TOG_CPR_MATCH_A      0x40
+#define NON_PWM_CLR_CPR_MATCH_A      0x80
+#define NON_PWM_SET_CPR_MATCH_A      0xC0
 
-#define NORM_TOG_CPR_MATCH_B      0x10
-#define NORM_CLR_CPR_MATCH_B      0x20
-#define NORM_SET_CPR_MATCH_B      0x30
+#define NON_PWM_TOG_CPR_MATCH_B      0x10
+#define NON_PWM_CLR_CPR_MATCH_B      0x20
+#define NON_PWM_SET_CPR_MATCH_B      0x30
 
 #define PHASE_FREQ_PWM_CLR_UP_SET_DOWN_MATCH_A      0x80
 #define PHASE_FREQ_PWM_SET_UP_CLR_DOWN_MATCH_A      0xC0
@@ -97,7 +97,12 @@ bool Timer_ATMega328P::clockSource_010() {
 }
 
 void Timer_ATMega328P::normal() {
-    progress++;
+    if (progress == top) {
+        interrFlags |= OVERFLOW_INTERRUPT;
+        progress = bottom;
+    } else {
+        progress++;
+    }
 
     if (!matchA && progress == ocrxa) {
         interrFlags |= CPR_MATH_A_INTERRUPT;
@@ -110,37 +115,33 @@ void Timer_ATMega328P::normal() {
 
     if (matchA) {
         switch (tccrxaReg & COMXA_MASK) {
-            case NORM_TOG_CPR_MATCH_A:
+            case NON_PWM_TOG_CPR_MATCH_A:
                 datMem.buffer[outARegAddr] = (datMem.buffer[outARegAddr] & ocxaMask) ?
                                              datMem.buffer[outARegAddr] & (~ocxaMask) :
                                              datMem.buffer[outARegAddr] | ocxaMask;
                 break;
-            case NORM_CLR_CPR_MATCH_A:
+            case NON_PWM_CLR_CPR_MATCH_A:
                 datMem.buffer[outARegAddr] = datMem.buffer[outARegAddr] & (~ocxaMask);;
                 break;
-            case NORM_SET_CPR_MATCH_A:
+            case NON_PWM_SET_CPR_MATCH_A:
                 datMem.buffer[outARegAddr] = datMem.buffer[outARegAddr] | ocxaMask;
                 break;
         }
     }
     if (matchB) {
         switch (tccrxaReg & COMXB_MASK) {
-            case NORM_TOG_CPR_MATCH_B:
+            case NON_PWM_TOG_CPR_MATCH_B:
                 datMem.buffer[outBRegAddr] = (datMem.buffer[outBRegAddr] & ocxbMask) ?
                                              datMem.buffer[outBRegAddr] & (~ocxbMask) :
                                              datMem.buffer[outBRegAddr] | ocxbMask;
                 break;
-            case NORM_CLR_CPR_MATCH_B:
+            case NON_PWM_CLR_CPR_MATCH_B:
                 datMem.buffer[outBRegAddr] = datMem.buffer[outBRegAddr] & (~ocxbMask);
                 break;
-            case NORM_SET_CPR_MATCH_B:
+            case NON_PWM_SET_CPR_MATCH_B:
                 datMem.buffer[outBRegAddr] = datMem.buffer[outBRegAddr] | ocxbMask;
                 break;
         }
-    }
-
-    if (progress == bottom) {
-        interrFlags |= OVERFLOW_INTERRUPT;
     }
 }
 
@@ -224,7 +225,54 @@ void Timer_ATMega328P::pwmPhaseCorrectFixedTop() {
 }
 
 void Timer_ATMega328P::ctc1() {
+    if (progress == top) {
+        interrFlags |= OVERFLOW_INTERRUPT;
+        progress = bottom;
+    } else if (progress == ocrxa) {
+        progress = bottom;
+    } else {
+        progress++;
+    }
 
+    if (!matchA && progress == ocrxa) {
+        interrFlags |= CPR_MATH_A_INTERRUPT;
+        matchA = true;
+    }
+    if (!matchB && progress == ocrxb) {
+        interrFlags |= CPR_MATH_B_INTERRUPT;
+        matchB = true;
+    }
+
+    if (matchA) {
+        switch (tccrxaReg & COMXA_MASK) {
+            case NON_PWM_TOG_CPR_MATCH_A:
+                datMem.buffer[outARegAddr] = (datMem.buffer[outARegAddr] & ocxaMask) ?
+                                             datMem.buffer[outARegAddr] & (~ocxaMask) :
+                                             datMem.buffer[outARegAddr] | ocxaMask;
+                break;
+            case NON_PWM_CLR_CPR_MATCH_A:
+                datMem.buffer[outARegAddr] = datMem.buffer[outARegAddr] & (~ocxaMask);;
+                break;
+            case NON_PWM_SET_CPR_MATCH_A:
+                datMem.buffer[outARegAddr] = datMem.buffer[outARegAddr] | ocxaMask;
+                break;
+        }
+    }
+    if (matchB) {
+        switch (tccrxaReg & COMXB_MASK) {
+            case NON_PWM_TOG_CPR_MATCH_B:
+                datMem.buffer[outBRegAddr] = (datMem.buffer[outBRegAddr] & ocxbMask) ?
+                                             datMem.buffer[outBRegAddr] & (~ocxbMask) :
+                                             datMem.buffer[outBRegAddr] | ocxbMask;
+                break;
+            case NON_PWM_CLR_CPR_MATCH_B:
+                datMem.buffer[outBRegAddr] = datMem.buffer[outBRegAddr] & (~ocxbMask);
+                break;
+            case NON_PWM_SET_CPR_MATCH_B:
+                datMem.buffer[outBRegAddr] = datMem.buffer[outBRegAddr] | ocxbMask;
+                break;
+        }
+    }
 }
 
 void Timer_ATMega328P::fastPWM1() {

@@ -12,7 +12,6 @@ class Timer2_ATMega328P : public Timer_ATMega328P {
 public:
     Timer2_ATMega328P(DataMemory_ATMega328P& dataMemory);
     virtual ~Timer2_ATMega328P() {}
-    void run();
 
 private:
     bool clockSource_011();  //Prescaler 32
@@ -27,6 +26,7 @@ private:
 
     void normal();
     void pwmPhaseCorrect2();
+    void ctc1();
 };
 
 #endif //PROJECTSOFIA_TIMER2_ATMEGA328P_H

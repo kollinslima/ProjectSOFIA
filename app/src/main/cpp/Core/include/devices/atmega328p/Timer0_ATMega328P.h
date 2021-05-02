@@ -12,7 +12,6 @@ class Timer0_ATMega328P : public Timer_ATMega328P {
 public:
     Timer0_ATMega328P(DataMemory_ATMega328P& dataMemory);
     virtual ~Timer0_ATMega328P() {}
-    void run();
 
 private:
     sbyte oldPIND;
@@ -28,6 +27,7 @@ private:
 
     void normal();
     void pwmPhaseCorrect2();
+    void ctc1();
 };
 
 #endif //PROJECTSOFIA_TIMER0_ATMEGA328P_H
