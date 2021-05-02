@@ -115,3 +115,7 @@ void Timer0_ATMega328P::fastPWM2() {
 
     Timer_ATMega328P::fastPWM2();
 }
+
+void Timer0_ATMega328P::pwmPhaseAndFreqCorrect1() {
+    //Reserved for Timer 0
+}

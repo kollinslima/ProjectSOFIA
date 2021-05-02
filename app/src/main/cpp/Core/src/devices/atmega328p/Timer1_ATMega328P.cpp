@@ -228,3 +228,46 @@ void Timer1_ATMega328P::fastPWM3() {
 
     Timer_ATMega328P::fastPWM3();
 }
+
+void Timer1_ATMega328P::pwmPhaseAndFreqCorrect1() {
+    if (progress == BOTTOM) {
+        //Update double buffer at the BOTTON
+        datMem.buffer[OCR1AH_ADDR] = datMem.doubleBuffer[DOUBLE_BUFFER_OCR1AH];
+        datMem.buffer[OCR1AL_ADDR] = datMem.doubleBuffer[DOUBLE_BUFFER_OCR1AL];
+        datMem.buffer[OCR1BH_ADDR] = datMem.doubleBuffer[DOUBLE_BUFFER_OCR1BH];
+        datMem.buffer[OCR1BL_ADDR] = datMem.doubleBuffer[DOUBLE_BUFFER_OCR1BL];
+    }
+
+    ocrxa = datMem.buffer[OCR1AH_ADDR];
+    ocrxa = (ocrxa << 8) | datMem.buffer[OCR1AL_ADDR];
+
+    ocrxb = datMem.buffer[OCR1BH_ADDR];
+    ocrxb = (ocrxb << 8) | datMem.buffer[OCR1BL_ADDR];
+
+    icrx = datMem.buffer[ICR1H_ADDR];
+    icrx = (icrx << 8) | datMem.buffer[ICR1L_ADDR];
+
+    endOfScale = TOP;
+
+    Timer_ATMega328P::pwmPhaseAndFreqCorrect1();
+}
+
+void Timer1_ATMega328P::pwmPhaseAndFreqCorrect2() {
+    if (progress == BOTTOM) {
+        //Update double buffer at the BOTTON
+        datMem.buffer[OCR1AH_ADDR] = datMem.doubleBuffer[DOUBLE_BUFFER_OCR1AH];
+        datMem.buffer[OCR1AL_ADDR] = datMem.doubleBuffer[DOUBLE_BUFFER_OCR1AL];
+        datMem.buffer[OCR1BH_ADDR] = datMem.doubleBuffer[DOUBLE_BUFFER_OCR1BH];
+        datMem.buffer[OCR1BL_ADDR] = datMem.doubleBuffer[DOUBLE_BUFFER_OCR1BL];
+    }
+
+    ocrxa = datMem.buffer[OCR1AH_ADDR];
+    ocrxa = (ocrxa << 8) | datMem.buffer[OCR1AL_ADDR];
+
+    ocrxb = datMem.buffer[OCR1BH_ADDR];
+    ocrxb = (ocrxb << 8) | datMem.buffer[OCR1BL_ADDR];
+
+    endOfScale = TOP;
+
+    Timer_ATMega328P::pwmPhaseAndFreqCorrect2();
+}
