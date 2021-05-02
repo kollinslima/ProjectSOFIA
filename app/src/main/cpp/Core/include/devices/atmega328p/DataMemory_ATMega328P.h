@@ -149,6 +149,7 @@ using namespace std;
 class DataMemory_ATMega328P : public GenericAVRDataMemory {
 
 public:
+    friend class ADC_ATMega328P;
     friend class Timer_ATMega328P;
     friend class Timer0_ATMega328P;
     friend class Timer1_ATMega328P;

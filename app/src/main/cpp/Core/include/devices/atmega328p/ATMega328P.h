@@ -11,10 +11,11 @@
 #include "../GenericDevice.h"
 #include "ProgramMemory_ATMega328P.h"
 #include "DataMemory_ATMega328P.h"
+#include "ADC_ATMega328P.h"
 #include "Timer_ATMega328P.h"
 #include "../components/avr/cpu/AVRCPU.h"
 
-#define NUM_MODULES 4
+#define NUM_MODULES 5
 
 using namespace std;
 

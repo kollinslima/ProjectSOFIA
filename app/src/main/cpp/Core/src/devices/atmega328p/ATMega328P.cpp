@@ -19,6 +19,7 @@
 #define TIMER0_MODULE_INDEX 1
 #define TIMER1_MODULE_INDEX 2
 #define TIMER2_MODULE_INDEX 3
+#define ADC_MODULE_INDEX 4
 
 #define LOWEST_ANALOG_PIN_NUMBER PORTC_START_PIN
 
@@ -32,21 +33,24 @@ ATMega328P::ATMega328P(SofiaUiNotifier *notifier) :
 
     srand(time(nullptr));
 
-    AVRCPU *cpu = new AVRCPU_AVRe(programMemory, dataMemory);
+    auto *cpu = new AVRCPU_AVRe(programMemory, dataMemory);
     //Cofigure CPU to ATMega328P
     //ATmega328P has a 14-bits PC, but the behavior is the same as a 16-bits for the CPU
     cpu->setPCSize(AVRCPU::PCBits::PC16);
     cpu->setIOBaseAddr(0x0020);
     modules[CPU_MODULE_INDEX] = cpu;
 
-    Timer_ATMega328P *timer0 = new Timer0_ATMega328P(dataMemory);
+    auto *timer0 = new Timer0_ATMega328P(dataMemory);
     modules[TIMER0_MODULE_INDEX] = timer0;
 
-    Timer_ATMega328P *timer1 = new Timer1_ATMega328P(dataMemory);
+    auto *timer1 = new Timer1_ATMega328P(dataMemory);
     modules[TIMER1_MODULE_INDEX] = timer1;
 
-    Timer_ATMega328P *timer2 = new Timer2_ATMega328P(dataMemory);
+    auto *timer2 = new Timer2_ATMega328P(dataMemory);
     modules[TIMER2_MODULE_INDEX] = timer2;
+
+    auto *adc = new ADC_ATMega328P(dataMemory);
+    modules[ADC_MODULE_INDEX] = adc;
 
     clockFreq = DEFAULT_CLOCK_FREQ;
     vcc = DEFAULT_VCC;
