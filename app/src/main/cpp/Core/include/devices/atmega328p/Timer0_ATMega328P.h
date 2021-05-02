@@ -23,6 +23,7 @@ private:
     bool clockSource_111();  //External rising edge T0
 
     void normal();
+    void pwmPhaseCorrect2();
 };
 
 #endif //PROJECTSOFIA_TIMER0_ATMEGA328P_H

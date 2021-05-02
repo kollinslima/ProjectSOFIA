@@ -25,6 +25,7 @@ private:
 
     void normal();
     void pwmPhaseCorrect1();
+    void pwmPhaseCorrect2();
 };
 
 #endif //PROJECTSOFIA_TIMER1_ATMEGA328P_H

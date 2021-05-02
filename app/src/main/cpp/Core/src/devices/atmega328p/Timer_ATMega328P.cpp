@@ -204,7 +204,70 @@ void Timer_ATMega328P::pwmPhaseCorrect1() {
 }
 
 void Timer_ATMega328P::pwmPhaseCorrect2() {
+    progress += upCount ? 1 : -1;
 
+    if (!matchA && progress == ocrxa) {
+        interrFlags |= CPR_MATH_A_INTERRUPT;
+        matchA = true;
+    }
+    if (!matchB && progress == ocrxb) {
+        interrFlags |= CPR_MATH_B_INTERRUPT;
+        matchB = true;
+    }
+
+
+    switch (tccrxaReg & COMXA_MASK) {
+        case PHASE_FREQ_PWM_CLR_UP_SET_DOWN_MATCH_A:
+            if (ocrxa == top) {
+                datMem.buffer[outARegAddr] = datMem.buffer[outARegAddr] | ocxaMask;
+            } else if (ocrxa == bottom) {
+                datMem.buffer[outARegAddr] = datMem.buffer[outARegAddr] & (~ocxaMask);
+            } else if (matchA) {
+                datMem.buffer[outARegAddr] = upCount ? datMem.buffer[outARegAddr] & (~ocxaMask) :
+                                             datMem.buffer[outARegAddr] | ocxaMask;
+            }
+            break;
+        case PHASE_FREQ_PWM_SET_UP_CLR_DOWN_MATCH_A:
+            if (ocrxa == top) {
+                datMem.buffer[outARegAddr] = datMem.buffer[outARegAddr] & (~ocxaMask);
+            } else if (ocrxa == bottom) {
+                datMem.buffer[outARegAddr] = datMem.buffer[outARegAddr] | ocxaMask;
+            } else if (matchA) {
+                datMem.buffer[outARegAddr] = upCount ? datMem.buffer[outARegAddr] | ocxaMask :
+                                             datMem.buffer[outARegAddr] & (~ocxaMask);
+            }
+            break;
+    }
+
+    switch (tccrxaReg & COMXB_MASK) {
+        case PHASE_FREQ_PWM_CLR_UP_SET_DOWN_MATCH_B:
+            if (ocrxb == top) {
+                datMem.buffer[outBRegAddr] = datMem.buffer[outBRegAddr] | ocxbMask;
+            } else if (ocrxb == bottom) {
+                datMem.buffer[outBRegAddr] = datMem.buffer[outBRegAddr] & (~ocxbMask);
+            } else if (matchA) {
+                datMem.buffer[outBRegAddr] = upCount ? datMem.buffer[outBRegAddr] & (~ocxbMask) :
+                                             datMem.buffer[outBRegAddr] | ocxbMask;
+            }
+            break;
+        case PHASE_FREQ_PWM_SET_UP_CLR_DOWN_MATCH_B:
+            if (ocrxb == top) {
+                datMem.buffer[outBRegAddr] = datMem.buffer[outBRegAddr] & (~ocxbMask);
+            } else if (ocrxb == bottom) {
+                datMem.buffer[outBRegAddr] = datMem.buffer[outBRegAddr] | ocxbMask;
+            } else if (matchA) {
+                datMem.buffer[outBRegAddr] = upCount ? datMem.buffer[outBRegAddr] | ocxbMask :
+                                             datMem.buffer[outBRegAddr] & (~ocxbMask);
+            }
+            break;
+    }
+
+    if (progress == bottom) {
+        interrFlags |= OVERFLOW_INTERRUPT;
+        upCount = true;
+    } else if (progress == top) {
+        upCount = false;
+    }
 }
 
 void Timer_ATMega328P::pwmPhaseCorrect3() {

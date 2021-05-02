@@ -82,3 +82,18 @@ void Timer0_ATMega328P::normal() {
     datMem.buffer[TIFR0_ADDR] = interrFlags;
     datMem.buffer[TCNT0_ADDR] = progress;
 }
+
+void Timer0_ATMega328P::pwmPhaseCorrect2() {
+    interrFlags = 0x00;
+    matchA = tccrxbReg & FOCXA_MASK;
+    matchB = tccrxbReg & FOCXB_MASK;
+
+    progress = datMem.buffer[TCNT0_ADDR];
+    ocrxa = datMem.buffer[OCR0A_ADDR];
+    ocrxb = datMem.buffer[OCR0B_ADDR];
+
+    Timer_ATMega328P::pwmPhaseCorrect2();
+
+    datMem.buffer[TIFR0_ADDR] = interrFlags;
+    datMem.buffer[TCNT0_ADDR] = progress;
+}

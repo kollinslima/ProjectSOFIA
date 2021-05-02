@@ -22,6 +22,7 @@ private:
     bool clockSource_111();  //Prescaler 1024
 
     void normal();
+    void pwmPhaseCorrect2();
 };
 
 #endif //PROJECTSOFIA_TIMER2_ATMEGA328P_H
