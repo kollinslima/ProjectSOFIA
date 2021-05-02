@@ -11,7 +11,7 @@ class AVRCPU_AVRe : public AVRCPU {
 
 public:
 
-    AVRCPU_AVRe(GenericProgramMemory *programMemory, GenericAVRDataMemory *dataMemory);
+    AVRCPU_AVRe(GenericProgramMemory& programMemory, GenericAVRDataMemory& dataMemory);
     ~AVRCPU_AVRe();
 
     void run();

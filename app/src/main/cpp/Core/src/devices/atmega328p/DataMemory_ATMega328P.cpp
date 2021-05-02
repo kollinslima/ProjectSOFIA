@@ -180,27 +180,27 @@ void DataMemory_ATMega328P::setupDataMemory() {
 }
 
 bool DataMemory_ATMega328P::checkInterruption(spc32 *interAddr) {
-    if (buffer[SREG_ADDR]&I_FLAG_MASK) {
+    if (buffer[SREG_ADDR] & I_FLAG_MASK) {
 
         ////////////////////////////INT0 interruption///////////////////////////////
-        if (buffer[EIMSK_ADDR]&0x01) {
-            if (buffer[EIFR_ADDR]&0x01) {
+        if (buffer[EIMSK_ADDR] & 0x01) {
+            if (buffer[EIFR_ADDR] & 0x01) {
                 *interAddr = INT0;
                 //The flag is cleared when the interrupt routine is executed.
                 buffer[EIFR_ADDR] &= 0xFE;
                 return true;
-            } else if (!(buffer[EICRA_ADDR]&0x03)){
+            } else if (!(buffer[EICRA_ADDR] & 0x03)) {
                 //Level interrupt - INTF0 is always cleared
                 //if enabled, the interrupts will trigger even if pins are configured as outputs.
-                if (buffer[DDRD_ADDR]&0x04) {
+                if (buffer[DDRD_ADDR] & 0x04) {
                     //Pin configured as output, check PORT
-                    if (!(buffer[PORTD_ADDR]&0x04)) {
+                    if (!(buffer[PORTD_ADDR] & 0x04)) {
                         *interAddr = INT0;
                         return true;
                     }
                 } else {
                     //Pin configured as output, check PIN
-                    if (!(buffer[PIND_ADDR]&0x04)) {
+                    if (!(buffer[PIND_ADDR] & 0x04)) {
                         *interAddr = INT0;
                         return true;
                     }
@@ -209,24 +209,24 @@ bool DataMemory_ATMega328P::checkInterruption(spc32 *interAddr) {
         }
 
         ////////////////////////////INT1 interruption///////////////////////////////
-        if (buffer[EIMSK_ADDR]&0x02) {
-            if (buffer[EIFR_ADDR]&0x02) {
+        if (buffer[EIMSK_ADDR] & 0x02) {
+            if (buffer[EIFR_ADDR] & 0x02) {
                 *interAddr = INT1;
                 //The flag is cleared when the interrupt routine is executed.
                 buffer[EIFR_ADDR] &= 0xFD;
                 return true;
-            } else if (!(buffer[EICRA_ADDR]&0x0C)){
+            } else if (!(buffer[EICRA_ADDR] & 0x0C)) {
                 //Level interrupt - INTF1 is always cleared
                 //if enabled, the interrupts will trigger even if pins are configured as outputs.
-                if (buffer[DDRD_ADDR]&0x08) {
+                if (buffer[DDRD_ADDR] & 0x08) {
                     //Pin configured as output, check PORT
-                    if (!(buffer[PORTD_ADDR]&0x08)) {
+                    if (!(buffer[PORTD_ADDR] & 0x08)) {
                         *interAddr = INT1;
                         return true;
                     }
                 } else {
                     //Pin configured as output, check PIN
-                    if (!(buffer[PIND_ADDR]&0x08)) {
+                    if (!(buffer[PIND_ADDR] & 0x08)) {
                         *interAddr = INT1;
                         return true;
                     }
@@ -262,41 +262,126 @@ bool DataMemory_ATMega328P::write(smemaddr16 addr, void *data) {
                 this->notifier->addNotification(
                         IO_CHANGED_LISTENER, to_string(addr) + ":" + to_string(byte));
             }
-            return true;
             break;
         }
-        /*
-         * Writing a logic one to PINxn toggles the value of PORTxn,
-         * independent on the value of DDRxn.
-         */
+            /*
+             * Writing a logic one to PINxn toggles the value of PORTxn,
+             * independent on the value of DDRxn.
+             */
         case PIND_ADDR: {
             buffer[PORTD_ADDR] = togglePort(buffer[PORTD_ADDR], byte);
             this->notifier->addNotification(
-                    IO_CHANGED_LISTENER, to_string(PORTD_ADDR) + ":" + to_string(buffer[PORTD_ADDR]));
-            return true;
+                    IO_CHANGED_LISTENER,
+                    to_string(PORTD_ADDR) + ":" + to_string(buffer[PORTD_ADDR]));
             break;
         }
         case PINC_ADDR: {
             buffer[PORTC_ADDR] = togglePort(buffer[PORTC_ADDR], byte);
             this->notifier->addNotification(
-                    IO_CHANGED_LISTENER, to_string(PORTC_ADDR) + ":" + to_string(buffer[PORTC_ADDR]));
-            return true;
+                    IO_CHANGED_LISTENER,
+                    to_string(PORTC_ADDR) + ":" + to_string(buffer[PORTC_ADDR]));
             break;
         }
         case PINB_ADDR: {
             buffer[PORTB_ADDR] = togglePort(buffer[PORTB_ADDR], byte);
             this->notifier->addNotification(
-                    IO_CHANGED_LISTENER, to_string(PORTB_ADDR) + ":" + to_string(buffer[PORTB_ADDR]));
-            return true;
+                    IO_CHANGED_LISTENER,
+                    to_string(PORTB_ADDR) + ":" + to_string(buffer[PORTB_ADDR]));
             break;
         }
+        case TCNT1H_ADDR: {
+            doubleBuffer[TEMP] = byte;
+            break;
+        }
+        case TCNT1L_ADDR: {
+            buffer[TCNT1H_ADDR] = doubleBuffer[TEMP];
+            buffer[TCNT1L_ADDR] = byte;
+            break;
+        }
+        case OCR1AH_ADDR: {
+            doubleBuffer[TEMP] = byte;
+            break;
+        }
+        case OCR1AL_ADDR: {
+            switch (((buffer[TCCR1B_ADDR] >> 1) & WGM_TCCR1B_MASK) |
+                    (buffer[TCCR1A_ADDR] & WGM_TCCR1A_MASK)) {
+                case 0x00:
+                case 0x04:
+                case 0x0C:
+                case 0x0D:
+                    buffer[OCR1AH_ADDR] = doubleBuffer[TEMP];
+                    buffer[OCR1AL_ADDR] = byte;
+                    break;
+                default:
+                    //Enable double buffer for PWM mode
+                    doubleBuffer[DOUBLE_BUFFER_OCR1AH] = doubleBuffer[TEMP];
+                    doubleBuffer[DOUBLE_BUFFER_OCR1AL] = byte;
+            }
+            break;
+        }
+        case OCR1BH_ADDR: {
+            doubleBuffer[TEMP] = byte;
+            break;
+        }
+        case OCR1BL_ADDR: {
+            switch (((buffer[TCCR1B_ADDR] >> 1) & WGM_TCCR1B_MASK) |
+                    (buffer[TCCR1A_ADDR] & WGM_TCCR1A_MASK)) {
+                case 0x00:
+                case 0x04:
+                case 0x0C:
+                case 0x0D:
+                    buffer[OCR1BH_ADDR] = doubleBuffer[TEMP];
+                    buffer[OCR1BL_ADDR] = byte;
+                    break;
+                default:
+                    //Enable double buffer for PWM mode
+                    doubleBuffer[DOUBLE_BUFFER_OCR1BH] = doubleBuffer[TEMP];
+                    doubleBuffer[DOUBLE_BUFFER_OCR1BL] = byte;
+            }
+            break;
+        }
+        /* TODO: The ICR1 register can only be written when using a waveform generation mode that
+         * utilizes the ICR1 register for defining the counter’s TOP value.
+         */
+        case ICR1H_ADDR: {
+            doubleBuffer[TEMP] = byte;
+            break;
+        }
+        case ICR1L_ADDR: {
+            buffer[ICR1H_ADDR] = doubleBuffer[TEMP];
+            buffer[ICR1L_ADDR] = byte;
+            break;
+        }
+        default:
+            buffer[SAFE_ADDR(addr, MEMORY_SIZE)] = byte;
     }
-    buffer[SAFE_ADDR(addr, MEMORY_SIZE)] = byte;
     return true;
 }
 
 bool DataMemory_ATMega328P::read(smemaddr16 addr, void *data) {
-    sbyte byte = buffer[SAFE_ADDR(addr, MEMORY_SIZE)];
+    sbyte byte;
+    switch (addr) {
+        case TCNT1H_ADDR: {
+            byte = doubleBuffer[TEMP];
+            break;
+        }
+        case TCNT1L_ADDR: {
+            doubleBuffer[TEMP] = buffer[TCNT1H_ADDR];
+            byte = buffer[TCNT1L_ADDR];
+            break;
+        }
+        case ICR1H_ADDR: {
+            byte = doubleBuffer[TEMP];
+            break;
+        }
+        case ICR1L_ADDR: {
+            doubleBuffer[TEMP] = buffer[ICR1H_ADDR];
+            byte = buffer[ICR1L_ADDR];
+            break;
+        }
+        default:
+            byte = buffer[SAFE_ADDR(addr, MEMORY_SIZE)];
+    }
     *(static_cast<sbyte *>(data)) = byte;
     return true;
 }

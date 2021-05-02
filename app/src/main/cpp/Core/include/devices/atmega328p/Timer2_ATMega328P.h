@@ -10,7 +10,7 @@
 class Timer2_ATMega328P : public Timer_ATMega328P {
 
 public:
-    Timer2_ATMega328P(GenericAVRDataMemory *dataMemory);
+    Timer2_ATMega328P(DataMemory_ATMega328P& dataMemory);
     virtual ~Timer2_ATMega328P() {}
     void run();
 

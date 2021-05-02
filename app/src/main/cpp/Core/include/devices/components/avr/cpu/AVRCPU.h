@@ -29,7 +29,7 @@ public:
         PC22,
     } PCBits;
 
-    AVRCPU(GenericProgramMemory *programMemory, GenericAVRDataMemory *dataMemory, Core core = AVRCPU::Core::AVR);
+    AVRCPU(GenericProgramMemory& programMemory, GenericAVRDataMemory& dataMemory, Core core = AVRCPU::Core::AVR);
     virtual ~AVRCPU();
 
     void setPCSize(PCBits pcBits);
@@ -40,8 +40,8 @@ protected:
 
     Instruction instructionDecoder[INSTRUCTION_DECODER_SIZE];
 
-    GenericProgramMemory *progMem;
-    GenericAVRDataMemory *datMem;
+    GenericProgramMemory& progMem;
+    GenericAVRDataMemory& datMem;
     Core core;
     PCBits pcBits;
     smemaddr16 ioBaseAddr;

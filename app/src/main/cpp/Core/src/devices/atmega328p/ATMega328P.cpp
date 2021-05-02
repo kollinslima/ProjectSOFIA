@@ -26,13 +26,11 @@
 #define MIN_INPUT_HIGHT_VOLTAGE_PERCENTAGE  0.7
 #define MAX_INPUT_LOW_VOLTAGE_PERCENTAGE  0.1
 
-ATMega328P::ATMega328P(SofiaUiNotifier *notifier) {
+ATMega328P::ATMega328P(SofiaUiNotifier *notifier) :
+    dataMemory(notifier){
     this->notifier = notifier;
 
     srand(time(nullptr));
-
-    programMemory = new ProgramMemory_ATMega328P();
-    dataMemory = new DataMemory_ATMega328P(notifier);
 
     AVRCPU *cpu = new AVRCPU_AVRe(programMemory, dataMemory);
     //Cofigure CPU to ATMega328P
@@ -58,17 +56,11 @@ ATMega328P::ATMega328P(SofiaUiNotifier *notifier) {
 }
 
 ATMega328P::~ATMega328P() {
-    stop();
+    ATMega328P::stop();
 
     for (auto & module : modules) {
         delete module;
     }
-
-    delete dataMemory;
-    dataMemory = nullptr;
-
-    delete programMemory;
-    programMemory = nullptr;
 }
 
 void ATMega328P::start() {
@@ -96,7 +88,7 @@ void ATMega328P::stop() {
 }
 
 void ATMega328P::load(int fd) {
-    switch (programMemory->loadFile(fd)) {
+    switch (programMemory.loadFile(fd)) {
         case INTEL_CHECKSUM_ERROR:
             notifier->addNotification(CHECKSUM_ERROR_LISTENER);
             break;
@@ -114,7 +106,7 @@ void ATMega328P::load(int fd) {
 
 void ATMega328P::signalInput(int pin, float voltage) {
     if (isDigitalInput(pin)) {
-        dataMemory->setDigitalInput(pin, getLogicState(pin, voltage));
+        dataMemory.setDigitalInput(pin, getLogicState(pin, voltage));
     }
     /*
      * No else here because even if an analog input is enabled,
@@ -132,7 +124,7 @@ bool ATMega328P::isDigitalInput(int pin) {
     } else if (pin < LOWEST_ANALOG_PIN_NUMBER) {
         return true;
     } else {
-        return !dataMemory->isDigitalInputDisabled(pin - LOWEST_ANALOG_PIN_NUMBER);
+        return !dataMemory.isDigitalInputDisabled(pin - LOWEST_ANALOG_PIN_NUMBER);
     }
 }
 
@@ -146,7 +138,7 @@ bool ATMega328P::getLogicState(int pin, float voltage) {
     } else if (voltage >= minInputHight) {
         return true;
     } else {
-        if (dataMemory->isPullUpDisabled(pin)) {
+        if (dataMemory.isPullUpDisabled(pin)) {
             return rand()%2;
         } else {
             return true;

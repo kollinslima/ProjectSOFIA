@@ -43,8 +43,8 @@ private:
     float minInputHight;
     float maxInputLow;
 
-    ProgramMemory_ATMega328P *programMemory;
-    DataMemory_ATMega328P *dataMemory;
+    ProgramMemory_ATMega328P programMemory;
+    DataMemory_ATMega328P dataMemory;
 
     UCModule *modules[NUM_MODULES];
     unsigned int syncCounter[NUM_MODULES];

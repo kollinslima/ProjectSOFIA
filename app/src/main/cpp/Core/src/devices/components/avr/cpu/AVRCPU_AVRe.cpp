@@ -6,7 +6,7 @@
 
 #define SOFIA_AVRCPU_AVRE_TAG "SOFIA AVRCPU AVRE"
 
-AVRCPU_AVRe::AVRCPU_AVRe(GenericProgramMemory *programMemory, GenericAVRDataMemory *dataMemory):
+AVRCPU_AVRe::AVRCPU_AVRe(GenericProgramMemory& programMemory, GenericAVRDataMemory& dataMemory):
     AVRCPU(programMemory, dataMemory, AVRCPU::Core::AVRe) {
 }
 
@@ -14,30 +14,30 @@ AVRCPU_AVRe::~AVRCPU_AVRe() {
 }
 
 void AVRCPU_AVRe::checkInterruption() {
-    if (canInterrupt && datMem->checkInterruption(&interAddr)) {
-        datMem->read(stackLAddr, &dataL);
-        datMem->read(stackHAddr, &dataH);
+    if (canInterrupt && datMem.checkInterruption(&interAddr)) {
+        datMem.read(stackLAddr, &dataL);
+        datMem.read(stackHAddr, &dataH);
         stackPointer = (dataH << 8) | dataL;
 
         //PC is already in position to go to stack (write little-endian)
         if (pcBits == PC16) {
-            datMem->write(stackPointer--, &pc);
+            datMem.write(stackPointer--, &pc);
             pc = pc >> 8;
-            datMem->write(stackPointer--, &pc);
+            datMem.write(stackPointer--, &pc);
 
             //Update SPL and SPH
-            datMem->write(stackLAddr, &stackPointer);
+            datMem.write(stackLAddr, &stackPointer);
             stackPointer = stackPointer >> 8;
-            datMem->write(stackHAddr, &stackPointer);
+            datMem.write(stackHAddr, &stackPointer);
 
             needExtraCycles = 3;
         } else {
             LOGD(SOFIA_AVRCPU_AVRE_TAG, "checkInterruption - SP update not implemented for this PC size");
         }
 
-        datMem->read(sregAddr, &sreg);
+        datMem.read(sregAddr, &sreg);
         sreg &= (~I_FLAG_MASK); //Disable interruptions
-        datMem->write(sregAddr, &sreg);
+        datMem.write(sregAddr, &sreg);
 
         pc = interAddr;
     }
@@ -57,7 +57,7 @@ void AVRCPU_AVRe::run() {
         checkInterruption();
         //Check again to wait for interruption extra cycles
         if (needExtraCycles == 0) {
-            progMem->loadInstruction(pc++, &instruction);
+            progMem.loadInstruction(pc++, &instruction);
             (this->*instructionDecoder[instruction])();
         }
     } else {
@@ -72,14 +72,14 @@ void AVRCPU_AVRe::instruction_CALL() {
 
     //PC is already in position to go to stack (write little-endian)
     if (pcBits == PC16) {
-        datMem->write(stackPointer--, &pc);
+        datMem.write(stackPointer--, &pc);
         pc = pc >> 8;
-        datMem->write(stackPointer--, &pc);
+        datMem.write(stackPointer--, &pc);
 
         //Update SPL and SPH
-        datMem->write(stackLAddr, &stackPointer);
+        datMem.write(stackLAddr, &stackPointer);
         stackPointer = stackPointer >> 8;
-        datMem->write(stackHAddr, &stackPointer);
+        datMem.write(stackHAddr, &stackPointer);
 
         needExtraCycles = 3;
     } else {
@@ -123,14 +123,14 @@ void AVRCPU_AVRe::instruction_ICALL() {
 
     //PC is already in position to go to stack (write little-endian)
     if (pcBits == PC16) {
-        datMem->write(stackPointer--, &pc);
+        datMem.write(stackPointer--, &pc);
         pc = pc >> 8;
-        datMem->write(stackPointer--, &pc);
+        datMem.write(stackPointer--, &pc);
 
         //Update SPL and SPH
-        datMem->write(stackLAddr, &stackPointer);
+        datMem.write(stackLAddr, &stackPointer);
         stackPointer = stackPointer >> 8;
-        datMem->write(stackHAddr, &stackPointer);
+        datMem.write(stackHAddr, &stackPointer);
 
         needExtraCycles = 2;
     } else {
@@ -231,14 +231,14 @@ void AVRCPU_AVRe::instruction_RCALL() {
 
     //PC is already in position to go to stack (write little-endian)
     if (pcBits == PC16) {
-        datMem->write(stackPointer--, &pc);
+        datMem.write(stackPointer--, &pc);
         pc = pc >> 8;
-        datMem->write(stackPointer--, &pc);
+        datMem.write(stackPointer--, &pc);
 
         //Update SPL and SPH
-        datMem->write(stackLAddr, &stackPointer);
+        datMem.write(stackLAddr, &stackPointer);
         stackPointer = stackPointer >> 8;
-        datMem->write(stackHAddr, &stackPointer);
+        datMem.write(stackHAddr, &stackPointer);
 
         needExtraCycles = 2;
     } else {
@@ -256,14 +256,14 @@ void AVRCPU_AVRe::instruction_RET() {
 
     if (pcBits == PC16) {
         //PC (read little-endian)
-        datMem->read(++stackPointer, &dataH);
-        datMem->read(++stackPointer, &dataL);
+        datMem.read(++stackPointer, &dataH);
+        datMem.read(++stackPointer, &dataL);
         pc = (dataH << 8) | dataL;
 
         //Update SPL and SPH
-        datMem->write(stackLAddr, &stackPointer);
+        datMem.write(stackLAddr, &stackPointer);
         stackPointer = stackPointer >> 8;
-        datMem->write(stackHAddr, &stackPointer);
+        datMem.write(stackHAddr, &stackPointer);
 
         needExtraCycles = 3;
     } else {
@@ -277,22 +277,22 @@ void AVRCPU_AVRe::instruction_RETI() {
     LOGD(SOFIA_AVRCPU_AVRE_TAG, "Instruction RETI");
     AVRCPU::instruction_RETI();
 
-    datMem->read(sregAddr, &sreg);
+    datMem.read(sregAddr, &sreg);
     sreg |= I_FLAG_MASK; //Reenable interruptions
-    datMem->write(sregAddr, &sreg);
+    datMem.write(sregAddr, &sreg);
 
     canInterrupt = false;
 
     if (pcBits == PC16) {
         //PC (read little-endian)
-        datMem->read(++stackPointer, &dataH);
-        datMem->read(++stackPointer, &dataL);
+        datMem.read(++stackPointer, &dataH);
+        datMem.read(++stackPointer, &dataL);
         pc = (dataH << 8) | dataL;
 
         //Update SPL and SPH
-        datMem->write(stackLAddr, &stackPointer);
+        datMem.write(stackLAddr, &stackPointer);
         stackPointer = stackPointer >> 8;
-        datMem->write(stackHAddr, &stackPointer);
+        datMem.write(stackHAddr, &stackPointer);
 
         needExtraCycles = 3;
     } else {

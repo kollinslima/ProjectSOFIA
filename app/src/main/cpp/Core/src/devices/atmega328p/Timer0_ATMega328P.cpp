@@ -5,30 +5,31 @@
 #include "../../../include/devices/atmega328p/Timer0_ATMega328P.h"
 
 #define T0_MASK             0x10
-#define WGM_TCCRXA_MASK     0x06
-#define WGM_TCCRXB_MASK     0x08
 
 #define OC0A_MASK           0x40
 #define OC0B_MASK           0x20
 
+#define TOP                 0xFF
 #define BOTTOM              0x00
 
-Timer0_ATMega328P::Timer0_ATMega328P(GenericAVRDataMemory *dataMemory) :
+Timer0_ATMega328P::Timer0_ATMega328P(DataMemory_ATMega328P &dataMemory) :
         Timer_ATMega328P(dataMemory) {
-    dataMemory->read(PIND_ADDR, &oldPIND);
 
-    bottom =        BOTTOM;
-    outARegAddr =   PORTD_ADDR;
-    outBRegAddr =   PORTD_ADDR;
-    ocxaMask =      OC0A_MASK;
-    ocxbMask =      OC0B_MASK;
+    oldPIND = datMem.buffer[PIND_ADDR];
+
+    top = TOP;
+    bottom = BOTTOM;
+    outARegAddr = PORTD_ADDR;
+    outBRegAddr = PORTD_ADDR;
+    ocxaMask = OC0A_MASK;
+    ocxbMask = OC0B_MASK;
 }
 
 void Timer0_ATMega328P::run() {
-    dataMemory->read(TCCR0B_ADDR, &tccrxbReg);
+    tccrxbReg = datMem.buffer[TCCR0B_ADDR];
     if ((this->*clockSource[tccrxbReg & CS_MASK])()) {
-        dataMemory->read(TCCR0A_ADDR, &tccrxaReg);
-        (this->*mode[(tccrxbReg & WGM_TCCRXB_MASK) | ((tccrxaReg << 1) & WGM_TCCRXA_MASK)])();
+        tccrxaReg = datMem.buffer[TCCR0A_ADDR];
+        (this->*mode[(tccrxbReg & WGM_TCCR0B_MASK) | ((tccrxaReg << 1) & WGM_TCCR0A_MASK)])();
     }
 }
 
@@ -49,8 +50,7 @@ bool Timer0_ATMega328P::clockSource_101() {
 
 bool Timer0_ATMega328P::clockSource_110() {
     bool ret = false;
-    sbyte newPIND;
-    dataMemory->read(PIND_ADDR, &newPIND);
+    sbyte newPIND = datMem.buffer[PIND_ADDR];
     if ((oldPIND & (~newPIND)) & T0_MASK) {
         ret = true;
     }
@@ -60,8 +60,7 @@ bool Timer0_ATMega328P::clockSource_110() {
 
 bool Timer0_ATMega328P::clockSource_111() {
     bool ret = false;
-    sbyte newPIND;
-    dataMemory->read(PIND_ADDR, &newPIND);
+    sbyte newPIND = datMem.buffer[PIND_ADDR];
     if (((~oldPIND) & newPIND) & T0_MASK) {
         ret = true;
     }
@@ -74,12 +73,12 @@ void Timer0_ATMega328P::normal() {
     matchA = tccrxbReg & FOCXA_MASK;
     matchB = tccrxbReg & FOCXB_MASK;
 
-    dataMemory->read(TCNT0_ADDR, &progress);
-    dataMemory->read(OCR0A_ADDR, &ocrxa);
-    dataMemory->read(OCR0B_ADDR, &ocrxb);
+    progress = datMem.buffer[TCNT0_ADDR];
+    ocrxa = datMem.buffer[OCR0A_ADDR];
+    ocrxb = datMem.buffer[OCR0B_ADDR];
 
     Timer_ATMega328P::normal();
 
-    dataMemory->write(TIFR0_ADDR, &interrFlags);
-    dataMemory->write(TCNT0_ADDR, &progress);
+    datMem.buffer[TIFR0_ADDR] = interrFlags;
+    datMem.buffer[TCNT0_ADDR] = progress;
 }

@@ -6,7 +6,7 @@
 #define PROJECTSOFIA_TIMER_ATMEGA328P_H
 
 #include "../components/avr/timer/GenericAVRTimer.h"
-#include "../components/avr/memory/GenericAVRDataMemory.h"
+#include "DataMemory_ATMega328P.h"
 
 #define NUM_CLOCK_SOURCES   8
 #define NUM_MODES           16
@@ -27,29 +27,29 @@
 class Timer_ATMega328P : public GenericAVRTimer {
 
 public:
-    Timer_ATMega328P(GenericAVRDataMemory *dataMemory);
+    Timer_ATMega328P(DataMemory_ATMega328P& dataMemory);
     virtual ~Timer_ATMega328P() {}
 
 private:
-    sbyte outReg;
+    bool upCount;
     void setupClockSourceDecoder();
     void setupOperationMode();
 
 protected:
-    GenericAVRDataMemory *dataMemory;
+    DataMemory_ATMega328P& datMem;
 
     sbyte tccrxaReg;
     sbyte tccrxbReg;
     sbyte interrFlags;
 
-    sword16 progress, ocrxa, ocrxb, bottom;
+    sword16 ocrxa, ocrxb, bottom{}, top{};
     bool matchA, matchB;
-    sbyte outARegAddr, outBRegAddr;
-    sbyte ocxaMask, ocxbMask;
+    sbyte outARegAddr{}, outBRegAddr{};
+    sbyte ocxaMask{}, ocxbMask{};
 
     typedef bool (Timer_ATMega328P::*ClockSource)();
     short clockCount;
-    ClockSource clockSource[NUM_CLOCK_SOURCES];
+    ClockSource clockSource[NUM_CLOCK_SOURCES]{};
     bool clockSource_000();  //No clock
     bool clockSource_001();  //No prescaler
     bool clockSource_010();  //Prescaler 8
@@ -60,7 +60,7 @@ protected:
     virtual bool clockSource_111() = 0;  //Prescaler 1024 (Timer 2), External rising edge T0 (Timer 0) or T1 (Timer 1)
 
     typedef void (Timer_ATMega328P::*Mode)();
-    Mode mode[NUM_MODES];
+    Mode mode[NUM_MODES]{};
     virtual void normal();
     virtual void pwmPhaseCorrect1();            //8b (Timer 1)
     virtual void pwmPhaseCorrect2();            //9b (Timer 1), 8b (Timer 0 and Timer 2)
