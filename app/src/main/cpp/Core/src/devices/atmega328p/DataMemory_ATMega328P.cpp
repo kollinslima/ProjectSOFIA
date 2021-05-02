@@ -182,7 +182,7 @@ void DataMemory_ATMega328P::setupDataMemory() {
 bool DataMemory_ATMega328P::checkInterruption(spc32 *interAddr) {
     if (buffer[SREG_ADDR] & I_FLAG_MASK) {
 
-        ////////////////////////////INT0 interruption///////////////////////////////
+        ////////////////////////External interrupt request 0////////////////////////
         if (buffer[EIMSK_ADDR] & 0x01) {
             if (buffer[EIFR_ADDR] & 0x01) {
                 *interAddr = INT0;
@@ -208,7 +208,7 @@ bool DataMemory_ATMega328P::checkInterruption(spc32 *interAddr) {
             }
         }
 
-        ////////////////////////////INT1 interruption///////////////////////////////
+        ////////////////////////External interrupt request 1////////////////////////
         if (buffer[EIMSK_ADDR] & 0x02) {
             if (buffer[EIFR_ADDR] & 0x02) {
                 *interAddr = INT1;
@@ -233,6 +233,112 @@ bool DataMemory_ATMega328P::checkInterruption(spc32 *interAddr) {
                 }
             }
         }
+
+        ///////////////////////Pin change interrupt request 0///////////////////////
+
+        ///////////////////////Pin change interrupt request 1///////////////////////
+
+        ///////////////////////Pin change interrupt request 2///////////////////////
+
+        ////////////////////////Watchdog time-out interrupt/////////////////////////
+
+        ///////////////////////Timer/Counter2 compare match A///////////////////////
+        if(buffer[TIFR2_ADDR] & 0x02) {
+            *interAddr = TIMER2_COMPA;
+            //The flag is cleared when the interrupt routine is executed.
+            buffer[TIFR2_ADDR] &= 0xFD;
+            return true;
+        }
+
+        ///////////////////////Timer/Counter2 compare match B///////////////////////
+        if(buffer[TIFR2_ADDR] & 0x04) {
+            *interAddr = TIMER2_COMPB;
+            //The flag is cleared when the interrupt routine is executed.
+            buffer[TIFR2_ADDR] &= 0xFB;
+            return true;
+        }
+
+        //////////////////////////Timer/Counter2 overflow///////////////////////////
+        if(buffer[TIFR2_ADDR] & 0x01) {
+            *interAddr = TIMER2_OVF;
+            //The flag is cleared when the interrupt routine is executed.
+            buffer[TIFR2_ADDR] &= 0xFE;
+            return true;
+        }
+
+        ////////////////////////Timer/Counter1 capture event////////////////////////
+        if(buffer[TIFR1_ADDR] & 0x20) {
+            *interAddr = TIMER1_CAPT;
+            //The flag is cleared when the interrupt routine is executed.
+            buffer[TIFR2_ADDR] &= 0xDF;
+            return true;
+        }
+
+        ///////////////////////Timer/Counter1 compare match A///////////////////////
+        if(buffer[TIFR1_ADDR] & 0x02) {
+            *interAddr = TIMER1_COMPA;
+            //The flag is cleared when the interrupt routine is executed.
+            buffer[TIFR1_ADDR] &= 0xFD;
+            return true;
+        }
+
+        ///////////////////////Timer/Counter1 compare match B///////////////////////
+        if(buffer[TIFR1_ADDR] & 0x04) {
+            *interAddr = TIMER1_COMPB;
+            //The flag is cleared when the interrupt routine is executed.
+            buffer[TIFR1_ADDR] &= 0xFB;
+            return true;
+        }
+
+        //////////////////////////Timer/Counter1 overflow///////////////////////////
+        if(buffer[TIFR1_ADDR] & 0x01) {
+            *interAddr = TIMER1_OVF;
+            //The flag is cleared when the interrupt routine is executed.
+            buffer[TIFR1_ADDR] &= 0xFE;
+            return true;
+        }
+
+        ///////////////////////Timer/Counter0 compare match A///////////////////////
+        if(buffer[TIFR0_ADDR] & 0x02) {
+            *interAddr = TIMER0_COMPA;
+            //The flag is cleared when the interrupt routine is executed.
+            buffer[TIFR0_ADDR] &= 0xFD;
+            return true;
+        }
+
+        ///////////////////////Timer/Counter0 compare match B///////////////////////
+        if(buffer[TIFR0_ADDR] & 0x04) {
+            *interAddr = TIMER0_COMPB;
+            //The flag is cleared when the interrupt routine is executed.
+            buffer[TIFR0_ADDR] &= 0xFB;
+            return true;
+        }
+
+        //////////////////////////Timer/Counter0 overflow///////////////////////////
+        if(buffer[TIFR0_ADDR] & 0x01) {
+            *interAddr = TIMER0_OVF;
+            //The flag is cleared when the interrupt routine is executed.
+            buffer[TIFR0_ADDR] &= 0xFE;
+            return true;
+        }
+
+        ////////////////////////SPI serial transfer complete////////////////////////
+
+        /////////////////////////////USART Rx complete//////////////////////////////
+
+        /////////////////////////USART, data register empty/////////////////////////
+
+        /////////////////////////////USART, Tx complete/////////////////////////////
+
+        //////////////////////////ADC conversion complete///////////////////////////
+
+        ////////////////////////////////EEPROM ready////////////////////////////////
+
+        /////////////////////////////Analog comparator//////////////////////////////
+
+        //////////////////////////2-wire serial interface///////////////////////////
+
+        /////////////////////////Store program memory ready/////////////////////////
     }
     return false;
 }
@@ -398,6 +504,22 @@ bool DataMemory_ATMega328P::write(smemaddr16 addr, void *data) {
                 default:
                     buffer[OCR2B_ADDR] = byte;
             }
+            break;
+        }
+        case EIFR_ADDR: {
+            buffer[EIFR_ADDR] &= (~(byte&0x03));
+            break;
+        }
+        case TIFR0_ADDR: {
+            buffer[TIFR0_ADDR] &= (~(byte&0x07));
+            break;
+        }
+        case TIFR1_ADDR: {
+            buffer[TIFR1_ADDR] &= (~(byte&0x27));
+            break;
+        }
+        case TIFR2_ADDR: {
+            buffer[TIFR2_ADDR] &= (~(byte&0x07));
             break;
         }
         default:
