@@ -21,6 +21,10 @@ private:
     bool clockSource_110();  //Prescaler 256
     bool clockSource_111();  //Prescaler 1024
 
+    void prepare();
+    void operate();
+    void writeBack();
+
     void normal();
     void pwmPhaseCorrect2();
 };

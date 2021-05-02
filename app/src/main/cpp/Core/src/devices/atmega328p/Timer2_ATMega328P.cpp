@@ -10,23 +10,34 @@
 #define TOP                 0xFF
 #define BOTTOM              0x00
 
-Timer2_ATMega328P::Timer2_ATMega328P(DataMemory_ATMega328P& dataMemory) :
+Timer2_ATMega328P::Timer2_ATMega328P(DataMemory_ATMega328P &dataMemory) :
         Timer_ATMega328P(dataMemory) {
 
-    top =           TOP;
-    bottom =        BOTTOM;
-    outARegAddr =   PORTD_ADDR;
-    outBRegAddr =   PORTB_ADDR;
-    ocxaMask =      OC2A_MASK;
-    ocxbMask =      OC2B_MASK;
+    top = TOP;
+    bottom = BOTTOM;
+    outARegAddr = PORTD_ADDR;
+    outBRegAddr = PORTB_ADDR;
+    tccrxAAddr = TCCR2A_ADDR;
+    tccrxBAddr = TCCR2B_ADDR;
+    ocxaMask = OC2A_MASK;
+    ocxbMask = OC2B_MASK;
 }
 
-void Timer2_ATMega328P::run() {
-    tccrxbReg = datMem.buffer[TCCR2B_ADDR];
-    if ((this->*clockSource[tccrxbReg & CS_MASK])()) {
-        tccrxaReg = datMem.buffer[TCCR2A_ADDR];
-        (this->*mode[(tccrxbReg & WGM_TCCR2B_MASK) | ((tccrxaReg << 1) & WGM_TCCR2A_MASK)])();
-    }
+void Timer2_ATMega328P::prepare() {
+    interrFlags = 0x00;
+    matchA = tccrxbReg & FOCXA_MASK;
+    matchB = tccrxbReg & FOCXB_MASK;
+
+    progress = datMem.buffer[TCNT2_ADDR];
+}
+
+void Timer2_ATMega328P::operate() {
+    (this->*mode[(tccrxbReg & WGM_TCCR2B_MASK) | ((tccrxaReg << 1) & WGM_TCCR2A_MASK)])();
+}
+
+void Timer2_ATMega328P::writeBack() {
+    datMem.buffer[TIFR2_ADDR] = interrFlags;
+    datMem.buffer[TCNT2_ADDR] = progress;
 }
 
 bool Timer2_ATMega328P::clockSource_011() {
@@ -55,31 +66,21 @@ bool Timer2_ATMega328P::clockSource_111() {
 }
 
 void Timer2_ATMega328P::normal() {
-    interrFlags = 0x00;
-    matchA = tccrxbReg & FOCXA_MASK;
-    matchB = tccrxbReg & FOCXB_MASK;
-
-    progress = datMem.buffer[TCNT2_ADDR];
     ocrxa = datMem.buffer[OCR2A_ADDR];
     ocrxb = datMem.buffer[OCR2B_ADDR];
 
     Timer_ATMega328P::normal();
-
-    datMem.buffer[TIFR2_ADDR] = interrFlags;
-    datMem.buffer[TCNT2_ADDR] = progress;
 }
 
 void Timer2_ATMega328P::pwmPhaseCorrect2() {
-    interrFlags = 0x00;
-    matchA = tccrxbReg & FOCXA_MASK;
-    matchB = tccrxbReg & FOCXB_MASK;
-
-    progress = datMem.buffer[TCNT2_ADDR];
+    top = TOP;
+    if (progress == TOP) {
+        //Update double buffer on TOP
+        datMem.buffer[OCR2A_ADDR] = datMem.doubleBuffer[DOUBLE_BUFFER_OCR2A];
+        datMem.buffer[OCR2B_ADDR] = datMem.doubleBuffer[DOUBLE_BUFFER_OCR2B];
+    }
     ocrxa = datMem.buffer[OCR2A_ADDR];
     ocrxb = datMem.buffer[OCR2B_ADDR];
 
     Timer_ATMega328P::pwmPhaseCorrect2();
-
-    datMem.buffer[TIFR2_ADDR] = interrFlags;
-    datMem.buffer[TCNT2_ADDR] = progress;
 }

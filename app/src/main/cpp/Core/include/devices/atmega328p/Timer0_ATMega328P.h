@@ -22,6 +22,10 @@ private:
     bool clockSource_110();  //External falling edge T0
     bool clockSource_111();  //External rising edge T0
 
+    void prepare();
+    void operate();
+    void writeBack();
+
     void normal();
     void pwmPhaseCorrect2();
 };

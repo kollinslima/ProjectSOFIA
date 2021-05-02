@@ -30,10 +30,13 @@ public:
     Timer_ATMega328P(DataMemory_ATMega328P& dataMemory);
     virtual ~Timer_ATMega328P() {}
 
+    void run();
+
 private:
     bool upCount;
     void setupClockSourceDecoder();
     void setupOperationMode();
+    void pwmPhaseCorrectFixedTop();
 
 protected:
     DataMemory_ATMega328P& datMem;
@@ -45,6 +48,7 @@ protected:
     sword16 ocrxa, ocrxb, bottom{}, top{};
     bool matchA, matchB;
     sbyte outARegAddr{}, outBRegAddr{};
+    sbyte tccrxAAddr{}, tccrxBAddr{};
     sbyte ocxaMask{}, ocxbMask{};
 
     typedef bool (Timer_ATMega328P::*ClockSource)();
@@ -58,6 +62,10 @@ protected:
     virtual bool clockSource_101() = 0;  //Prescaler 128 (Timer 2) or 1024 (Timer 0 and Timer 1)
     virtual bool clockSource_110() = 0;  //Prescaler 256 (Timer 2), External falling edge T0 (Timer 0) or T1 (Timer 1)
     virtual bool clockSource_111() = 0;  //Prescaler 1024 (Timer 2), External rising edge T0 (Timer 0) or T1 (Timer 1)
+
+    virtual void prepare() = 0;
+    virtual void operate() = 0;
+    virtual void writeBack() = 0;
 
     typedef void (Timer_ATMega328P::*Mode)();
     Mode mode[NUM_MODES]{};
