@@ -46,6 +46,7 @@ private:
 
     ProgramMemory_ATMega328P programMemory;
     DataMemory_ATMega328P dataMemory;
+    ADC_ATMega328P adc;
 
     UCModule *modules[NUM_MODULES];
     unsigned int syncCounter[NUM_MODULES];

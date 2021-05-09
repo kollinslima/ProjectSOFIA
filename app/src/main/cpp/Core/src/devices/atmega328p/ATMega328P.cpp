@@ -28,7 +28,8 @@
 #define MAX_INPUT_LOW_VOLTAGE_PERCENTAGE  0.1
 
 ATMega328P::ATMega328P(SofiaUiNotifier *notifier) :
-    dataMemory(notifier){
+    dataMemory(notifier),
+    adc(dataMemory){
     this->notifier = notifier;
 
     srand(time(nullptr));
@@ -49,8 +50,7 @@ ATMega328P::ATMega328P(SofiaUiNotifier *notifier) :
     auto *timer2 = new Timer2_ATMega328P(dataMemory);
     modules[TIMER2_MODULE_INDEX] = timer2;
 
-    auto *adc = new ADC_ATMega328P(dataMemory);
-    modules[ADC_MODULE_INDEX] = adc;
+    modules[ADC_MODULE_INDEX] = &adc;
 
     clockFreq = DEFAULT_CLOCK_FREQ;
     vcc = DEFAULT_VCC;
@@ -118,7 +118,8 @@ void ATMega328P::signalInput(int pin, float voltage) {
      * should also be sent to digital buffer
      */
     if (isAnalogInput(pin)) {
-        //TODO
+        //TODO: Handle voltage in mV to avoid using float
+        adc.setAnalogInput(pin-LOWEST_ANALOG_PIN_NUMBER, voltage);
     }
 }
 

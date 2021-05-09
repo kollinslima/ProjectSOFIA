@@ -18,6 +18,7 @@
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:max="100"
+        android:min="0"
         android:progress="0"
         android:thumbTint="@color/colorAccent"
         android:progressTint="@color/colorAccent"

@@ -331,6 +331,12 @@ bool DataMemory_ATMega328P::checkInterruption(spc32 *interAddr) {
         /////////////////////////////USART, Tx complete/////////////////////////////
 
         //////////////////////////ADC conversion complete///////////////////////////
+        if(buffer[ADCSRA_ADDR] & 0x08) {
+            *interAddr = ADC;
+            //The flag is cleared when the interrupt routine is executed.
+            buffer[ADCSRA_ADDR] &= 0xF7;
+            return true;
+        }
 
         ////////////////////////////////EEPROM ready////////////////////////////////
 
@@ -522,6 +528,11 @@ bool DataMemory_ATMega328P::write(smemaddr16 addr, void *data) {
             buffer[TIFR2_ADDR] &= (~(byte&0x07));
             break;
         }
+        case ADCSRA_ADDR:
+            buffer[ADCSRA_ADDR] = (byte&0xAF) |
+                                  ((buffer[ADCSRA_ADDR] | byte)&0x40) |   // ADSC: ADC Start Conversion
+                                  ((buffer[ADCSRA_ADDR] & (~byte))&0x10); // ADIF: ADC Interrupt Flag
+            break;
         default:
             buffer[SAFE_ADDR(addr, MEMORY_SIZE)] = byte;
     }

@@ -12,6 +12,12 @@ class GenericADC : public UCModule {
 
 public:
     virtual ~GenericADC() {};
+
+    virtual void setAnalogInput(int pin, float voltage) = 0;
+
+protected:
+    int adcResolution;
+    int voltageReference;
 };
 
 #endif //PROJECTSOFIA_GENERICADC_H
