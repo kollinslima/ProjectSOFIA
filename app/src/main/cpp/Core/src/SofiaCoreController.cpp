@@ -64,6 +64,7 @@ SofiaUiNotifier::~SofiaUiNotifier() {
 }
 
 void SofiaUiNotifier::addNotification(int notificationID, const string& message) {
+    LOGD(SOFIA_CORE_TAG, "Add Notification: %d:%s", notificationID, message.c_str());
     lock_guard<mutex> notificationGuard(notificationMutex);
     notificationList.emplace_back(notificationID, message);
     notificationCv.notify_one();

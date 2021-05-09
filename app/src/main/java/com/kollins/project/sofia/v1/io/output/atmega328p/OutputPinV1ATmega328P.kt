@@ -73,6 +73,7 @@ class OutputPinV1ATmega328P : OutputInterface {
         when (curOutput) {
             in atmega328pPortDPins -> {
                 outputBit = curOutput.devicePin - PIN_START_PORTD
+                if (curOutput.devicePin > 6) { outputBit -= 4 }
                 portAddr = IoRegisters.PORTD.addr
                 ddrAddr = IoRegisters.DDRD.addr
             }

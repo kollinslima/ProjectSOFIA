@@ -1,6 +1,7 @@
 package com.kollins.project.sofia.v1.io.input
 
 import android.content.Context
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
@@ -34,6 +35,7 @@ class InputAdapterV1(private val inputList: MutableList<InputInterface>) :
     inner class DigitalInputViewHolder(itemView: View, private val context: Context) :
         InputViewHolder(itemView, context) {
 
+        private var pinIndex: Int = 0
         private val button: AppCompatButton = itemView.v1DigitalPushButton
         private val modeSelector: AppCompatSpinner = itemView.v1PinModeSelector
         private val inputSelector: AppCompatSpinner = itemView.v1PinSelectorDigitalInput
@@ -64,7 +66,10 @@ class InputAdapterV1(private val inputList: MutableList<InputInterface>) :
             spinnerPinAdapter.clear()
             spinnerPinAdapter.addAll(pin.getPinNames())
 
-            val pinIndex = pin.getPinIndex()
+            //Show previous position
+            spinnerPinAdapter.showPosition(pinIndex)
+
+            pinIndex = pin.getPinIndex()
 
             //Hide inputs in use
             spinnerPinAdapter.hidePosition(pinIndex)
@@ -184,6 +189,7 @@ class InputAdapterV1(private val inputList: MutableList<InputInterface>) :
     inner class AnalogInputViewHolder(itemView: View, private val context: Context) :
         InputViewHolder(itemView, context) {
 
+        private var pinIndex: Int = 0
         private val inputSelector: AppCompatSpinner = itemView.v1PinSelectorAnalogInput
         private val voltageLevel: AppCompatSeekBar = itemView.v1VoltageLevel
         private var voltageDisplay: AppCompatTextView = itemView.v1VoltageDisplay
@@ -204,7 +210,10 @@ class InputAdapterV1(private val inputList: MutableList<InputInterface>) :
             spinnerAdapter.clear()
             spinnerAdapter.addAll(pin.getPinNames())
 
-            val pinIndex = pin.getPinIndex()
+            //Show previous position
+            spinnerAdapter.showPosition(pinIndex)
+
+            pinIndex = pin.getPinIndex()
 
             //Hide inputs in use
             spinnerAdapter.hidePosition(pinIndex)
@@ -287,7 +296,7 @@ class InputAdapterV1(private val inputList: MutableList<InputInterface>) :
         boundViewHolders[holder] = position
     }
 
-    override fun onViewRecycled(holder: InputAdapterV1.InputViewHolder) {
+    override fun onViewRecycled(holder: InputViewHolder) {
         boundViewHolders.remove(holder)
     }
 
@@ -297,8 +306,12 @@ class InputAdapterV1(private val inputList: MutableList<InputInterface>) :
         but it won't redraw the widgets
         Use notifyDataSetChanged only to add/remove new rows
          */
+        val inputListSize = inputList.size
         for ((holder, position) in boundViewHolders) {
-            holder.bindView(inputList[position])
+            //We may have already removed this input, but it was not recycled yet
+            if (position < inputListSize) {
+                holder.bindView(inputList[position])
+            }
         }
     }
 }

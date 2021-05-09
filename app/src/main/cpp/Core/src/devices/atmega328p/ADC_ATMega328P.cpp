@@ -4,6 +4,8 @@
 
 #include "../../../include/devices/atmega328p/ADC_ATMega328P.h"
 
+#define SOFIA_ADC_ATMEGA328P_TAG "SOFIA ADC ATMEGA328P"
+
 #define BANDGAP_REFERENCE_VOLTAGE 1100 //mV
 #define BANDGAP_REFERENE_INDEX 14
 
@@ -47,5 +49,6 @@ void ADC_ATMega328P::convert() {
 
     datMem.buffer[ADCL_ADDR] = converted;
     datMem.buffer[ADCH_ADDR] = (converted>>8);
+
     datMem.buffer[ADCSRA_ADDR] |= 0x10; //Set interruption flag
 }
