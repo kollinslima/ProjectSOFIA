@@ -60,13 +60,13 @@ class InputPinV1ATmega328P(private val scn: CoreNotifier) : InputInterface {
 
     override fun ioUpdate(change: String) {
         val splittedChange: List<String> = change.split(":")
-        val register = splittedChange[0].toByte()
-        val value = splittedChange[1].toByte()
+        val register = splittedChange[0].toUByte()
+        val value = splittedChange[1].toUByte()
 
         updateInputList(register, value)
     }
 
-    private fun updateInputList(register: Byte, value: Byte) {
+    private fun updateInputList(register: UByte, value: UByte) {
         when (register) {
             IoRegisters.DDRB.addr -> {
                 addInputPins(value, atmega328pPortBPins)
@@ -80,12 +80,12 @@ class InputPinV1ATmega328P(private val scn: CoreNotifier) : InputInterface {
         }
     }
 
-    private fun addInputPins(value: Byte, atmega328pPortPins: List<PinMap>) {
+    private fun addInputPins(value: UByte, atmega328pPortPins: List<PinMap>) {
         var i = 0
         var mask = 0x01
         while (i < atmega328pPortPins.size) {
             inputList.remove(atmega328pPortPins[i])
-            if ((value and mask.toByte()) == 0.toByte()) {
+            if ((value and mask.toUByte()) == 0.toUByte()) {
                 inputList.add(0, atmega328pPortPins[i])
             }
             i++

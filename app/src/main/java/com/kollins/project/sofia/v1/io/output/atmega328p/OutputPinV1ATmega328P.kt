@@ -14,10 +14,11 @@ private const val PIN_START_PORTC = 23
 
 private const val OUTPUT_PIN_V1_ATMEGA328P_TAG: String = "OUT PIN V1 ATMEGA328P"
 
+@ExperimentalUnsignedTypes
 class OutputPinV1ATmega328P : OutputInterface {
     private var curOutput = PinMap.PINX
-    private var portAddr: Byte = 0x00
-    private var ddrAddr: Byte = 0x00
+    private var portAddr: UByte = 0x00u
+    private var ddrAddr: UByte = 0x00u
     private var outputBit = 0
     private var pinState = OutputState.TRI_STATE
 
@@ -31,14 +32,14 @@ class OutputPinV1ATmega328P : OutputInterface {
 
     override fun ioUpdate(change: String) {
         val splittedChange: List<String> = change.split(":")
-        val register = splittedChange[0].toByte()
-        val value = splittedChange[1].toByte()
+        val register = splittedChange[0].toUByte()
+        val value = splittedChange[1].toUByte()
         outRegisters[register] = value
 
         updateOutputList(register, value)
     }
 
-    private fun updateOutputList(register: Byte, value: Byte) {
+    private fun updateOutputList(register: UByte, value: UByte) {
         when (register) {
             IoRegisters.DDRB.addr -> {
                 addOutputPins(value, atmega328pPortBPins)
@@ -52,12 +53,12 @@ class OutputPinV1ATmega328P : OutputInterface {
         }
     }
 
-    private fun addOutputPins(value: Byte, atmega328pPortPins: List<PinMap>) {
+    private fun addOutputPins(value: UByte, atmega328pPortPins: List<PinMap>) {
         var i = 0
         var mask = 0x01
         while (i < atmega328pPortPins.size) {
             outputList.remove(atmega328pPortPins[i])
-            if ((value and mask.toByte()) != 0.toByte()) {
+            if ((value and mask.toUByte()) != 0.toUByte()) {
                 outputList.add(0, atmega328pPortPins[i])
             }
             i++
@@ -88,8 +89,8 @@ class OutputPinV1ATmega328P : OutputInterface {
             else -> {
                 //None selected
                 outputBit = 0
-                portAddr = 0x00
-                ddrAddr = 0x00
+                portAddr = 0x00u
+                ddrAddr = 0x00u
             }
         }
 
@@ -109,10 +110,10 @@ class OutputPinV1ATmega328P : OutputInterface {
             //No pin selected
             pinState = OutputState.TRI_STATE
         } else {
-            val portReg = outRegisters[portAddr] ?: 0x00
-            val mask = (0x01 shl outputBit).toByte()
+            val portReg = outRegisters[portAddr] ?: 0x00u
+            val mask = (0x01 shl outputBit).toUByte()
 
-            pinState = if ((portReg and mask) == 0.toByte()) {
+            pinState = if ((portReg and mask) == 0.toUByte()) {
                 OutputState.LOW
             } else {
                 OutputState.HIGH
@@ -164,13 +165,13 @@ class OutputPinV1ATmega328P : OutputInterface {
         var simulationSpeed: LongArray = LongArray(METER_FILTER_SIZE) { 0 }
         var simulationSpeedArrayIndex = 0
 
-        var outRegisters = mutableMapOf<Byte, Byte>(
-            IoRegisters.DDRB.addr to 0x00,
-            IoRegisters.PORTB.addr to 0x00,
-            IoRegisters.DDRC.addr to 0x00,
-            IoRegisters.PORTC.addr to 0x00,
-            IoRegisters.DDRD.addr to 0x00,
-            IoRegisters.PORTD.addr to 0x00
+        var outRegisters = mutableMapOf<UByte, UByte>(
+            IoRegisters.DDRB.addr to 0x00u,
+            IoRegisters.PORTB.addr to 0x00u,
+            IoRegisters.DDRC.addr to 0x00u,
+            IoRegisters.PORTC.addr to 0x00u,
+            IoRegisters.DDRD.addr to 0x00u,
+            IoRegisters.PORTD.addr to 0x00u
         )
 
         var outputList = mutableListOf(PinMap.PINX)
