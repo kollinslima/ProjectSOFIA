@@ -114,22 +114,25 @@ class OutputPinV1ATmega328P : OutputInterface {
             val portReg = outRegisters[portAddr] ?: 0x00u
             val mask = (0x01 shl outputBit).toUByte()
 
+            val oldPinState = pinState
             pinState = if ((portReg and mask) == 0.toUByte()) {
                 OutputState.LOW
             } else {
                 OutputState.HIGH
             }
 
-            val timestamp = SystemClock.elapsedRealtimeNanos()
-            if (pinState == OutputState.HIGH) {
-                highTime[highTimeIndex] = measureHighTime
-                wavePeriod[wavePeriodIndex] = timestamp - lastRisingEdgeTimestamp
-                lastRisingEdgeTimestamp = timestamp
-                measureHighTime = timestamp
-                highTimeIndex = (highTimeIndex + 1) % METER_FILTER_SIZE
-                wavePeriodIndex = (wavePeriodIndex + 1) % METER_FILTER_SIZE
-            } else {
-                measureHighTime = timestamp - measureHighTime
+            if (oldPinState != pinState) {
+                val timestamp = SystemClock.elapsedRealtimeNanos()
+                if (pinState == OutputState.HIGH) {
+                    highTime[highTimeIndex] = measureHighTime
+                    wavePeriod[wavePeriodIndex] = timestamp - lastRisingEdgeTimestamp
+                    lastRisingEdgeTimestamp = timestamp
+                    measureHighTime = timestamp
+                    highTimeIndex = (highTimeIndex + 1) % METER_FILTER_SIZE
+                    wavePeriodIndex = (wavePeriodIndex + 1) % METER_FILTER_SIZE
+                } else {
+                    measureHighTime = timestamp - measureHighTime
+                }
             }
         }
     }
