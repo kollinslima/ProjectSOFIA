@@ -25,7 +25,8 @@ Timer2_ATMega328P::Timer2_ATMega328P(DataMemory_ATMega328P &dataMemory) :
 }
 
 void Timer2_ATMega328P::prepare() {
-    interrFlags = 0x00;
+    Timer_ATMega328P::prepare();
+
     matchA = tccrxbReg & FOCXA_MASK;
     matchB = tccrxbReg & FOCXB_MASK;
 

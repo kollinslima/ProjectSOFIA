@@ -46,6 +46,8 @@ protected:
     sbyte tccrxaReg;
     sbyte tccrxbReg;
     sbyte interrFlags;
+    bool outAUpdated, outBUpdated;
+    sbyte tmp; //Auxiliar for compare output change
 
     sword16 ocrxa, ocrxb, bottom{}, top{}, endOfScale{};
     bool matchA, matchB;
@@ -65,7 +67,7 @@ protected:
     virtual bool clockSource_110() = 0;  //Prescaler 256 (Timer 2), External falling edge T0 (Timer 0) or T1 (Timer 1)
     virtual bool clockSource_111() = 0;  //Prescaler 1024 (Timer 2), External rising edge T0 (Timer 0) or T1 (Timer 1)
 
-    virtual void prepare() = 0;
+    virtual void prepare();
     virtual void operate() = 0;
     virtual void writeBack() = 0;
 

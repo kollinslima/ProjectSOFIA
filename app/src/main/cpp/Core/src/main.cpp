@@ -10,6 +10,7 @@ typedef struct {
     jobject activityObj;
     SofiaCoreController *scc;
     Listener *listeners[MAX_LISTENERS];
+    int usNotPeriod;
 } MainCtx;
 
 MainCtx mainCtx;
@@ -64,8 +65,8 @@ Device enumMap(JNIEnv *env, jobject uiEnum) {
 }
 ////////////////////// NDK -> UI Interface//////////////////////////////////////////
 void notifyTimeUpdate(JNIEnv *env, const char *msg) {
-    jmethodID id  = env->GetMethodID(mainCtx.activityClz, "timeUpdate", "()V");
-    env->CallVoidMethod(mainCtx.activityObj, id);
+    jmethodID id  = env->GetMethodID(mainCtx.activityClz, "timeUpdate", "(Ljava/lang/String;)V");
+    env->CallVoidMethod(mainCtx.activityObj, id, env->NewStringUTF(msg));
 }
 
 void notifyLoadSuccessful(JNIEnv *env, const char *msg) {
@@ -93,6 +94,11 @@ void notifyIOChanged(JNIEnv *env, const char *msg) {
     env->CallVoidMethod(mainCtx.activityObj, id, env->NewStringUTF(msg));
 }
 
+void notifyIOConfigure(JNIEnv *env, const char *msg) {
+    jmethodID id  = env->GetMethodID(mainCtx.activityClz, "ioConfigure", "(Ljava/lang/String;)V");
+    env->CallVoidMethod(mainCtx.activityObj, id, env->NewStringUTF(msg));
+}
+
 ////////////////////// UI -> NDK Interface//////////////////////////////////////////
 extern "C" JNIEXPORT jint JNICALL
 JNI_OnLoad(JavaVM *vm, void *reserved) {
@@ -111,13 +117,12 @@ JNI_OnLoad(JavaVM *vm, void *reserved) {
     mainCtx.activityObj = nullptr;
 
     mainCtx.listeners[TIME_UPDATE_LISTENER] = notifyTimeUpdate;
-
     mainCtx.listeners[LOAD_SUCCESS_LISTENER] = notifyLoadSuccessful;
     mainCtx.listeners[CHECKSUM_ERROR_LISTENER] = notifyChecksumError;
     mainCtx.listeners[FILE_OPEN_FAIL_LISTENER] = notifyFileOpenFail;
     mainCtx.listeners[INVALID_FILE_LISTENER] = notifyInvalidFile;
-
     mainCtx.listeners[IO_CHANGED_LISTENER] = notifyIOChanged;
+    mainCtx.listeners[IO_CONFIGURE_LISTENER] = notifyIOConfigure;
 
     return JNI_VERSION_1_6;
 }
@@ -131,6 +136,23 @@ Java_com_kollins_project_sofia_MainActivity_stopCore(
 
     if (mainCtx.scc != nullptr) {
         mainCtx.scc->stop();
+    }
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_kollins_project_sofia_MainActivity_setNotificationPeriod(
+        JNIEnv* env,
+        jobject instance, jint usPeriod) {
+
+    mainCtx.usNotPeriod = reinterpret_cast<int>(usPeriod);
+    if (mainCtx.usNotPeriod <= 0) {
+        mainCtx.usNotPeriod = 0;
+    }
+
+    LOGI(MAIN_CORE_TAG, "Set notification Period: %d us", mainCtx.usNotPeriod);
+
+    if (mainCtx.scc != nullptr) {
+        mainCtx.scc->setNotificationPeriod(mainCtx.usNotPeriod);
     }
 }
 

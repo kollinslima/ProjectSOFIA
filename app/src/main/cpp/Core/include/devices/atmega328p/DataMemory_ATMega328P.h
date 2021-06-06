@@ -155,7 +155,7 @@ public:
     friend class Timer1_ATMega328P;
     friend class Timer2_ATMega328P;
 
-    DataMemory_ATMega328P(SofiaUiNotifier *notifier);
+    DataMemory_ATMega328P();
 
     ~DataMemory_ATMega328P();
 
@@ -178,8 +178,6 @@ public:
     void setDigitalInput(int input, bool state);
 
 private:
-    SofiaUiNotifier *notifier;
-
     sbyte doubleBuffer[DOUBLE_BUFFER_SIZE];
 
     void setupDataMemory();

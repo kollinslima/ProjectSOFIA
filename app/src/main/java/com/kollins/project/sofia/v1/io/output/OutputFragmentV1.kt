@@ -1,6 +1,8 @@
 package com.kollins.project.sofia.v1.io.output
 
 import android.os.Bundle
+import android.os.SystemClock
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -19,7 +21,7 @@ class OutputFragmentV1 : Fragment() {
     private val outputAdapter: OutputAdapterV1 = OutputAdapterV1(outputList)
     private lateinit var outputPin: OutputInterface
 
-    companion object{
+    companion object {
         const val V1_OUTPUT_FRAGMENT_TAG: String = "V1_OUTPUT_FRAGMENT_TAG"
     }
 
@@ -46,16 +48,19 @@ class OutputFragmentV1 : Fragment() {
 
     fun addOutput() {
         outputList.add(outputPin.clone())
-        outputAdapter.notifyItemInserted(outputList.size-1)
+        outputAdapter.notifyItemInserted(outputList.size - 1)
     }
 
-    fun outputUpdate(change:String) {
-        outputPin.ioUpdate(change)
-        outputAdapter.updateIO()
+    fun outputChange(change: String) {
+        if (outputPin.ioChange(change)) {
+            activity?.runOnUiThread { outputAdapter.updateIO() }
+        }
     }
 
-    fun updateSimulationSpeed() {
-        outputPin.updateSimulationSpeed()
+    fun outputConfig(config: String) {
+        if (outputPin.ioConfig(config)) {
+            activity?.runOnUiThread { outputAdapter.updateIO() }
+        }
     }
 
     fun clearOutputs() {

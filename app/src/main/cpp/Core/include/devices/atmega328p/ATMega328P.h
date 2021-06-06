@@ -6,8 +6,6 @@
 #define PROJECTSOFIA_ATMEGA328P_H
 
 #include <thread>
-#include <mutex>
-#include <condition_variable>
 #include "../GenericDevice.h"
 #include "ProgramMemory_ATMega328P.h"
 #include "DataMemory_ATMega328P.h"
@@ -24,8 +22,7 @@ class SofiaUiNotifier;
 class ATMega328P : public GenericDevice {
 
 public:
-    ATMega328P(SofiaUiNotifier *notifier);
-
+    ATMega328P();
     ~ATMega328P();
 
     void load(int fd) override;
@@ -34,9 +31,9 @@ public:
 
     void signalInput(int pin, float voltage) override;
 
-private:
-    SofiaUiNotifier *notifier;
+    list<pair<int, string>> *getNotifications() override;
 
+private:
     bool isRunning;
     unsigned int clockFreq;
 

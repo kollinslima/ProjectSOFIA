@@ -69,9 +69,10 @@ class InputFragmentV1(private val scn: CoreNotifier) : Fragment() {
         inputAdapter.notifyDataSetChanged()
     }
 
-    fun inputUpdate(change: String) {
-        inputPin.ioUpdate(change)
-        inputAdapter.updateIO()
+    fun inputConfig(config: String) {
+        if (inputPin.ioConfig(config)) {
+            activity?.runOnUiThread { inputAdapter.updateIO() }
+        }
     }
 }
 

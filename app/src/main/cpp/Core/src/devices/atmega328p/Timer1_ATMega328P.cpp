@@ -4,6 +4,8 @@
 
 #include "../../../include/devices/atmega328p/Timer1_ATMega328P.h"
 
+#define SOFIA_TIMER1_ATMEGA328P_TAG "SOFIA TIMER1 ATMEGA328P"
+
 #define T1_MASK             0x20
 
 #define OC1A_MASK           0x02
@@ -33,7 +35,8 @@ Timer1_ATMega328P::Timer1_ATMega328P(DataMemory_ATMega328P &dataMemory) :
 }
 
 void Timer1_ATMega328P::prepare() {
-    interrFlags = 0x00;
+    Timer_ATMega328P::prepare();
+
     matchA = datMem.buffer[TCCR1C_ADDR] & FOCXA_MASK;
     matchB = datMem.buffer[TCCR1C_ADDR] & FOCXB_MASK;
 

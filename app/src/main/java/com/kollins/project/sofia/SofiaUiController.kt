@@ -19,8 +19,8 @@ class SofiaUiController(mainUi: UiInterface) {
     private var ui = mainUi
 
     //////////////////// LISTENERS ///////////////////////////
-    fun timeUpdate() {
-        ui.timeUpdate()
+    fun timeUpdate(time:String) {
+        ui.timeUpdate(time)
     }
 
     fun loadCoreSuccess() {
@@ -42,9 +42,14 @@ class SofiaUiController(mainUi: UiInterface) {
     }
 
     fun ioChanged (change:String) {
-        Log.d(SOFIA_UI_CONTROLLER_TAG, "IO Changed $change")
-        ui.outputUpdate(change)
-        ui.inputUpdate(change)
+//        Log.d(SOFIA_UI_CONTROLLER_TAG, "IO Changed $change")
+        ui.outputChange(change)
+    }
+
+    fun ioConfigure (config:String) {
+//        Log.d(SOFIA_UI_CONTROLLER_TAG, "IO Configure $config")
+        ui.outputConfig(config)
+        ui.inputConfig(config)
     }
 
     //////////////////// NATIVE FUNCTIONS ///////////////////////////
@@ -53,6 +58,8 @@ class SofiaUiController(mainUi: UiInterface) {
     external fun stopCore()
     external fun loadCore(s: Device, fd: Int)
     external fun disposeCore()
+
+    external fun setNotificationPeriod(usPeriod: Int);
 
     //Device control
     external fun signalInput(pin:Int, voltage:Float)

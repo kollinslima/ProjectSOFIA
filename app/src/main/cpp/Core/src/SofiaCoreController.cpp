@@ -8,18 +8,20 @@
 #include "../include/devices/GenericDevice.h"
 
 #define SOFIA_CORE_TAG "SOFIA CORE CONTROLLER"
+#define SOFIA_UI_NOTIFICATION_TAG "SOFIA UI NOTIFICATION"
 
 SofiaCoreController::SofiaCoreController(Listener **listeners, JavaVM *vm, JNIEnv *env) {
     device = nullptr;
     this->notifier = new SofiaUiNotifier(listeners, vm, env);
 }
 SofiaCoreController::~SofiaCoreController() {
+    delete this->notifier;
+
     if (device != nullptr) {
         device->stop();
         delete device;
         device = nullptr;
     }
-    delete this->notifier;
 }
 
 void SofiaCoreController::load(Device device, int fileDescriptor) {
@@ -27,8 +29,9 @@ void SofiaCoreController::load(Device device, int fileDescriptor) {
         delete this->device;
         this->device = nullptr;
     }
-    this->device = DeviceFactory::createDevice(device, this->notifier);
+    this->device = DeviceFactory::createDevice(device);
     this->device->load(fileDescriptor);
+    notifier->setDevice(this->device);
 }
 void SofiaCoreController::start() {
     if (device != nullptr) {
@@ -48,43 +51,53 @@ void SofiaCoreController::signalInput(int pin, float voltage) {
     }
 }
 
+void SofiaCoreController::setNotificationPeriod(int usPeriod) {
+    this->notifier->setNotificationPeriod(usPeriod);
+}
+
 //--------- NOTIFIER -----------
 SofiaUiNotifier::SofiaUiNotifier(Listener **listeners, JavaVM *vm, JNIEnv *env) {
     this->listeners = listeners;
-    notificationList.clear();
-    stopDispatcher = false;
+    runDispatcher = true;
+    usNotPeriod = 16666; //Default 60Hz (TODO: get screen information)
+    device = nullptr;
+    sem_init(&waitDeviceSem, 0, 0);
     dispatcherThread = thread(&SofiaUiNotifier::dispatcher, this, vm, env);
 }
 
 SofiaUiNotifier::~SofiaUiNotifier() {
-    stopDispatcher = true;
-    notificationCv.notify_all();
+    runDispatcher = false;
     dispatcherThread.join();
-    notificationList.clear();
+    sem_destroy(&waitDeviceSem);
 }
 
-void SofiaUiNotifier::addNotification(int notificationID, const string& message) {
-    LOGD(SOFIA_CORE_TAG, "Add Notification: %d:%s", notificationID, message.c_str());
-    lock_guard<mutex> notificationGuard(notificationMutex);
-    notificationList.emplace_back(notificationID, message);
-    notificationCv.notify_one();
+void SofiaUiNotifier::setNotificationPeriod(int usPeriod) {
+    this->usNotPeriod = usPeriod;
+}
+
+void SofiaUiNotifier::setDevice(GenericDevice *device) {
+    this->device = device;
+    if (this->device != nullptr) {
+        sem_post(&waitDeviceSem);
+    }
 }
 
 void SofiaUiNotifier::dispatcher(JavaVM *vm, JNIEnv *env) {
     vm->AttachCurrentThread(&env, nullptr);
+
+    list<pair<int, string>> *notificationList;
     pair<int, string> notification;
-    while (true) {
-        unique_lock<mutex> notificationGuard(notificationMutex);
-        notificationCv.wait(notificationGuard,
-                                  [this] { return !(notificationList.empty() && !stopDispatcher); });
 
-        if (stopDispatcher) break;
+    sem_wait(&waitDeviceSem);
 
-        notification = notificationList.front();
-        notificationList.pop_front();
-
-        notificationGuard.unlock();
-        listeners[notification.first](env, notification.second.c_str());
+    while (runDispatcher) {
+        usleep(usNotPeriod);
+        notificationList = device->getNotifications();
+        while (!notificationList->empty()) {
+            notification = notificationList->front();
+            listeners[notification.first](env, notification.second.c_str());
+            notificationList->pop_front();
+        }
     }
     vm->DetachCurrentThread();
 }

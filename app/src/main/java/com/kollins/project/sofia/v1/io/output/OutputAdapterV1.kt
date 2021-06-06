@@ -66,17 +66,17 @@ class OutputAdapterV1(private val outputList: MutableList<OutputInterface>) :
                 }
             }
 
-            val frequency = pin.getFrequency()
-            val dutyCycle = pin.getDutyCycle()
-
-            freqMeter.text = if (frequency.isFinite()) context.getString(
-                R.string.frequency_display,
-                frequency
-            ) else ""
-            dcMeter.text = if (dutyCycle.isFinite()) context.getString(
-                R.string.duty_cycle_display,
-                dutyCycle
-            ) else ""
+//            val frequency = pin.getFrequency()
+//            val dutyCycle = pin.getDutyCycle()
+//
+//            freqMeter.text = if (frequency.isFinite()) context.getString(
+//                R.string.frequency_display,
+//                frequency
+//            ) else ""
+//            dcMeter.text = if (dutyCycle.isFinite()) context.getString(
+//                R.string.duty_cycle_display,
+//                dutyCycle
+//            ) else ""
 
             when (pin.getPinState()) {
                 OutputState.HIGH -> {

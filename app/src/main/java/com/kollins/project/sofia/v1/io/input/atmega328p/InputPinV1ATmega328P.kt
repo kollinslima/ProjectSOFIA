@@ -58,12 +58,20 @@ class InputPinV1ATmega328P(private val scn: CoreNotifier) : InputInterface {
         scn.signalInput(curInput.devicePin, voltage)
     }
 
-    override fun ioUpdate(change: String) {
-        val splittedChange: List<String> = change.split(":")
-        val register = splittedChange[0].toUByte()
-        val value = splittedChange[1].toUByte()
+    override fun ioChange(change: String) : Boolean{
+        return false;
+    }
 
-        updateInputList(register, value)
+    override fun ioConfig(config: String) : Boolean{
+        val splittedConfig: List<String> = config.split(":")
+        val register = splittedConfig[0].toUByte()
+        val value = splittedConfig[1].toUByte()
+        if (inputRegisters[register] != value) {
+            inputRegisters[register] = value
+            updateInputList(register, value)
+            return true;
+        }
+        return false;
     }
 
     private fun updateInputList(register: UByte, value: UByte) {
@@ -96,6 +104,12 @@ class InputPinV1ATmega328P(private val scn: CoreNotifier) : InputInterface {
     }
 
     companion object {
+        var inputRegisters = mutableMapOf<UByte, UByte>(
+            IoRegisters.DDRB.addr to 0x00u,
+            IoRegisters.DDRC.addr to 0x00u,
+            IoRegisters.DDRD.addr to 0x00u
+        )
+
         var inputList = atmega328pPinList.toMutableList()
     }
 }

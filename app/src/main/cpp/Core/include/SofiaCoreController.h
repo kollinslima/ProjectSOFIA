@@ -8,8 +8,7 @@
 #include "../include/CommonCore.h"
 
 #include <thread>
-#include <mutex>
-#include <condition_variable>
+#include <semaphore.h>
 #include <list>
 using namespace std;
 
@@ -20,15 +19,17 @@ class SofiaUiNotifier {
         explicit SofiaUiNotifier(Listener **listeners, JavaVM *vm, JNIEnv *env);
         ~SofiaUiNotifier();
 
+        void setNotificationPeriod(int usPeriod);
+        void setDevice(GenericDevice *device);
         void addNotification(int notificationID, const string& message = "");
     private :
         Listener **listeners;
-        bool stopDispatcher;
+        bool runDispatcher;
 
+        int usNotPeriod;
+        GenericDevice *device;
         thread dispatcherThread;
-        mutex notificationMutex;
-        condition_variable notificationCv;
-        list<pair<int, string>> notificationList;
+        sem_t waitDeviceSem;
         void dispatcher (JavaVM *vm, JNIEnv *env);
 };
 
@@ -40,6 +41,8 @@ class SofiaCoreController {
         void load(Device device, int fileDescriptor);
         void start();
         void stop();
+
+        void setNotificationPeriod(int usPeriod);
 
         void signalInput(int pin, float voltage);
 

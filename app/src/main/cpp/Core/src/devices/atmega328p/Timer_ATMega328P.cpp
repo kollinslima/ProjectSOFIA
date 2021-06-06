@@ -4,6 +4,8 @@
 
 #include "../../../include/devices/atmega328p/Timer_ATMega328P.h"
 
+#define SOFIA_TIMER_ATMEGA328P_TAG "SOFIA TIMER ATMEGA328P"
+
 #define NON_PWM_TOG_CPR_MATCH_A                     0x40
 #define NON_PWM_CLR_CPR_MATCH_A                     0x80
 #define NON_PWM_SET_CPR_MATCH_A                     0xC0
@@ -44,6 +46,9 @@ Timer_ATMega328P::Timer_ATMega328P(DataMemory_ATMega328P &dataMemory) :
     matchB = false;
     upCount = true;
 
+    outAUpdated = false;
+    outBUpdated = false;
+
     interrFlags = 0x00;
 
     setupClockSourceDecoder();
@@ -80,11 +85,19 @@ void Timer_ATMega328P::setupOperationMode() {
     mode[15] = &Timer_ATMega328P::fastPWM5;
 }
 
+void Timer_ATMega328P::prepare() {
+    interrFlags = 0x00;
+    outAUpdated = false;
+    outBUpdated = false;
+}
+
 void Timer_ATMega328P::run() {
     tccrxbReg = datMem.buffer[tccrxBAddr];
     if ((this->*clockSource[tccrxbReg & CS_MASK])()) {
         tccrxaReg = datMem.buffer[tccrxAAddr];
-        prepare(); operate(); writeBack();
+        prepare();
+        operate();
+        writeBack();
     }
 }
 
@@ -123,6 +136,7 @@ void Timer_ATMega328P::normalCtc() {
     }
 
     if (matchA) {
+        tmp = datMem.buffer[outARegAddr];
         switch (tccrxaReg & COMXA_MASK) {
             case NON_PWM_TOG_CPR_MATCH_A:
                 datMem.buffer[outARegAddr] = (datMem.buffer[outARegAddr] & ocxaMask) ?
@@ -136,8 +150,10 @@ void Timer_ATMega328P::normalCtc() {
                 datMem.buffer[outARegAddr] = datMem.buffer[outARegAddr] | ocxaMask;
                 break;
         }
+        outAUpdated = (tmp != datMem.buffer[outARegAddr]);
     }
     if (matchB) {
+        tmp = datMem.buffer[outBRegAddr];
         switch (tccrxaReg & COMXB_MASK) {
             case NON_PWM_TOG_CPR_MATCH_B:
                 datMem.buffer[outBRegAddr] = (datMem.buffer[outBRegAddr] & ocxbMask) ?
@@ -151,6 +167,7 @@ void Timer_ATMega328P::normalCtc() {
                 datMem.buffer[outBRegAddr] = datMem.buffer[outBRegAddr] | ocxbMask;
                 break;
         }
+        outBUpdated = (tmp != datMem.buffer[outBRegAddr]);
     }
 }
 
@@ -166,10 +183,10 @@ void Timer_ATMega328P::pwmDualSlope(bool ocxaToggleEnable) {
         matchB = true;
     }
 
-
+    tmp = datMem.buffer[outARegAddr];
     switch (tccrxaReg & COMXA_MASK) {
         case PHASE_FREQ_PWM_TOG_MATCH_A:
-            if (ocxaToggleEnable && matchA){
+            if (ocxaToggleEnable && matchA) {
                 datMem.buffer[outARegAddr] = (datMem.buffer[outARegAddr] & ocxaMask) ?
                                              datMem.buffer[outARegAddr] & (~ocxaMask) :
                                              datMem.buffer[outARegAddr] | ocxaMask;
@@ -196,7 +213,9 @@ void Timer_ATMega328P::pwmDualSlope(bool ocxaToggleEnable) {
             }
             break;
     }
+    outAUpdated = (tmp != datMem.buffer[outARegAddr]);
 
+    tmp = datMem.buffer[outBRegAddr];
     switch (tccrxaReg & COMXB_MASK) {
         case PHASE_FREQ_PWM_CLR_UP_SET_DOWN_MATCH_B:
             if (ocrxb == endOfScale) {
@@ -219,6 +238,7 @@ void Timer_ATMega328P::pwmDualSlope(bool ocxaToggleEnable) {
             }
             break;
     }
+    outBUpdated = (tmp != datMem.buffer[outBRegAddr]);
 
     if (progress == bottom) {
         interrFlags |= OVERFLOW_INTERRUPT;
@@ -245,6 +265,7 @@ void Timer_ATMega328P::pwmSingleSlope() {
         matchB = true;
     }
 
+    tmp = datMem.buffer[outARegAddr];
     switch (tccrxaReg & COMXA_MASK) {
         case FAST_PWM_CLR_SET_BOTTOM_MATCH_A:
             if (ocrxa == endOfScale) {
@@ -265,7 +286,9 @@ void Timer_ATMega328P::pwmSingleSlope() {
             }
             break;
     }
+    outAUpdated = (tmp != datMem.buffer[outARegAddr]);
 
+    tmp = datMem.buffer[outBRegAddr];
     switch (tccrxaReg & COMXB_MASK) {
         case FAST_PWM_CLR_SET_BOTTOM_MATCH_B:
             if (ocrxb == endOfScale) {
@@ -286,6 +309,7 @@ void Timer_ATMega328P::pwmSingleSlope() {
             }
             break;
     }
+    outBUpdated = (tmp != datMem.buffer[outBRegAddr]);
 }
 
 void Timer_ATMega328P::normal() {

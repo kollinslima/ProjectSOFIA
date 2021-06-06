@@ -12,7 +12,7 @@ class SofiaUiNotifier;
 
 class DeviceFactory {
     public:
-        static GenericDevice *createDevice(Device device, SofiaUiNotifier *notifier);
+        static GenericDevice *createDevice(Device device);
 };
 
 

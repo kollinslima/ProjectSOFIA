@@ -9,8 +9,5 @@ enum class OutputState {
 interface OutputInterface : IoInterface{
     fun updatePin()
     fun getPinState() : OutputState
-    fun getFrequency() : Double
-    fun getDutyCycle() : Double
-    fun updateSimulationSpeed()
     override fun clone(): OutputInterface
 }

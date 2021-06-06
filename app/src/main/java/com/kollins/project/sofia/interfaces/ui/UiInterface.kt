@@ -1,11 +1,12 @@
 package com.kollins.project.sofia.interfaces.ui
 
 interface UiInterface {
-    fun timeUpdate()
+    fun timeUpdate(time:String)
     fun loadSuccess()
     fun loadCoreChecksumError()
     fun loadCoreFileOpenFail()
     fun loadCoreInvalidFile()
-    fun outputUpdate(change:String)
-    fun inputUpdate(change:String)
+    fun outputChange(change:String)
+    fun outputConfig(config:String)
+    fun inputConfig(config:String)
 }

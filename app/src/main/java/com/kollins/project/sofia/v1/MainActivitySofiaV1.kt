@@ -6,13 +6,8 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.ParcelFileDescriptor
-import android.os.StrictMode
-import android.os.StrictMode.VmPolicy
 import android.util.Log
-import android.view.Menu
-import android.view.MenuInflater
-import android.view.MenuItem
-import android.view.View
+import android.view.*
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -30,7 +25,6 @@ private const val MAIN_V1_UI_TAG: String = "SOFIA UI MAIN V1"
 
 class MainActivitySofiaV1 : AppCompatActivity(), UiInterface {
 
-    private var simulatedTime: Long = 0
     private lateinit var targetDevice: Device
 
     private lateinit var suc: SofiaUiController
@@ -177,24 +171,16 @@ class MainActivitySofiaV1 : AppCompatActivity(), UiInterface {
         startActivityForResult(intent, RequestCodes.IMPORT_FILE_REQUEST_CODE.ordinal)
     }
 
-    override fun timeUpdate() {
-        outputFragment.updateSimulationSpeed()
-        runOnUiThread {
-            simulatedTimeText.text = getString(
-                R.string.simulated_time_display,
-                simulatedTime++
-            )
+    override fun timeUpdate(time:String) {
+        if (simulatedTimeText.text != time) {
+            runOnUiThread { simulatedTimeText.text = time }
         }
     }
 
     override fun loadSuccess() {
         this.fileDescriptor.close()
-        simulatedTime = 0
         runOnUiThread {
-            simulatedTimeText.text = getString(
-                R.string.simulated_time_display,
-                simulatedTime
-            )
+            simulatedTimeText.text = "0";
         }
     }
 
@@ -216,14 +202,16 @@ class MainActivitySofiaV1 : AppCompatActivity(), UiInterface {
         throw SofiaException(getString(R.string.exception_invalid_file))
     }
 
-    override fun outputUpdate(change: String) {
-        //TODO: Run only adapter update on UI thread
-        runOnUiThread { outputFragment.outputUpdate(change) }
+    override fun outputChange(change: String) {
+        outputFragment.outputChange(change)
     }
 
-    override fun inputUpdate(change: String) {
-        //TODO: Run only adapter update on UI thread
-        runOnUiThread { inputFragment.inputUpdate(change) }
+    override fun outputConfig(config: String) {
+        outputFragment.outputConfig(config)
+    }
+
+    override fun inputConfig(config: String) {
+        inputFragment.inputConfig(config)
     }
 
     override fun onRequestPermissionsResult(

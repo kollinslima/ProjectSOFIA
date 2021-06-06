@@ -27,10 +27,9 @@
 #define MIN_INPUT_HIGHT_VOLTAGE_PERCENTAGE  0.7
 #define MAX_INPUT_LOW_VOLTAGE_PERCENTAGE  0.1
 
-ATMega328P::ATMega328P(SofiaUiNotifier *notifier) :
-    dataMemory(notifier),
+ATMega328P::ATMega328P() :
+    dataMemory(),
     adc(dataMemory){
-    this->notifier = notifier;
 
     srand(time(nullptr));
 
@@ -94,16 +93,16 @@ void ATMega328P::stop() {
 void ATMega328P::load(int fd) {
     switch (programMemory.loadFile(fd)) {
         case INTEL_CHECKSUM_ERROR:
-            notifier->addNotification(CHECKSUM_ERROR_LISTENER);
+            addNotification(CHECKSUM_ERROR_LISTENER);
             break;
         case INTEL_INVALID_FILE:
-            notifier->addNotification(INVALID_FILE_LISTENER);
+            addNotification(INVALID_FILE_LISTENER);
             break;
         case INTEL_FILE_OPEN_FAILED:
-            notifier->addNotification(FILE_OPEN_FAIL_LISTENER);
+            addNotification(FILE_OPEN_FAIL_LISTENER);
             break;
         default:
-            notifier->addNotification(LOAD_SUCCESS_LISTENER);
+            addNotification(LOAD_SUCCESS_LISTENER);
             break;
     }
 }
@@ -151,6 +150,29 @@ bool ATMega328P::getLogicState(int pin, float voltage) {
     }
 }
 
+list<pair<int, string>> *ATMega328P::getNotifications() {
+    list<pair<int, string>> *notificationList = GenericDevice::getNotifications();
+    sbyte byte;
+
+    //IO Configuration
+    dataMemory.read(DDRB_ADDR, &byte);
+    notificationList->emplace_back(IO_CONFIGURE_LISTENER, to_string(DDRB_ADDR) + ":" + to_string(byte));
+    dataMemory.read(DDRC_ADDR, &byte);
+    notificationList->emplace_back(IO_CONFIGURE_LISTENER, to_string(DDRC_ADDR) + ":" + to_string(byte));
+    dataMemory.read(DDRD_ADDR, &byte);
+    notificationList->emplace_back(IO_CONFIGURE_LISTENER, to_string(DDRD_ADDR) + ":" + to_string(byte));
+
+    //IO State
+    dataMemory.read(PORTB_ADDR, &byte);
+    notificationList->emplace_back(IO_CHANGED_LISTENER, to_string(PORTB_ADDR) + ":" + to_string(byte));
+    dataMemory.read(PORTC_ADDR, &byte);
+    notificationList->emplace_back(IO_CHANGED_LISTENER, to_string(PORTC_ADDR) + ":" + to_string(byte));
+    dataMemory.read(PORTD_ADDR, &byte);
+    notificationList->emplace_back(IO_CHANGED_LISTENER, to_string(PORTD_ADDR) + ":" + to_string(byte));
+
+    return notificationList;
+}
+
 void ATMega328P::moduleThread(int index) {
     while (isRunning) {
         modules[index]->run();
@@ -172,7 +194,7 @@ void ATMega328P::syncronizationThread() {
     while (true) {
         while (memcmp(syncCounter, finishCondition, sizeof(syncCounter)) != 0) {usleep(1000);}
         if (!isRunning) { break; }
-        notifier->addNotification(TIME_UPDATE_LISTENER);
+        simulatedTime++;
         memcpy(syncCounter, initialCondition, sizeof(syncCounter));
     }
 }

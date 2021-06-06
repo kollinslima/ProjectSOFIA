@@ -42,26 +42,25 @@
 #define TWI                 0x0030
 #define SPM_READY           0x0032
 
-DataMemory_ATMega328P::DataMemory_ATMega328P(SofiaUiNotifier *notifier) {
+DataMemory_ATMega328P::DataMemory_ATMega328P() {
     size = MEMORY_SIZE;
     buffer = new sbyte[size];
-    this->notifier = notifier;
     memset(buffer, 0, size);
     setupDataMemory();
 
     //Notify UI in case of reset or if it's loading another .hex file
-    this->notifier->addNotification(
-            IO_CHANGED_LISTENER, to_string(DDRD_ADDR) + ":" + to_string(buffer[DDRD_ADDR]));
-    this->notifier->addNotification(
-            IO_CHANGED_LISTENER, to_string(DDRC_ADDR) + ":" + to_string(buffer[DDRC_ADDR]));
-    this->notifier->addNotification(
-            IO_CHANGED_LISTENER, to_string(DDRB_ADDR) + ":" + to_string(buffer[DDRB_ADDR]));
-    this->notifier->addNotification(
-            IO_CHANGED_LISTENER, to_string(PORTD_ADDR) + ":" + to_string(buffer[PORTD_ADDR]));
-    this->notifier->addNotification(
-            IO_CHANGED_LISTENER, to_string(PORTC_ADDR) + ":" + to_string(buffer[PORTC_ADDR]));
-    this->notifier->addNotification(
-            IO_CHANGED_LISTENER, to_string(PORTB_ADDR) + ":" + to_string(buffer[PORTB_ADDR]));
+//    this->notifier->addNotification(
+//            IO_CHANGED_LISTENER, to_string(DDRD_ADDR) + ":" + to_string(buffer[DDRD_ADDR]));
+//    this->notifier->addNotification(
+//            IO_CHANGED_LISTENER, to_string(DDRC_ADDR) + ":" + to_string(buffer[DDRC_ADDR]));
+//    this->notifier->addNotification(
+//            IO_CHANGED_LISTENER, to_string(DDRB_ADDR) + ":" + to_string(buffer[DDRB_ADDR]));
+//    this->notifier->addNotification(
+//            IO_CHANGED_LISTENER, to_string(PORTD_ADDR) + ":" + to_string(buffer[PORTD_ADDR]));
+//    this->notifier->addNotification(
+//            IO_CHANGED_LISTENER, to_string(PORTC_ADDR) + ":" + to_string(buffer[PORTC_ADDR]));
+//    this->notifier->addNotification(
+//            IO_CHANGED_LISTENER, to_string(PORTB_ADDR) + ":" + to_string(buffer[PORTB_ADDR]));
 }
 
 DataMemory_ATMega328P::~DataMemory_ATMega328P() {
@@ -371,8 +370,8 @@ bool DataMemory_ATMega328P::write(smemaddr16 addr, void *data) {
         case DDRB_ADDR: {
             if (buffer[addr] != byte) {
                 buffer[addr] = byte;
-                this->notifier->addNotification(
-                        IO_CHANGED_LISTENER, to_string(addr) + ":" + to_string(byte));
+//                this->notifier->addNotification(
+//                        IO_CHANGED_LISTENER, to_string(addr) + ":" + to_string(byte));
             }
             break;
         }
@@ -382,23 +381,23 @@ bool DataMemory_ATMega328P::write(smemaddr16 addr, void *data) {
              */
         case PIND_ADDR: {
             buffer[PORTD_ADDR] = togglePort(buffer[PORTD_ADDR], byte);
-            this->notifier->addNotification(
-                    IO_CHANGED_LISTENER,
-                    to_string(PORTD_ADDR) + ":" + to_string(buffer[PORTD_ADDR]));
+//            this->notifier->addNotification(
+//                    IO_CHANGED_LISTENER,
+//                    to_string(PORTD_ADDR) + ":" + to_string(buffer[PORTD_ADDR]));
             break;
         }
         case PINC_ADDR: {
             buffer[PORTC_ADDR] = togglePort(buffer[PORTC_ADDR], byte);
-            this->notifier->addNotification(
-                    IO_CHANGED_LISTENER,
-                    to_string(PORTC_ADDR) + ":" + to_string(buffer[PORTC_ADDR]));
+//            this->notifier->addNotification(
+//                    IO_CHANGED_LISTENER,
+//                    to_string(PORTC_ADDR) + ":" + to_string(buffer[PORTC_ADDR]));
             break;
         }
         case PINB_ADDR: {
             buffer[PORTB_ADDR] = togglePort(buffer[PORTB_ADDR], byte);
-            this->notifier->addNotification(
-                    IO_CHANGED_LISTENER,
-                    to_string(PORTB_ADDR) + ":" + to_string(buffer[PORTB_ADDR]));
+//            this->notifier->addNotification(
+//                    IO_CHANGED_LISTENER,
+//                    to_string(PORTB_ADDR) + ":" + to_string(buffer[PORTB_ADDR]));
             break;
         }
         case OCR0A_ADDR: {

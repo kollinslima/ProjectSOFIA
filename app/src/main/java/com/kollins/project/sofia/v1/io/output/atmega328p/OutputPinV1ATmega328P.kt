@@ -22,21 +22,29 @@ class OutputPinV1ATmega328P : OutputInterface {
     private var outputBit = 0
     private var pinState = OutputState.TRI_STATE
 
-    private var highTime: LongArray = LongArray(METER_FILTER_SIZE) { 0 }
-    private var highTimeIndex = 0
-    private var wavePeriod: LongArray = LongArray(METER_FILTER_SIZE) { 0 }
-    private var wavePeriodIndex = 0
-    private var measureHighTime: Long = 0
-    private var lastRisingEdgeTimestamp: Long = 0
-
-
-    override fun ioUpdate(change: String) {
+    override fun ioChange(change: String) : Boolean{
         val splittedChange: List<String> = change.split(":")
         val register = splittedChange[0].toUByte()
         val value = splittedChange[1].toUByte()
-        outRegisters[register] = value
+        Log.d("TEST", "CONFIG OUT: " + outRegisters[register] + " vs $value")
+        if (outRegisters[register] != value) {
+            outRegisters[register] = value
+            return true;
+        }
+        return false;
+    }
 
-        updateOutputList(register, value)
+    override fun ioConfig(config: String) : Boolean{
+        val splittedConfig: List<String> = config.split(":")
+        val register = splittedConfig[0].toUByte()
+        val value = splittedConfig[1].toUByte()
+
+        if (outRegisters[register] != value) {
+            outRegisters[register] = value
+            updateOutputList(register, value)
+            return true;
+        }
+        return false;
     }
 
     private fun updateOutputList(register: UByte, value: UByte) {
@@ -94,11 +102,6 @@ class OutputPinV1ATmega328P : OutputInterface {
                 ddrAddr = 0x00u
             }
         }
-
-        //User has changed an output, reset meters
-        wavePeriod = LongArray(METER_FILTER_SIZE) { 0 }
-        highTime = LongArray(METER_FILTER_SIZE) { 0 }
-
     }
 
     override fun getPinIndex(): Int {
@@ -120,20 +123,6 @@ class OutputPinV1ATmega328P : OutputInterface {
             } else {
                 OutputState.HIGH
             }
-
-            if (oldPinState != pinState) {
-                val timestamp = SystemClock.elapsedRealtimeNanos()
-                if (pinState == OutputState.HIGH) {
-                    highTime[highTimeIndex] = measureHighTime
-                    wavePeriod[wavePeriodIndex] = timestamp - lastRisingEdgeTimestamp
-                    lastRisingEdgeTimestamp = timestamp
-                    measureHighTime = timestamp
-                    highTimeIndex = (highTimeIndex + 1) % METER_FILTER_SIZE
-                    wavePeriodIndex = (wavePeriodIndex + 1) % METER_FILTER_SIZE
-                } else {
-                    measureHighTime = timestamp - measureHighTime
-                }
-            }
         }
     }
 
@@ -149,26 +138,7 @@ class OutputPinV1ATmega328P : OutputInterface {
         return OutputPinV1ATmega328P()
     }
 
-    override fun updateSimulationSpeed() {
-        val timestamp = SystemClock.elapsedRealtimeNanos()
-        simulationSpeed[simulationSpeedArrayIndex] = timestamp - simulationSpeedTimestamp
-        simulationSpeedTimestamp = timestamp
-        simulationSpeedArrayIndex = (simulationSpeedArrayIndex + 1) % METER_FILTER_SIZE
-    }
-
-    override fun getFrequency(): Double {
-        return simulationSpeed.average() / wavePeriod.average()
-    }
-
-    override fun getDutyCycle(): Double {
-        return highTime.average() / wavePeriod.average()
-    }
-
     companion object {
-        var simulationSpeedTimestamp: Long = SystemClock.elapsedRealtimeNanos()
-        var simulationSpeed: LongArray = LongArray(METER_FILTER_SIZE) { 0 }
-        var simulationSpeedArrayIndex = 0
-
         var outRegisters = mutableMapOf<UByte, UByte>(
             IoRegisters.DDRB.addr to 0x00u,
             IoRegisters.PORTB.addr to 0x00u,
