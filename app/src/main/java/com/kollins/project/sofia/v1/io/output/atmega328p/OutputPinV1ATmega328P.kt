@@ -26,7 +26,6 @@ class OutputPinV1ATmega328P : OutputInterface {
         val splittedChange: List<String> = change.split(":")
         val register = splittedChange[0].toUByte()
         val value = splittedChange[1].toUByte()
-        Log.d("TEST", "CONFIG OUT: " + outRegisters[register] + " vs $value")
         if (outRegisters[register] != value) {
             outRegisters[register] = value
             return true;

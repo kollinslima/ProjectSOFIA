@@ -64,6 +64,11 @@ Device enumMap(JNIEnv *env, jobject uiEnum) {
     return ret;
 }
 ////////////////////// NDK -> UI Interface//////////////////////////////////////////
+void notifyScreenUpdate(JNIEnv *env, const char *msg) {
+    jmethodID id  = env->GetMethodID(mainCtx.activityClz, "screenUpdate", "()V");
+    env->CallVoidMethod(mainCtx.activityObj, id);
+}
+
 void notifyTimeUpdate(JNIEnv *env, const char *msg) {
     jmethodID id  = env->GetMethodID(mainCtx.activityClz, "timeUpdate", "(Ljava/lang/String;)V");
     env->CallVoidMethod(mainCtx.activityObj, id, env->NewStringUTF(msg));
@@ -116,6 +121,7 @@ JNI_OnLoad(JavaVM *vm, void *reserved) {
     mainCtx.activityClz = nullptr;
     mainCtx.activityObj = nullptr;
 
+    mainCtx.listeners[SCREEN_UPDATE_LISTENER] = notifyScreenUpdate;
     mainCtx.listeners[TIME_UPDATE_LISTENER] = notifyTimeUpdate;
     mainCtx.listeners[LOAD_SUCCESS_LISTENER] = notifyLoadSuccessful;
     mainCtx.listeners[CHECKSUM_ERROR_LISTENER] = notifyChecksumError;

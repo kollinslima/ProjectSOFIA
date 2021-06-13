@@ -93,6 +93,7 @@ void SofiaUiNotifier::dispatcher(JavaVM *vm, JNIEnv *env) {
     while (runDispatcher) {
         usleep(usNotPeriod);
         notificationList = device->getNotifications();
+        notificationList->emplace_back(SCREEN_UPDATE_LISTENER, "");
         while (!notificationList->empty()) {
             notification = notificationList->front();
             listeners[notification.first](env, notification.second.c_str());

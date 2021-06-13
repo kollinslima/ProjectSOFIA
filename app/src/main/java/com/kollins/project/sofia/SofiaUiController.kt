@@ -52,13 +52,16 @@ class SofiaUiController(mainUi: UiInterface) {
         ui.inputConfig(config)
     }
 
+    fun screenUpdate() {
+
+    }
+
     //////////////////// NATIVE FUNCTIONS ///////////////////////////
     //Core control
     private external fun startCore()
     external fun stopCore()
     external fun loadCore(s: Device, fd: Int)
     external fun disposeCore()
-
     external fun setNotificationPeriod(usPeriod: Int);
 
     //Device control
