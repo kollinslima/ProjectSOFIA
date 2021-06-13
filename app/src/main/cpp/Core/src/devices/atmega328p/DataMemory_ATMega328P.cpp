@@ -42,7 +42,8 @@
 #define TWI                 0x0030
 #define SPM_READY           0x0032
 
-DataMemory_ATMega328P::DataMemory_ATMega328P() {
+DataMemory_ATMega328P::DataMemory_ATMega328P(GenericMeter *meter) {
+    this->freqDcMeter = dynamic_cast<FreqDcMeter *>(meter);
     size = MEMORY_SIZE;
     buffer = new sbyte[size];
     memset(buffer, 0, size);
@@ -242,7 +243,7 @@ bool DataMemory_ATMega328P::checkInterruption(spc32 *interAddr) {
         ////////////////////////Watchdog time-out interrupt/////////////////////////
 
         ///////////////////////Timer/Counter2 compare match A///////////////////////
-        if(buffer[TIFR2_ADDR] & 0x02) {
+        if (buffer[TIFR2_ADDR] & 0x02) {
             *interAddr = TIMER2_COMPA;
             //The flag is cleared when the interrupt routine is executed.
             buffer[TIFR2_ADDR] &= 0xFD;
@@ -250,7 +251,7 @@ bool DataMemory_ATMega328P::checkInterruption(spc32 *interAddr) {
         }
 
         ///////////////////////Timer/Counter2 compare match B///////////////////////
-        if(buffer[TIFR2_ADDR] & 0x04) {
+        if (buffer[TIFR2_ADDR] & 0x04) {
             *interAddr = TIMER2_COMPB;
             //The flag is cleared when the interrupt routine is executed.
             buffer[TIFR2_ADDR] &= 0xFB;
@@ -258,7 +259,7 @@ bool DataMemory_ATMega328P::checkInterruption(spc32 *interAddr) {
         }
 
         //////////////////////////Timer/Counter2 overflow///////////////////////////
-        if(buffer[TIFR2_ADDR] & 0x01) {
+        if (buffer[TIFR2_ADDR] & 0x01) {
             *interAddr = TIMER2_OVF;
             //The flag is cleared when the interrupt routine is executed.
             buffer[TIFR2_ADDR] &= 0xFE;
@@ -266,7 +267,7 @@ bool DataMemory_ATMega328P::checkInterruption(spc32 *interAddr) {
         }
 
         ////////////////////////Timer/Counter1 capture event////////////////////////
-        if(buffer[TIFR1_ADDR] & 0x20) {
+        if (buffer[TIFR1_ADDR] & 0x20) {
             *interAddr = TIMER1_CAPT;
             //The flag is cleared when the interrupt routine is executed.
             buffer[TIFR2_ADDR] &= 0xDF;
@@ -274,7 +275,7 @@ bool DataMemory_ATMega328P::checkInterruption(spc32 *interAddr) {
         }
 
         ///////////////////////Timer/Counter1 compare match A///////////////////////
-        if(buffer[TIFR1_ADDR] & 0x02) {
+        if (buffer[TIFR1_ADDR] & 0x02) {
             *interAddr = TIMER1_COMPA;
             //The flag is cleared when the interrupt routine is executed.
             buffer[TIFR1_ADDR] &= 0xFD;
@@ -282,7 +283,7 @@ bool DataMemory_ATMega328P::checkInterruption(spc32 *interAddr) {
         }
 
         ///////////////////////Timer/Counter1 compare match B///////////////////////
-        if(buffer[TIFR1_ADDR] & 0x04) {
+        if (buffer[TIFR1_ADDR] & 0x04) {
             *interAddr = TIMER1_COMPB;
             //The flag is cleared when the interrupt routine is executed.
             buffer[TIFR1_ADDR] &= 0xFB;
@@ -290,7 +291,7 @@ bool DataMemory_ATMega328P::checkInterruption(spc32 *interAddr) {
         }
 
         //////////////////////////Timer/Counter1 overflow///////////////////////////
-        if(buffer[TIFR1_ADDR] & 0x01) {
+        if (buffer[TIFR1_ADDR] & 0x01) {
             *interAddr = TIMER1_OVF;
             //The flag is cleared when the interrupt routine is executed.
             buffer[TIFR1_ADDR] &= 0xFE;
@@ -298,7 +299,7 @@ bool DataMemory_ATMega328P::checkInterruption(spc32 *interAddr) {
         }
 
         ///////////////////////Timer/Counter0 compare match A///////////////////////
-        if(buffer[TIFR0_ADDR] & 0x02) {
+        if (buffer[TIFR0_ADDR] & 0x02) {
             *interAddr = TIMER0_COMPA;
             //The flag is cleared when the interrupt routine is executed.
             buffer[TIFR0_ADDR] &= 0xFD;
@@ -306,7 +307,7 @@ bool DataMemory_ATMega328P::checkInterruption(spc32 *interAddr) {
         }
 
         ///////////////////////Timer/Counter0 compare match B///////////////////////
-        if(buffer[TIFR0_ADDR] & 0x04) {
+        if (buffer[TIFR0_ADDR] & 0x04) {
             *interAddr = TIMER0_COMPB;
             //The flag is cleared when the interrupt routine is executed.
             buffer[TIFR0_ADDR] &= 0xFB;
@@ -314,7 +315,7 @@ bool DataMemory_ATMega328P::checkInterruption(spc32 *interAddr) {
         }
 
         //////////////////////////Timer/Counter0 overflow///////////////////////////
-        if(buffer[TIFR0_ADDR] & 0x01) {
+        if (buffer[TIFR0_ADDR] & 0x01) {
             *interAddr = TIMER0_OVF;
             //The flag is cleared when the interrupt routine is executed.
             buffer[TIFR0_ADDR] &= 0xFE;
@@ -330,7 +331,7 @@ bool DataMemory_ATMega328P::checkInterruption(spc32 *interAddr) {
         /////////////////////////////USART, Tx complete/////////////////////////////
 
         //////////////////////////ADC conversion complete///////////////////////////
-        if(buffer[ADCSRA_ADDR] & 0x08) {
+        if (buffer[ADCSRA_ADDR] & 0x08) {
             *interAddr = ADC;
             //The flag is cleared when the interrupt routine is executed.
             buffer[ADCSRA_ADDR] &= 0xF7;
@@ -364,40 +365,36 @@ bool DataMemory_ATMega328P::write(smemaddr16 addr, void *data) {
     switch (addr) {
         case PORTD_ADDR:
         case PORTC_ADDR:
-        case PORTB_ADDR:
-        case DDRD_ADDR:
-        case DDRC_ADDR:
-        case DDRB_ADDR: {
+        case PORTB_ADDR: {
             if (buffer[addr] != byte) {
+                this->freqDcMeter->measureFreqDc(addr, buffer[addr], byte);
                 buffer[addr] = byte;
-//                this->notifier->addNotification(
-//                        IO_CHANGED_LISTENER, to_string(addr) + ":" + to_string(byte));
             }
             break;
         }
+//        case DDRD_ADDR:
+//        case DDRC_ADDR:
+//        case DDRB_ADDR:
             /*
              * Writing a logic one to PINxn toggles the value of PORTxn,
              * independent on the value of DDRxn.
              */
         case PIND_ADDR: {
-            buffer[PORTD_ADDR] = togglePort(buffer[PORTD_ADDR], byte);
-//            this->notifier->addNotification(
-//                    IO_CHANGED_LISTENER,
-//                    to_string(PORTD_ADDR) + ":" + to_string(buffer[PORTD_ADDR]));
+            tmp = togglePort(buffer[PORTD_ADDR], byte);
+            freqDcMeter->measureFreqDc(addr, buffer[PORTD_ADDR], tmp);
+            buffer[PORTD_ADDR] = tmp;
             break;
         }
         case PINC_ADDR: {
-            buffer[PORTC_ADDR] = togglePort(buffer[PORTC_ADDR], byte);
-//            this->notifier->addNotification(
-//                    IO_CHANGED_LISTENER,
-//                    to_string(PORTC_ADDR) + ":" + to_string(buffer[PORTC_ADDR]));
+            tmp = togglePort(buffer[PORTC_ADDR], byte);
+            freqDcMeter->measureFreqDc(addr, buffer[PORTC_ADDR], tmp);
+            buffer[PORTC_ADDR] = tmp;
             break;
         }
         case PINB_ADDR: {
-            buffer[PORTB_ADDR] = togglePort(buffer[PORTB_ADDR], byte);
-//            this->notifier->addNotification(
-//                    IO_CHANGED_LISTENER,
-//                    to_string(PORTB_ADDR) + ":" + to_string(buffer[PORTB_ADDR]));
+            tmp = togglePort(buffer[PORTD_ADDR], byte);
+            freqDcMeter->measureFreqDc(addr, buffer[PORTD_ADDR], tmp);
+            buffer[PORTB_ADDR] = tmp;
             break;
         }
         case OCR0A_ADDR: {
@@ -475,9 +472,9 @@ bool DataMemory_ATMega328P::write(smemaddr16 addr, void *data) {
             }
             break;
         }
-        /* TODO: The ICR1 register can only be written when using a waveform generation mode that
-         * utilizes the ICR1 register for defining the counter’s TOP value.
-         */
+            /* TODO: The ICR1 register can only be written when using a waveform generation mode that
+             * utilizes the ICR1 register for defining the counter’s TOP value.
+             */
         case ICR1H_ADDR: {
             doubleBuffer[TEMP] = byte;
             break;
@@ -512,25 +509,27 @@ bool DataMemory_ATMega328P::write(smemaddr16 addr, void *data) {
             break;
         }
         case EIFR_ADDR: {
-            buffer[EIFR_ADDR] &= (~(byte&0x03));
+            buffer[EIFR_ADDR] &= (~(byte & 0x03));
             break;
         }
         case TIFR0_ADDR: {
-            buffer[TIFR0_ADDR] &= (~(byte&0x07));
+            buffer[TIFR0_ADDR] &= (~(byte & 0x07));
             break;
         }
         case TIFR1_ADDR: {
-            buffer[TIFR1_ADDR] &= (~(byte&0x27));
+            buffer[TIFR1_ADDR] &= (~(byte & 0x27));
             break;
         }
         case TIFR2_ADDR: {
-            buffer[TIFR2_ADDR] &= (~(byte&0x07));
+            buffer[TIFR2_ADDR] &= (~(byte & 0x07));
             break;
         }
         case ADCSRA_ADDR:
-            buffer[ADCSRA_ADDR] = (byte&0xAF) |
-                                  ((buffer[ADCSRA_ADDR] | byte)&0x40) |   // ADSC: ADC Start Conversion
-                                  ((buffer[ADCSRA_ADDR] & (~byte))&0x10); // ADIF: ADC Interrupt Flag
+            buffer[ADCSRA_ADDR] = (byte & 0xAF) |
+                                  ((buffer[ADCSRA_ADDR] | byte) & 0x40) |
+                                  // ADSC: ADC Start Conversion
+                                  ((buffer[ADCSRA_ADDR] & (~byte)) &
+                                   0x10); // ADIF: ADC Interrupt Flag
             break;
         default:
             buffer[SAFE_ADDR(addr, MEMORY_SIZE)] = byte;
@@ -615,6 +614,26 @@ int DataMemory_ATMega328P::getIoRegisters(int input, sbyte *ddr, sbyte *port, sb
         pos = input - PORTC_PIN_OFFSET;
     }
     return pos;
+}
+
+int DataMemory_ATMega328P::getPinNumber(smemaddr16 addr, int position) {
+    int ret = 0;
+    switch (addr) {
+        case PORTB_ADDR:
+            ret = (position < 6) ? PORTB_START_PIN + position : 9 + (position - 6);
+            break;
+        case PORTC_ADDR:
+            //PORTC contains only 7 pins
+            ret = (position < 6) ? PORTC_START_PIN + position : 0;
+            break;
+        case PORTD_ADDR:
+            ret = (position < 5) ? PORTD_START_PIN + position : 11 + (position - 5);
+            break;
+        default:
+            LOGE(SOFIA_DATA_MEMORY_ATMEGA328P_TAG, "Can't get pin number for %X (%d)", addr,
+                 position);
+    }
+    return ret;
 }
 
 void DataMemory_ATMega328P::setDigitalInput(int input, bool state) {

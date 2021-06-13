@@ -29,13 +29,16 @@ public:
     void start() override;
     void stop() override;
 
+    int getPinNumber(smemaddr16 addr, int position) override;
+
     void signalInput(int pin, float voltage) override;
 
     list<pair<int, string>> *getNotifications() override;
 
 private:
     bool isRunning;
-    unsigned int clockFreq;
+    unsigned int clockFreqHz;
+    unsigned int clockPerNs;
 
     float vcc;
     float minInputHight;

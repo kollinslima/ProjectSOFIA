@@ -27,9 +27,11 @@
 #define MIN_INPUT_HIGHT_VOLTAGE_PERCENTAGE  0.7
 #define MAX_INPUT_LOW_VOLTAGE_PERCENTAGE  0.1
 
+#define N_PINS 28
+
 ATMega328P::ATMega328P() :
-    dataMemory(),
-    adc(dataMemory){
+        dataMemory(this),
+        adc(dataMemory) {
 
     srand(time(nullptr));
 
@@ -51,26 +53,35 @@ ATMega328P::ATMega328P() :
 
     modules[ADC_MODULE_INDEX] = &adc;
 
-    clockFreq = DEFAULT_CLOCK_FREQ;
+    clockFreqHz = DEFAULT_CLOCK_FREQ;
+    clockPerNs = 1000000000 / DEFAULT_CLOCK_FREQ;
     vcc = DEFAULT_VCC;
-    minInputHight = MIN_INPUT_HIGHT_VOLTAGE_PERCENTAGE*vcc;
-    maxInputLow = MAX_INPUT_LOW_VOLTAGE_PERCENTAGE*vcc;
+    minInputHight = MIN_INPUT_HIGHT_VOLTAGE_PERCENTAGE * vcc;
+    maxInputLow = MAX_INPUT_LOW_VOLTAGE_PERCENTAGE * vcc;
     isRunning = false;
+
+    periodMeasure = new IoPeriods[N_PINS];
+    for (int i = 0; i < N_PINS; ++i) {
+        clock_gettime(CLOCK_REALTIME, &periodMeasure->dcPeriod);
+        clock_gettime(CLOCK_REALTIME, &periodMeasure->freqPeriod);
+    }
 }
 
 ATMega328P::~ATMega328P() {
     ATMega328P::stop();
 
-    for (auto & module : modules) {
+    for (auto &module : modules) {
         delete module;
     }
+
+    delete[] periodMeasure;
 }
 
 void ATMega328P::start() {
     if (!isRunning) {
         isRunning = true;
         for (unsigned int &i : syncCounter) {
-            i = clockFreq;
+            i = clockFreqHz;
         }
 
         for (int i = 0; i < NUM_MODULES; ++i) {
@@ -118,7 +129,7 @@ void ATMega328P::signalInput(int pin, float voltage) {
      */
     if (isAnalogInput(pin)) {
         //TODO: Handle voltage in mV to avoid using float
-        adc.setAnalogInput(pin-LOWEST_ANALOG_PIN_NUMBER, voltage);
+        adc.setAnalogInput(pin - LOWEST_ANALOG_PIN_NUMBER, voltage);
     }
 }
 
@@ -143,7 +154,7 @@ bool ATMega328P::getLogicState(int pin, float voltage) {
         return true;
     } else {
         if (dataMemory.isPullUpDisabled(pin)) {
-            return rand()%2;
+            return rand() % 2;
         } else {
             return true;
         }
@@ -156,19 +167,25 @@ list<pair<int, string>> *ATMega328P::getNotifications() {
 
     //IO Configuration
     dataMemory.read(DDRB_ADDR, &byte);
-    notificationList->emplace_back(IO_CONFIGURE_LISTENER, to_string(DDRB_ADDR) + ":" + to_string(byte));
+    notificationList->emplace_back(IO_CONFIGURE_LISTENER,
+                                   to_string(DDRB_ADDR) + ":" + to_string(byte));
     dataMemory.read(DDRC_ADDR, &byte);
-    notificationList->emplace_back(IO_CONFIGURE_LISTENER, to_string(DDRC_ADDR) + ":" + to_string(byte));
+    notificationList->emplace_back(IO_CONFIGURE_LISTENER,
+                                   to_string(DDRC_ADDR) + ":" + to_string(byte));
     dataMemory.read(DDRD_ADDR, &byte);
-    notificationList->emplace_back(IO_CONFIGURE_LISTENER, to_string(DDRD_ADDR) + ":" + to_string(byte));
+    notificationList->emplace_back(IO_CONFIGURE_LISTENER,
+                                   to_string(DDRD_ADDR) + ":" + to_string(byte));
 
     //IO State
     dataMemory.read(PORTB_ADDR, &byte);
-    notificationList->emplace_back(IO_CHANGED_LISTENER, to_string(PORTB_ADDR) + ":" + to_string(byte));
+    notificationList->emplace_back(IO_CHANGED_LISTENER,
+                                   to_string(PORTB_ADDR) + ":" + to_string(byte));
     dataMemory.read(PORTC_ADDR, &byte);
-    notificationList->emplace_back(IO_CHANGED_LISTENER, to_string(PORTC_ADDR) + ":" + to_string(byte));
+    notificationList->emplace_back(IO_CHANGED_LISTENER,
+                                   to_string(PORTC_ADDR) + ":" + to_string(byte));
     dataMemory.read(PORTD_ADDR, &byte);
-    notificationList->emplace_back(IO_CHANGED_LISTENER, to_string(PORTD_ADDR) + ":" + to_string(byte));
+    notificationList->emplace_back(IO_CHANGED_LISTENER,
+                                   to_string(PORTD_ADDR) + ":" + to_string(byte));
 
     return notificationList;
 }
@@ -177,7 +194,7 @@ void ATMega328P::moduleThread(int index) {
     while (isRunning) {
         modules[index]->run();
         syncCounter[index]--;
-        while (!syncCounter[index]) {usleep(1000);}
+        while (!syncCounter[index]) { usleep(1000); }
     }
     syncCounter[index] = 0;
 }
@@ -187,15 +204,23 @@ void ATMega328P::syncronizationThread() {
     unsigned int initialCondition[NUM_MODULES];
 
     for (unsigned int &i : initialCondition) {
-        i = clockFreq;
+        i = clockFreqHz;
     }
     memset(finishCondition, 0, sizeof(finishCondition));
 
     while (true) {
-        while (memcmp(syncCounter, finishCondition, sizeof(syncCounter)) != 0) {usleep(1000);}
+        while (memcmp(syncCounter, finishCondition, sizeof(syncCounter)) != 0) {
+            simulatedTime.tv_nsec = clockPerNs * (clockFreqHz - syncCounter[0]);
+            usleep(1000);
+        }
         if (!isRunning) { break; }
-        simulatedTime++;
+        simulatedTime.tv_sec++;
+        simulatedTime.tv_nsec = 0;
         memcpy(syncCounter, initialCondition, sizeof(syncCounter));
     }
+}
+
+int ATMega328P::getPinNumber(smemaddr16 addr, int position) {
+    return dataMemory.getPinNumber(addr, position);
 }
 

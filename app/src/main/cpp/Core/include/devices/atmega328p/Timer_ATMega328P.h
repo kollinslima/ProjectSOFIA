@@ -46,7 +46,6 @@ protected:
     sbyte tccrxaReg;
     sbyte tccrxbReg;
     sbyte interrFlags;
-    bool outAUpdated, outBUpdated;
     sbyte tmp; //Auxiliar for compare output change
 
     sword16 ocrxa, ocrxb, bottom{}, top{}, endOfScale{};

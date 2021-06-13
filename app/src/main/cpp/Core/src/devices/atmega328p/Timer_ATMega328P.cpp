@@ -46,9 +46,6 @@ Timer_ATMega328P::Timer_ATMega328P(DataMemory_ATMega328P &dataMemory) :
     matchB = false;
     upCount = true;
 
-    outAUpdated = false;
-    outBUpdated = false;
-
     interrFlags = 0x00;
 
     setupClockSourceDecoder();
@@ -87,8 +84,6 @@ void Timer_ATMega328P::setupOperationMode() {
 
 void Timer_ATMega328P::prepare() {
     interrFlags = 0x00;
-    outAUpdated = false;
-    outBUpdated = false;
 }
 
 void Timer_ATMega328P::run() {
@@ -150,7 +145,9 @@ void Timer_ATMega328P::normalCtc() {
                 datMem.buffer[outARegAddr] = datMem.buffer[outARegAddr] | ocxaMask;
                 break;
         }
-        outAUpdated = (tmp != datMem.buffer[outARegAddr]);
+        if(tmp != datMem.buffer[outARegAddr]) {
+            datMem.freqDcMeter->measureFreqDc(outARegAddr, tmp, datMem.buffer[outARegAddr]);
+        }
     }
     if (matchB) {
         tmp = datMem.buffer[outBRegAddr];
@@ -167,7 +164,9 @@ void Timer_ATMega328P::normalCtc() {
                 datMem.buffer[outBRegAddr] = datMem.buffer[outBRegAddr] | ocxbMask;
                 break;
         }
-        outBUpdated = (tmp != datMem.buffer[outBRegAddr]);
+        if(tmp != datMem.buffer[outBRegAddr]) {
+            datMem.freqDcMeter->measureFreqDc(outBRegAddr, tmp, datMem.buffer[outBRegAddr]);
+        }
     }
 }
 
@@ -213,7 +212,9 @@ void Timer_ATMega328P::pwmDualSlope(bool ocxaToggleEnable) {
             }
             break;
     }
-    outAUpdated = (tmp != datMem.buffer[outARegAddr]);
+    if(tmp != datMem.buffer[outARegAddr]) {
+        datMem.freqDcMeter->measureFreqDc(outARegAddr, tmp, datMem.buffer[outARegAddr]);
+    }
 
     tmp = datMem.buffer[outBRegAddr];
     switch (tccrxaReg & COMXB_MASK) {
@@ -238,7 +239,9 @@ void Timer_ATMega328P::pwmDualSlope(bool ocxaToggleEnable) {
             }
             break;
     }
-    outBUpdated = (tmp != datMem.buffer[outBRegAddr]);
+    if(tmp != datMem.buffer[outBRegAddr]) {
+        datMem.freqDcMeter->measureFreqDc(outBRegAddr, tmp, datMem.buffer[outBRegAddr]);
+    }
 
     if (progress == bottom) {
         interrFlags |= OVERFLOW_INTERRUPT;
@@ -286,7 +289,9 @@ void Timer_ATMega328P::pwmSingleSlope() {
             }
             break;
     }
-    outAUpdated = (tmp != datMem.buffer[outARegAddr]);
+    if(tmp != datMem.buffer[outARegAddr]) {
+        datMem.freqDcMeter->measureFreqDc(outARegAddr, tmp, datMem.buffer[outARegAddr]);
+    }
 
     tmp = datMem.buffer[outBRegAddr];
     switch (tccrxaReg & COMXB_MASK) {
@@ -309,7 +314,9 @@ void Timer_ATMega328P::pwmSingleSlope() {
             }
             break;
     }
-    outBUpdated = (tmp != datMem.buffer[outBRegAddr]);
+    if(tmp != datMem.buffer[outBRegAddr]) {
+        datMem.freqDcMeter->measureFreqDc(outBRegAddr, tmp, datMem.buffer[outBRegAddr]);
+    }
 }
 
 void Timer_ATMega328P::normal() {

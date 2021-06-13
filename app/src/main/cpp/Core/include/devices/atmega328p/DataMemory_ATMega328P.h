@@ -7,7 +7,9 @@
 
 
 #include "../components/avr/memory/GenericAVRDataMemory.h"
+#include "../../../include/devices/meters/GenericMeter.h"
 #include "../../../include/SofiaCoreController.h"
+#include "../meters/FreqDcMeter.h"
 #include <string>
 
 #define UDR0_ADDR           0xC6
@@ -139,8 +141,9 @@
 
 #define PORTB_START_PIN 14
 #define PORTC_START_PIN 23
+#define PORTD_START_PIN 2
 
-#define PORTD_PIN_OFFSET 2
+#define PORTD_PIN_OFFSET PORTD_START_PIN
 #define PORTB_PIN_OFFSET PORTB_START_PIN
 #define PORTC_PIN_OFFSET PORTC_START_PIN
 
@@ -155,7 +158,7 @@ public:
     friend class Timer1_ATMega328P;
     friend class Timer2_ATMega328P;
 
-    DataMemory_ATMega328P();
+    DataMemory_ATMega328P(GenericMeter *meter);
 
     ~DataMemory_ATMega328P();
 
@@ -177,9 +180,13 @@ public:
     bool isPullUpDisabled(int input);
     void setDigitalInput(int input, bool state);
 
+    int getPinNumber(smemaddr16 addr, int position);
+
 private:
     sbyte doubleBuffer[DOUBLE_BUFFER_SIZE];
 
+    sbyte tmp; //Auxiliar for compare output change
+    FreqDcMeter *freqDcMeter;
     void setupDataMemory();
 
     int getIoRegisters(int input, sbyte *ddr = nullptr, sbyte *port = nullptr, sbyte *pin = nullptr);
